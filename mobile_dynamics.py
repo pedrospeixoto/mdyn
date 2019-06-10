@@ -139,13 +139,14 @@ class MobileDynamics:
                 df_local.to_pickle (local_dir+"data.pkl") 
 
             self.df = df_local
-
+            self.n = len(df_local)
             return self
 
         def org_day_data(self, dflocal):
             #Organize data into nice dataframe
 
             n=len(dflocal)
+            
             labels=list(self.col_labels)
             dfout = pd.DataFrame(index=np.arange(0, n), columns=labels, dtype='float')
             
@@ -235,11 +236,31 @@ class MobileDynamics:
                 self.df['lng0'].values, self.df['lat1'].values)
 
             #Velocities
-            with np.errstate(divide='ignore', invalid='ignore'):
-                self.df['vel1']=np.where(abs(self.df['dt1'].values)<=0.001, 0.0, self.df['dist1'].values/self.df['dt1'].values)
-                self.df['velx1']=np.where(abs(self.df['dt1'].values)<=0.001, 0.0, self.df['distx1'].values/self.df['dt1'].values)
-                self.df['vely1']=np.where(abs(self.df['dt1'].values)<=0.001, 0.0, self.df['disty1'].values/self.df['dt1'].values)
+            vel1=np.zeros(self.n)
+            velx1=np.zeros(self.n)
+            vely1=np.zeros(self.n)
+            print("Calculating velocities")
+            for i, dt in enumerate(tqdm.tqdm(self.df['dt1'].values)):
+                if dt > 0.0001:
+                    vel1[i]=np.true_divide(self.df['dist1'].values[i],float(dt))
+                    velx1[i]=np.true_divide(self.df['distx1'].values[i],float(dt))
+                    vely1[i]=np.true_divide(self.df['disty1'].values[i],float(dt))
+
+                #self.df['vel1'][self.df['vel1'] == np.inf] = 0
+                #self.df['vel1'] = np.nan_to_num(self.df['vel1'])
+                            
+                #self.df['velx1']=np.true_divide(self.df['distx1'].values,self.df['dt1'].values)
+                #self.df['velx1'][self.df['velx1'] == np.inf] = 0
+                #self.df['velx1'] = np.nan_to_num(self.df['vel1'])
             
+                #self.df['vely1']=np.true_divide(self.df['disty1'].values,self.df['dt1'].values)
+                #self.df['velx1'][self.df['velx1'] == np.inf] = 0
+                #self.df['velx1'] = np.nan_to_num(self.df['velx1'])
+
+            self.df['vel1']=vel1
+            self.df['velx1']=velx1
+            self.df['vely1']=vely1
+
             #Angle from North (positive clock and negative counter-clock)
             self.df['angle']=[math.atan2(self.df['velx1'].values[i],self.df['vely1'].values[i]) for i in range(len(self.df)) ]
             
@@ -248,7 +269,7 @@ class MobileDynamics:
 
             #Angle Quadrant - 0 is north, 2 east - clockwith
             dtheta=2*math.pi/8
-            self.df['quad']=((self.df['angle'].values+dtheta/100.0)/dtheta)%8
+            self.df['quad']=np.trunc(((self.df['angle'].values+dtheta/100.0)/dtheta)%8).astype(int)
 
             #Directions
             self.df['angle_deg']=self.df['angle']*360.0/(2.0*math.pi)
@@ -275,6 +296,7 @@ class MobileDynamics:
 
             dyn=[[None]*(self.nlon+2) for _ in range(self.nlat+2)] #np.empty([self.nlat+1,self.nlon+1])
             self.dist_bins = [0, 15, 30, 50, 100, 300, 500, 1000, np.inf]
+            self.vel_bins = [0, 1, 10, 20, 30, 50, 100, 300, 500, 1000, np.inf]
             self.angle_bins = np.arange(8) #quadrants
             print("Calculating windroses:")
             if False:
@@ -288,18 +310,32 @@ class MobileDynamics:
                         filter4=self.df['lat0']<(lat+self.dlat)
                         local_df = self.df[filter1 & filter2 & filter3 & filter4] 
 
-                        freq=np.zeros((int(len(self.angle_bins)), int(len(self.dist_bins))), dtype=float)
+                        freq=np.zeros( (int(len(self.angle_bins)), 
+                                       #int(len(self.dist_bins)), 
+                                       int(len(self.vel_bins))), 
+                                        dtype=int)
 
                         n=len(local_df)
                         if n>0:
-                            for k, dist in enumerate(self.dist_bins[:-1]):
-                                local_df_dist=local_df[local_df["dist1"]>=dist]
-                                local_df_dist=local_df_dist[local_df_dist["dist1"]<self.dist_bins[k+1]]
-                                for l, quad in enumerate(self.angle_bins):
-                                    freq=len(local_df_dist[local_df_dist['quad']==quad])/n
+                            print(local_df)
+                            for l, quad in enumerate(self.angle_bins):
+                                local_df_quad=local_df[local_df['quad']==quad]
+                                if(len(local_df_quad)):
+                                    #print(l, quad, local_df_quad)
+                                    for k, vel in enumerate(self.vel_bins[:-1]):
+                                        local_df_vel=local_df_quad[local_df_quad["vel1"]>=vel]
+                                        local_df_vel=local_df_vel[local_df_quad["vel1"]<self.vel_bins[k+1]]
+                                        freq[l,k]=len(local_df_vel)
+                                        #print(k, vel, freq[l,k])
+                                #freq=len(local_df_quad[local_df_dist['quad']==quad])/float(n)
+                                #local_df_dist=local_df[local_df["dist1"]>=dist]
+                                #    local_df_dist=local_df_dist[local_df_dist["dist1"]<self.dist_bins[k+1]]
+                                #    for l, quad in enumerate(self.angle_bins):
+                                #        freq=len(local_df_dist[local_df_dist['quad']==quad])/float(n)
 
-                        dyn[i][j]=freq
-                        #print(dyn[i][j])
+                            dyn[i][j]=freq
+                            print(i, j, lon, lat)
+                            print( dyn[i][j])
                 #print(dyn)
 
     def set_global_domain(self):
