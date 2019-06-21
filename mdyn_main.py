@@ -132,7 +132,9 @@ class MobileDynamics:
                 self.region_grid[i,j]=self.network.regions[reg][2]
 
         self.map_data(self.region_grid, "Regions")
-        plt.show()
+        #plt.show()
+
+        
 
     #Create map
     def map_base(self):
@@ -185,4 +187,11 @@ class MobileDynamics:
         cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=20, fraction=0.1, pad=0.01)
         cbar.set_label(title,size=12)
     
+    def test_map_shapes(self):
+        #geo_df = gpd.read_file('../Maps/SP-MUN/35MUE250GC_SIR.shp')
+        geo_df = gpd.read_file('maps/UFEBRASIL.shp')
+        fig,ax =plt.subplots(figsize =(10,10))
+        print(geo_df.head())
+        geo_df.plot(column='NM_ESTADO',  cmap='Set3', ax=ax, edgecolor='grey')
+        plt.show()
     
