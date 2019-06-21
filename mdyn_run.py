@@ -16,6 +16,7 @@ warnings.filterwarnings("ignore")
 mdyn=MobileDynamics(sys.argv)
 mdyn.calc_diagnostics()
 mdyn.set_network_grid("SP", 15)
+#mdyn.test_map_shapes()
 
 #Analyse data
 for i in range(3):
