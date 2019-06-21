@@ -7,14 +7,15 @@ import time
 
 import matplotlib.pyplot as plt
 
-from mobile_dynamics import MobileDynamics
+from mdyn_main import MobileDynamics
 
 warnings.filterwarnings("ignore")
 
 
 #Initialize mobile data and load data to dataframe 
 mdyn=MobileDynamics(sys.argv)
-
+mdyn.calc_diagnostics()
+mdyn.set_network_grid("SP", 15)
 
 #Analyse data
 for i in range(3):
