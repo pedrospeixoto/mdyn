@@ -123,16 +123,12 @@ class MobileDynamics:
         self.lon_bins_2d_c, self.lat_bins_2d_c = np.meshgrid(self.lon_bins_c, self.lat_bins_c)
 
     #Build city network
-    def set_network_grid(self, state, n):
-        self.network=Network(state, n)
-        self.region_grid=np.zeros((self.nlat+1, self.nlon+1))
-        for i, lat in enumerate(self.lat_bins):
-            for j, lon in enumerate(self.lon_bins):
-                reg=self.network.get_closest_region(lat, lon)
-                self.region_grid[i,j]=self.network.regions[reg][2]
-
-        self.map_data(self.region_grid, "Regions")
-        #plt.show()
+    def set_network_grid(self, state):
+        self.network=Network(state)
+        self.network.network_grid(self.lat_bins, self.lon_bins)
+        
+        self.map_data(self.network.region_grid, "Regions")
+        plt.show()
 
         
 
@@ -186,12 +182,4 @@ class MobileDynamics:
 
         cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=20, fraction=0.1, pad=0.01)
         cbar.set_label(title,size=12)
-    
-    def test_map_shapes(self):
-        #geo_df = gpd.read_file('../Maps/SP-MUN/35MUE250GC_SIR.shp')
-        geo_df = gpd.read_file('maps/UFEBRASIL.shp')
-        fig,ax =plt.subplots(figsize =(10,10))
-        print(geo_df.head())
-        geo_df.plot(column='NM_ESTADO',  cmap='Set3', ax=ax, edgecolor='grey')
-        plt.show()
     

@@ -20,7 +20,9 @@ import matplotlib.colors as colors
 import matplotlib.cm as cm
 
 import geopy.distance
+import geopandas as gpd
 from windrose import WindroseAxes
+from shapely.geometry import Point, Polygon
 
 import tqdm 
 
@@ -29,12 +31,12 @@ from mdyn_extras import *
 
 class Network():
     cities = {}
-    def __init__(self, state, n):
-        self.load_state_data(state, n)
+    def __init__(self, state):
+        self.load_state_data(state)
 
 
 
-    def load_state_data(self, state, n):
+    def load_state_data(self, state):
 
         #State = string with Brazilian state abbrev
         # n = number of cities to include
@@ -86,6 +88,9 @@ class Network():
                 "Piracicaba":[-22.43, -47.38, 6]
             }
 
+            #Get state shape polygon
+            self.state_shape(state)
+
     def get_closest_region(self, lat, lon):
         dist=1000000.0
         regname=""
@@ -98,4 +103,37 @@ class Network():
                 dist=dist_tmp
         
         return regname
+
+    def state_shape(self, state):
+        #geo_df = gpd.read_file('../Maps/SP-MUN/35MUE250GC_SIR.shp')
+        geo_df = gpd.read_file('maps/UFEBRASIL.shp')
+        #fig,ax =plt.subplots(figsize =(10,10))
+        #print(geo_df.head())
+        if state == 'SP':
+            self.state_poly=geo_df[geo_df.NM_ESTADO == 'SÃO PAULO'].geometry.values[0]
+        else:
+            self.state_poly=geo_df[geo_df.NM_ESTADO == state].geometry.values[0]
+        
+        #self.centroid=self.state_poly.centroid
+        #print(self.centroid.within(self.state_poly))
+        #print(p1.within(poly))
+        #geo_df.plot(column='NM_ESTADO',  cmap='Set3', ax=ax, edgecolor='grey')
+        #plt.show()
+    
+    #Build city network
+    def network_grid(self, lat_bins, lon_bins):
+        nlat=len(lat_bins)
+        nlon=len(lon_bins)
+        self.region_grid=np.zeros((nlat+1, nlon+1))       
+        
+        for i, lat in enumerate(lat_bins):
+            for j, lon in enumerate(lon_bins):
+                p=Point(lon, lat)
+                instate=p.within(self.state_poly)
+                if instate:
+                    reg=self.get_closest_region(lat, lon)
+                    self.region_grid[i,j]=self.regions[reg][2]
+                else:
+                    self.region_grid[i,j]=np.nan
+    
         

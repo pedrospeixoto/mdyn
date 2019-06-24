@@ -15,8 +15,8 @@ warnings.filterwarnings("ignore")
 #Initialize mobile data and load data to dataframe 
 mdyn=MobileDynamics(sys.argv)
 mdyn.calc_diagnostics()
-mdyn.set_network_grid("SP", 15)
-#mdyn.test_map_shapes()
+mdyn.set_network_grid("SP")
+
 
 #Analyse data
 for i in range(3):
