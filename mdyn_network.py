@@ -31,16 +31,17 @@ from mdyn_extras import *
 
 class Network():
     cities = {}
-    def __init__(self, state):
-        self.load_state_data(state)
+    def __init__(self, main_state):
+        print("Creating/Loading network structure")
+        self.load_state_data(main_state)
 
 
 
-    def load_state_data(self, state):
+    def load_state_data(self, main_state):
 
         #State = string with Brazilian state abbrev
         # n = number of cities to include
-        if state=="SP": 
+        if main_state=="SP": 
         #Source https://g1.globo.com/sp/sao-paulo/noticia/2018/08/29/cidade-de-sao-paulo-tem-122-milhoes-de- -e-e-a-mais-populosa-do-pais.ghtml
             self.city_pop={
                 "São Paulo":12176866,  
@@ -88,52 +89,108 @@ class Network():
                 "Piracicaba":[-22.43, -47.38, 6]
             }
 
-            #Get state shape polygon
-            self.state_shape(state)
+            self.regions_in = { #index of regions in main state
+                0:"GrandeSP",
+                1:"Campinas",
+                2:"SJC",  
+                3:"RP",  
+                4:"Sorocaba",  
+                5:"SJRP",  
+                6:"Pira"
+            }
+            
+            self.state_dict={
+                "RONDÔNIA":"RO",
+                "ACRE":"AC",
+                "AMAZONAS":"AM",
+                "RORAIMA":"RR",
+                "PARÁ":"PA",
+                "AMAPÁ":"AP",
+                "TOCANTINS":"TO",
+                "MARANHÃO":"MA",
+                "PIAUÍ":"PI",
+                "CEARÁ":"CE",
+                "RIO GRANDE DO NORTE":"RN",
+                "PARAÍBA":"PB",
+                "PERNAMBUCO":"PE",
+                "ALAGOAS":"AL",
+                "SERGIPE":"SE",
+                "BAHIA":"BA",
+                "MINAS GERAIS":"MG",
+                "ESPIRITO SANTO":"ES",
+                "RIO DE JANEIRO":"RJ",
+                "SÃO PAULO":"SP",
+                "PARANÁ":"PR",
+                "SANTA CATARINA":"SC",
+                "RIO GRANDE DO SUL":"RS",
+                "MATO GROSSO DO SUL":"MS",
+                "MATO GROSSO":"MT",
+                "GOIÁS":"GO",
+                "DISTRITO FEDERAL":"DF"
+            }
+
+            #Get map shapes
+            #if os.path.exists('maps/UFBRASIL_mdyn.shp'):
+            #    df = gpd.read_file('maps/UFEBRASIL_mdyn.shp')
+            #    print("  Modified shape file loaded.")
+            #else: #Build map structure with neighbours
+            df = gpd.read_file('maps/UFEBRASIL.shp')
+            print("  Loaded basic shape file - creating neighbour structure...", end = '')
+
+            df["name"] = None #add abreviated name column
+            for index, state in df.iterrows():   
+                df.at[index, "name"] = self.state_dict.get(state.NM_ESTADO, state.NM_ESTADO)
+
+            df["NEIGHBORS"] = None  # add NEIGHBORS column
+            for index, state in df.iterrows():   
+                # get 'not disjoint' countries
+                neighbors = df[~df.geometry.disjoint(state.geometry)].name.tolist()
+                # remove own name from the list
+                neighbors = [ name for name in neighbors if state.name != name ]
+                # add names of neighbors as NEIGHBORS value
+                df.at[index, "NEIGHBORS"] = ",".join(neighbors)
+            
+            self.main_state_poly=df[df.name == main_state].geometry.values[0]
+            self.main_state_neighb = df[df.name == main_state].NEIGHBORS.values[0]
+            self.main_state_neighb = self.main_state_neighb.split(',') 
+            self.nb_states=df[df['name'].isin(self.main_state_neighb)]
+
+            self.regions_out = self.nb_states['name'].to_dict() 
+            
+            #df.to_file('maps/UFEBRASIL_mdyn.shp')
+            print("  done.")
+            print()
 
     def get_closest_region(self, lat, lon):
         dist=1000000.0
-        regname=""
-        for reg in self.regions:
-            lat_tmp=self.regions[reg][0]
-            lon_tmp=self.regions[reg][1]
-            dist_tmp=distance([lon], [lat], [lon_tmp], [lat_tmp])
-            if dist_tmp < dist : 
-                regname=reg
-                dist=dist_tmp
-        
-        return regname
-
-    def state_shape(self, state):
-        #geo_df = gpd.read_file('../Maps/SP-MUN/35MUE250GC_SIR.shp')
-        geo_df = gpd.read_file('maps/UFEBRASIL.shp')
-        #fig,ax =plt.subplots(figsize =(10,10))
-        #print(geo_df.head())
-        if state == 'SP':
-            self.state_poly=geo_df[geo_df.NM_ESTADO == 'SÃO PAULO'].geometry.values[0]
+        p=Point(lon, lat)
+        inmainstate=p.within(self.main_state_poly)
+        ireg=np.nan
+        if inmainstate:
+            for reg in self.regions:
+                lat_tmp=self.regions[reg][0]
+                lon_tmp=self.regions[reg][1]
+                dist_tmp=distance([lon], [lat], [lon_tmp], [lat_tmp])
+                if dist_tmp < dist: 
+                    dist=dist_tmp
+                    ireg=self.regions[reg][2]
         else:
-            self.state_poly=geo_df[geo_df.NM_ESTADO == state].geometry.values[0]
-        
-        #self.centroid=self.state_poly.centroid
-        #print(self.centroid.within(self.state_poly))
-        #print(p1.within(poly))
-        #geo_df.plot(column='NM_ESTADO',  cmap='Set3', ax=ax, edgecolor='grey')
-        #plt.show()
-    
+            #check if in neighbour states
+            for index, state in self.nb_states.iterrows(): 
+                innbstate=p.within(state.geometry)
+                if innbstate:
+                    ireg=(-1)*index
+
+        return ireg
+
     #Build city network
     def network_grid(self, lat_bins, lon_bins):
         nlat=len(lat_bins)
         nlon=len(lon_bins)
         self.region_grid=np.zeros((nlat+1, nlon+1))       
-        
-        for i, lat in enumerate(lat_bins):
+        print("Building grid network...")
+        for i, lat in enumerate(tqdm.tqdm(lat_bins)):
             for j, lon in enumerate(lon_bins):
-                p=Point(lon, lat)
-                instate=p.within(self.state_poly)
-                if instate:
-                    reg=self.get_closest_region(lat, lon)
-                    self.region_grid[i,j]=self.regions[reg][2]
-                else:
-                    self.region_grid[i,j]=np.nan
-    
+                self.region_grid[i,j]=self.get_closest_region(lat, lon)
+                
         
