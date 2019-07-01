@@ -26,7 +26,7 @@ import tqdm as tqdm
 
 from mdyn_domain import Domain, Map
 
-from mdyn_extras import distance, distance_lat, distance_lon, daterange
+from mdyn_extras import distance, distance_lat, distance_lon, daterange, timestamp2datetime, list_files_pkl
 
 
 #Main class for dataframe for a single day
@@ -62,37 +62,43 @@ class DayData:
             return self #empty dataframe
         
         loaded = False
-        #print(os.listdir(local_dir))
-        for filename in os.listdir(local_dir):
-            #Check if data already saved in folder nicely formated
-            if filename[-4:] == ".pkl":
-                print("Found a pickle file: ", filename, ". Loading data.")
-                df_local = pd.read_pickle(local_dir+filename)
-                #print(df_local)
-                loaded = True
-                break
+        pklfiles = list_files_pkl(local_dir)
+        #Do we have a pickle file!
+        for f in pklfiles:
+            print("Found a pickle file: ", f, ". Loading data.")
+            df_local = pd.read_pickle(local_dir+f)
+            loaded = True
 
-            #Get data and convert to df pandas
-            try:
-                print(" Reading: ",filename)
-                orc_file = orc.ORCFile(local_dir+filename)
-                data = orc_file.read()
-            except:
-                print(" File not in orc format: ", filename, ". Ignoring.")
-                continue
+        if not loaded:
+            for filename in os.listdir(local_dir):
+                #Check if data already saved in folder nicely formated
+                #if filename[-4:] == ".pkl":
+                #    print("Found a pickle file: ", filename, ". Loading data.")
+                #    df_local = pd.read_pickle(local_dir+filename)
+                #    loaded = True
+                #    break
 
-            #Organize data and save in main data_frame
-            df_tmp = pd.DataFrame(data.to_pandas())
-            df_tmp = self.org_day_data(df_tmp)
-            df_local = pd.concat([df_local, df_tmp], ignore_index=True )
+                #Get data and convert to df pandas
+                try:
+                    print(" Reading: ",filename)
+                    orc_file = orc.ORCFile(local_dir+filename)
+                    data = orc_file.read()
+                except:
+                    print(" File not in orc format: ", filename, ". Ignoring.")
+                    continue
 
-        if not loaded: #save organized data
+                #Organize data and save in main data_frame
+                df_tmp = pd.DataFrame(data.to_pandas())
+                df_tmp = self.org_day_data(df_tmp)
+                df_local = pd.concat([df_local, df_tmp], ignore_index=True )
+            
             print(" Saving dataframe for future use as data.csv and data.pkl")
             df_local.to_csv (local_dir+"data.csv", header=True) #Don't forget to add '.csv' at the end of the path
             df_local.to_pickle (local_dir+"data.pkl") 
-
+        
         self.df = df_local
         self.n = len(df_local)
+        
         return self
 
     def org_day_data(self, dflocal):
@@ -105,7 +111,6 @@ class DayData:
         
         #Data has always 3 events
         for idx, d0, d1, d2 in dflocal.itertuples():
-            
             try:
                 dfout.at[idx, 'time0']=timestamp2datetime(d0['timestamp'])
                 dfout.at[idx, 'lng0']=d0['location']['lng']
@@ -126,7 +131,7 @@ class DayData:
                 dfout.at[idx, 'lat2']=d2['location']['lat']
             except:
                 pass
-
+        
         return dfout
     
     def set_day_domain(self):
@@ -198,7 +203,7 @@ class DayData:
             self.df['disty1']=distance_lat(
                 self.df['lng0'].values, self.df['lat0'].values, 
                 self.df['lng0'].values, self.df['lat1'].values)
-                
+
             #Velocities
             vel1=np.zeros(self.n)
             velx1=np.zeros(self.n)
@@ -248,20 +253,20 @@ class DayData:
                 #print(self.lat_bins)
                 #print(self.lon_bins)
 
-                dyn=[[None]*(self.nlon+2) for _ in range(self.nlat+2)] #np.empty([self.nlat+1,self.nlon+1])
+                dyn=[[None]*(self.dom.nlon+2) for _ in range(self.dom.nlat+2)] #np.empty([self.nlat+1,self.nlon+1])
                 self.dist_bins = [0, 15, 30, 50, 100, 300, 500, 1000, np.inf]
                 self.vel_bins = [0, 1, 10, 20, 30, 50, 100, 300, 500, 1000, np.inf]
                 self.angle_bins = np.arange(8) #quadrants
                 print("Calculating windroses:")
             
                 for j, lon in enumerate(tqdm.tqdm(self.lon_bins_c)):
-                    for i, lat in enumerate(self.lat_bins_c):
+                    for i, lat in enumerate(self.dom.lat_bins_c):
                         #get distribution for this lat lon
                         #print(lon, lat)
                         filter1=self.df['lng0']>lon
-                        filter2=self.df['lng0']<(lon + self.dlon)
+                        filter2=self.df['lng0']<(lon + self.dom.dlon)
                         filter3=self.df['lat0']>lat
-                        filter4=self.df['lat0']<(lat+self.dlat)
+                        filter4=self.df['lat0']<(lat+self.dom.dlat)
                         local_df = self.df[filter1 & filter2 & filter3 & filter4] 
 
                         freq=np.zeros( (int(len(self.angle_bins)), 
