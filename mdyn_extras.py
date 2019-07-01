@@ -31,7 +31,10 @@ def timestamp2datetime(ts):
         return datetime.utcfromtimestamp(tmp)
     except:
         return np.nan
-    
+
+#Get picle files
+def list_files_pkl(directory):
+    return (f for f in os.listdir(directory) if f.endswith('.pkl'))
 
 def distance(lon, lat, lon1,lat1):
     return np.array([geopy.distance.vincenty([lon[i], lat[i]], [lon1[i], lat1[i]]).km 

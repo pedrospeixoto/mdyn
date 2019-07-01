@@ -75,7 +75,7 @@ class MobileDynamics:
                
         #Loop over folders with days 
         for day in daterange(self.date_ini_obj, self.date_end_obj+timedelta(days=1)):
-
+            
             #Load data for this day
             day_str=day.strftime("%Y-%m-%d")
             self.data.append(DayData(day_str, self.data_dir))

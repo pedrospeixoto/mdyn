@@ -22,6 +22,7 @@ class Domain:
         self.maxlons = maxlon
         self.minlats = minlat
         self.maxlats = maxlat
+        #print(minlon, maxlon, minlat, maxlat)
 
         self.nlon = int((self.maxlons - (self.minlons))/self.dlon)
         self.nlat = int((self.maxlats - (self.minlats))/self.dlat)

@@ -15,4 +15,4 @@ mdyn=MobileDynamics(sys.argv)
 
 #Calculate analytics
 #mdyn.build_analytics_data(mode="all", state="SP")
-mdyn.build_analytics_data(mode="reg", state="SP")
+mdyn.build_analytics_data(mode="all", state="SP")
