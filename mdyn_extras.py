@@ -3,7 +3,7 @@
 # conda activate mdyn
 import sys
 import os
-import pyarrow.orc as orc
+
 import numpy as np
 import pandas as pd
 import math
@@ -13,10 +13,7 @@ from datetime import datetime
 from datetime import date
 from datetime import timedelta
 
-
 import geopy.distance
-
-import tqdm 
 
 #General functions
 #--------------------------------

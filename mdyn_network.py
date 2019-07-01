@@ -13,29 +13,24 @@ from datetime import datetime
 from datetime import date
 from datetime import timedelta
 
-from mpl_toolkits.basemap import Basemap
-import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
-import matplotlib.colors as colors
-import matplotlib.cm as cm
-
 import geopy.distance
 import geopandas as gpd
-from windrose import WindroseAxes
+
 from shapely.geometry import Point, Polygon
 
 import tqdm 
 
 from mdyn_daydata import DayData
-from mdyn_extras import *
+from mdyn_extras import distance, distance_lat, distance_lon, daterange
 
-class Network():
+
+class Network:
+
     cities = {}
+
     def __init__(self, main_state):
         print("Creating/Loading network structure")
         self.load_state_data(main_state)
-
-
 
     def load_state_data(self, main_state):
 
@@ -130,36 +125,38 @@ class Network():
             }
 
             #Get map shapes
-            #if os.path.exists('maps/UFBRASIL_mdyn.shp'):
-            #    df = gpd.read_file('maps/UFEBRASIL_mdyn.shp')
-            #    print("  Modified shape file loaded.")
-            #else: #Build map structure with neighbours
-            df = gpd.read_file('maps/UFEBRASIL.shp')
-            print("  Loaded basic shape file - creating neighbour structure...", end = '')
+            if os.path.exists('maps/UFEBRASIL_mdyn.shp'):
+                df = gpd.read_file('maps/UFEBRASIL_mdyn.shp')
+                print("  Modified shape file loaded.")
 
-            df["name"] = None #add abreviated name column
-            for index, state in df.iterrows():   
-                df.at[index, "name"] = self.state_dict.get(state.NM_ESTADO, state.NM_ESTADO)
+            else: #Build map structure with neighbours
+                df = gpd.read_file('maps/UFEBRASIL.shp')
+                print("  Loaded basic shape file - creating neighbour structure...", end = '')
 
-            df["NEIGHBORS"] = None  # add NEIGHBORS column
-            for index, state in df.iterrows():   
-                # get 'not disjoint' countries
-                neighbors = df[~df.geometry.disjoint(state.geometry)].name.tolist()
-                # remove own name from the list
-                neighbors = [ name for name in neighbors if state.name != name ]
-                # add names of neighbors as NEIGHBORS value
-                df.at[index, "NEIGHBORS"] = ",".join(neighbors)
-            
+                df["name"] = None #add abreviated name column
+                for index, state in df.iterrows():   
+                    df.at[index, "name"] = self.state_dict.get(state.NM_ESTADO, state.NM_ESTADO)
+
+                df["NEIGHBORS"] = None  # add NEIGHBORS column
+                for index, state in df.iterrows():   
+                    # get 'not disjoint' countries
+                    neighbors = df[~df.geometry.disjoint(state.geometry)].name.tolist()
+                    # remove own name from the list
+                    neighbors = [ name for name in neighbors if state.name != name ]
+                    # add names of neighbors as NEIGHBORS value
+                    df.at[index, "NEIGHBORS"] = ",".join(neighbors)
+                
+                #Save modified shape file for future use
+                print("Done. Saving modified shape structure for future use")
+                df.to_file('maps/UFEBRASIL_mdyn.shp')
+
             self.main_state_poly=df[df.name == main_state].geometry.values[0]
             self.main_state_neighb = df[df.name == main_state].NEIGHBORS.values[0]
             self.main_state_neighb = self.main_state_neighb.split(',') 
             self.nb_states=df[df['name'].isin(self.main_state_neighb)]
 
             self.regions_out = self.nb_states['name'].to_dict() 
-            
-            #df.to_file('maps/UFEBRASIL_mdyn.shp')
-            print("  done.")
-            print()
+ 
 
     def get_closest_region(self, lat, lon):
         dist=1000000.0
@@ -184,13 +181,13 @@ class Network():
         return ireg
 
     #Build city network
-    def network_grid(self, lat_bins, lon_bins):
-        nlat=len(lat_bins)
-        nlon=len(lon_bins)
-        self.region_grid=np.zeros((nlat+1, nlon+1))       
+    def network_grid(self, dom):
+        
+        self.region_grid=np.zeros((dom.nlat+1, dom.nlon+1))    
+
         print("Building grid network...")
-        for i, lat in enumerate(tqdm.tqdm(lat_bins)):
-            for j, lon in enumerate(lon_bins):
+        for i, lat in enumerate(tqdm.tqdm(dom.lat_bins)):
+            for j, lon in enumerate(dom.lon_bins):
                 self.region_grid[i,j]=self.get_closest_region(lat, lon)
                 
         

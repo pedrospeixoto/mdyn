@@ -1,9 +1,11 @@
 #! /usr/bin/env python3
 # conda enviroment
 # conda activate mdyn
+
 import sys
 import os
-import pyarrow.orc as orc
+
+
 import numpy as np
 import pandas as pd
 import math
@@ -13,25 +15,10 @@ from datetime import datetime
 from datetime import date
 from datetime import timedelta
 
-from mpl_toolkits.basemap import Basemap
-import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
-import matplotlib.colors as colors
-import matplotlib.cm as cm
-
-import geopy.distance
-
-import geopandas as gpd
-import descartes
-from shapely.geometry import Point, Polygon
-
-from windrose import WindroseAxes
-
-import tqdm 
-
 from mdyn_daydata import DayData
 from mdyn_network import Network
-from mdyn_extras import *
+from mdyn_domain import Domain, Map
+from mdyn_extras import daterange
 
 class MobileDynamics:
 
@@ -45,7 +32,7 @@ class MobileDynamics:
         data_dir = ''
         if len(argv) < 3 :
             print("Arguments requires:")
-            print("1) A folder name containing the dataset, with slash")
+            print("1) A folder name containing the dataset")
             print("2) Date of begining of analysis in format: 2018-04-01")
             print("3) The final date - if equal, analyse a single day")
             sys.exit(1)
@@ -58,7 +45,16 @@ class MobileDynamics:
         else:
             date_end = argv[3]
 
-        self.data_dir=data_dir
+        if not os.path.exists(data_dir):
+            print("Directory doesnt exists. Did you type it wrong? ", data_dir)
+            sys.exit(1)
+
+        #Ensure we have the "/"
+        if data_dir[-1]!="/":
+            self.data_dir = data_dir+"/"
+        else:
+            self.data_dir=data_dir
+
         self.date_ini=date_ini
         self.date_end=date_end
         self.date_ini_obj = datetime.strptime(self.date_ini, '%Y-%m-%d')
@@ -84,102 +80,42 @@ class MobileDynamics:
             day_str=day.strftime("%Y-%m-%d")
             self.data.append(DayData(day_str, self.data_dir))
 
-    def calc_diagnostics(self):
+    def build_analytics_data(self, mode, state):
+        #Mode:
+        # local/vel: based on velocities and windrose 
+        # network/reg : based on regions
+        # all : all modes
+
+        #Basic diagnostics
         for day in self.data:
-            day.calc_day_diagnostics()
+            day.calc_basic_day_diagnostics()
+
+        if mode == "local" or mode == "vel" or mode == "all":
+            for day in self.data:
+                day.calc_vel_day_diagnostics()
+
+        if mode == "network" or mode == "reg" or mode == "all":
+            self.set_network_grid("SP")
+
 
     def set_global_domain(self):
-        self.minlons=100000.0
-        self.maxlons=-1000000.0
-        self.minlats=100000.0
-        self.maxlats=-1000000.0
-
-        for d in self.data:
-            #Min/Max of domain for each day
-            self.minlons=min(self.minlons, d.minlons)
-            self.minlats=min(self.minlats, d.minlats)
-            self.maxlons=max(self.maxlons, d.maxlons)
-            self.maxlats=max(self.maxlats, d.maxlats)
-            
-        print("Domain: ")
-        print( "  Lon:", self.minlons, self.maxlons)
-        print( "  Lat:", self.minlats, self.maxlats)
-
-        #Bin padding (MANUAL)
-        dlat = 0.2
-        dlon = 0.2
-        self.nlon = int((self.maxlons - (self.minlons))/dlon)
-        self.nlat = int((self.maxlats - (self.minlats))/dlat)
-        print("   nLon:", self.nlon)
-        print("   nLat:", self.nlat)
-
-        self.lon_bins = np.linspace(self.minlons, self.maxlons, self.nlon+1, endpoint=True) 
-        self.lat_bins = np.linspace(self.minlats, self.maxlats, self.nlat+1, endpoint=True) 
-        #print(self.lon_bins)
-        self.lon_bins_c = np.linspace(self.minlons-dlon/2, self.maxlons+dlon/2, self.nlon+2, endpoint=True) 
-        self.lat_bins_c = np.linspace(self.minlats-dlat/2, self.maxlats+dlat/2, self.nlat+2, endpoint=True) 
-        #print(self.lon_bins_c)
-        self.lon_bins_2d, self.lat_bins_2d = np.meshgrid(self.lon_bins, self.lat_bins)
-        self.lon_bins_2d_c, self.lat_bins_2d_c = np.meshgrid(self.lon_bins_c, self.lat_bins_c)
-
+        self.dom = Domain()
+        self.dom.set_global_domain(self.data)
+        
+        
     #Build city network
     def set_network_grid(self, state):
-        self.network=Network(state)
-        self.network.network_grid(self.lat_bins, self.lon_bins)
+
+        #Init network
+        self.network = Network(state)
         
-        self.map_data(self.network.region_grid, "Regions")
-        plt.show()
+        #Create grid for network
+        self.network.network_grid(self.dom)
 
+        #Map the regions
+        map = Map(self.dom)
+        title = "Regions"+self.date_ini+"_"+self.date_end
+        map.map_data(self.network.region_grid, title, self.data_dir)
         
 
-    #Create map
-    def map_base(self):
         
-        fig, ax = plt.subplots()
-        
-        map = Basemap(projection='merc', resolution='l',
-            llcrnrlon=self.minlons-1, llcrnrlat=self.minlats-1,
-            urcrnrlon=self.maxlons+1, urcrnrlat=self.maxlats+1)
-            #width=2E6, height=2E6, lat_0=lat0, lon_0=lon0,
-        
-        map.drawcoastlines()
-        map.drawcountries()
-        #map.fillcontinents(color = 'coral')
-        map.drawmapboundary()
-        
-        map.drawstates()
-
-        map.ax = ax
-        
-        # convert the bin mesh to map coordinates:
-        self.x_bins, self.y_bins = map(self.lon_bins_2d, self.lat_bins_2d) # will be plotted using pcolormesh
-        self.x_bins_c, self.y_bins_c = map(self.lon_bins_2d_c, self.lat_bins_2d_c) # will be plotted using pcolormesh
-
-        self.map=map
-        self.fig=fig
-
-        return fig, map
-
-    def map_density_data(self, lng, lat, title):
-
-        #Map for data
-        _, _ = self.map_base()
-
-        density, _, _ = np.histogram2d(lat, lng, [self.lat_bins_c, self.lon_bins_c])
-        plt.pcolormesh(self.x_bins_c, self.y_bins_c, density, 
-            cmap="hot_r", norm=colors.LogNorm(), snap=True)
-
-        cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=20, fraction=0.1, pad=0.01)
-        cbar.set_label(title,size=12)
-
-    def map_data(self, data, title):
-
-        #Map for data
-        _, _ = self.map_base()
-
-        plt.pcolormesh(self.x_bins_c, self.y_bins_c, data)  
-            #cmap="hot_r", norm=colors.LogNorm(), snap=True)
-
-        cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=20, fraction=0.1, pad=0.01)
-        cbar.set_label(title,size=12)
-    
