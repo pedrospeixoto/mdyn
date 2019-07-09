@@ -95,6 +95,7 @@ class Network:
             }
             
             self.state_dict={
+                "EMPTY":"EM",
                 "RONDÔNIA":"RO",
                 "ACRE":"AC",
                 "AMAZONAS":"AM",
@@ -124,6 +125,11 @@ class Network:
                 "DISTRITO FEDERAL":"DF"
             }
 
+            states = list(self.state_dict.values())
+            n = len(states)
+            #These have negative values, as not to confuse with inner state regions
+            self.state_in = {-key:states[key] for key in range(n) }
+            
             #Get map shapes
             if os.path.exists('maps/UFEBRASIL_mdyn.shp'):
                 df = gpd.read_file('maps/UFEBRASIL_mdyn.shp')
@@ -156,13 +162,15 @@ class Network:
             self.nb_states=df[df['name'].isin(self.main_state_neighb)]
 
             self.regions_out = self.nb_states['name'].to_dict() 
- 
+
+            self.region_full = {**self.state_in, **self.regions_in}
+            print(self.region_full)
 
     def get_closest_region(self, lat, lon):
         dist=1000000.0
         p=Point(lon, lat)
         inmainstate=p.within(self.main_state_poly)
-        ireg=np.nan
+        ireg=-99
         if inmainstate:
             for reg in self.regions:
                 lat_tmp=self.regions[reg][0]
@@ -177,17 +185,79 @@ class Network:
                 innbstate=p.within(state.geometry)
                 if innbstate:
                     ireg=(-1)*index
-
+        
         return ireg
 
     #Build city network
     def network_grid(self, dom):
         
-        self.region_grid=np.zeros((dom.nlat+1, dom.nlon+1))    
+        self.region_grid=np.zeros((dom.nlat+2, dom.nlon+2)).astype(int)
 
         print("Building grid network...")
-        for i, lat in enumerate(tqdm.tqdm(dom.lat_bins)):
-            for j, lon in enumerate(dom.lon_bins):
-                self.region_grid[i,j]=self.get_closest_region(lat, lon)
-                
         
+        gridname = 'maps/regions'+str(dom.minlats)+"_"+str(dom.maxlats)+"_"+str(dom.minlons)+"_"+str(dom.maxlons)
+
+        #check if network pre built
+        if os.path.exists(gridname+".npy"):
+            self.region_grid=np.load(gridname+".npy")
+            print("Regions loaded from file "+gridname)
+            print(self.region_grid.shape)
+        else:
+            for i, lat in enumerate(tqdm.tqdm(dom.lat_bins_c)):
+                for j, lon in enumerate(dom.lon_bins_c):
+                    reg0 = self.get_closest_region(lat, lon) #This is the center of cell
+                    if reg0 != -99:
+                        self.region_grid[i,j]=reg0
+                    else:
+                        #Check if part of the cell is in a region, otherwise it is ocean
+                        reg1 = self.get_closest_region(lat-dom.dlat/2, lon-dom.dlon/2)
+                        if reg1 != -99:
+                            ireg=reg1
+                        else:
+                            reg2 = self.get_closest_region(lat+dom.dlat/2, lon-dom.dlon/2)
+                            if reg2 != -99:
+                                ireg=reg2
+                            else:
+                                reg3 = self.get_closest_region(lat-dom.dlat/2, lon+dom.dlon/2)
+                                if reg3 != -99:
+                                    ireg=reg3
+                                else:
+                                    reg4 = self.get_closest_region(lat+dom.dlat/2, lon+dom.dlon/2)
+                                    if reg4 != -99:
+                                        ireg=reg4
+                                    else:
+                                        ireg = -99
+                        
+                        self.region_grid[i,j] = ireg
+                #Save this region grid for turute use, as it takes time to build
+            np.save(gridname, self.region_grid)
+            print("Regions saved in file "+gridname)
+
+
+    def add_reg_to_df(self, dom, data):
+        
+        for day in data:
+            #Add column with region tag
+            #for each event
+            for i in range(2):
+                s=str(i)
+                lon=day.df['lng'+s].values
+                lat=day.df['lat'+s].values
+                lonnan=np.isnan(lon)
+                latnan=np.isnan(lat)
+                nan = lonnan*latnan
+                ilon=((lon[~nan]-dom.minlons)/dom.dlon).astype(int)
+                ilat=((lat[~nan]-dom.minlats)/dom.dlat).astype(int)
+                #print(lon[~nan], lat[~nan], ilon, ilat)
+                reg = np.zeros(day.n).astype(int)
+                reg[nan] = -99
+                reg[~nan]=self.region_grid[ilat, ilon]
+                day.df['reg'+s]=reg
+
+            #Add column with moved of not
+            reg0 = day.df['reg0']
+            reg1 = day.df['reg1']
+            mov = reg0 != reg1
+            day.df['mov_reg']=mov
+
+            print(day.df)

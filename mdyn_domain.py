@@ -113,15 +113,55 @@ class Map:
 
 
     def map_data(self, data, title, dir):
-
+        
         #2d color plot of data
-        plt.pcolormesh(self.x_bins_c, self.y_bins_c, data)  
+        plt.pcolormesh(self.x_bins_c, self.y_bins_c, data, cmap=cmap, norm=norm)  
             #cmap="hot_r", norm=colors.LogNorm(), snap=True)
 
         #Config
         cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=20, fraction=0.1, pad=0.01)
         cbar.set_label(title,size=12)
     
+        #Save density plot to folder "dir"
+        filename = dir+"/map_data_"+title+".eps"
+        plt.savefig(filename, dpi=300)
+
+    def map_reg_data(self, network, title, dir):
+        
+        data = network.region_grid
+
+        reg = np.unique(data)
+        cols = colors.cnames.keys()
+        print(cols)
+        
+        cols = colors.cnames.keys()
+        cols = list(cols)[3:len(reg)+3]
+        print(reg, len(reg), cols)
+        cmap = colors.ListedColormap(cols, N=len(cols))
+        boundaries = reg 
+        norm = colors.BoundaryNorm(boundaries, len(cols), clip=True)
+        
+        #2d color plot of data
+        plt.pcolormesh(self.x_bins_c, self.y_bins_c, data, cmap=cmap, norm=norm)  
+            #cmap="hot_r", norm=colors.LogNorm(), snap=True)
+
+        #Config
+        cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=20, fraction=0.1, pad=0.01)
+        cbar.set_label(title,size=12)
+    
+        #Add labels 
+        reg = list(network.regions.values())
+        print(reg)
+        for lat, lon, i in reg:
+            print(lon, lat, i)
+            xpt, ypt = self.map([lon], [lat])
+            try: 
+                #print(xpt[0], ypt[0], str(network.region_full.get(i)))
+                self.map.plot(xpt, ypt, 'kx', markersize=3)
+                plt.text(xpt[0], ypt[0], str(network.region_full.get(i)),fontsize=6)
+            except:
+                pass
+            
         #Save density plot to folder "dir"
         filename = dir+"/map_data_"+title+".eps"
         plt.savefig(filename, dpi=300)

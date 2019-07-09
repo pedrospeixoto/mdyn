@@ -95,6 +95,9 @@ class MobileDynamics:
                 day.calc_vel_day_diagnostics()
 
         if mode == "network" or mode == "reg" or mode == "all":
+            for day in self.data:
+                day.calc_time_day()
+            #sys.exit(1)
             self.set_network_grid("SP")
 
 
@@ -115,7 +118,11 @@ class MobileDynamics:
         #Map the regions
         map = Map(self.dom)
         title = "Regions"+self.date_ini+"_"+self.date_end
-        map.map_data(self.network.region_grid, title, self.data_dir)
+
+        map.map_reg_data(self.network, title, self.data_dir)
+
+        #Update dataframe with network info
+        self.network.add_reg_to_df(self.dom, self.data)
         
 
         

@@ -63,7 +63,7 @@ class DayData:
         
         loaded = False
         pklfiles = list_files_pkl(local_dir)
-        #Do we have a pickle file!
+        #Do we have a pickle file?
         for f in pklfiles:
             print("Found a pickle file: ", f, ". Loading data.")
             df_local = pd.read_pickle(local_dir+f)
@@ -165,6 +165,9 @@ class DayData:
         
             #Time step
             dt = self.df['time1'].values-self.df['time0'].values
+            #rint(dt)
+            #test = np.apply_along_axis(timedelta.total_seconds, 0, dt)
+            #print(test) 
             dth = np.array([i.total_seconds()/3600.00 for i in dt]).astype(int)
             self.df['dt1']=dth
 
@@ -259,7 +262,7 @@ class DayData:
                 self.angle_bins = np.arange(8) #quadrants
                 print("Calculating windroses:")
             
-                for j, lon in enumerate(tqdm.tqdm(self.lon_bins_c)):
+                for j, lon in enumerate(tqdm.tqdm(self.dom.lon_bins_c)):
                     for i, lat in enumerate(self.dom.lat_bins_c):
                         #get distribution for this lat lon
                         #print(lon, lat)
@@ -297,3 +300,11 @@ class DayData:
                             print( dyn[i][j])
                 #print(dyn)
 
+    def calc_time_day(self):
+
+            #Create new variables with period of day
+            #Add to dataframe
+            print()
+            print("Calculating periods of day for day "+self.day)
+        
+            
