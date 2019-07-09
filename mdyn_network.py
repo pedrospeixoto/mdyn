@@ -13,10 +13,12 @@ from datetime import datetime
 from datetime import date
 from datetime import timedelta
 
+
 import geopy.distance
 import geopandas as gpd
 
 from shapely.geometry import Point, Polygon
+
 
 import tqdm 
 
@@ -30,6 +32,7 @@ class Network:
 
     def __init__(self, main_state):
         print("Creating/Loading network structure")
+        self.main_state=main_state
         self.load_state_data(main_state)
 
     def load_state_data(self, main_state):
@@ -74,7 +77,7 @@ class Network:
                 "Piracicaba":[-22.43, -47.38]
             }
             
-            self.regions = { #Lat, lon, indice da regiao
+            self.regions_in_latlon = { #Lat, lon, index of region
                 "Grande São Paulo":[-23.32, -46.38, 0],  #Guarulhos, SBC, SAndre, Osasco, Maua, diadema
                 "Campinas": [-22.54, -47.03, 1],  
                 "São José dos Campos":[-23.10, -45.53, 2],  
@@ -94,8 +97,9 @@ class Network:
                 6:"Pira"
             }
             
+            self.nreg_in = len(self.regions_in)
+
             self.state_dict={
-                "EMPTY":"EM",
                 "RONDÔNIA":"RO",
                 "ACRE":"AC",
                 "AMAZONAS":"AM",
@@ -124,11 +128,6 @@ class Network:
                 "GOIÁS":"GO",
                 "DISTRITO FEDERAL":"DF"
             }
-
-            states = list(self.state_dict.values())
-            n = len(states)
-            #These have negative values, as not to confuse with inner state regions
-            self.state_in = {-key:states[key] for key in range(n) }
             
             #Get map shapes
             if os.path.exists('maps/UFEBRASIL_mdyn.shp'):
@@ -155,37 +154,53 @@ class Network:
                 #Save modified shape file for future use
                 print("Done. Saving modified shape structure for future use")
                 df.to_file('maps/UFEBRASIL_mdyn.shp')
-
+            
+            
             self.main_state_poly=df[df.name == main_state].geometry.values[0]
             self.main_state_neighb = df[df.name == main_state].NEIGHBORS.values[0]
             self.main_state_neighb = self.main_state_neighb.split(',') 
-            self.nb_states=df[df['name'].isin(self.main_state_neighb)]
+            self.nb_states_df=df[df['name'].isin(self.main_state_neighb)]
 
-            self.regions_out = self.nb_states['name'].to_dict() 
+            #Regions out are out of main state
+            self.regions_out = self.nb_states_df['name'].to_dict() 
+            states = list(self.regions_out.values())
+            self.nreg_out = len(states)
+            self.nbstates = {states[key]:self.nreg_in+key for key in range(self.nreg_out) }
+            self.regions_out = {self.nreg_in+key:states[key] for key in range(self.nreg_out) }
+            
+            #Join in and out regions
+            self.regions = {**self.regions_in, **self.regions_out}
+            self.nregions = len(self.regions)
 
-            self.region_full = {**self.state_in, **self.regions_in}
-            print(self.region_full)
+            #Add extra region for all the rest (ocean or other places)
+            self.regions[str(self.nregions+1)] = 'NAN'
+            self.nregions = self.nregions + 1
+            print("Defined the following regions for the network:")
+            print(self.regions)
+            
 
     def get_closest_region(self, lat, lon):
         dist=1000000.0
-        p=Point(lon, lat)
-        inmainstate=p.within(self.main_state_poly)
-        ireg=-99
+        
+        p = Point(lon, lat)
+        inmainstate = p.within(self.main_state_poly)
+        ireg=self.nregions
         if inmainstate:
-            for reg in self.regions:
-                lat_tmp=self.regions[reg][0]
-                lon_tmp=self.regions[reg][1]
-                dist_tmp=distance([lon], [lat], [lon_tmp], [lat_tmp])
+            for reg in self.regions_in_latlon:
+                lat_tmp = self.regions_in_latlon[reg][0]
+                lon_tmp = self.regions_in_latlon[reg][1]
+                dist_tmp = distance([lon], [lat], [lon_tmp], [lat_tmp])
                 if dist_tmp < dist: 
                     dist=dist_tmp
-                    ireg=self.regions[reg][2]
+                    ireg=self.regions_in_latlon[reg][2]
         else:
             #check if in neighbour states
-            for index, state in self.nb_states.iterrows(): 
+            for index, state in self.nb_states_df.iterrows(): 
+                st_name=state['name']
                 innbstate=p.within(state.geometry)
                 if innbstate:
-                    ireg=(-1)*index
-        
+                    ireg = self.nbstates.get(st_name, self.nregions)
+                    
         return ireg
 
     #Build city network
@@ -195,7 +210,7 @@ class Network:
 
         print("Building grid network...")
         
-        gridname = 'maps/regions'+str(dom.minlats)+"_"+str(dom.maxlats)+"_"+str(dom.minlons)+"_"+str(dom.maxlons)
+        gridname = 'maps/regions_'+self.main_state+"_"+str(dom.minlats)+"_"+str(dom.maxlats)+"_"+str(dom.minlons)+"_"+str(dom.maxlons)
 
         #check if network pre built
         if os.path.exists(gridname+".npy"):
@@ -206,27 +221,27 @@ class Network:
             for i, lat in enumerate(tqdm.tqdm(dom.lat_bins_c)):
                 for j, lon in enumerate(dom.lon_bins_c):
                     reg0 = self.get_closest_region(lat, lon) #This is the center of cell
-                    if reg0 != -99:
+                    if reg0 != self.nregions:
                         self.region_grid[i,j]=reg0
                     else:
                         #Check if part of the cell is in a region, otherwise it is ocean
                         reg1 = self.get_closest_region(lat-dom.dlat/2, lon-dom.dlon/2)
-                        if reg1 != -99:
+                        if reg1 != self.nregions:
                             ireg=reg1
                         else:
                             reg2 = self.get_closest_region(lat+dom.dlat/2, lon-dom.dlon/2)
-                            if reg2 != -99:
+                            if reg2 != self.nregions:
                                 ireg=reg2
                             else:
                                 reg3 = self.get_closest_region(lat-dom.dlat/2, lon+dom.dlon/2)
-                                if reg3 != -99:
+                                if reg3 != self.nregions:
                                     ireg=reg3
                                 else:
                                     reg4 = self.get_closest_region(lat+dom.dlat/2, lon+dom.dlon/2)
-                                    if reg4 != -99:
+                                    if reg4 != self.nregions:
                                         ireg=reg4
                                     else:
-                                        ireg = -99
+                                        ireg = self.nregions
                         
                         self.region_grid[i,j] = ireg
                 #Save this region grid for turute use, as it takes time to build
@@ -260,4 +275,11 @@ class Network:
             mov = reg0 != reg1
             day.df['mov_reg']=mov
 
-            print(day.df)
+            #print(day.df)
+
+    def calc_transition_matrix(self, df):
+        print(df)
+        df.to_csv("tmp.csv", header=True)
+        table = df.pivot_table(values='dt1', index=['reg0'],\
+                     columns=['reg1'], aggfunc=np.count_nonzero, margins=True)
+        print(table)

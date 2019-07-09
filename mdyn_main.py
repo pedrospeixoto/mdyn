@@ -97,9 +97,10 @@ class MobileDynamics:
         if mode == "network" or mode == "reg" or mode == "all":
             for day in self.data:
                 day.calc_time_day()
-            #sys.exit(1)
+            
             self.set_network_grid("SP")
-
+            for day in self.data:
+                self.network.calc_transition_matrix(day.df)
 
     def set_global_domain(self):
         self.dom = Domain()
@@ -123,6 +124,8 @@ class MobileDynamics:
 
         #Update dataframe with network info
         self.network.add_reg_to_df(self.dom, self.data)
+
+        
         
 
         

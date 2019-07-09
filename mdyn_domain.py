@@ -72,11 +72,20 @@ class Map:
         fig, ax = plt.subplots()
         
         #Define map projection
-        map = Basemap(projection='merc', resolution='l',
+        map = Basemap(projection='merc', resolution='h',
             llcrnrlon=dom.minlons-1, llcrnrlat=dom.minlats-1,
             urcrnrlon=dom.maxlons+1, urcrnrlat=dom.maxlats+1)
             #width=2E6, height=2E6, lat_0=lat0, lon_0=lon0,
-        
+        #map = Basemap(width=12000000,height=9000000,
+        #    rsphere=(6378137.00,6356752.3142),\
+        #    resolution='l',area_thresh=1000.,projection='lcc',\
+        #    lat_1=dom.minlats-1,lat_2=dom.maxlats+1,\
+        #    lat_0=0.5*(dom.minlats+dom.maxlats),lon_0=0.5*(dom.minlons+dom.maxlons))
+        #map = Basemap(width=1200000,height=800000,
+        #    rsphere=(6378137.00,6356752.3142),\
+        #    resolution='h',area_thresh=100.,projection='lcc',\
+        #    lat_1=-20.4,lat_2=-24.2,\
+        #    lat_0=-22,lon_0=-48.3)
         #Config map
         map.drawcoastlines()
         map.drawcountries()
@@ -115,7 +124,7 @@ class Map:
     def map_data(self, data, title, dir):
         
         #2d color plot of data
-        plt.pcolormesh(self.x_bins_c, self.y_bins_c, data, cmap=cmap, norm=norm)  
+        plt.pcolormesh(self.x_bins_c, self.y_bins_c, data)  
             #cmap="hot_r", norm=colors.LogNorm(), snap=True)
 
         #Config
@@ -131,18 +140,16 @@ class Map:
         data = network.region_grid
 
         reg = np.unique(data)
-        cols = colors.cnames.keys()
-        print(cols)
+        print(reg)
+        #cols = colors.cnames.keys()
+        cols = ['blue', 'red', 'yellow', 'orange',  'limegreen', 'violet', 'purple', 'brown', 'cyan', 'olive', 'coral','lightgreen' ,'grey']
         
-        cols = colors.cnames.keys()
-        cols = list(cols)[3:len(reg)+3]
-        print(reg, len(reg), cols)
         cmap = colors.ListedColormap(cols, N=len(cols))
-        boundaries = reg 
-        norm = colors.BoundaryNorm(boundaries, len(cols), clip=True)
+        #boundaries = reg 
+        #norm = colors.BoundaryNorm(boundaries, len(cols), clip=True)
         
         #2d color plot of data
-        plt.pcolormesh(self.x_bins_c, self.y_bins_c, data, cmap=cmap, norm=norm)  
+        plt.pcolormesh(self.x_bins_c, self.y_bins_c, data, cmap=cmap) #, norm=norm)  
             #cmap="hot_r", norm=colors.LogNorm(), snap=True)
 
         #Config
@@ -150,15 +157,16 @@ class Map:
         cbar.set_label(title,size=12)
     
         #Add labels 
-        reg = list(network.regions.values())
-        print(reg)
+        reg = list(network.regions_in_latlon.values())
+        
         for lat, lon, i in reg:
             print(lon, lat, i)
             xpt, ypt = self.map([lon], [lat])
             try: 
                 #print(xpt[0], ypt[0], str(network.region_full.get(i)))
-                self.map.plot(xpt, ypt, 'kx', markersize=3)
-                plt.text(xpt[0], ypt[0], str(network.region_full.get(i)),fontsize=6)
+                self.map.plot(xpt, ypt, 'kx', markersize=1)
+                plt.text(xpt[0], ypt[0], str(network.regions.get(i)),fontsize=5)
+                #plt.text(xpt[0], ypt[0], str(i),fontsize=10)
             except:
                 pass
             
