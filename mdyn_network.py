@@ -146,8 +146,10 @@ class Network:
                 for index, state in df.iterrows():   
                     # get 'not disjoint' countries
                     neighbors = df[~df.geometry.disjoint(state.geometry)].name.tolist()
+                    
                     # remove own name from the list
-                    neighbors = [ name for name in neighbors if state.name != name ]
+                    neighbors = [ name for name in neighbors if state['name'] != name ]
+                    
                     # add names of neighbors as NEIGHBORS value
                     df.at[index, "NEIGHBORS"] = ",".join(neighbors)
                 
@@ -155,12 +157,12 @@ class Network:
                 print("Done. Saving modified shape structure for future use")
                 df.to_file('maps/UFEBRASIL_mdyn.shp')
             
-            
+            #Save polygons in dataframes
             self.main_state_poly=df[df.name == main_state].geometry.values[0]
             self.main_state_neighb = df[df.name == main_state].NEIGHBORS.values[0]
             self.main_state_neighb = self.main_state_neighb.split(',') 
             self.nb_states_df=df[df['name'].isin(self.main_state_neighb)]
-
+            
             #Regions out are out of main state
             self.regions_out = self.nb_states_df['name'].to_dict() 
             states = list(self.regions_out.values())
@@ -173,8 +175,9 @@ class Network:
             self.nregions = len(self.regions)
 
             #Add extra region for all the rest (ocean or other places)
-            self.regions[str(self.nregions+1)] = 'NAN'
-            self.nregions = self.nregions + 1
+            #self.regions[str(self.nregions)] = 'NAN'
+            #self.nregions = self.nregions + 1
+
             print("Defined the following regions for the network:")
             print(self.regions)
             
@@ -184,7 +187,7 @@ class Network:
         
         p = Point(lon, lat)
         inmainstate = p.within(self.main_state_poly)
-        ireg=self.nregions
+        ireg=-1
         if inmainstate:
             for reg in self.regions_in_latlon:
                 lat_tmp = self.regions_in_latlon[reg][0]
@@ -203,47 +206,53 @@ class Network:
                     
         return ireg
 
-    #Build city network
+    #Build regions grid
     def network_grid(self, dom):
         
-        self.region_grid=np.zeros((dom.nlat+2, dom.nlon+2)).astype(int)
+        #Region grid is composed of data points, cell centres
+        self.region_grid=np.zeros((dom.nlat+1, dom.nlon+1)).astype(int)
 
         print("Building grid network...")
         
-        gridname = 'maps/regions_'+self.main_state+"_"+str(dom.minlats)+"_"+str(dom.maxlats)+"_"+str(dom.minlons)+"_"+str(dom.maxlons)
+        gridname = 'maps/regions_'+self.main_state+"_lats"+str(dom.minlats)+\
+            "_"+str(dom.maxlats)+"_lons"+str(dom.minlons)+"_"+str(dom.maxlons)+\
+            "_dlat"+str(dom.dlat)+"_dlon"+str(dom.dlon)
 
         #check if network pre built
         if os.path.exists(gridname+".npy"):
             self.region_grid=np.load(gridname+".npy")
             print("Regions loaded from file "+gridname)
-            print(self.region_grid.shape)
+            #print(self.region_grid.shape)
         else:
+            #Grid is based on cell centers
             for i, lat in enumerate(tqdm.tqdm(dom.lat_bins_c)):
                 for j, lon in enumerate(dom.lon_bins_c):
+                    #print(lat, lon)
                     reg0 = self.get_closest_region(lat, lon) #This is the center of cell
-                    if reg0 != self.nregions:
+                    if reg0 != -1:
                         self.region_grid[i,j]=reg0
                     else:
                         #Check if part of the cell is in a region, otherwise it is ocean
-                        reg1 = self.get_closest_region(lat-dom.dlat/2, lon-dom.dlon/2)
-                        if reg1 != self.nregions:
+                        reg1 = self.get_closest_region(lat-dom.dlat, lon-dom.dlon)
+                        if reg1 != -1:
                             ireg=reg1
                         else:
-                            reg2 = self.get_closest_region(lat+dom.dlat/2, lon-dom.dlon/2)
-                            if reg2 != self.nregions:
+                            reg2 = self.get_closest_region(lat+dom.dlat, lon-dom.dlon)
+                            if reg2 != -1:
                                 ireg=reg2
                             else:
-                                reg3 = self.get_closest_region(lat-dom.dlat/2, lon+dom.dlon/2)
-                                if reg3 != self.nregions:
+                                reg3 = self.get_closest_region(lat-dom.dlat, lon+dom.dlon)
+                                if reg3 != -1:
                                     ireg=reg3
                                 else:
-                                    reg4 = self.get_closest_region(lat+dom.dlat/2, lon+dom.dlon/2)
-                                    if reg4 != self.nregions:
+                                    reg4 = self.get_closest_region(lat+dom.dlat, lon+dom.dlon)
+                                    if reg4 != -1:
                                         ireg=reg4
                                     else:
-                                        ireg = self.nregions
+                                        ireg = -1
                         
                         self.region_grid[i,j] = ireg
+
                 #Save this region grid for turute use, as it takes time to build
             np.save(gridname, self.region_grid)
             print("Regions saved in file "+gridname)
@@ -265,21 +274,53 @@ class Network:
                 ilat=((lat[~nan]-dom.minlats)/dom.dlat).astype(int)
                 #print(lon[~nan], lat[~nan], ilon, ilat)
                 reg = np.zeros(day.n).astype(int)
-                reg[nan] = -99
+                reg[nan] = -1
                 reg[~nan]=self.region_grid[ilat, ilon]
                 day.df['reg'+s]=reg
 
-            #Add column with moved of not
+            #Add column with moved or not
             reg0 = day.df['reg0']
             reg1 = day.df['reg1']
             mov = reg0 != reg1
             day.df['mov_reg']=mov
 
-            #print(day.df)
+            #day.df.to_csv("tmp.csv")
 
     def calc_transition_matrix(self, df):
-        print(df)
-        df.to_csv("tmp.csv", header=True)
-        table = df.pivot_table(values='dt1', index=['reg0'],\
-                     columns=['reg1'], aggfunc=np.count_nonzero, margins=True)
+        #print(df)
+        #df.to_csv("tmp.csv", header=True)
+        table = df.pivot_table(values='dt1', index=['reg1'],\
+                     columns=['reg0'], aggfunc=np.count_nonzero, fill_value=0, dropna=False)
+        
+        #remove the problematic -1 regions
+        table = table.div(table.sum(axis=0), axis=1)
+        try:
+            table = table.drop(columns=[-1])
+        except:
+            pass
+        try:
+            table = table.drop([-1], axis=0)
+        except:
+            pass
+
+        
         print(table)
+        #We might regions without data
+        #print(table)
+        #print(table.columns)
+        #reglist0=table.columns.to_list()
+        #print(reglist0)
+        #n=len(table)
+        #print(n)
+        #missing = [i for i in range(-1, self.nregions, 1) if i not in reglist0] 
+        #Add missing columns
+        #print(missing)
+        #for i in missing:
+        #    table.insert(i, str(i), np.zeros(n).astype(int), True) 
+
+        #print(table)
+        mat = table.as_matrix(columns=None)
+        #print(mat)
+        #print(mat.shape)
+        
+        return mat

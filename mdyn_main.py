@@ -20,6 +20,9 @@ from mdyn_network import Network
 from mdyn_domain import Domain, Map
 from mdyn_extras import daterange
 
+import matplotlib.pyplot as plt
+from matplotlib import animation
+
 class MobileDynamics:
 
     def __init__(self, argv):
@@ -79,10 +82,14 @@ class MobileDynamics:
             #Load data for this day
             day_str=day.strftime("%Y-%m-%d")
             self.data.append(DayData(day_str, self.data_dir))
+    
+    def set_global_domain(self):
+        self.dom = Domain()
+        self.dom.set_global_domain(self.data)
 
-    def build_analytics_data(self, mode, state):
+    def build_model(self, mode, state):
         #Mode:
-        # local/vel: based on velocities and windrose 
+        # local/vel: based on velocities and windrose - needs work
         # network/reg : based on regions
         # all : all modes
 
@@ -99,15 +106,12 @@ class MobileDynamics:
                 day.calc_time_day()
             
             self.set_network_grid("SP")
-            for day in self.data:
-                self.network.calc_transition_matrix(day.df)
 
-    def set_global_domain(self):
-        self.dom = Domain()
-        self.dom.set_global_domain(self.data)
-        
-        
-    #Build city network
+            for day in self.data:
+                day.tmat = self.network.calc_transition_matrix(day.df)
+
+
+    #Build regions network
     def set_network_grid(self, state):
 
         #Init network
@@ -118,14 +122,42 @@ class MobileDynamics:
 
         #Map the regions
         map = Map(self.dom)
-        title = "Regions"+self.date_ini+"_"+self.date_end
-
-        map.map_reg_data(self.network, title, self.data_dir)
+        title = "regions"+self.date_ini+"_"+self.date_end
+        map.map_reg_data(self.network, title, "maps/")
 
         #Update dataframe with network info
         self.network.add_reg_to_df(self.dom, self.data)
 
-        
-        
+
+    def simulate(self, mode):
+        if mode == "network" or mode == "reg" or mode == "all":
+            #initial condition
+            
+            x = np.zeros([self.network.nregions])
+            x[0]=100000
+
+            fig, ax = plt.subplots(figsize=(12,6))
+            labels = list(self.network.regions.values())
+            
+            ax.plot( x, 'o', label='IC')
+
+            #ax.set_ylim(0,450)
+            ax.set_ylabel('Individuals')
+            ax.set_title('Zombie Test')
+            ax.set_xticks(np.arange(len(x)))
+            ax.set_xticklabels(labels)
+            ax.set_yscale('log')
+           
+            
+            for i, day in enumerate(self.data):
+                #print(day.tmat, day.tmat.shape, x.shape)
+                y=np.matmul(day.tmat, x)
+                print(y.sum())
+                ax.plot( y, 'x', label=day.day)
+            
+            ax.legend()
+            filename = "simulation.eps"
+            plt.savefig(filename, dpi=300)
+            
 
         

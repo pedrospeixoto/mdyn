@@ -37,17 +37,17 @@ def list_files_pkl(directory):
     return (f for f in os.listdir(directory) if f.endswith('.pkl'))
 
 def distance(lon, lat, lon1,lat1):
-    return np.array([geopy.distance.vincenty([lon[i], lat[i]], [lon1[i], lat1[i]]).km 
+    return np.array([geopy.distance.geodesic([lon[i], lat[i]], [lon1[i], lat1[i]]).km 
                 for i in range(len(lon)) ]).astype(float)
 
 def distance_lon(lon, lat, lon1,lat1):
-    dist = np.array([geopy.distance.vincenty([lon[i], lat[i]], [lon1[i], lat1[i]]).km 
+    dist = np.array([geopy.distance.geodesic([lon[i], lat[i]], [lon1[i], lat1[i]]).km 
                 for i in range(len(lon)) ]).astype(float)
     signdistlon = np.sign(lon1-lon)
     return signdistlon*dist
 
 def distance_lat(lon, lat, lon1,lat1):
-    dist = np.array([geopy.distance.vincenty([lon[i], lat[i]], [lon1[i], lat1[i]]).km 
+    dist = np.array([geopy.distance.geodesic([lon[i], lat[i]], [lon1[i], lat1[i]]).km 
                 for i in range(len(lon)) ]).astype(float)
     signdistlat = np.sign(lat1-lat)
     return signdistlat*dist

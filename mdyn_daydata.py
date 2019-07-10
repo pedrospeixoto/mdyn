@@ -71,12 +71,6 @@ class DayData:
 
         if not loaded:
             for filename in os.listdir(local_dir):
-                #Check if data already saved in folder nicely formated
-                #if filename[-4:] == ".pkl":
-                #    print("Found a pickle file: ", filename, ". Loading data.")
-                #    df_local = pd.read_pickle(local_dir+filename)
-                #    loaded = True
-                #    break
 
                 #Get data and convert to df pandas
                 try:
@@ -164,23 +158,25 @@ class DayData:
             print("Calculating basic diagnostics for day "+self.day)
         
             #Time step
-            dt = self.df['time1'].values-self.df['time0'].values
-            #rint(dt)
-            #test = np.apply_along_axis(timedelta.total_seconds, 0, dt)
-            #print(test) 
-            dth = np.array([i.total_seconds()/3600.00 for i in dt]).astype(int)
-            self.df['dt1']=dth
+            time0=self.df['time0'].values
+            time1=self.df['time1'].values
+            time0=np.array(time0, dtype='datetime64')
+            time1=np.array(time1, dtype='datetime64')
+            dt=(time1-time0).astype('timedelta64[h]') 
+            self.df['dt1']=dt
 
             #Distances
-            self.df['dist1']=distance(
-                self.df['lng0'].values, self.df['lat0'].values, 
-                self.df['lng1'].values, self.df['lat1'].values)
+            if False:
+                self.df['dist1']=distance(
+                    self.df['lng0'].values, self.df['lat0'].values, 
+                    self.df['lng1'].values, self.df['lat1'].values)
 
             #Data density
-            for i in tqdm.tqdm(range(3)):
-                s=str(i)
-                map = Map(self.dom)
-                map.map_density_data(self.df['lng'+s].values, self.df['lat'+s].values, self.day+" event "+str(i), self.local_dir)
+                for i in tqdm.tqdm(range(3)):
+                    s=str(i)
+                    map = Map(self.dom)
+                    map.map_density_data(self.df['lng'+s].values, self.df['lat'+s].values, \
+                        self.day+" event "+str(i), self.local_dir)
 
             #Statistics
             print(self.df.describe())
@@ -262,8 +258,8 @@ class DayData:
                 self.angle_bins = np.arange(8) #quadrants
                 print("Calculating windroses:")
             
-                for j, lon in enumerate(tqdm.tqdm(self.dom.lon_bins_c)):
-                    for i, lat in enumerate(self.dom.lat_bins_c):
+                for j, lon in enumerate(tqdm.tqdm(self.dom.lon_bins_ext)):
+                    for i, lat in enumerate(self.dom.lat_bins_ext):
                         #get distribution for this lat lon
                         #print(lon, lat)
                         filter1=self.df['lng0']>lon
