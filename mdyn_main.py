@@ -154,10 +154,12 @@ class MobileDynamics:
                 y=np.matmul(day.tmat, x)
                 print(y.sum())
                 ax.plot( y, 'x', label=day.day)
+                ax.legend()
+                filename = "simulation"+day.day+".jpg"
+                plt.savefig(filename, dpi=300)
+                del ax.lines[1]   
             
-            ax.legend()
-            filename = "simulation.eps"
-            plt.savefig(filename, dpi=300)
+            
             
 
         
