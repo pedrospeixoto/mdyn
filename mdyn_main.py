@@ -134,7 +134,7 @@ class MobileDynamics:
             #initial condition
             
             x = np.zeros([self.network.nregions])
-            x[0]=100000
+            x[3]=100000
 
             fig, ax = plt.subplots(figsize=(12,6))
             labels = list(self.network.regions.values())
