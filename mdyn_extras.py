@@ -15,6 +15,9 @@ from datetime import timedelta
 
 import geopy.distance
 
+#Garbage collection
+import gc
+
 #General functions
 #--------------------------------
 
@@ -52,4 +55,19 @@ def distance_lat(lon, lat, lon1,lat1):
     signdistlat = np.sign(lat1-lat)
     return signdistlat*dist
 
+def del_df(df):
+        
+        del [df]
+        gc.collect()
+        df=pd.DataFrame()
+        #df=df_tmp.copy()
+        
 
+def mem_usage(pandas_obj):
+    if isinstance(pandas_obj,pd.DataFrame):
+        usage_b = pandas_obj.memory_usage(deep=True).sum()
+    else: # we assume if not a df it's a series
+        usage_b = pandas_obj.memory_usage(deep=True)
+    usage_mb = usage_b / 1024 ** 2 # convert bytes to megabytes
+    return "{:03.2f} MB".format(usage_mb)
+        

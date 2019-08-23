@@ -18,7 +18,7 @@ cd $DIR
 
 find . -name '*.csv' -type f #-delete
 find . -name '*.eps' -type f #-delete
-find . -name '*.pkl' -type f #-delete
+#find . -name '*.pkl' -type f #-delete
 
 echo "Are you sure you want to delete these files?0/1"
 read del
@@ -26,7 +26,7 @@ read del
 if (( $del )); then
     find . -name '*.csv' -type f -delete
     find . -name '*.eps' -type f -delete
-    find . -name '*.pkl' -type f -delete
+    #find . -name '*.pkl' -type f -delete
     echo "All gone!"
 fi
 

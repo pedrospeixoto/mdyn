@@ -10,11 +10,15 @@ from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.colors as colors
 import matplotlib.cm as cm
 
+import sys
+
 class Domain:
-    def __init__(self):
+    def __init__(self, precompdomain=False, state=''):
         #Bin padding (MANUAL)
         self.dlat = 0.2
         self.dlon = 0.2
+        self.precompdomain = precompdomain
+        self.state = state
 
     def set_domain(self, minlon, maxlon, minlat, maxlat):
         
@@ -40,19 +44,29 @@ class Domain:
         self.lon_bins_ext_2d, self.lat_bins_ext_2d = np.meshgrid(self.lon_bins_ext, self.lat_bins_ext)
 
 
-    def set_global_domain(self, data):
+    def set_global_domain(self, data=None):
 
-        #data needs to have days with precalculated domains
-        self.minlons=100000.0
-        self.maxlons=-1000000.0
-        self.minlats=100000.0
-        self.maxlats=-1000000.0
-        for d in data:
-            #Min/Max of domain for each day
-            self.minlons=min(self.minlons, d.dom.minlons)
-            self.minlats=min(self.minlats, d.dom.minlats)
-            self.maxlons=max(self.maxlons, d.dom.maxlons)
-            self.maxlats=max(self.maxlats, d.dom.maxlats)
+        if self.precompdomain:
+            if self.state == 'SP':
+                self.minlons=-54.0
+                self.maxlons=-54.0
+                self.minlats=-26.0
+                self.maxlats=-19.0
+            else:
+                print("I only know how to precompute SP state domains!")
+                sys.exit(1)
+        else:
+            #data needs to have days with precalculated domains
+            self.minlons=100000.0
+            self.maxlons=-1000000.0
+            self.minlats=100000.0
+            self.maxlats=-1000000.0
+            for d in data:
+                #Min/Max of domain for each day
+                self.minlons=min(self.minlons, d.dom.minlons)
+                self.minlats=min(self.minlats, d.dom.minlats)
+                self.maxlons=max(self.maxlons, d.dom.maxlons)
+                self.maxlats=max(self.maxlats, d.dom.maxlats)
             
         print("Domain: ")
         print( "  Lon:", self.minlons, self.maxlons)

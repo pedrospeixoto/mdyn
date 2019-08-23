@@ -9,6 +9,7 @@ import os
 import numpy as np
 import pandas as pd
 import math
+import time
 
 import time
 from datetime import datetime
@@ -27,14 +28,12 @@ class MobileDynamics:
 
     def __init__(self, argv):
         self.read_arguments(argv)    
-        self.read_data()
-        self.set_global_domain()
 
     def read_arguments(self, argv):
         # input directory path
         data_dir = ''
         if len(argv) < 3 :
-            print("Arguments requires:")
+            print("Arguments required:")
             print("1) A folder name containing the dataset")
             print("2) Date of begining of analysis in format: 2018-04-01")
             print("3) The final date - if equal, analyse a single day")
@@ -63,15 +62,55 @@ class MobileDynamics:
         self.date_ini_obj = datetime.strptime(self.date_ini, '%Y-%m-%d')
         self.date_end_obj = datetime.strptime(self.date_end, '%Y-%m-%d')
         self.days = (self.date_end_obj - self.date_ini_obj).days + 1
-    
+        
         print("Folder with data:", self.data_dir)
         print("Initial date:", self.date_ini)
         print("Final date:", self.date_end)
         print("Number of days to analyse:", self.days)
 
+        self.dump_dir = 'dump/'
+        
+        if not os.path.exists(self.dump_dir):
+            os.makedirs(self.dump_dir)
+            
+        print("Output folder:", self.dump_dir)
         return self
 
-    def read_data(self):
+    def build_model(self, mode, state, precompdomain):
+
+        #Init a global domain instance
+        self.dom = Domain(precompdomain, state)
+        
+        #Load global domain info
+        if precompdomain:
+            self.dom.set_global_domain()
+        else: #This time!       
+            self.read_data(preread=True)
+            self.dom.set_global_domain(self.data)
+
+        #Mode:
+        # local/vel: based on velocities and windrose - needs work
+        # network/reg : based on regions
+        # all : all modes
+        time.sleep(1000)
+        self.read_data(preread=False)
+        if mode == "local" or mode == "vel" or mode == "all":
+            for day in self.data:
+                day.calc_basic_day_diagnostics()
+                day.calc_vel_day_diagnostics()
+
+        if mode == "network" or mode == "reg" or mode == "all":
+            for day in self.data:
+                day.calc_basic_day_diagnostics()
+                day.calc_time_day()
+            
+            self.set_network_grid("SP")
+
+            for day in self.data:
+                day.tmat = self.network.calc_transition_matrix(day.df)
+                
+
+    def read_data(self, preread):
         #Main dataframe list
 
         self.data = [] #List of dataframes per day
@@ -81,35 +120,10 @@ class MobileDynamics:
             
             #Load data for this day
             day_str=day.strftime("%Y-%m-%d")
-            self.data.append(DayData(day_str, self.data_dir))
+            #DayData(day_str, self.data_dir)
+            self.data.append(DayData(day_str, self.data_dir, preread))
+        
     
-    def set_global_domain(self):
-        self.dom = Domain()
-        self.dom.set_global_domain(self.data)
-
-    def build_model(self, mode, state):
-        #Mode:
-        # local/vel: based on velocities and windrose - needs work
-        # network/reg : based on regions
-        # all : all modes
-
-        #Basic diagnostics
-        for day in self.data:
-            day.calc_basic_day_diagnostics()
-
-        if mode == "local" or mode == "vel" or mode == "all":
-            for day in self.data:
-                day.calc_vel_day_diagnostics()
-
-        if mode == "network" or mode == "reg" or mode == "all":
-            for day in self.data:
-                day.calc_time_day()
-            
-            self.set_network_grid("SP")
-
-            for day in self.data:
-                day.tmat = self.network.calc_transition_matrix(day.df)
-
 
     #Build regions network
     def set_network_grid(self, state):
