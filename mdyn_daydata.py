@@ -26,17 +26,30 @@ import tqdm as tqdm
 
 from mdyn_domain import Domain, Map
 
-from mdyn_extras import distance, distance_lat, distance_lon, daterange, timestamp2datetime, list_files_pkl
+from mdyn_extras import distance, distance_lat, distance_lon, daterange, timestamp2datetime, list_files_pkl, del_df, mem_usage
+
+#Garbage collection
+import gc
 
 
 #Main class for dataframe for a single day
 class DayData:
     
     #Class for data per day
-    def __init__(self, day, data_dir):
+    def __init__(self, day, data_dir, preread = False):
         self.read_day_data(day, data_dir)
         self.set_day_domain()
-        #self.calc_day_diagnostics()
+        
+        if preread:
+            self.clean_data()
+                        
+    def clean_data(self):
+        print(mem_usage(self.df))
+        print("Cleaning original data ")
+        del [self.df]
+        gc.collect()
+        self.df=pd.DataFrame()
+        print(mem_usage(self.df))
 
     def read_day_data(self, day, data_dir):
         # Input:
@@ -87,7 +100,7 @@ class DayData:
                 df_local = pd.concat([df_local, df_tmp], ignore_index=True )
             
             print(" Saving dataframe for future use as data.csv and data.pkl")
-            df_local.to_csv (local_dir+"data.csv", header=True) #Don't forget to add '.csv' at the end of the path
+            #df_local.to_csv (local_dir+"data.csv", header=True) #Don't forget to add '.csv' at the end of the path
             df_local.to_pickle (local_dir+"data.pkl") 
         
         self.df = df_local
@@ -130,7 +143,6 @@ class DayData:
     
     def set_day_domain(self):
         
-
         #Domain for each day
         minlons=min(np.amin(self.df['lng0'].values), 
             np.amin(self.df['lng1'].values),
@@ -158,11 +170,19 @@ class DayData:
             print("Calculating basic diagnostics for day "+self.day)
         
             #Time step
-            time0=self.df['time0'].values
-            time1=self.df['time1'].values
-            time0=np.array(time0, dtype='datetime64')
-            time1=np.array(time1, dtype='datetime64')
+            #time0=self.df['time0'].values
+            #time1=self.df['time1'].values
+            #print(time0, type(time0), time0.shape)
+            #print(time1, type(time1), time1.shape, len(time1))
+            time0=pd.to_datetime(self.df['time0'])
+            time1=pd.to_datetime(self.df['time1'])
+            #time1=np.reshape(time1, len(time1))
+            #print(type(time0), type(time1))
+            #print(time0-time1)
+            #time0=np.array(time0, dtype='datetime64')
+            #time1=np.array(time1, dtype='datetime64')
             dt=(time1-time0).astype('timedelta64[h]') 
+            #print(dt)
             self.df['dt1']=dt
 
             #Distances
@@ -180,14 +200,14 @@ class DayData:
 
             #Statistics
             print(self.df.describe())
-            self.df.describe().to_csv(self.local_dir+"/day_basic_stats.csv", header=True) #Don't forget to add '.csv' at the end of the path
-            self.df.to_csv(self.local_dir+"/day_basic_data.csv", header=True) #Don't forget to add '.csv' at the end of the path
+            self.df.describe().to_csv(self.local_dir+"/day_"+self.day+"_basic_stats.csv", header=True) #Don't forget to add '.csv' at the end of the path
+            self.df.to_csv(self.local_dir+"/day_"+self.day+"_base_data.csv", header=True) #Don't forget to add '.csv' at the end of the path
             
             #Histograms
             self.df.hist(bins=8, align='mid')
             fig = plt.gcf()
             fig.set_size_inches(18.5, 18.5)
-            plt.savefig(self.local_dir+"/day_basic_stats.eps", dpi=300)
+            plt.savefig(self.local_dir+"/day_"+self.day+"_basic_stats.eps", dpi=300)
 
     def calc_vel_day_diagnostics(self):
 
@@ -297,7 +317,7 @@ class DayData:
                 #print(dyn)
 
     def calc_time_day(self):
-
+            #Under cosntruction ###
             #Create new variables with period of day
             #Add to dataframe
             print()
