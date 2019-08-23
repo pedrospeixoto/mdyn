@@ -13,6 +13,8 @@ from datetime import datetime
 from datetime import date
 from datetime import timedelta
 
+import matplotlib.pyplot as plt
+
 
 import geopy.distance
 import geopandas as gpd
@@ -34,31 +36,64 @@ class Network:
         print("Creating/Loading network structure")
         self.main_state=main_state
         self.load_state_data(main_state)
+        self.test_state()
+
+    def test_state(self):
+
+        df = gpd.read_file('/media/pedrosp/Data/Drive/Work/Pesquisa/DadosCelular/mdyn/maps/Mesorregioes/MEEBRASIL.shp')
+        with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
+            print(df)
+        df.plot()
+        plt.show()
 
     def load_state_data(self, main_state):
 
         #State = string with Brazilian state abbrev
         # n = number of cities to include
         if main_state=="SP": 
-        #Source https://g1.globo.com/sp/sao-paulo/noticia/2018/08/29/cidade-de-sao-paulo-tem-122-milhoes-de- -e-e-a-mais-populosa-do-pais.ghtml
-            self.city_pop={
-                "São Paulo":12176866,  
-                "Guarulhos":1365899,  
-                "Campinas": 1194094,  
-                "São Bernardo do Campo": 833240,
-                "Santo André": 716109,
-                "São José dos Campos":713943,
-                "Osasco":696850,  
-                "Ribeirão Preto":694.534,
-                "Sorocaba":671186,  
-                "Mauá":468.168,  
-                "São José do Rio Preto":456.245,
-                "Mogi das Cruzes":440.769,  
-                "Diadema":420.934,  
-                "Jundiaí":414.810,
-                "Piracicaba":400.949
-            }
-            
+            #https://pt.wikipedia.org/wiki/Demografia_de_S%C3%A3o_Paulo
+        
+# """             self.reg_int_pop = {
+#                 1	São Paulo	São Paulo	21 571 281
+#                 2	Campinas	Campinas	3 224 443
+#                 3	S. J. dos Campos	São José dos Campos	2 528 345
+#                 4	Sorocaba	Sorocaba	2 120 095
+#                 5	Santos	São Paulo	1 848 654
+#                 6	Ribeirão Preto	Ribeirão Preto	1 702 479
+#                 7	Piracicaba	Campinas	1 481 652
+#                 8	Jundiaí	Campinas	804 936
+#                 9	Franca	Ribeirão Preto	657 753
+#                 10	S. J. do Rio Preto	S. J. do Rio Preto	456 245
+
+#             }
+#      self.city_pop={
+#                 "São Paulo":21571281,
+#                 "Campinas":	3224443,
+#                 "São José dos Campos":	2528345
+#         	    "Sorocaba":	2 120 095,
+#             	"Santos":,	1 848 654
+#                 "Ribeirão Preto":	1 702 479
+#                 7	Piracicaba	Campinas	1 481 652
+#                 8	Jundiaí	Campinas	804 936
+#                 9	Franca	Ribeirão Preto	657 753
+#                 10	S. J. do Rio Preto	S. J. do Rio Preto	456 245
+#                 "São Paulo":12176866,  
+#                 "Guarulhos":1365899,  
+#                 "Campinas": 1194094,  
+#                 "São Bernardo do Campo": 833240,
+#                 "Santo André": 716109,
+#                 "São José dos Campos":713943,
+#                 "Osasco":696850,  
+#                 "Ribeirão Preto":694.534,
+#                 "Sorocaba":671186,  
+#                 "Mauá":468168,  
+#                 "São José do Rio Preto":456245,
+#                 "Mogi das Cruzes":440769,  
+#                 "Diadema":420934,  
+#                 "Jundiaí":414810,
+#                 "Piracicaba":400949
+#             }
+#  """      
             self.city_latlon={
                 "São Paulo":[-23.32, -46.38],  
                 "Guarulhos":[-23.27, -46.32],  
@@ -97,6 +132,19 @@ class Network:
                 6:"Pira"
             }
             
+            self.regions_pop = np.array([ #index of regions in main state
+                16678066, #12176866+1365899+420934+833240+716109+696850+468168 #(SP+Diadema+SCB+SA+Guarulhos+Osasco+Maua),  
+                1608904, #1194094 + 414810, #Camp+Jundiai  
+                1154712, #713943+440769, #(SJC+MOGI+)
+                694534,
+                671186,  
+                456245,
+                400949
+            ])
+
+            self.regions_pop_freq = self.regions_pop/np.sum(self.regions_pop)
+            print(self.regions_pop_freq)
+
             self.nreg_in = len(self.regions_in)
 
             self.state_dict={
@@ -286,6 +334,33 @@ class Network:
 
             #day.df.to_csv("tmp.csv")
 
+    def add_reg_to_daydf(self, dom, daydata):
+        
+        #Add column with region tag
+        #for each event
+        for i in range(2):
+            s=str(i)
+            lon=daydata.df['lng'+s].values
+            lat=daydata.df['lat'+s].values
+            lonnan=np.isnan(lon)
+            latnan=np.isnan(lat)
+            nan = lonnan*latnan
+            ilon=((lon[~nan]-dom.minlons)/dom.dlon).astype(int)
+            ilat=((lat[~nan]-dom.minlats)/dom.dlat).astype(int)
+            #print(lon[~nan], lat[~nan], ilon, ilat)
+            reg = np.zeros(daydata.n).astype(int)
+            reg[nan] = -1
+            reg[~nan]=self.region_grid[ilat, ilon]
+            daydata.df['reg'+s]=reg
+
+        #Add column with moved or not
+        reg0 = daydata.df['reg0']
+        reg1 = daydata.df['reg1']
+        mov = reg0 != reg1
+        daydata.df['mov_reg']=mov
+
+        #day.df.to_csv("tmp.csv")
+
     def calc_transition_matrix(self, df):
         #print(df)
         #df.to_csv("tmp.csv", header=True)
@@ -293,7 +368,7 @@ class Network:
                      columns=['reg0'], aggfunc=np.count_nonzero, fill_value=0, dropna=False)
         
         #remove the problematic -1 regions
-        table = table.div(table.sum(axis=0), axis=1)
+        #table = table.div(table.sum(axis=0), axis=1)
         try:
             table = table.drop(columns=[-1])
         except:
@@ -303,7 +378,6 @@ class Network:
         except:
             pass
 
-        
         print(table)
         #We might regions without data
         #print(table)

@@ -49,7 +49,7 @@ class Domain:
         if self.precompdomain:
             if self.state == 'SP':
                 self.minlons=-54.0
-                self.maxlons=-54.0
+                self.maxlons=-42.0
                 self.minlats=-26.0
                 self.maxlats=-19.0
             else:

@@ -74,7 +74,6 @@ class MobileDynamics:
             os.makedirs(self.dump_dir)
             
         print("Output folder:", self.dump_dir)
-        return self
 
     def build_model(self, mode, state, precompdomain):
 
@@ -84,7 +83,7 @@ class MobileDynamics:
         #Load global domain info
         if precompdomain:
             self.dom.set_global_domain()
-        else: #This time!       
+        else: #This takes time!       
             self.read_data(preread=True)
             self.dom.set_global_domain(self.data)
 
@@ -92,23 +91,38 @@ class MobileDynamics:
         # local/vel: based on velocities and windrose - needs work
         # network/reg : based on regions
         # all : all modes
-        time.sleep(1000)
-        self.read_data(preread=False)
-        if mode == "local" or mode == "vel" or mode == "all":
-            for day in self.data:
-                day.calc_basic_day_diagnostics()
-                day.calc_vel_day_diagnostics()
-
         if mode == "network" or mode == "reg" or mode == "all":
-            for day in self.data:
-                day.calc_basic_day_diagnostics()
-                day.calc_time_day()
-            
-            self.set_network_grid("SP")
+            self.set_network_grid("SP")            
 
-            for day in self.data:
-                day.tmat = self.network.calc_transition_matrix(day.df)
-                
+
+        #Loop over days
+        self.data = [] #List of dataframes per day
+
+        #Loop over folders with days 
+        for day in daterange(self.date_ini_obj, self.date_end_obj+timedelta(days=1)):
+            
+            #Load data for this day
+            day_str=day.strftime("%Y-%m-%d")
+            day_data = DayData(day_str, self.data_dir, preread=False)
+            day_data.calc_basic_day_diagnostics() 
+
+            #Get useful info from this day
+            if mode == "local" or mode == "vel" or mode == "all":
+                day_data.calc_vel_day_diagnostics()
+
+            if mode == "network" or mode == "reg" or mode == "all":
+                #To be defined - to set proper periods of day
+                day_data.calc_time_day()
+
+                #Update dataframe with network info
+                self.network.add_reg_to_daydf(self.dom, day_data)           
+
+                day_data.tmat = self.network.calc_transition_matrix(day_data.df)
+
+            day_data.clean_data()
+
+            #Store just useful data, not raw data
+            self.data.append(day_data)                
 
     def read_data(self, preread):
         #Main dataframe list
@@ -140,15 +154,15 @@ class MobileDynamics:
         map.map_reg_data(self.network, title, "maps/")
 
         #Update dataframe with network info
-        self.network.add_reg_to_df(self.dom, self.data)
+        #self.network.add_reg_to_df(self.dom, self.data)
 
 
-    def simulate(self, mode):
+    def simulate_daily(self, mode):
         if mode == "network" or mode == "reg" or mode == "all":
             #initial condition
             
             x = np.zeros([self.network.nregions])
-            x[3]=100000
+            x[3]=1
 
             fig, ax = plt.subplots(figsize=(12,6))
             labels = list(self.network.regions.values())
@@ -165,14 +179,64 @@ class MobileDynamics:
             
             for i, day in enumerate(self.data):
                 #print(day.tmat, day.tmat.shape, x.shape)
-                y=np.matmul(day.tmat, x)
-                print(y.sum())
-                ax.plot( y, 'x', label=day.day)
+                x=np.matmul(day.tmat, x)
+                print(x.sum())
+                ax.plot( x, 'x', label=day.day)
                 ax.legend()
-                filename = "simulation"+day.day+".jpg"
+                filename = self.dump_dir+"daily_simulation"+day.day+".jpg"
                 plt.savefig(filename, dpi=300)
                 del ax.lines[1]   
             
+    def simulate_weekly(self, mode, dayoftheweek):
+        if mode == "network" or mode == "reg" or mode == "all":
+            #initial condition
+            
+            x = np.zeros([self.network.nregions])
+            tmatweek = np.identity(self.network.nregions)
+            tmat_list = [] #List of transiction matrices
+            day_list = [] #List of dates used
+            for i, day in enumerate(self.data):
+                if day.day_weekday == dayoftheweek: #Monday=0
+                    day_list.append(day.day)
+                    tmat_list.append(tmatweek)
+                    print("Transition matrix for Monday to Monday", day.day)
+                    print(tmatweek)
+                    tmatweek = np.identity(self.network.nregions)
+
+                #print(day.tmat, day.tmat.shape, x.shape)
+                tmatweek=np.matmul(day.tmat, tmatweek)
+
+            #Calculate the average matrix
+            #basicmat=np.zeros([self.network.nregions,self.network.nregions])
+            #for mat in tmat_list:
+            #    basicmat = basicmat + mat
+            basicmat=sum(tmat_list)/len(tmat_list)
+            print(basicmat)
+
+            #       
+            #Simulate 
+            x[3]=1
+
+            fig, ax = plt.subplots(figsize=(12,6))
+            labels = list(self.network.regions.values())
+            
+            ax.plot( x, 'o', label='IC')
+
+            #ax.set_ylim(0,450)
+            ax.set_ylabel('Individuals')
+            ax.set_title('Zombie Test')
+            ax.set_xticks(np.arange(len(x)))
+            ax.set_xticklabels(labels)
+            ax.set_yscale('log')
+            for i in range(20):
+                #print(day.tmat, day.tmat.shape, x.shape)
+                x=np.matmul(basicmat, x)
+                print(x.sum())
+                ax.plot( x, 'x', label=str(i))
+                ax.legend()
+                filename = self.dump_dir+"weekly_simulation"+str(i)+".jpg"
+                plt.savefig(filename, dpi=300)
+                del ax.lines[1]   
             
             
 
