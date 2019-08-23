@@ -44,12 +44,12 @@ class DayData:
             self.clean_data()
                         
     def clean_data(self):
-        print(mem_usage(self.df))
-        print("Cleaning original data ")
+        
+        mem1=mem_usage(self.df)
         del [self.df]
         gc.collect()
         self.df=pd.DataFrame()
-        print(mem_usage(self.df))
+        print("Cleaning original data ", mem1, mem_usage(self.df))
 
     def read_day_data(self, day, data_dir):
         # Input:
@@ -59,6 +59,8 @@ class DayData:
         self.day = day
         local_dir = data_dir+"dt="+day+"/"
         self.local_dir = local_dir
+        self.day_obj = datetime.strptime(self.day, '%Y-%m-%d')
+        self.day_weekday = self.day_obj.weekday() # Monday is 0 and Sunday is 6.
 
         print()
         print("Loading data for day:", day, " from ", local_dir )
@@ -321,6 +323,6 @@ class DayData:
             #Create new variables with period of day
             #Add to dataframe
             print()
-            print("Calculating periods of day for day "+self.day)
+            print("Calculating periods of day for day "+self.day, " weekday: ", self.day_weekday)
         
             

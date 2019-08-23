@@ -14,6 +14,7 @@ mdyn=MobileDynamics(sys.argv)
 
 #Calculate analytics
 #mdyn.build_analytics_data(mode="all", state="SP")
-mdyn.build_model(mode="reg", state="SP", precompdomain = False)
+mdyn.build_model(mode="reg", state="SP", precompdomain = True)
 
-mdyn.simulate(mode="reg")
+mdyn.simulate_daily(mode="reg")
+mdyn.simulate_weekly(mode="reg", dayoftheweek=0)
