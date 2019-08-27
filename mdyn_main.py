@@ -117,7 +117,7 @@ class MobileDynamics:
                 #Update dataframe with network info
                 self.network.add_reg_to_daydf(self.dom, day_data)           
 
-                day_data.tmat = self.network.calc_transition_matrix(day_data.df)
+                day_data.tmat = self.network.calc_transition_matrix(day_data.df, day_data.month)
 
             day_data.clean_data()
 
@@ -210,7 +210,10 @@ class MobileDynamics:
             #basicmat=np.zeros([self.network.nregions,self.network.nregions])
             #for mat in tmat_list:
             #    basicmat = basicmat + mat
-            basicmat=sum(tmat_list)/len(tmat_list)
+            if len(tmat_list) > 0:
+                basicmat=sum(tmat_list)/len(tmat_list)
+            else:
+                basicmat=tmat_list
             print(basicmat)
 
             #       
