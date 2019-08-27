@@ -394,8 +394,11 @@ class Network:
         #Remove other states
         neib_states = range(self.nreg_in, self.nregions, 1)
         print(neib_states)
+        try:
         table = table.drop(columns=neib_states)
         table = table.drop(neib_states, axis=0)
+        except:
+            pass
 
         #remove the problematic -1 regions
         #Columns
