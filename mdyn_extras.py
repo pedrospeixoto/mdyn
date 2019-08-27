@@ -71,3 +71,9 @@ def mem_usage(pandas_obj):
     usage_mb = usage_b / 1024 ** 2 # convert bytes to megabytes
     return "{:03.2f} MB".format(usage_mb)
         
+def matprint(mat, fmt="g"):
+    col_maxes = [max([len(("{:"+fmt+"}").format(x)) for x in col]) for col in mat.T]
+    for x in mat:
+        for i, y in enumerate(x):
+            print(("{:"+str(col_maxes[i])+fmt+"}").format(y), end="  ")
+        print("")

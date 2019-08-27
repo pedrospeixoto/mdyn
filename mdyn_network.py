@@ -25,7 +25,7 @@ from shapely.geometry import Point, Polygon
 import tqdm 
 
 from mdyn_daydata import DayData
-from mdyn_extras import distance, distance_lat, distance_lon, daterange
+from mdyn_extras import distance, distance_lat, distance_lon, daterange, matprint
 
 
 class Network:
@@ -380,8 +380,12 @@ class Network:
 
         #day.df.to_csv("tmp.csv")
 
-    def calc_transition_matrix(self, df, month):
+    def calc_transition_matrix(self, day): #%df, month):
         #print(df)
+
+        df=day.df
+        month=day.month
+        
         #df.to_csv("tmp.csv", header=True)
         table = df.pivot_table(values='dt1', index=['reg1'],\
                      columns=['reg0'], aggfunc=np.count_nonzero, fill_value=0, dropna=False)
@@ -407,30 +411,25 @@ class Network:
 
         #The resulting table has the people that moved, we now need to include people that did not move
         print(table)
+        
         total_users = self.monthy_users.get(month, 0)
-        print(month, total_users)
-        users_per_reg = total_users * self.regions_pop_freq
-        print(users_per_reg)
+        moving_users = day.n
+        steady_users = total_users - moving_users
+        print("Month, Total Users, Day moving users, Day steady users" )
+        print(month, total_users, moving_users, steady_users)
+        steady_users_per_reg = steady_users * self.regions_pop_freq
+        print("Per region:", steady_users_per_reg)
+
+        #Columns are regions at time 0
+        #Rows are regions at time 1
+        mat = table.as_matrix(columns=None)
+        
+        np.fill_diagonal(mat, mat.diagonal() + steady_users_per_reg)
+        #print(mat)
+        matprint(mat)
 
         #Normalize
-        table = table.div(table.sum(axis=0), axis=1)
-        print(table)
-        #We might regions without data
-        #print(table)
-        #print(table.columns)
-        #reglist0=table.columns.to_list()
-        #print(reglist0)
-        #n=len(table)
-        #print(n)
-        #missing = [i for i in range(-1, self.nregions, 1) if i not in reglist0] 
-        #Add missing columns
-        #print(missing)
-        #for i in missing:
-        #    table.insert(i, str(i), np.zeros(n).astype(int), True) 
-
-        #print(table)
-        mat = table.as_matrix(columns=None)
-        #print(mat)
-        #print(mat.shape)
+        mat_normed = mat / mat.sum(axis=0)
+        matprint(mat_normed)
         
-        return mat
+        return mat_normed
