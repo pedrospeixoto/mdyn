@@ -36,15 +36,15 @@ class Network:
         print("Creating/Loading network structure")
         self.main_state=main_state
         self.load_state_data(main_state)
-        self.test_state()
+        #self.test_state()
 
-    def test_state(self):
+    #def test_state(self):
 
-        df = gpd.read_file('/media/pedrosp/Data/Drive/Work/Pesquisa/DadosCelular/mdyn/maps/Mesorregioes/MEEBRASIL.shp')
-        with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
-            print(df)
-        df.plot()
-        plt.show()
+        #df = gpd.read_file('/media/pedrosp/Data/Drive/Work/Pesquisa/DadosCelular/mdyn/maps/Mesorregioes/MEEBRASIL.shp')
+        #with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
+        #    print(df)
+        #df.plot()
+        #plt.show()
 
     def load_state_data(self, main_state):
 
@@ -53,8 +53,8 @@ class Network:
         if main_state=="SP": 
             #https://pt.wikipedia.org/wiki/Demografia_de_S%C3%A3o_Paulo
         
-# """             self.reg_int_pop = {
-#                 1	São Paulo	São Paulo	21 571 281
+            #self.reg_int_pop = {
+            #    "São Paulo":21 571 281
 #                 2	Campinas	Campinas	3 224 443
 #                 3	S. J. dos Campos	São José dos Campos	2 528 345
 #                 4	Sorocaba	Sorocaba	2 120 095
@@ -66,17 +66,18 @@ class Network:
 #                 10	S. J. do Rio Preto	S. J. do Rio Preto	456 245
 
 #             }
-#      self.city_pop={
-#                 "São Paulo":21571281,
-#                 "Campinas":	3224443,
-#                 "São José dos Campos":	2528345
-#         	    "Sorocaba":	2 120 095,
-#             	"Santos":,	1 848 654
-#                 "Ribeirão Preto":	1 702 479
-#                 7	Piracicaba	Campinas	1 481 652
-#                 8	Jundiaí	Campinas	804 936
-#                 9	Franca	Ribeirão Preto	657 753
-#                 10	S. J. do Rio Preto	S. J. do Rio Preto	456 245
+            self.city_pop = {
+                 "São Paulo":21571281,
+                 "Campinas":3224443,
+                 "São José dos Campos":	2528345,
+         	     "Sorocaba":2120095,
+             	 "Santos":1848654,
+                 "Ribeirão Preto":1702479,
+                 "Piracicaba": 1481652,
+                 "Jundiaí":804936,
+                 "Franca":657753,
+                 "S. J. do Rio Preto":456245
+            }
 #                 "São Paulo":12176866,  
 #                 "Guarulhos":1365899,  
 #                 "Campinas": 1194094,  
@@ -105,41 +106,43 @@ class Network:
                 "Ribeirão Preto":[-21.10, -47.48],  
                 "Sorocaba":[-23.30, -47.27],  
                 "Mauá":[-23.40, -46.27],  
-                "São José do Rio Preto":[-20.49, -49.22],  
+                "S. J. do Rio Preto":[-20.49, -49.22],  
                 "Mogi das Cruzes":[-23.31, -46.11],  
                 "Diadema":[-23.41, -46.37],  
                 "Jundiaí":[-23.11, -46.53],  
-                "Piracicaba":[-22.43, -47.38]
+                "Piracicaba":[-22.43, -47.38],
+                "Santos":[-23,95, -46,33.],
+                "Franca":[-20.54, -47.40]
             }
             
             self.regions_in_latlon = { #Lat, lon, index of region
-                "Grande São Paulo":[-23.32, -46.38, 0],  #Guarulhos, SBC, SAndre, Osasco, Maua, diadema
+                "São Paulo":[-23.32, -46.38, 0],  #Guarulhos, SBC, SAndre, Osasco, Maua, diadema
                 "Campinas": [-22.54, -47.03, 1],  
-                "São José dos Campos":[-23.10, -45.53, 2],  
-                "Ribeirão Preto":[-21.10, -47.48, 3],  
-                "Sorocaba":[-23.30, -47.27, 4],  
-                "São José do Rio Preto":[-20.49, -49.22, 5],  
-                "Piracicaba":[-22.43, -47.38, 6]
+                "Jundiaí":[-23.11, -46.53, 2],  
+                "São José dos Campos":[-23.10, -45.53, 3],  
+                "Santos":[-23.95, -46.33, 4],
+                "Sorocaba":[-23.30, -47.27, 5],  
+                "Piracicaba":[-22.43, -47.38, 6],
+                "Ribeirão Preto":[-21.10, -47.48, 7],  
+                "Franca":[-20.54, -47.40, 8],
+                "S. J. do Rio Preto":[-20.49, -49.22, 9]
             }
 
             self.regions_in = { #index of regions in main state
                 0:"GrandeSP",
                 1:"Campinas",
-                2:"SJC",  
-                3:"RP",  
-                4:"Sorocaba",  
-                5:"SJRP",  
-                6:"Pira"
+                2:"Jundiai",
+                3:"SJC",
+                4:"Santos",
+                5:"Sorocaba",  
+                6:"Pira",
+                7:"RP",  
+                8:"Franca",
+                9:"SJRP"                
             }
             
             self.regions_pop = np.array([ #index of regions in main state
-                16678066, #12176866+1365899+420934+833240+716109+696850+468168 #(SP+Diadema+SCB+SA+Guarulhos+Osasco+Maua),  
-                1608904, #1194094 + 414810, #Camp+Jundiai  
-                1154712, #713943+440769, #(SJC+MOGI+)
-                694534,
-                671186,  
-                456245,
-                400949
+                21571281,3224443,804936,2528345,1848654,2120095,1481652,1702479, 657753,456245
             ])
 
             self.regions_pop_freq = self.regions_pop/np.sum(self.regions_pop)
@@ -301,7 +304,8 @@ class Network:
                         
                         self.region_grid[i,j] = ireg
 
-                #Save this region grid for turute use, as it takes time to build
+                #Save this region grid for furute use, as it takes time to build
+            np.savetxt(gridname+".csv", self.region_grid)
             np.save(gridname, self.region_grid)
             print("Regions saved in file "+gridname)
 
