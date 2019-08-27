@@ -61,6 +61,7 @@ class DayData:
         self.local_dir = local_dir
         self.day_obj = datetime.strptime(self.day, '%Y-%m-%d')
         self.day_weekday = self.day_obj.weekday() # Monday is 0 and Sunday is 6.
+        self.month = self.day_obj.strftime("%Y-%m")
 
         print()
         print("Loading data for day:", day, " from ", local_dir )

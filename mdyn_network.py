@@ -180,6 +180,21 @@ class Network:
                 "DISTRITO FEDERAL":"DF"
             }
             
+            self.monthy_users = {
+                "2018-04":  6325668,
+                "2018-05":  6515725,
+                "2018-06":	6228902,
+                "2018-07":	6000567,
+                "2018-08":	6188322,
+                "2018-09":	6167131,
+                "2018-10":	6180900,
+                "2018-11": 	7108021,
+                "2018-12":	7634732,
+                "2019-01":	6852594,
+                "2019-02":	7169397,
+                "2019-03":	7247796,
+            }
+
             #Get map shapes
             if os.path.exists('maps/UFEBRASIL_mdyn.shp'):
                 df = gpd.read_file('maps/UFEBRASIL_mdyn.shp')
@@ -365,23 +380,40 @@ class Network:
 
         #day.df.to_csv("tmp.csv")
 
-    def calc_transition_matrix(self, df):
+    def calc_transition_matrix(self, df, month):
         #print(df)
         #df.to_csv("tmp.csv", header=True)
         table = df.pivot_table(values='dt1', index=['reg1'],\
                      columns=['reg0'], aggfunc=np.count_nonzero, fill_value=0, dropna=False)
         
+        
+        #Remove other states
+        neib_states = range(self.nreg_in, self.nregions, 1)
+        print(neib_states)
+        table = table.drop(columns=neib_states)
+        table = table.drop(neib_states, axis=0)
+
         #remove the problematic -1 regions
-        #table = table.div(table.sum(axis=0), axis=1)
+        #Columns
         try:
             table = table.drop(columns=[-1])
         except:
             pass
+        #Rows
         try:
             table = table.drop([-1], axis=0)
         except:
             pass
 
+        #The resulting table has the people that moved, we now need to include people that did not move
+        print(table)
+        total_users = self.monthy_users.get(month, 0)
+        print(month, total_users)
+        users_per_reg = total_users * self.regions_pop_freq
+        print(users_per_reg)
+
+        #Normalize
+        table = table.div(table.sum(axis=0), axis=1)
         print(table)
         #We might regions without data
         #print(table)
