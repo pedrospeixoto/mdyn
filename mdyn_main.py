@@ -117,7 +117,7 @@ class MobileDynamics:
                 #Update dataframe with network info
                 self.network.add_reg_to_daydf(self.dom, day_data)           
 
-                day_data.tmat = self.network.calc_transition_matrix(day_data.df, day_data.month)
+                day_data.tmat = self.network.calc_transition_matrix(day_data)
 
             day_data.clean_data()
 
@@ -161,7 +161,7 @@ class MobileDynamics:
         if mode == "network" or mode == "reg" or mode == "all":
             #initial condition
             
-            x = np.zeros([self.network.nregions])
+            x = np.zeros([self.network.nreg_in])
             x[3]=1
 
             fig, ax = plt.subplots(figsize=(12,6))
@@ -191,8 +191,8 @@ class MobileDynamics:
         if mode == "network" or mode == "reg" or mode == "all":
             #initial condition
             
-            x = np.zeros([self.network.nregions])
-            tmatweek = np.identity(self.network.nregions)
+            x = np.zeros([self.network.nreg_in])
+            tmatweek = np.identity(self.network.nreg_in)
             tmat_list = [] #List of transiction matrices
             day_list = [] #List of dates used
             for i, day in enumerate(self.data):
@@ -201,7 +201,7 @@ class MobileDynamics:
                     tmat_list.append(tmatweek)
                     print("Transition matrix for Monday to Monday", day.day)
                     print(tmatweek)
-                    tmatweek = np.identity(self.network.nregions)
+                    tmatweek = np.identity(self.network.nreg_in)
 
                 #print(day.tmat, day.tmat.shape, x.shape)
                 tmatweek=np.matmul(day.tmat, tmatweek)
