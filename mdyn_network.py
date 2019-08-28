@@ -180,7 +180,7 @@ class Network:
                 "DISTRITO FEDERAL":"DF"
             }
             
-            self.monthy_users = {
+            self.monthly_users = {
                 "2018-04":  6325668,
                 "2018-05":  6515725,
                 "2018-06":	6228902,
@@ -415,7 +415,7 @@ class Network:
         #The resulting table has the people that moved, we now need to include people that did not move
         print(table)
         
-        total_users = self.monthy_users.get(month, 0)
+        total_users = self.monthly_users.get(month, 0)
         moving_users = day.n
         steady_users = total_users - moving_users
         print("Month, Total Users, Day moving users, Day steady users" )
