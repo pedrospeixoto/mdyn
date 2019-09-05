@@ -73,9 +73,10 @@ class DayData:
         df_local = pd.DataFrame(columns=self.col_labels) 
         
         if not os.path.exists(local_dir):
-            print( " Could not reach directory, ignoring this date.")
-            self.df = df_local
-            return self #empty dataframe
+            print( " Could not reach directory, stopping here.")
+            sys.exit(0)
+            #self.df = df_local
+            #return self #empty dataframe
         
         loaded = False
         pklfiles = list_files_pkl(local_dir)
@@ -324,6 +325,7 @@ class DayData:
             #Create new variables with period of day
             #Add to dataframe
             print()
-            print("Calculating periods of day for day "+self.day, " weekday: ", self.day_weekday)
+            print("Calculating/filtering periods of day for day "+self.day, " weekday: ", self.day_weekday)
+            print(" No filter done! Movements are of all time scales! " )
         
             
