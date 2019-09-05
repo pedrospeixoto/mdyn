@@ -380,9 +380,8 @@ class Network:
 
         #day.df.to_csv("tmp.csv")
 
-    def calc_transition_matrix(self, day): #%df, month):
-        #print(df)
-
+    def calc_transition_matrix(self, day):
+        
         df=day.df
         month=day.month
         
@@ -393,7 +392,7 @@ class Network:
         
         #Remove other states
         neib_states = range(self.nreg_in, self.nregions, 1)
-        print(neib_states)
+        #print(neib_states)
         try:
             table = table.drop(columns=neib_states)
             table = table.drop(neib_states, axis=0)
@@ -413,15 +412,18 @@ class Network:
             pass
 
         #The resulting table has the people that moved, we now need to include people that did not move
+        print("")
+        print("Transition Matrix (number of people moving to/from regions)")
         print(table)
         
         total_users = self.monthly_users.get(month, 0)
         moving_users = day.n
         steady_users = total_users - moving_users
+        print("")
         print("Month, Total Users, Day moving users, Day steady users" )
         print(month, total_users, moving_users, steady_users)
         steady_users_per_reg = steady_users * self.regions_pop_freq
-        print("Per region:", steady_users_per_reg)
+        print("Users per region:", steady_users_per_reg)
 
         #Columns are regions at time 0
         #Rows are regions at time 1
@@ -429,10 +431,13 @@ class Network:
         
         np.fill_diagonal(mat, mat.diagonal() + steady_users_per_reg)
         #print(mat)
+        print()
+        print("Transition matrix including steady users")
         matprint(mat)
-
+        print()
         #Normalize
         mat_normed = mat / mat.sum(axis=0)
+        print("Normalized transition matrix (transition probability)")
         matprint(mat_normed)
         
         return mat_normed
