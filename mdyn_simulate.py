@@ -24,6 +24,14 @@ import calendar
 #Initialize mobile data and load data to dataframe 
 mdyn=MobileDynamics(sys.argv)
 
+ilog = True
+figext = ".jpg"
+
+if ilog:
+    ilogstr="_log"
+else:
+    ilogstr=""
+
 #Read transition matrices
 tmat_all = [] #List transition matrices
 tmat_dow = [[] for Null in range(7)]   #trans mats split by day of the week
@@ -37,7 +45,8 @@ dow_names = list(calendar.day_abbr)
 dates = mdyn.date_ini+"_"+mdyn.date_end
 ndays = mdyn.days
 
-
+markers = [ 'o', 'v', '^', '<', '>', 's', 'p', '*', 'h', 'H', '+', 'x', 'D', '.', ',', 'o', 'v', '^', '<', '>', '1', '2', '3', '4', '8', 's', 'p', '*', 'h', 'H', '+', 'x', 'D']
+thinmarkers = ['.', '1', '2', '3', '4', '8']
 #Loop over folders with days and collect transition matrices
 for day in daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=1)):
     #print(day)
@@ -48,8 +57,11 @@ for day in daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=1)):
 
     local_dir = mdyn.data_dir+"dt="+day.strftime("%Y-%m-%d")+"/"
     tmat_local = np.genfromtxt(local_dir+'trans_mat.csv')
-
-
+    (nlocal, mlocal) = tmat_local.shape
+    if not ilog:
+        #Clean diagonal
+        for i in range(nlocal):
+            tmat_local[i,i] = np.nan
     tmat_all.append(tmat_local)
     tmat_dow[day.weekday()].append(tmat_local)
 
@@ -80,10 +92,10 @@ for idow in range(7):
     figcols = 5
     fig, ax = plt.subplots(figrows, figcols, figsize=(25, 6)) #, sharex="all", sharey="all")
     
-    for i, day in enumerate(days_dow[idow]): 
-        print(i, day)
+    for iday, day in enumerate(days_dow[idow]): 
+        print(iday, day)
         
-        tmat_local = tmat_dow[idow][i]
+        tmat_local = tmat_dow[idow][iday]
         matprint(tmat_local)
         mean_dow_mats[idow] = mean_dow_mats[idow] + tmat_local/ndow
 
@@ -94,7 +106,7 @@ for idow in range(7):
         for col in range(nreg):
             i=int(col/figcols)
             j=col%figcols
-            line , = ax[i,j].plot(tmat_local[:,col], label=day)
+            line , = ax[i,j].plot(tmat_local[:,col], label=day, linestyle="None", marker=markers[iday], markersize="5")
             lines.append(line)
         
 
@@ -102,23 +114,36 @@ for idow in range(7):
     for col in range(nreg):
         i=int(col/figcols)
         j=col%figcols
-        ax[i, j].set(xlim=(0, 9), ylim=(0.0000001, 1.0))
-        ax[i, j].plot(mean_dow_mats[idow][:, col], '--', label="Mean",  linewidth=5)
-        ax[i, j].set_yscale('log')       
+        
+        ax[i, j].plot(mean_dow_mats[idow][:, col], label="Mean", marker="_", markersize=20, color="black", linestyle = "None")
+
+        if ilog:
+            ax[i, j].set(xlim=(0, 9), ylim=(0.0000001, 1.0))
+
+
+        ax[i, j].spines['top'].set_visible(False)
+        ax[i, j].spines['right'].set_visible(False)
+        if ilog:
+            ax[i, j].set_yscale('log')       
         ax[i, j].set_ylabel('Prob - Origin: '+str(col))
         if i==figrows-1 :
             ax[i, j].set_xlabel('Destination')
         if i==0 and j==figcols-1:
             ax[i,j].legend(bbox_to_anchor=(1.5, 1.0))
+        plt.sca(ax[i, j])
+        plt.xticks(range(nreg))
 
 
     regions="Regions: 0:GrandeSP  1:Campinas  2:Jundiai  3:SJC  4:Santos  5:Sorocaba  6:Pira  7:RP  8:Franca  9:SJRP"
     #, 10: 'MG', 11: 'RJ', 12: 'PR', 13: 'MS'
     fig.suptitle("Probability of transition between regions from "+dow_names[idow]+" to "+dow_names[(idow+1)%7]+"\n\n"+regions)
     #plt.annotate(regions, xy=(0, 0), xytext=(0.01, 0.001), fontsize=12)
-    plt.tight_layout(pad=10.1, w_pad=0.5, h_pad=20.0)
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.85, bottom=0.08, left=0.05, right=0.9, hspace=0.15,
+                    wspace=0.25)
     
-    plt.savefig("dump/Transitions_"+dow_names[idow]+"_Dates"+dates+".jpg")
+    filename="dump/Transitions_"+dow_names[idow]+"_Dates"+dates+ilogstr+figext
+    plt.savefig(filename)
 
 #Plot means for each dow
 
@@ -142,7 +167,7 @@ for idow in range(7):
     for col in range(nreg):
         i=int(col/figcols)
         j=col%figcols
-        line , = ax[i,j].plot(tmat_local[:,col], label=dow_names[idow])
+        line , = ax[i,j].plot(tmat_local[:,col], label=dow_names[idow], linestyle="None", marker=markers[idow])
         lines.append(line)
     
 
@@ -150,17 +175,26 @@ for idow in range(7):
 for col in range(nreg):
     i=int(col/figcols)
     j=col%figcols
-    ax[i, j].set(xlim=(0, 9), ylim=(0.0000001, 1.0))
-    ax[i, j].plot(mean_all_mats[:, col], '--', label="Mean",  linewidth=5)
-    ax[i, j].set_yscale('log')       
+    if ilog:
+        ax[i, j].set(xlim=(0, 9), ylim=(0.0000001, 1.0))
+    ax[i, j].plot(mean_all_mats[:, col],label="Mean", marker="_", markersize=20, color="black", linestyle = "None")
+    if ilog:
+        ax[i, j].set_yscale('log')       
     ax[i, j].set_ylabel('Prob - Origin: '+str(col))
     if i==figrows-1 :
         ax[i, j].set_xlabel('Destination')
     if i==0 and j==figcols-1:
         ax[i,j].legend(bbox_to_anchor=(1.5, 1.0))
+    plt.sca(ax[i, j])
+    plt.xticks(range(nreg))
 
 fig.suptitle("Probability of transition between regions"+"\n\n"+regions)
-plt.tight_layout(pad=10.1, w_pad=0.5, h_pad=20.0)
-plt.savefig("dump/Transitions_Dates"+dates+".jpg")
+plt.tight_layout()
+plt.subplots_adjust(top=0.85, bottom=0.08, left=0.05, right=0.9, hspace=0.15,
+                    wspace=0.25)
+
+filename="dump/Transitions_Dates"+dates+ilogstr+figext
+plt.savefig(filename)
+
 
 
