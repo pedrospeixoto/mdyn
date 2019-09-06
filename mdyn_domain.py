@@ -12,6 +12,8 @@ import matplotlib.cm as cm
 
 import sys
 
+from mdyn_extras import matprint
+
 class Domain:
     def __init__(self, precompdomain=False, state=''):
         #Bin padding (MANUAL)
@@ -85,12 +87,14 @@ class Map:
         self.dom=dom       
 
         #Init the figure
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots( figsize=(10, 5))
         
         #Define map projection
-        map = Basemap(projection='merc', resolution='h',
-            llcrnrlon=dom.minlons-1, llcrnrlat=dom.minlats-1,
-            urcrnrlon=dom.maxlons+1, urcrnrlat=dom.maxlats+1)
+        #map = Basemap(projection='merc', resolution='h',
+        #    llcrnrlon=dom.minlons-1, llcrnrlat=dom.minlats-1,
+        #    urcrnrlon=dom.maxlons+1, urcrnrlat=dom.maxlats+1)
+        map = Basemap(width=1.e6,height=7.e5,\
+            projection='gnom',lat_0=-23,lon_0=-48., resolution="f")
             #width=2E6, height=2E6, lat_0=lat0, lon_0=lon0,
         #map = Basemap(width=12000000,height=9000000,
         #    rsphere=(6378137.00,6356752.3142),\
@@ -105,11 +109,13 @@ class Map:
 
         #Config map
         map.drawcoastlines()
-        map.drawcountries()
+        map.drawcountries(color='k',linestyle='-', linewidth=0.8)
         #map.fillcontinents(color = 'coral')
         map.drawmapboundary()
-        map.drawstates()
-
+        map.drawstates(color='k',linestyle='--', linewidth=0.6)
+        #map.drawparallels(np.arange(-50,0,5))
+        #map.drawmeridians(np.arange(-180,180,10))
+        
         map.ax = ax
         
         # convert the bin mesh to map coordinates:
@@ -155,16 +161,21 @@ class Map:
     def map_reg_data(self, network, title, dir):
         
         data=network.region_grid
-        data=data.astype(int)
+        data=data.astype(float)
 
+        #matprint(data)
+        data[data<0]=np.nan #network.nregions+1
+        data=data+0.5
+        #matprint(data)
         #np.savetxt('tmp.txt', data, fmt='%3i')
         #reg = np.unique(data)
         
         #cols = colors.cnames.keys()
         cols = ['blue', 'red', 'yellow', 'orange',  'limegreen', \
-            'violet', 'purple', 'brown', 'cyan', 'olive', 'coral','lightgreen' ,'grey']
+            'violet', 'purple', 'brown', 'cyan', 'olive', 'coral', 'lightgreen' ,'grey', \
+               'blue', 'red', 'yellow', 'orange',  'limegreen' ]
         
-        cmap = colors.ListedColormap(cols, N=(network.nregions+1))
+        cmap = colors.ListedColormap(cols, N=(network.nregions+2))
         #boundaries = reg 
         #norm = colors.BoundaryNorm(boundaries, len(cols), clip=True)
         
@@ -173,10 +184,13 @@ class Map:
             #cmap="hot_r", norm=colors.LogNorm(), snap=True)
 
         #Config
-        cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=20, fraction=0.1, pad=0.01)
+        bounds = np.linspace(0, network.nregions, network.nregions+1)
+
+        cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=25, fraction=0.1, pad=0.01, boundaries=bounds, \
+             spacing='proportional', ticks=bounds)
         cbar.set_label(title,size=12)
-        cbar.set_ticks(range(-1, network.nregions+1, 1))
-        cbar.set_ticklabels(range(-1, network.nregions+1, 1))
+        cbar.set_ticks(range(network.nregions+2))
+        cbar.set_ticklabels(range(network.nregions+2))
     
         #Add labels 
         reg = list(network.regions_in_latlon.values())
@@ -187,11 +201,12 @@ class Map:
             try: 
                 #print(xpt[0], ypt[0], str(network.region_full.get(i)))
                 self.map.plot(xpt, ypt, 'kx', markersize=1)
-                plt.text(xpt[0], ypt[0], str(network.regions.get(i)),fontsize=5)
+                plt.text(xpt[0], ypt[0], str(network.regions.get(i))+"-"+str(i),fontsize=6)
                 #plt.text(xpt[0], ypt[0], str(i),fontsize=10)
             except:
                 pass
             
         #Save density plot to folder "dir"
+        plt.tight_layout()
         filename = dir+"/map_data_"+title+".eps"
         plt.savefig(filename, dpi=300)
