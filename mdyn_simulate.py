@@ -24,7 +24,8 @@ import calendar
 #Initialize mobile data and load data to dataframe 
 mdyn=MobileDynamics(sys.argv)
 
-ilog = True
+#ilog = True
+ilog = False
 figext = ".jpg"
 
 if ilog:
@@ -88,9 +89,9 @@ for idow in range(7):
     print(dow_names[idow], " : n = "+str(ndow))
     print("----------------")
 
-    figrows = 2
-    figcols = 5
-    fig, ax = plt.subplots(figrows, figcols, figsize=(25, 6)) #, sharex="all", sharey="all")
+    figrows = 4
+    figcols = 3
+    fig, ax = plt.subplots(figrows, figcols, figsize=(12, 10)) #, sharex="all", sharey="all")
     
     for iday, day in enumerate(days_dow[idow]): 
         print(iday, day)
@@ -128,18 +129,22 @@ for idow in range(7):
         ax[i, j].set_ylabel('Prob - Origin: '+str(col))
         if i==figrows-1 :
             ax[i, j].set_xlabel('Destination')
-        if i==0 and j==figcols-1:
-            ax[i,j].legend(bbox_to_anchor=(1.5, 1.0))
-        plt.sca(ax[i, j])
+        #if i==0 and j==figcols-1:
+        #    ax[i,j].legend(bbox_to_anchor=(1.0, 1.0))
+        #plt.sca(ax[i, j])
         plt.xticks(range(nreg))
 
+    ax[figrows-1,figcols-3].legend(bbox_to_anchor=(1.3, 1.2), ncol=4)
+    plt.sca(ax[figrows-1,figcols-2])
+    ax[figrows-1,figcols-2].axis('off')
+    ax[figrows-1,figcols-1].axis('off')
 
     regions="Regions: 0:GrandeSP  1:Campinas  2:Jundiai  3:SJC  4:Santos  5:Sorocaba  6:Pira  7:RP  8:Franca  9:SJRP"
     #, 10: 'MG', 11: 'RJ', 12: 'PR', 13: 'MS'
     fig.suptitle("Probability of transition between regions from "+dow_names[idow]+" to "+dow_names[(idow+1)%7]+"\n\n"+regions)
     #plt.annotate(regions, xy=(0, 0), xytext=(0.01, 0.001), fontsize=12)
     plt.tight_layout()
-    plt.subplots_adjust(top=0.85, bottom=0.08, left=0.05, right=0.9, hspace=0.15,
+    plt.subplots_adjust(top=0.85, bottom=0.08, left=0.1, right=0.95, hspace=0.55,
                     wspace=0.25)
     
     filename="dump/Transitions_"+dow_names[idow]+"_Dates"+dates+ilogstr+figext
@@ -153,9 +158,8 @@ print("----------------")
 
 matprint(mean_all_mats)
 print("")
-figrows = 2
-figcols = 5
-fig, ax = plt.subplots(figrows, figcols, figsize=(25, 6)) #, sharex="all", sharey="all")
+
+fig, ax = plt.subplots(figrows, figcols, figsize=(12, 10)) #, sharex="all", sharey="all")
 
 for idow in range(7): 
     print("Mean matrix for dow: ", idow, " ", dow_names[idow])
@@ -183,14 +187,19 @@ for col in range(nreg):
     ax[i, j].set_ylabel('Prob - Origin: '+str(col))
     if i==figrows-1 :
         ax[i, j].set_xlabel('Destination')
-    if i==0 and j==figcols-1:
-        ax[i,j].legend(bbox_to_anchor=(1.5, 1.0))
-    plt.sca(ax[i, j])
+    #if i==0 and j==figcols-1:
+    #    ax[i,j].legend(bbox_to_anchor=(1.5, 1.0))
+    #plt.sca(ax[i, j])
     plt.xticks(range(nreg))
+
+ax[figrows-1,figcols-3].legend(bbox_to_anchor=(1.3, 1.2), ncol=4)
+plt.sca(ax[figrows-1,figcols-2])
+ax[figrows-1,figcols-2].axis('off')
+ax[figrows-1,figcols-1].axis('off')
 
 fig.suptitle("Probability of transition between regions"+"\n\n"+regions)
 plt.tight_layout()
-plt.subplots_adjust(top=0.85, bottom=0.08, left=0.05, right=0.9, hspace=0.15,
+plt.subplots_adjust(top=0.85, bottom=0.08, left=0.1, right=0.95, hspace=0.55,
                     wspace=0.25)
 
 filename="dump/Transitions_Dates"+dates+ilogstr+figext
