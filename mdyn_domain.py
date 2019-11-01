@@ -147,7 +147,7 @@ class Map:
     def map_data(self, data, title, dir):
         
         #2d color plot of data
-        plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, density=False)  
+        plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data) #, density=False)  
             #cmap="hot_r", norm=colors.LogNorm(), snap=True)
 
         #Config
