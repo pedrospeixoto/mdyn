@@ -81,56 +81,69 @@ class Incidence:
 
         self.dom = Domain(state="SP", precompdomain = True)
         self.dom.set_global_domain()
-        print("ola")
         #print(self.dom.lat_bins_c)
         
-        #print(self.data)
-        #for i, date in enumerate(self.dates):
+        #Get 1d indices for 2d lat/lon table
+        self.convert1d_2d_latlong()
+                
         for week_index, row in self.data.iterrows():
+            print("Week:", week_index, " Date: ", row[0])
             week_data=row[1:-1].values
-            #matrix=np.zeros((self.dom.nlat+2, self.dom.nlon+2))
-            matrix=np.zeros((self.dom.nlat+2, self.dom.nlon+2))
-            print(matrix.shape)
-            #print(row[0], week_data)
+            matrix_data=np.zeros((self.dom.nlat+2, self.dom.nlon+2))
             for j, lat in enumerate(self.dom.lat_bins_c):
                 for i, lon in enumerate(self.dom.lon_bins_c):
-                    index=self.get_table_index(lon, lat)
-                    if index > 0:
-                        print(i,j,lon,lat)
-                        print(index, self.lon[index], self.lat[index],week_data[index] )
-                        local_data=week_data[index]
-                        matrix[j,i]=local_data
-                        print("")
+                    if self.data_avail[j,i] > 0:
+                        local_data=week_data[self.pos_index[j,i]]
+                        matrix_data[j,i]=local_data
+                        
             
-            
-
             map = Map(self.dom)
-            map.map_data(matrix, "teste", self.dump_dir)
+            map.map_data(matrix_data, "Incidence"+str(week_index)+"Week-"+str(row[0]), self.dump_dir)
             #print(index, row)
-            exit(1)
+
+
+    def convert1d_2d_latlong(self):
+        #Organize lat-longs as 2d-table instead of 1d vector
+        pos_index=np.zeros((self.dom.nlat+2, self.dom.nlon+2)).astype(int)
+        data_avail=np.zeros((self.dom.nlat+2, self.dom.nlon+2)).astype(int)
+        for j, lat in enumerate(self.dom.lat_bins_c):
+                for i, lon in enumerate(self.dom.lon_bins_c):
+                    index=self.get_table_index(lon, lat)
+                    pos_index[j,i]=int(index)
+                    if index > 0:
+                        #print(i,j,lon, lat, pos_index[j,i])
+                        data_avail[j,i]=1
+        self.pos_index=pos_index
+        self.data_avail=data_avail
+
+        map = Map(self.dom)
+        map.map_data(pos_index, "Index of Position", self.dump_dir)
+        map2 = Map(self.dom)
+        map2.map_data(data_avail, "Available Data Positions", self.dump_dir)
 
 
     def get_table_index(self, lon, lat):
-        
+        #This assumes long/lat are ordered following longitudes then latitudes!!!
         i = -1
         lats=self.lat
         lons=self.lon
         if lon in lons:
-            
+            #Get indeces of this long in vector 
             ilon_min = np.argmax(lons==lon)
             inv_lons=lons[::-1]
             ilon_max = len(lons) - np.argmax(inv_lons==lon)-1
-            imax=min(ilon_max+1,len(lons)) 
+            #imax=min(ilon_max+1,len(lons)) 
+            #Get list of lats for this lon
             local_lats=lats[ilon_min:ilon_max]
             if lat in local_lats:
-                print("teste")
-                print(lon, lat)
-                print(ilon_min, ilon_max)
-                print(local_lats)
+                #print("teste")
+                #print(lon, lat)
+                #print(ilon_min, ilon_max)
+                #print(local_lats)
                 ilat=np.argmax(local_lats==lat)
                 i = ilat+ilon_min
-                print(lon, lat, ilon_min, ilat, i)
-                print()
+                #print(lon, lat, ilon_min, ilat, i)
+                #print()
         return i
 
         
