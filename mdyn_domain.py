@@ -50,10 +50,14 @@ class Domain:
 
         if self.precompdomain:
             if self.state == 'SP':
+                #self.minlons=-54.0
+                #self.maxlons=-42.0
+                #self.minlats=-26.0
+                #self.maxlats=-19.0
                 self.minlons=-54.0
                 self.maxlons=-42.0
                 self.minlats=-26.0
-                self.maxlats=-19.0
+                self.maxlats=-18.0
             else:
                 print("I only know how to precompute SP state domains!")
                 sys.exit(1)
@@ -93,8 +97,8 @@ class Map:
         #map = Basemap(projection='merc', resolution='h',
         #    llcrnrlon=dom.minlons-1, llcrnrlat=dom.minlats-1,
         #    urcrnrlon=dom.maxlons+1, urcrnrlat=dom.maxlats+1)
-        map = Basemap(width=1.e6,height=7.e5,\
-            projection='gnom',lat_0=-23,lon_0=-48., resolution="f")
+        map = Basemap(width=1.1e6,height=7.2e5,\
+            projection='gnom',lat_0=-22.6,lon_0=-48.4, resolution="f")
             #width=2E6, height=2E6, lat_0=lat0, lon_0=lon0,
         #map = Basemap(width=12000000,height=9000000,
         #    rsphere=(6378137.00,6356752.3142),\
@@ -113,8 +117,8 @@ class Map:
         #map.fillcontinents(color = 'coral')
         map.drawmapboundary()
         map.drawstates(color='k',linestyle='--', linewidth=0.6)
-        #map.drawparallels(np.arange(-50,0,5))
-        #map.drawmeridians(np.arange(-180,180,10))
+        map.drawparallels(np.arange(-50,0,1), labels=[False,True,True,False])
+        map.drawmeridians(np.arange(-180,180,1), labels=[False,False,True,False])
         
         map.ax = ax
         
@@ -147,7 +151,7 @@ class Map:
     def map_data(self, data, title, dir):
         
         #2d color plot of data
-        plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data) #, density=False)  
+        plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, cmap="hot_r") #, density=False)  
             #cmap="hot_r", norm=colors.LogNorm(), snap=True)
 
         #Config
@@ -155,7 +159,8 @@ class Map:
         cbar.set_label(title,size=12)
     
         #Save density plot to folder "dir"
-        filename = dir+"/map_data_"+title+".eps"
+        #filename = dir+"/map_data_"+title.strip()+".eps"
+        filename = dir+"/map_data_"+title.strip()+".jpg"
         plt.savefig(filename, dpi=300)
 
     def map_reg_data(self, network, title, dir):
@@ -208,5 +213,6 @@ class Map:
             
         #Save density plot to folder "dir"
         plt.tight_layout()
-        filename = dir+"/map_data_"+title+".eps"
+        #filename = dir+"/map_data_"+title+".eps"
+        filename = dir+"/map_data_"+title+".jpg"
         plt.savefig(filename, dpi=300)
