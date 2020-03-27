@@ -145,7 +145,7 @@ class MobileDynamics:
         #Map the regions
         map = Map(self.dom)
         title = self.network.gridname 
-        map.map_reg_data(self.network, title, "maps/")
+        map.map_reg_data(self.network, title)
 
         #Update dataframe with network info
         #self.network.add_reg_to_df(self.dom, self.data)
