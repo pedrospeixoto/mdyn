@@ -11,18 +11,22 @@ from mdyn_network import Network
 from mdyn_main import MobileDynamics
 
 #Initialize network
+#-----------------------------
 
-
+#Main domain definition
 domain = "SÃO PAULO" #SP or RJ
 domain_gran = "NM_ESTADO"
 domain_shape = "maps/UFEBRASIL/UFEBRASIL"
 
+#Subdomain definitions
 subdomains = "SP-Municipios"
 subdomains_gran = "NM_MUNICIP"
 subdomains_shape = "maps/sp_municipios/35MUE250GC_SIR"
 
-latlon_gran = 0.02 #granularity of lat long spacing
+#Network granularity
+latlon_gran = 0.5 #granularity of lat long spacing
 
+#Network pre-computation flag
 load_domain = True #Load precomp structures
 
 network = Network(
@@ -36,12 +40,22 @@ network = Network(
             load = load_domain
             )
 
-sys.exit(1)
-
+#Read data and add to network
+#-----------------------------
 #Initialize mobile data and load data to dataframe 
-mdyn=MobileDynamics(sys.argv)
+data_dir = "data/visit_journey_sao_paulo_2019/"
+date_ini = "2019-12-01"
+date_end = "2019-12-01"
+load_data = True 
 
+mdyn = MobileDynamics(
+    data_dir = data_dir,
+    date_ini = date_ini,
+    date_end = date_end,
+    load = load_data
+    )
 
+#Build model
+mdyn.build_model(network)
 
-mdyn.build_model(state=state, granularity=granularity, precompdomain = precompdomain)
 

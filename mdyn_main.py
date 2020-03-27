@@ -26,27 +26,11 @@ from matplotlib import animation
 
 class MobileDynamics:
 
-    def __init__(self, argv):
-        self.read_arguments(argv)    
-
-    def read_arguments(self, argv):
-        # input directory path
-        data_dir = ''
-        if len(argv) < 3 :
-            print("Arguments required:")
-            print("1) A folder name containing the dataset")
-            print("2) Date of begining of analysis in format: 2018-04-01")
-            print("3) The final date - if equal, analyse a single day")
-            sys.exit(1)
+    def __init__(self, data_dir=None, date_ini=None, date_end=None, load=False):
             
-        data_dir = argv[1]
-        date_ini = argv[2]
-
-        if len(sys.argv) <= 3 :    
-            date_end = argv[2]
-        else:
-            date_end = argv[3]
-
+        print("")
+        print("Mobile Dynamics Data Analysis")
+        print("-----------------------------")
         if not os.path.exists(data_dir):
             print("Directory doesnt exist. Did you type it wrong? ", data_dir)
             sys.exit(1)
@@ -57,8 +41,12 @@ class MobileDynamics:
         else:
             self.data_dir=data_dir
 
-        self.date_ini=date_ini
-        self.date_end=date_end
+        self.date_ini = date_ini
+        if date_end == None:
+            self.date_end = date_ini
+        else:
+            self.date_end = date_end
+
         self.date_ini_obj = datetime.strptime(self.date_ini, '%Y-%m-%d')
         self.date_end_obj = datetime.strptime(self.date_end, '%Y-%m-%d')
         self.days = (self.date_end_obj - self.date_ini_obj).days + 1
@@ -68,6 +56,7 @@ class MobileDynamics:
         print("Final date:", self.date_end)
         print("Number of days to analyse:", self.days)
 
+        self.load = load
         self.dump_dir = 'dump/'
         
         if not os.path.exists(self.dump_dir):
@@ -75,20 +64,7 @@ class MobileDynamics:
             
         print("Output folder:", self.dump_dir)
 
-    def build_model(self, state, granularity, precompdomain):
-
-        #Init a global domain instance
-        self.dom = Domain(precompdomain, state)
-        
-        #Load global domain info
-        if precompdomain:
-            self.dom.set_global_domain()
-        else: #This takes time! 
-            self.read_data(preread=True)
-            self.dom.set_global_domain(self.data)
-
-        # Build grid network
-        self.set_network_grid(state)            
+    def build_model(self, network):
 
         #Loop over days
         self.data = [] #List of dataframes per day
@@ -98,9 +74,9 @@ class MobileDynamics:
             
             #Load data for this day
             day_str=day.strftime("%Y-%m-%d")
-            day_data = DayData(day_str, self.data_dir, preread=False)
+            day_data = DayData(day_str, self.data_dir, load=self.load)
             day_data.calc_basic_day_diagnostics() 
-
+            
             #Get useful info from this day (velocities)
             #day_data.calc_vel_day_diagnostics()
 
@@ -108,16 +84,17 @@ class MobileDynamics:
             day_data.calc_time_day()
 
             #Update dataframe with network info
-            self.network.add_reg_to_daydf(self.dom, day_data)           
+            network.add_reg_to_daydf(day_data)           
 
-            day_data.tmat = self.network.calc_transition_matrix(day_data)
+            day_data.tmat = network.calc_transition_matrix(day_data)
 
             np.savetxt( day_data.local_dir+"trans_mat.csv", day_data.tmat)
 
+            #To save ram memory keep only the transition matrix
             day_data.clean_data()
 
             #Store just useful data, not raw data
-            self.data.append(day_data)                
+            self.data.append(day_data) 
 
     def read_data(self, preread):
         #Main dataframe list
@@ -132,25 +109,6 @@ class MobileDynamics:
             #DayData(day_str, self.data_dir)
             self.data.append(DayData(day_str, self.data_dir, preread))
         
-
-    #Build regions network
-    def set_network_grid(self, state):
-
-        #Init network
-        self.network = Network(state)
-        
-        #Create grid for network
-        self.network.build_grid_network(self.dom)
-
-        #Map the regions
-        map = Map(self.dom)
-        title = self.network.gridname 
-        map.map_reg_data(self.network, title)
-
-        #Update dataframe with network info
-        #self.network.add_reg_to_df(self.dom, self.data)
-
-
     def simulate_daily(self, mode):
     
         #initial condition
