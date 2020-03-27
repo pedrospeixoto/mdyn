@@ -25,69 +25,96 @@ from shapely.geometry import Point, Polygon
 import tqdm 
 
 from mdyn_daydata import DayData
-from mdyn_extras import distance, distance_lat, distance_lon, daterange, matprint
+from mdyn_map import Map
+from mdyn_extras import distance, distance_lat, distance_lon, daterange, matprint, round_down, round_up
 
 
 class Network:
 
-    cities = {}
+    #cities = {}
 
-    def __init__(self, main_state, all_mun=True):
+    def __init__(self, 
+        domain = None, 
+        domain_gran = None,
+        domain_shape = None, 
+        subdomains = None,
+        subdomains_gran = None, 
+        subdomains_shape=None,
+        latlon_gran = 0.01,
+        load = False
+        ):
+
         print("Creating/Loading network structure")
-        self.all_mun = all_mun
-        self.main_state = main_state
-        self.load_state_data(main_state) 
+        self.domain = domain
+        self.domain_gran= domain_gran
+        self.domain_shape = domain_shape
+        self.subdomains = subdomains
+        self.subdomains_gran = subdomains_gran
+        self.subdomains_shape = subdomains_shape
+        self.latlon_gran = latlon_gran
+        self.load = load
 
-    def load_state_data(self, main_state):
+        #Load main domain
+        self.df_domain = self.load_domain() 
 
-        #Main_State = string with Brazilian state abbrev
+        #Load subdomains
+        self.df_subdomains = self.load_subdomains()
 
-        #All municipalities
-        if main_state=="SP" and self.all_mun == True:
-            self.SP_all_mun()
+        #Create in/out region lists
+        self.create_regions()
 
-        # large cities only
-        if main_state=="SP" and self.all_mun == False: 
-            self.SP_large_cities()
+        #Build grid network
+        self.build_grid_network()
 
-        self.nreg_in = len(self.regions_in)
 
-        df = self.state_structure()
+    def load_domain(self):
 
-        #Save polygons in dataframes
-        self.main_state_poly=df[df.name == main_state].geometry.values[0]
-        self.main_state_neighb = df[df.name == main_state].NEIGHBORS.values[0]
-        self.main_state_neighb = self.main_state_neighb.split(',') 
-        self.nb_states_df=df[df['name'].isin(self.main_state_neighb)]
-        
-        #Regions out are out of main state
-        self.regions_out = self.nb_states_df['name'].to_dict() 
-        states = list(self.regions_out.values())
-        self.nreg_out = len(states)
-        self.nbstates = {states[key]:self.nreg_in+key for key in range(self.nreg_out) }
-        self.regions_out = {self.nreg_in+key:states[key] for key in range(self.nreg_out) }
-        
-        #Join in and out regions
-        self.regions = {**self.regions_in, **self.regions_out}
-        self.nregions = len(self.regions)
+        #Get map shapes files
+        self.domain_shape_file = self.domain_shape+".shp"
+        self.domain_shape_file_mdyn = self.domain_shape+"mdyn.shp"
 
-        #Add extra region for all the rest (ocean or other places)
-        #self.regions[str(self.nregions)] = 'NAN'
-        #self.nregions = self.nregions + 1
+        #Load if exists and load flag set
+        if os.path.exists(self.domain_shape_file_mdyn) and self.load:
 
-        print("Defined the following regions for the network:")
-        print(self.regions)
-        
-    def SP_all_mun(self):
-        
-        #Get map shapes
-        if os.path.exists('maps/sp_municipios/35MUE250GC_SIR_mdyn.shp'):
-            df = gpd.read_file('maps/sp_municipios/35MUE250GC_SIR_mdyn.shp')
-            print("  Modified shape file loaded.")
+            df = gpd.read_file(self.domain_shape_file_mdyn)
+            print("  Domain shape file loaded.")
 
         else: #Build map structure with neighbours
-            df = gpd.read_file('maps/sp_municipios/35MUE250GC_SIR.shp')
-            print("  Loaded basic shape file for municipalities...", end = '')
+            df = gpd.read_file(self.domain_shape_file)
+            print("  Creating basic domain shape file...", end = '')
+            
+            df["NEIGHBORS"] = None  # add NEIGHBORS column
+            for index, reg in df.iterrows():   
+                # get 'not disjoint' countries
+                df_local = df[~df.geometry.disjoint(reg.geometry)]
+                neighbors = df_local[self.domain_gran].tolist()
+                
+                # remove own name from the list
+                neighbors = [ name for name in neighbors if reg[self.domain_gran] != name ]
+                
+                # add names of neighbors as NEIGHBORS value
+                df.at[index, "NEIGHBORS"] = ",".join(neighbors)
+                
+            #Save modified shape file for future use
+            print("Done. Saving domain shape structure for future use")
+            df.to_file(self.domain_shape_file_mdyn)   
+
+        return df
+
+    def load_subdomains(self):
+        
+        #Get map subdomains shapes files
+        self.subdomains_shape_file = self.subdomains_shape+".shp"
+        self.subdomains_shape_file_mdyn = self.subdomains_shape+"mdyn.shp"
+
+        #Get map subdomains shapes
+        if os.path.exists(self.subdomains_shape_file_mdyn) and self.load:
+            df = gpd.read_file(self.subdomains_shape_file_mdyn)
+            print("  Subdomains shape file loaded.")
+
+        else: #Build map subdomains structure 
+            df = gpd.read_file(self.subdomains_shape_file)
+            print("  Creating basic subdomains shape file...", end = '')
 
             df["lonc"] = None #long centroid
             df["latc"] = None #lat centroid
@@ -99,207 +126,142 @@ class Network:
             df["lonc"]=df["lonc"].astype(float)
 
             #Save modified shape file for future use
-            print("Done. Saving modified municipality shape structure for future use")
-            df.to_file('maps/sp_municipios/35MUE250GC_SIR_mdyn.shp')
+            print("Done. Saving subdomains shape structure for future use")
+            df.to_file(self.subdomains_shape_file_mdyn)
+
         #print(df)
 
         #Indexes columns
         idx = np.arange(len(df))
         df["idx"]=idx.astype(int)    
 
-        self.regions_in = df["NM_MUNICIP"].to_dict()
-        
-        self.regions_in_latlon = df.filter(["NM_MUNICIP", "latc", "lonc", "idx"]).set_index('NM_MUNICIP').T.to_dict('list') 
-        
-        self.df_mun = df
-
-
-    def SP_large_cities(self):
-        #https://pt.wikipedia.org/wiki/Demografia_de_S%C3%A3o_Paulo
-                
-        self.regions_in_latlon = { #Lat, lon, index of region
-            "São Paulo":[-23.32, -46.38, 0],  #Guarulhos, SBC, SAndre, Osasco, Maua, diadema
-            "Campinas": [-22.54, -47.03, 1],  
-            "Jundiaí":[-23.11, -46.53, 2],  
-            "São José dos Campos":[-23.10, -45.53, 3],  
-            "Santos":[-23.95, -46.33, 4],
-            "Sorocaba":[-23.30, -47.27, 5],  
-            "Piracicaba":[-22.43, -47.38, 6],
-            "Ribeirão Preto":[-21.10, -47.48, 7],  
-            "Franca":[-20.54, -47.40, 8],
-            "S. J. do Rio Preto":[-20.49, -49.22, 9]
-        }
-
-        self.regions_in = { #index of regions in main state
-            0:"GrandeSP",
-            1:"Campinas",
-            2:"Jundiai",
-            3:"SJC",
-            4:"Santos",
-            5:"Sorocaba",  
-            6:"Pira",
-            7:"RP",  
-            8:"Franca",
-            9:"SJRP"                
-        }
-        
-        self.regions_pop = np.array([ #index of regions in main state
-            21571281,3224443,804936,2528345,1848654,2120095,1481652,1702479, 657753,456245
-        ])
-
-        self.regions_pop_freq = self.regions_pop/np.sum(self.regions_pop)
-        #print(self.regions_pop_freq)
-
-    def state_structure(self):
-
-        self.state_dict={
-            "RONDÔNIA":"RO",
-            "ACRE":"AC",
-            "AMAZONAS":"AM",
-            "RORAIMA":"RR",
-            "PARÁ":"PA",
-            "AMAPÁ":"AP",
-            "TOCANTINS":"TO",
-            "MARANHÃO":"MA",
-            "PIAUÍ":"PI",
-            "CEARÁ":"CE",
-            "RIO GRANDE DO NORTE":"RN",
-            "PARAÍBA":"PB",
-            "PERNAMBUCO":"PE",
-            "ALAGOAS":"AL",
-            "SERGIPE":"SE",
-            "BAHIA":"BA",
-            "MINAS GERAIS":"MG",
-            "ESPIRITO SANTO":"ES",
-            "RIO DE JANEIRO":"RJ",
-            "SÃO PAULO":"SP",
-            "PARANÁ":"PR",
-            "SANTA CATARINA":"SC",
-            "RIO GRANDE DO SUL":"RS",
-            "MATO GROSSO DO SUL":"MS",
-            "MATO GROSSO":"MT",
-            "GOIÁS":"GO",
-            "DISTRITO FEDERAL":"DF"
-        }
-
-        #Get map shapes
-        if os.path.exists('maps/UFEBRASIL/UFEBRASIL_mdyn.shp'):
-            df = gpd.read_file('maps/UFEBRASIL/UFEBRASIL_mdyn.shp')
-            print("  Modified shape file loaded.")
-
-        else: #Build map structure with neighbours
-            df = gpd.read_file('maps/UFEBRASIL/UFEBRASIL.shp')
-            print("  Loaded basic shape file - creating neighbour structure...", end = '')
-
-            df["name"] = None #add abreviated name column
-            for index, state in df.iterrows():   
-                df.at[index, "name"] = self.state_dict.get(state.NM_ESTADO, state.NM_ESTADO)
-
-            df["NEIGHBORS"] = None  # add NEIGHBORS column
-            for index, state in df.iterrows():   
-                # get 'not disjoint' countries
-                neighbors = df[~df.geometry.disjoint(state.geometry)].name.tolist()
-                
-                # remove own name from the list
-                neighbors = [ name for name in neighbors if state['name'] != name ]
-                
-                # add names of neighbors as NEIGHBORS value
-                df.at[index, "NEIGHBORS"] = ",".join(neighbors)
-            
-            #Save modified shape file for future use
-            print("Done. Saving modified shape structure for future use")
-            df.to_file('maps/UFEBRASIL/UFEBRASIL_mdyn.shp')
-
+        #print(df)
+        #print(self.regions_in, self.regions_in_latlon)
         return df
 
-    def get_closest_region(self, lat, lon):
-        dist=1000000.0
+    def create_regions(self):
+
+        #inner regions (subdomains)
+        #--------------------------
+
+        self.regions_in = self.df_subdomains[self.subdomains_gran].to_dict()
+        filt = [self.subdomains_gran, "latc", "lonc", "idx"]
+        self.regions_in_latlon = self.df_subdomains.filter(filt).set_index(self.subdomains_gran).T.to_dict('list') 
+        self.nreg_in = len(self.regions_in)
+
+        #Outer regions (domain)
+        #-------------------------
+
+        df_domain_local = self.df_domain[self.df_domain[self.domain_gran] == self.domain]
+        self.domain_geometry=df_domain_local.geometry.values[0]
+        self.domain_neib = df_domain_local.NEIGHBORS.values[0]
+        self.domain_neib = self.domain_neib.split(',') 
+        self.df_domain_nb=self.df_domain[self.df_domain[self.domain_gran].isin(self.domain_neib)]
+        domain_limit_coords=list(self.domain_geometry.envelope.exterior.coords)
+
+
+        # Regular grid structure
+        x = []
+        y = []
+        for xy in domain_limit_coords:
+            x.append(xy[0])
+            y.append(xy[1])
+        self.minlons = round_down(min(x), 1)
+        self.maxlons = round_up(max(x), 1)
+        self.minlats = round_down(min(y), 1)
+        self.maxlats = round_up(max(y), 1)
+        print("  Domain Box: ")
+        print( "   Lon:", self.minlons, self.maxlons)
+        print( "   Lat:", self.minlats, self.maxlats)
+
+        #Latlon spacing
+        self.dlon = self.latlon_gran
+        self.dlat = self.latlon_gran
+        self.nlon = int((self.maxlons - (self.minlons))/self.dlon)
+        self.nlat = int((self.maxlats - (self.minlats))/self.dlat)
+
+        #These are the datapoints
+        self.lon_bins_c = np.linspace(self.minlons, self.maxlons, self.nlon+1, endpoint=True) 
+        self.lat_bins_c = np.linspace(self.minlats, self.maxlats, self.nlat+1, endpoint=True) 
+
+        #These are bins for datagrid (larger than datagrid) - Extended grid
+        self.lon_bins_ext = np.linspace(self.minlons-self.dlon/2, self.maxlons+self.dlon/2, self.nlon+2, endpoint=True) 
+        self.lat_bins_ext = np.linspace(self.minlats-self.dlat/2, self.maxlats+self.dlat/2, self.nlat+2, endpoint=True) 
+
+        #2d grids
+        self.lon_bins_c_2d, self.lat_bins_c_2d = np.meshgrid(self.lon_bins_c, self.lat_bins_c)
+        self.lon_bins_ext_2d, self.lat_bins_ext_2d = np.meshgrid(self.lon_bins_ext, self.lat_bins_ext)
+
+        #Region grid is composed of data points, cell centres
+        self.region_grid = np.zeros((self.nlat+1, self.nlon+1)).astype(int)
+
+        print("  nLon:", self.nlon)
+        print("  nLat:", self.nlat)
+
+        #Regions out are out of main domain
+        regions_out = self.df_domain_nb[self.domain_gran].to_dict() 
+        reg_out = list(regions_out.values())
+        self.nreg_out = len(reg_out)
+
+        #Align indexing of out regions with in regions
+        self.regions_out = {self.nreg_in+key:reg for key, reg in enumerate(reg_out)}
+        #print(self.regions_out)
+
+        #Join in and out regions
+        self.regions = {**self.regions_in, **self.regions_out}
+        self.nregions = len(self.regions)
         
-        p = Point(lon, lat)
-        inmainstate = p.within(self.main_state_poly)
-        
-        ireg=-1
-        if inmainstate:
-            if not self.all_mun:
-                #loop over dictionary - slow
-                for reg in self.regions_in_latlon:
-                    lat_tmp = self.regions_in_latlon[reg][0]
-                    lon_tmp = self.regions_in_latlon[reg][1]
-                    dist_tmp = distance([lon], [lat], [lon_tmp], [lat_tmp])
-                    if dist_tmp < dist: 
-                        dist=dist_tmp
-                        ireg=self.regions_in_latlon[reg][2]
+        #Add extra region for all the rest (ocean or other places)
+        #self.regions[str(self.nregions)] = 'NAN'
+        #self.nregions = self.nregions + 1
 
-            else: #loop over dataframe arrays and geometry
-                
-                lat_tmp=self.df_mun["latc"].to_numpy()
-                lon_tmp=self.df_mun["lonc"].to_numpy()
-                
-                latv = np.full(len(lat_tmp), lat)
-                lonv = np.full(len(lon_tmp), lon)
-
-                dist_tmp = distance(lonv, latv, lon_tmp, lat_tmp)
-
-                k = 10 # k nearest neighbours
-                inearreg = np.argpartition(dist_tmp, k)
-                
-                #Use geometry to check if point in municipality
-                for ireg in inearreg:
-                    mun_geometry = self.df_mun.loc[ireg, "geometry"]
-                    in_region=p.within(mun_geometry)
-                    if in_region:
-                        return ireg
-            
+        print("  Defined the following regions for the network:")
+        if self.nregions > 20:
+            print("  First 10 regions: ", dict(list(self.regions.items())[0:10]))
+            print("  Last 10 regions:", dict(list(self.regions.items())[self.nregions-10:self.nregions]))
         else:
-            #check if in neighbour states
-            for index, state in self.nb_states_df.iterrows(): 
-                st_name=state['name']
-                innbstate=p.within(state.geometry)
-                if innbstate:
-                    ireg = self.nbstates.get(st_name, self.nregions)
+            print(self.regions)
         
-        return ireg
 
     #Build regions grid
-    def network_grid(self, dom):
+    def build_grid_network(self):
         
-        #Region grid is composed of data points, cell centres
-        self.region_grid=np.zeros((dom.nlat+1, dom.nlon+1)).astype(int)
-
         print("Building grid network...")
         
-        self.gridname = 'maps/regions_'+self.main_state+"_lats"+str(dom.minlats)+\
-            "_"+str(dom.maxlats)+"_lons"+str(dom.minlons)+"_"+str(dom.maxlons)+\
-            "_dlat"+str(dom.dlat)+"_dlon"+str(dom.dlon)
+        self.gridname = 'maps/regions_'+self.domain+"_"+\
+            self.subdomains+\
+            "_lats"+str(self.minlats)+"_"+str(self.maxlats)+\
+            "_lons"+str(self.minlons)+"_"+str(self.maxlons)+\
+            "_dlat"+str(self.dlat)+"_dlon"+str(self.dlon)
+
 
         #check if network pre built
-        if os.path.exists(self.gridname+".npy"):
+        if os.path.exists(self.gridname+".npy") and self.load:
             self.region_grid=np.load(self.gridname+".npy")
             print("Regions loaded from file "+self.gridname)
-            #print(self.region_grid.shape)
         else:
             #Grid is based on cell centers
-            for i, lat in enumerate(tqdm.tqdm(dom.lat_bins_c)):
-                for j, lon in enumerate(dom.lon_bins_c):
+            for i, lat in enumerate(tqdm.tqdm(self.lat_bins_c)):
+                for j, lon in enumerate(self.lon_bins_c):
                     #print(lat, lon)
                     reg0 = self.get_closest_region(lat, lon) #This is the center of cell
                     if reg0 != -1:
                         self.region_grid[i,j]=reg0
                     else:
                         #Check if part of the cell is in a region, otherwise it is ocean
-                        reg1 = self.get_closest_region(lat-dom.dlat, lon-dom.dlon)
+                        reg1 = self.get_closest_region(lat-self.dlat, lon-self.dlon)
                         if reg1 != -1:
                             ireg=reg1
                         else:
-                            reg2 = self.get_closest_region(lat+dom.dlat, lon-dom.dlon)
+                            reg2 = self.get_closest_region(lat+self.dlat, lon-self.dlon)
                             if reg2 != -1:
                                 ireg=reg2
                             else:
-                                reg3 = self.get_closest_region(lat-dom.dlat, lon+dom.dlon)
+                                reg3 = self.get_closest_region(lat-self.dlat, lon+self.dlon)
                                 if reg3 != -1:
                                     ireg=reg3
                                 else:
-                                    reg4 = self.get_closest_region(lat+dom.dlat, lon+dom.dlon)
+                                    reg4 = self.get_closest_region(lat+self.dlat, lon+self.dlon)
                                     if reg4 != -1:
                                         ireg=reg4
                                     else:
@@ -312,6 +274,46 @@ class Network:
             np.save(self.gridname, self.region_grid)
             print("Regions saved in file "+self.gridname)
 
+            #Map the regions
+            map = Map(self)
+            map.map_reg_data(self, self.gridname )
+            
+    def get_closest_region(self, lat, lon):
+                
+        p = Point(lon, lat)
+        inmaindomain = p.within(self.domain_geometry)
+        #print(p, inmaindomain)
+
+        ireg=-1
+        if inmaindomain:
+            
+            lat_tmp=self.df_subdomains["latc"].to_numpy()
+            lon_tmp=self.df_subdomains["lonc"].to_numpy()
+            
+            latv = np.full(len(lat_tmp), lat)
+            lonv = np.full(len(lon_tmp), lon)
+
+            dist_tmp = distance(lonv, latv, lon_tmp, lat_tmp)
+
+            k = 10 # k nearest neighbours
+            inearreg = np.argpartition(dist_tmp, k)
+            
+            #Use geometry to check if point in subregion
+            for ireg in inearreg:
+                subreg_geometry = self.df_subdomains.loc[ireg, "geometry"]
+                in_region=p.within(subreg_geometry)
+                if in_region:
+                    return ireg
+        
+        else:
+            #check if in neighbour states
+            for index, nb in self.df_domain_nb.iterrows(): 
+                nb_name=nb[self.domain_gran]
+                innbreg=p.within(nb.geometry)
+                if innbreg:
+                    ireg = self.regions_out.get(nb_name, self.nregions)
+        
+        return ireg
 
     def add_reg_to_df(self, dom, data):
         

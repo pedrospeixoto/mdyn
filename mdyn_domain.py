@@ -19,8 +19,8 @@ class Domain:
         #Bin padding (MANUAL)
         #self.dlat = 0.2
         #self.dlon = 0.2
-        self.dlat = 0.05
-        self.dlon = 0.05
+        self.dlat = 0.02
+        self.dlon = 0.02
         self.precompdomain = precompdomain
         self.state = state
 

@@ -21,6 +21,18 @@ import gc
 #General functions
 #--------------------------------
 
+def round_up(n, decimals=0): 
+    multiplier = 10 ** decimals 
+    return math.ceil(n * multiplier) / multiplier
+
+def round_up(n, decimals=0): 
+    multiplier = 10 ** decimals 
+    return math.ceil(n * multiplier) / multiplier
+    
+def round_down(n, decimals=0):
+    multiplier = 10 ** decimals
+    return math.floor(n * multiplier) / multiplier
+
 #Range over date variable
 def daterange(start_date, end_date):
     for n in range(int ((end_date - start_date).days)):
