@@ -422,22 +422,22 @@ class Network:
         print("Transition Matrix (number of people moving to/from regions)")
         print(table)
 
-        self.month_users()
+        #self.month_users()
 
-        total_users = self.monthly_users.get(month, 0)
-        moving_users = day.n
-        steady_users = total_users - moving_users
-        print("")
-        print("Month, Total Users, Day moving users, Day steady users" )
-        print(month, total_users, moving_users, steady_users)
-        steady_users_per_reg = steady_users * self.regions_pop_freq
-        print("Users per region:", steady_users_per_reg)
+        #total_users = self.monthly_users.get(month, 0)
+        #moving_users = day.n
+        #steady_users = total_users - moving_users
+        #print("")
+        #print("Month, Total Users, Day moving users, Day steady users" )
+        #print(month, total_users, moving_users, steady_users)
+        #steady_users_per_reg = steady_users * self.regions_pop_freq
+        #print("Users per region:", steady_users_per_reg)
 
         #Columns are regions at time 0
         #Rows are regions at time 1
         mat = table.as_matrix(columns=None)
         
-        np.fill_diagonal(mat, mat.diagonal() + steady_users_per_reg)
+        #np.fill_diagonal(mat, mat.diagonal() + steady_users_per_reg)
         #print(mat)
         print()
         print("Transition matrix including steady users")
