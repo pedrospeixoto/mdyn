@@ -169,10 +169,10 @@ class Network:
         for xy in domain_limit_coords:
             x.append(xy[0])
             y.append(xy[1])
-        self.minlons = round_down(min(x), 1)
-        self.maxlons = round_up(max(x), 1)
-        self.minlats = round_down(min(y), 1)
-        self.maxlats = round_up(max(y), 1)
+        self.minlons = round_down(min(x), 1)- 0.1
+        self.maxlons = round_up(max(x), 1)  + 0.1
+        self.minlats = round_down(min(y), 1)- 0.1
+        self.maxlats = round_up(max(y), 1)  + 0.1
         print("  Domain Box: ")
         print( "   Lon:", self.minlons, self.maxlons)
         print( "   Lat:", self.minlats, self.maxlats)
@@ -219,7 +219,7 @@ class Network:
         #self.nregions = self.nregions + 1
 
         print("  Defined the following regions for the network:")
-        if self.nregions > 20:
+        if self.nregions > 25:
             print("  First 10 regions: ", dict(list(self.regions.items())[0:10]))
             print("  Last 10 regions:", dict(list(self.regions.items())[self.nregions-10:self.nregions]))
         else:

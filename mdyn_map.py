@@ -21,12 +21,15 @@ class Map:
         #Init the figure
         fig, ax = plt.subplots( figsize=(10, 5))
         
+        lat0=0.5*(network.maxlats+network.minlats)
+        lon0=0.5*(network.maxlons+network.minlons)
+
         #Define map projection
         #map = Basemap(projection='merc', resolution='h',
         #    llcrnrlon=dom.minlons-1, llcrnrlat=dom.minlats-1,
         #    urcrnrlon=dom.maxlons+1, urcrnrlat=dom.maxlats+1)
         map = Basemap(width=1.1e6,height=7.2e5,\
-            projection='gnom',lat_0=-22.6,lon_0=-48.4, resolution="f")
+            projection='gnom',lat_0=lat0,lon_0=lon0, resolution="f")
             #width=2E6, height=2E6, lat_0=lat0, lon_0=lon0,
         #map = Basemap(width=12000000,height=9000000,
         #    rsphere=(6378137.00,6356752.3142),\
