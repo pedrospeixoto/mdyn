@@ -165,7 +165,7 @@ class Map:
         filename = dir+"/map_data_"+title.strip()+".jpg"
         plt.savefig(filename, dpi=300)
 
-    def map_reg_data(self, network, title, dir):
+    def map_reg_data(self, network, title):
         
         data=network.region_grid
         data=data.astype(float)
@@ -192,29 +192,31 @@ class Map:
 
         #Config
         bounds = np.linspace(0, network.nregions, network.nregions+1)
-
-        cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=25, fraction=0.1, pad=0.01, boundaries=bounds, \
-             spacing='proportional', ticks=bounds)
-        cbar.set_label(title,size=12)
-        cbar.set_ticks(range(network.nregions+2))
-        cbar.set_ticklabels(range(network.nregions+2))
-    
-        #Add labels 
         reg = list(network.regions_in_latlon.values())
         
-        for lat, lon, i in reg:
-            #print(lon, lat, i)
-            xpt, ypt = self.map([lon], [lat])
-            try: 
-                #print(xpt[0], ypt[0], str(network.region_full.get(i)))
-                self.map.plot(xpt, ypt, 'kx', markersize=1)
-                plt.text(xpt[0], ypt[0], str(network.regions.get(i))+"-"+str(i),fontsize=6)
-                #plt.text(xpt[0], ypt[0], str(i),fontsize=10)
-            except:
-                pass
+        if len(reg)<15:
+            cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=25, fraction=0.1, pad=0.01, boundaries=bounds, \
+                spacing='proportional', ticks=bounds)
+            cbar.set_label(title,size=12)
+            cbar.set_ticks(range(network.nregions+2))
+            cbar.set_ticklabels(range(network.nregions+2))
+        
+            #Add labels 
+            
+            for lat, lon, i in reg:
+                #print(lon, lat, i)
+                xpt, ypt = self.map([lon], [lat])
+                try: 
+                    #print(xpt[0], ypt[0], str(network.region_full.get(i)))
+                    self.map.plot(xpt, ypt, 'kx', markersize=1)
+                    plt.text(xpt[0], ypt[0], str(network.regions.get(i))+"-"+str(i),fontsize=6)
+                    #plt.text(xpt[0], ypt[0], str(i),fontsize=10)
+                except:
+                    pass
             
         #Save density plot to folder "dir"
         plt.tight_layout()
+        filename=title
         #filename = dir+"/map_data_"+title+".eps"
-        filename = dir+"/map_data_"+title+".jpg"
+        filename = filename+".jpg"
         plt.savefig(filename, dpi=300)
