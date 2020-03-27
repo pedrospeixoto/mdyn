@@ -20,9 +20,20 @@ import numpy as np
 
 import calendar
 
-# RUN mdyn_run first !!!!
+# RUN mdyn_build_model first !!!!
+
 #Initialize mobile data and load data to dataframe 
-mdyn=MobileDynamics(sys.argv)
+data_dir = "data/visit_journey_sao_paulo_2019/"
+date_ini = "2019-12-01"
+date_end = "2019-12-01"
+load_data = True 
+
+mdyn = MobileDynamics(
+    data_dir = data_dir,
+    date_ini = date_ini,
+    date_end = date_end,
+    load = load_data
+    )
 
 #ilog = True
 ilog = False

@@ -36,12 +36,14 @@ import gc
 class DayData:
     
     #Class for data per day
-    def __init__(self, day, data_dir, preread = False):
+    def __init__(self, day, data_dir, load = False):
+        self.load = load
         self.read_day_data(day, data_dir)
         self.set_day_domain()
         
-        if preread:
-            self.clean_data()
+        
+        #if not load:
+        #    self.clean_data()
                         
     def clean_data(self):
         
@@ -80,11 +82,12 @@ class DayData:
         
         loaded = False
         pklfiles = list_files_pkl(local_dir)
-        #Do we have a pickle file?
-        for f in pklfiles:
-            print("Found a pickle file: ", f, ". Loading data.")
-            df_local = pd.read_pickle(local_dir+f)
-            loaded = True
+        #Do we have a pickle file and want to load it?
+        if self.load:
+            for f in pklfiles:
+                print("Found a pickle file: ", f, ". Loading data.")
+                df_local = pd.read_pickle(local_dir+f)
+                loaded = True
 
         if not loaded:
             for filename in os.listdir(local_dir):
@@ -145,7 +148,7 @@ class DayData:
         
         return dfout
     
-    def set_day_domain(self):
+    def set_day_domain(self): 
         
         #Domain for each day
         minlons=min(np.amin(self.df['lng0'].values), 
@@ -174,44 +177,48 @@ class DayData:
             print("Calculating basic diagnostics for day "+self.day)
         
             #Time step
-            #time0=self.df['time0'].values
-            #time1=self.df['time1'].values
-            #print(time0, type(time0), time0.shape)
-            #print(time1, type(time1), time1.shape, len(time1))
             time0=pd.to_datetime(self.df['time0'])
             time1=pd.to_datetime(self.df['time1'])
-            #time1=np.reshape(time1, len(time1))
-            #print(type(time0), type(time1))
-            #print(time0-time1)
-            #time0=np.array(time0, dtype='datetime64')
-            #time1=np.array(time1, dtype='datetime64')
             dt=(time1-time0).astype('timedelta64[h]') 
-            #print(dt)
+    
             self.df['dt1']=dt
 
-            #Distances
+            load = self.load
+
             if False:
+
+                #Distances
                 self.df['dist1']=distance(
                     self.df['lng0'].values, self.df['lat0'].values, 
                     self.df['lng1'].values, self.df['lat1'].values)
 
-            #Data density
-                for i in tqdm.tqdm(range(3)):
-                    s=str(i)
+            #Data density - takes time
+            for i in tqdm.tqdm(range(3)):
+                s=str(i)
+                title = "density_"+self.day+" event "+str(i)
+                filename = self.local_dir+title+".jpg"
+                if not os.path.exists(filename) and load:
                     map = Map(self.dom)
                     map.map_density_data(self.df['lng'+s].values, self.df['lat'+s].values, \
-                        self.day+" event "+str(i), self.local_dir)
+                        title, self.local_dir)
 
             #Statistics
             print(self.df.describe())
-            self.df.describe().to_csv(self.local_dir+"/day_"+self.day+"_basic_stats.csv", header=True) #Don't forget to add '.csv' at the end of the path
-            self.df.to_csv(self.local_dir+"/day_"+self.day+"_base_data.csv", header=True) #Don't forget to add '.csv' at the end of the path
+            filename = self.local_dir+"day_"+self.day+"_basic_stats.csv"
+            if not os.path.exists(filename) and load:
+                self.df.describe().to_csv(filename, header=True) #Don't forget to add '.csv' at the end of the path
+
+            filename = self.local_dir+"day_"+self.day+"_base_data.csv"
+            if not os.path.exists(filename):
+                self.df.to_csv(filename, header=True) #Don't forget to add '.csv' at the end of the path
             
             #Histograms
-            self.df.hist(bins=8, align='mid')
-            fig = plt.gcf()
-            fig.set_size_inches(18.5, 18.5)
-            plt.savefig(self.local_dir+"/day_"+self.day+"_basic_stats.eps", dpi=300)
+            filename=self.local_dir+"/day_"+self.day+"_basic_stats.jpg"
+            if not os.path.exists(filename) and load:
+                self.df.hist(bins=8, align='mid')
+                fig = plt.gcf()
+                fig.set_size_inches(18.5, 18.5)
+                plt.savefig(filename, dpi=300)
 
     def calc_vel_day_diagnostics(self):
 

@@ -146,7 +146,7 @@ class Map:
         cbar.set_label(title,size=12)
 
         #Save density plot to folder "dir"
-        filename = dir+"/density_"+title+".eps"
+        filename = dir+title+".jpg"
         plt.savefig(filename, dpi=300)
 
 

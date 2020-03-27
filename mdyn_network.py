@@ -43,8 +43,10 @@ class Network:
         latlon_gran = 0.01,
         load = False
         ):
+        print("")
+        print("Mobile Dynamics Network Construction")
+        print("-----------------------------------")
 
-        print("Creating/Loading network structure")
         self.domain = domain
         self.domain_gran= domain_gran
         self.domain_shape = domain_shape
@@ -115,7 +117,7 @@ class Network:
         else: #Build map subdomains structure 
             df = gpd.read_file(self.subdomains_shape_file)
             print("  Creating basic subdomains shape file...", end = '')
-
+            
             df["lonc"] = None #long centroid
             df["latc"] = None #lat centroid
             for index, mun in df.iterrows():   
@@ -130,6 +132,7 @@ class Network:
             df.to_file(self.subdomains_shape_file_mdyn)
 
         #print(df)
+        #print(df.head)
 
         #Indexes columns
         idx = np.arange(len(df))
@@ -151,7 +154,7 @@ class Network:
 
         #Outer regions (domain)
         #-------------------------
-
+        
         df_domain_local = self.df_domain[self.df_domain[self.domain_gran] == self.domain]
         self.domain_geometry=df_domain_local.geometry.values[0]
         self.domain_neib = df_domain_local.NEIGHBORS.values[0]
@@ -195,8 +198,8 @@ class Network:
         #Region grid is composed of data points, cell centres
         self.region_grid = np.zeros((self.nlat+1, self.nlon+1)).astype(int)
 
-        print("  nLon:", self.nlon)
-        print("  nLat:", self.nlat)
+        print("   nLon:", self.nlon)
+        print("   nLat:", self.nlat)
 
         #Regions out are out of main domain
         regions_out = self.df_domain_nb[self.domain_gran].to_dict() 
@@ -343,7 +346,7 @@ class Network:
 
             #day.df.to_csv("tmp.csv")
 
-    def add_reg_to_daydf(self, dom, daydata):
+    def add_reg_to_daydf(self, daydata):
         
         #Add column with region tag
         #for each event
@@ -354,8 +357,8 @@ class Network:
             lonnan=np.isnan(lon)
             latnan=np.isnan(lat)
             nan = lonnan*latnan
-            ilon=((lon[~nan]-dom.minlons)/dom.dlon).astype(int)
-            ilat=((lat[~nan]-dom.minlats)/dom.dlat).astype(int)
+            ilon=((lon[~nan]-self.minlons)/self.dlon).astype(int)
+            ilat=((lat[~nan]-self.minlats)/self.dlat).astype(int)
             #print(lon[~nan], lat[~nan], ilon, ilat)
             reg = np.zeros(daydata.n).astype(int)
             reg[nan] = -1
@@ -390,6 +393,9 @@ class Network:
 
     def calc_transition_matrix(self, day):
         
+        print()
+        print("Generating transition matrices...", end="")
+
         df=day.df
         month=day.month
         
@@ -420,9 +426,11 @@ class Network:
             pass
 
         #The resulting table has the people that moved, we now need to include people that did not move
-        print("")
-        print("Transition Matrix (number of people moving to/from regions)")
-        print(table)
+        if self.nregions<20:
+            print("")
+            print("Transition Matrix (number of people moving to/from regions)")
+            print(table)
+            print()
 
         #self.month_users()
 
@@ -441,13 +449,18 @@ class Network:
         
         #np.fill_diagonal(mat, mat.diagonal() + steady_users_per_reg)
         #print(mat)
-        print()
-        print("Transition matrix including steady users")
-        matprint(mat)
-        print()
+        
+        if self.nregions<20:
+            print("Transition matrix including steady users")
+            matprint(mat)
+            print()
         #Normalize
         mat_normed = mat / mat.sum(axis=0)
-        print("Normalized transition matrix (transition probability)")
-        matprint(mat_normed)
+        if self.nregions<20:
+            print("Normalized transition matrix (transition probability)")
+            matprint(mat_normed)
         
+        if self.nregions > 20:
+            print("..done")
+
         return mat_normed
