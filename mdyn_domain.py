@@ -17,8 +17,10 @@ from mdyn_extras import matprint
 class Domain:
     def __init__(self, precompdomain=False, state=''):
         #Bin padding (MANUAL)
-        self.dlat = 0.2
-        self.dlon = 0.2
+        #self.dlat = 0.2
+        #self.dlon = 0.2
+        self.dlat = 0.05
+        self.dlon = 0.05
         self.precompdomain = precompdomain
         self.state = state
 
@@ -57,7 +59,7 @@ class Domain:
                 self.minlons=-54.0
                 self.maxlons=-42.0
                 self.minlats=-26.0
-                self.maxlats=-18.0
+                self.maxlats=-19.0
             else:
                 print("I only know how to precompute SP state domains!")
                 sys.exit(1)

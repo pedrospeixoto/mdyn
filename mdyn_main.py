@@ -92,7 +92,7 @@ class MobileDynamics:
         # network/reg : based on regions
         # all : all modes
         if mode == "network" or mode == "reg" or mode == "all":
-            self.set_network_grid("SP")            
+            self.set_network_grid(state)            
 
 
         #Loop over days
