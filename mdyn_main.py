@@ -48,7 +48,7 @@ class MobileDynamics:
             date_end = argv[3]
 
         if not os.path.exists(data_dir):
-            print("Directory doesnt exists. Did you type it wrong? ", data_dir)
+            print("Directory doesnt exist. Did you type it wrong? ", data_dir)
             sys.exit(1)
 
         #Ensure we have the "/"
@@ -75,7 +75,7 @@ class MobileDynamics:
             
         print("Output folder:", self.dump_dir)
 
-    def build_model(self, mode, state, precompdomain):
+    def build_model(self, state, granularity, precompdomain):
 
         #Init a global domain instance
         self.dom = Domain(precompdomain, state)
@@ -140,7 +140,7 @@ class MobileDynamics:
         self.network = Network(state)
         
         #Create grid for network
-        self.network.network_grid(self.dom)
+        self.network.build_grid_network(self.dom)
 
         #Map the regions
         map = Map(self.dom)
