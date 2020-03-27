@@ -268,14 +268,14 @@ class Network:
 
         print("Building grid network...")
         
-        gridname = 'maps/regions_'+self.main_state+"_lats"+str(dom.minlats)+\
+        self.gridname = 'maps/regions_'+self.main_state+"_lats"+str(dom.minlats)+\
             "_"+str(dom.maxlats)+"_lons"+str(dom.minlons)+"_"+str(dom.maxlons)+\
             "_dlat"+str(dom.dlat)+"_dlon"+str(dom.dlon)
 
         #check if network pre built
-        if os.path.exists(gridname+".npy"):
-            self.region_grid=np.load(gridname+".npy")
-            print("Regions loaded from file "+gridname)
+        if os.path.exists(self.gridname+".npy"):
+            self.region_grid=np.load(self.gridname+".npy")
+            print("Regions loaded from file "+self.gridname)
             #print(self.region_grid.shape)
         else:
             #Grid is based on cell centers
@@ -308,9 +308,9 @@ class Network:
                         self.region_grid[i,j] = ireg
 
             #Save this region grid for furute use, as it takes time to build
-            np.savetxt(gridname+".csv", self.region_grid)
-            np.save(gridname, self.region_grid)
-            print("Regions saved in file "+gridname)
+            np.savetxt(self.gridname+".csv", self.region_grid)
+            np.save(self.gridname, self.region_grid)
+            print("Regions saved in file "+self.gridname)
 
 
     def add_reg_to_df(self, dom, data):
