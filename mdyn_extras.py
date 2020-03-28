@@ -27,11 +27,11 @@ def round_up(n, decimals=0):
 
 def round_up(n, decimals=0): 
     multiplier = 10 ** decimals 
-    return math.ceil(n * multiplier) / multiplier
+    return np.round(math.ceil(n * multiplier) / multiplier ,  decimals)
     
 def round_down(n, decimals=0):
     multiplier = 10 ** decimals
-    return math.floor(n * multiplier) / multiplier
+    return np.round(math.floor(n * multiplier) / multiplier, decimals)
 
 #Range over date variable
 def daterange(start_date, end_date):
