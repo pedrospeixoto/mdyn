@@ -86,9 +86,10 @@ class MobileDynamics:
             #Update dataframe with network info
             network.add_reg_to_daydf(day_data)           
 
-            day_data.tmat = network.calc_transition_matrix(day_data)
+            day_data.tmat, day_data.tmat_norm = network.calc_transition_matrix(day_data)
 
             np.savetxt( day_data.local_dir+"trans_mat.csv", day_data.tmat)
+            np.savetxt( day_data.local_dir+"trans_mat_norm.csv", day_data.tmat_norm)
 
             #To save ram memory keep only the transition matrix
             day_data.clean_data()
@@ -96,7 +97,7 @@ class MobileDynamics:
             #Store just useful data, not raw data
             self.data.append(day_data) 
 
-    def read_data(self, preread):
+    def read_data(self, load):
         #Main dataframe list
 
         self.data = [] #List of dataframes per day
@@ -107,7 +108,7 @@ class MobileDynamics:
             #Load data for this day
             day_str=day.strftime("%Y-%m-%d")
             #DayData(day_str, self.data_dir)
-            self.data.append(DayData(day_str, self.data_dir, preread))
+            self.data.append(DayData(day_str, self.data_dir, load))
         
     def simulate_daily(self, mode):
     

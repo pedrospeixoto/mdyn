@@ -380,24 +380,6 @@ class Network:
 
         #day.df.to_csv("tmp.csv")
 
-    def month_users(self):
-
-        #manual
-        self.monthly_users = {
-                "2018-04":  6325668,
-                "2018-05":  6515725,
-                "2018-06":	6228902,
-                "2018-07":	6000567,
-                "2018-08":	6188322,
-                "2018-09":	6167131,
-                "2018-10":	6180900,
-                "2018-11": 	7108021,
-                "2018-12":	7634732,
-                "2019-01":	6852594,
-                "2019-02":	7169397,
-                "2019-03":	7247796,
-            }
-
     def calc_transition_matrix(self, day):
         
         print()
@@ -411,12 +393,12 @@ class Network:
                      columns=['reg0'], aggfunc=np.count_nonzero, fill_value=0, dropna=False)
         
         
-        #Remove other states
-        neib_states = range(self.nreg_in, self.nregions, 1)
-        #print(neib_states)
+        #Remove other outer regions from transition matrix
+        #consider movements only data inside the domain
+        nb_regions = range(self.nreg_in, self.nregions, 1)
         try:
-            table = table.drop(columns=neib_states)
-            table = table.drop(neib_states, axis=0)
+            table = table.drop(columns=nb_regions)
+            table = table.drop(nb_regions, axis=0)
         except:
             pass
 
@@ -439,17 +421,6 @@ class Network:
             print(table)
             print()
 
-        #self.month_users()
-
-        #total_users = self.monthly_users.get(month, 0)
-        #moving_users = day.n
-        #steady_users = total_users - moving_users
-        #print("")
-        #print("Month, Total Users, Day moving users, Day steady users" )
-        #print(month, total_users, moving_users, steady_users)
-        #steady_users_per_reg = steady_users * self.regions_pop_freq
-        #print("Users per region:", steady_users_per_reg)
-
         #Columns are regions at time 0
         #Rows are regions at time 1
         mat = table.as_matrix(columns=None)
@@ -461,6 +432,7 @@ class Network:
             print("Transition matrix including steady users")
             matprint(mat)
             print()
+
         #Normalize
         mat_normed = mat / mat.sum(axis=0)
         if self.nregions<20:
@@ -470,4 +442,4 @@ class Network:
         if self.nregions > 20:
             print("..done")
 
-        return mat_normed
+        return mat, mat_normed
