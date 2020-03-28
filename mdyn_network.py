@@ -173,6 +173,11 @@ class Network:
         self.maxlons = round_up(max(x), 1)  + 1.1
         self.minlats = round_down(min(y), 1)- 1.1
         self.maxlats = round_up(max(y), 1)  + 1.1
+        self.minlons = np.round(self.minlons, 1)
+        self.maxlons = np.round(self.maxlons, 1)
+        self.minlats = np.round(self.minlats, 1)
+        self.maxlats = np.round(self.maxlats, 1)
+        
         print("  Domain Box: ")
         print( "   Lon:", self.minlons, self.maxlons)
         print( "   Lat:", self.minlats, self.maxlats)
