@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.colors as colors
 import matplotlib.cm as cm
+import matplotlib.dates as mdates
 
 import geopy.distance
 from windrose import WindroseAxes
@@ -213,12 +214,30 @@ class DayData:
                 self.df.to_csv(filename, header=True) #Don't forget to add '.csv' at the end of the path
             
             #Histograms
-            filename=self.local_dir+"/day_"+self.day+"_basic_stats.jpg"
+            filename = self.local_dir+"day_"+self.day+"_basic_stats.jpg"
             if not os.path.exists(filename) and load:
                 self.df.hist(bins=8, align='mid')
                 fig = plt.gcf()
                 fig.set_size_inches(18.5, 18.5)
                 plt.savefig(filename, dpi=300)
+
+            filename = self.local_dir+"day_"+self.day+"_time_hist.jpg"
+            if not os.path.exists(filename) and load:
+                t0_hours = pd.DatetimeIndex(time0).hour
+                t1_hours = pd.DatetimeIndex(time1).hour
+                fig, ax = plt.subplots(2,1)
+                ax[0].hist(t0_hours, bins=24, color='lightblue')
+                ax[0].set_title("Day "+self.day )
+                ax[0].set_ylabel("Num at T0")
+                ax[0].ticklabel_format(axis="y", style="sci", scilimits=(0,0))
+
+                ax[1].hist(t1_hours, bins=24, color='lightblue')
+                ax[1].set_ylabel("Num at T1")
+                ax[1].set_xlabel("Hour of day")
+                ax[1].ticklabel_format(axis="y", style="sci", scilimits=(0,0))
+
+                plt.savefig(filename, dpi=300)
+            
 
     def calc_vel_day_diagnostics(self):
 
