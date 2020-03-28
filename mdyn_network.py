@@ -332,7 +332,7 @@ class Network:
                 nan = lonnan*latnan
                 ilon=((lon[~nan]-dom.minlons)/dom.dlon).astype(int)
                 ilat=((lat[~nan]-dom.minlats)/dom.dlat).astype(int)
-                #print(lon[~nan], lat[~nan], ilon, ilat)
+                print(lon[~nan], lat[~nan], ilon, ilat)
                 reg = np.zeros(day.n).astype(int)
                 reg[nan] = -1
                 reg[~nan]=self.region_grid[ilat, ilon]
@@ -354,21 +354,22 @@ class Network:
             s=str(i)
             lon=daydata.df['lng'+s].values
             lat=daydata.df['lat'+s].values
+
+            #Remova data that is outside of the box
+            lon=np.where((lon>self.maxlons)|(lon<self.minlons), np.nan, lon)
+            lat=np.where((lat>self.maxlats)|(lat<self.minlats), np.nan, lat)
+            
             lonnan=np.isnan(lon)
             latnan=np.isnan(lat)
-            nan = lonnan*latnan
+            nan = lonnan | latnan
             
             ilon=((lon[~nan]-self.minlons)/self.dlon).astype(int)
             ilat=((lat[~nan]-self.minlats)/self.dlat).astype(int)
 
             reg = np.zeros(daydata.n).astype(int)
             reg[nan] = -1
-            try:
-                reg[~nan]=self.region_grid[ilat, ilon]
-            except:
-                print("Is this data really mathing this domain? If so, please increase domain lat-lon spans")
-                sys.exit(1)
-                
+            reg[~nan]=self.region_grid[ilat, ilon]
+            
             daydata.df['reg'+s]=reg
 
         #Add column with moved or not

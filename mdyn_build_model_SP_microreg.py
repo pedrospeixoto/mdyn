@@ -24,7 +24,7 @@ subdomains_gran = "NM_MICRO"
 subdomains_shape = "maps/sp_microrregioes/35MIE250GC_SIR"
 
 #Network granularity
-latlon_gran = 0.1 #granularity of lat long spacing
+latlon_gran = 0.2 #granularity of lat long spacing
 
 #Network pre-computation flag
 load_domain = True #Load precomp structures
