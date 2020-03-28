@@ -40,7 +40,6 @@ class DayData:
         self.load = load
         self.read_day_data(day, data_dir)
         self.dom = network
-        #self.set_day_domain()
         
         #if not load:
         #    self.clean_data()
@@ -147,27 +146,6 @@ class DayData:
                 pass
         
         return dfout
-    
- """    def set_day_domain(self): 
-        
-        #Domain for each day
-        minlons=min(np.amin(self.df['lng0'].values), 
-            np.amin(self.df['lng1'].values),
-            np.amin(self.df['lng2'].values))
-        maxlons=max(np.amax(self.df['lng0'].values), 
-            np.amax(self.df['lng1'].values),
-            np.amax(self.df['lng2'].values))
-        minlats=min(np.amin(self.df['lat0'].values), 
-            np.amin(self.df['lat1'].values),
-            np.amin(self.df['lat2'].values))
-        maxlats=max(np.amax(self.df['lat0'].values), 
-            np.amax(self.df['lat1'].values),
-            np.amax(self.df['lat2'].values))
-        
-        self.dom = Domain()
-        
-        self.dom.set_domain(minlons, maxlons, minlats, maxlats) """
-    
     
     def calc_basic_day_diagnostics(self):
 
