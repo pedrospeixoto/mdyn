@@ -24,7 +24,7 @@ subdomains_gran = "NM_MICRO"
 subdomains_shape = "maps/sp_microrregioes/35MIE250GC_SIR"
 
 #Network granularity
-latlon_gran = 0.2 #granularity of lat long spacing
+latlon_gran = 0.01 #granularity of lat long spacing
 
 #Network pre-computation flag
 load_domain = True #Load precomp structures
@@ -44,8 +44,8 @@ network = Network(
 #-----------------------------
 #Initialize mobile data and load data to dataframe 
 data_dir = "data/visit_journey_sao_paulo_2019/"
-date_ini = "2019-12-01"
-date_end = "2019-12-01"
+date_ini = "2019-04-01"
+date_end = "2020-02-29"
 load_data = True 
 
 mdyn = MobileDynamics(
