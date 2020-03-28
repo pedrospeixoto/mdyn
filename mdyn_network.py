@@ -357,12 +357,18 @@ class Network:
             lonnan=np.isnan(lon)
             latnan=np.isnan(lat)
             nan = lonnan*latnan
+            
             ilon=((lon[~nan]-self.minlons)/self.dlon).astype(int)
             ilat=((lat[~nan]-self.minlats)/self.dlat).astype(int)
-            #print(lon[~nan], lat[~nan], ilon, ilat)
+
             reg = np.zeros(daydata.n).astype(int)
             reg[nan] = -1
-            reg[~nan]=self.region_grid[ilat, ilon]
+            try:
+                reg[~nan]=self.region_grid[ilat, ilon]
+            except:
+                print("Is this data really mathing this domain? If so, please increase domain lat-lon spans")
+                sys.exit(1)
+                
             daydata.df['reg'+s]=reg
 
         #Add column with moved or not
