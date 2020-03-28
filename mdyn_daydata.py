@@ -25,8 +25,7 @@ from windrose import WindroseAxes
 
 import tqdm as tqdm
 
-from mdyn_domain import Domain, Map
-
+from mdyn_map import Map
 from mdyn_extras import distance, distance_lat, distance_lon, daterange, timestamp2datetime, list_files_pkl, del_df, mem_usage
 
 #Garbage collection
@@ -37,11 +36,11 @@ import gc
 class DayData:
     
     #Class for data per day
-    def __init__(self, day, data_dir, load = False):
+    def __init__(self, day, data_dir, network, load = False):
         self.load = load
         self.read_day_data(day, data_dir)
+        self.dom = network
         #self.set_day_domain()
-        
         
         #if not load:
         #    self.clean_data()
@@ -149,7 +148,7 @@ class DayData:
         
         return dfout
     
-    def set_day_domain(self): 
+ """    def set_day_domain(self): 
         
         #Domain for each day
         minlons=min(np.amin(self.df['lng0'].values), 
@@ -167,7 +166,7 @@ class DayData:
         
         self.dom = Domain()
         
-        self.dom.set_domain(minlons, maxlons, minlats, maxlats)
+        self.dom.set_domain(minlons, maxlons, minlats, maxlats) """
     
     
     def calc_basic_day_diagnostics(self):

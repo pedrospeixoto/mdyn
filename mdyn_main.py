@@ -74,7 +74,7 @@ class MobileDynamics:
             
             #Load data for this day
             day_str=day.strftime("%Y-%m-%d")
-            day_data = DayData(day_str, self.data_dir, load=self.load)
+            day_data = DayData(day_str, self.data_dir, network, load=self.load)
             day_data.calc_basic_day_diagnostics() 
             
             #Get useful info from this day (velocities)
