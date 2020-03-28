@@ -18,7 +18,6 @@ from datetime import timedelta
 
 from mdyn_daydata import DayData
 from mdyn_network import Network
-from mdyn_domain import Domain, Map
 from mdyn_extras import daterange
 
 import matplotlib.pyplot as plt
