@@ -40,7 +40,7 @@ class DayData:
     def __init__(self, day, data_dir, load = False):
         self.load = load
         self.read_day_data(day, data_dir)
-        self.set_day_domain()
+        #self.set_day_domain()
         
         
         #if not load:
