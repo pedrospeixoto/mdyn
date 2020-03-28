@@ -52,6 +52,7 @@ class Map:
         map.drawmeridians(np.arange(-180,180,1), labels=[False,False,True,False])
         
         map.ax = ax
+        self.dom = network
         
         # convert the bin mesh to map coordinates:
         self.x_bins_c, self.y_bins_c = map(network.lon_bins_c_2d, network.lat_bins_c_2d) # will be plotted using pcolormesh
