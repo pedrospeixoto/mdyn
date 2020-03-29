@@ -7,8 +7,9 @@ import os
 import warnings
 warnings.filterwarnings("ignore")
 
+from mdyn_network import Network
 from mdyn_main import MobileDynamics
-from mdyn_extras import daterange, matprint
+import mdyn_extras as mex
 
 from datetime import datetime
 from datetime import date
@@ -57,19 +58,24 @@ dow_names = list(calendar.day_abbr)
 dates = mdyn.date_ini+"_"+mdyn.date_end
 ndays = mdyn.days
 
-markers = [ 'o', 'v', '^', '<', '>', 's', 'p', '*', 'h', 'H', '+', 'x', 'D', '.', ',', 'o', 'v', '^', '<', '>', '1', '2', '3', '4', '8', 's', 'p', '*', 'h', 'H', '+', 'x', 'D']
-thinmarkers = ['.', '1', '2', '3', '4', '8']
+markers = mex.markers
+thinmarkers = mex.thinmarkers
+daterange = mex.daterange
+
 #Loop over folders with days and collect transition matrices
 for day in daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=1)):
-    #print(day)
+    print(day)
     #Load data for this day
     days_all.append(day.strftime("%Y-%m-%d"))
     dow_all.append(day.weekday())
     days_dow[day.weekday()].append(day.strftime("%Y-%m-%d"))
 
     local_dir = mdyn.data_dir+"dt="+day.strftime("%Y-%m-%d")+"/"
+
     tmat_local = np.genfromtxt(local_dir+'trans_mat.csv')
+    print(tmat_local)
     (nlocal, mlocal) = tmat_local.shape
+    print(nlocal, mlocal)
     if not ilog:
         #Clean diagonal
         for i in range(nlocal):
