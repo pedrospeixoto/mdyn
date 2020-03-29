@@ -149,7 +149,10 @@ class MobileDynamics:
                 self.movemats_norm.append(np.genfromtxt(local_dir+name+'_norm.csv'))
                 self.movemats_reg0.append(np.genfromtxt(local_dir+name+'_reg0.csv').astype(int))
                 self.movemats_reg1.append(np.genfromtxt(local_dir+name+'_reg1.csv').astype(int))
-                self.movemats_reg_names.append(np.load(local_dir+name+'_reg_names.npy'))
+                #reg_names = np.load(local_dir+name+'_reg_names.npy')
+                with open(local_dir+name+'_reg_names.txt') as f:
+                    reg_names = f.read().splitlines()            
+                self.movemats_reg_names.append(reg_names)
             except:
                 print("Please run mdyn_build_model.py first to generate the movement matrices")
                 print(" (run with the same parameter file!)")
