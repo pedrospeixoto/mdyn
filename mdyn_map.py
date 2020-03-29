@@ -155,7 +155,7 @@ class Map:
         plt.savefig(filename, dpi=300)
         
 
-    def map_move_by_reg(self, mat, ireg0, reg1, network, title, filename):
+    def map_movemat_by_reg(self, mat, ireg0, reg1, network, title, filename):
         
         data=network.region_grid
         data=data.astype(float)
@@ -185,3 +185,33 @@ class Map:
         filename = filename+".jpg"
         plt.savefig(filename, dpi=300)   
         
+    def map_move_by_reg(self, movevec, reg1, network, title, filename):
+        
+        data=network.region_grid
+        data=data.astype(float)
+        #mex.matprint(data)
+        move_from_r0=movevec
+
+        for ir1 in reg1:
+            data[data==ir1]=move_from_r0[ir1]
+    
+        data[data<0]=0.0
+
+        title = title.replace("_", " ")
+        plt.title(title, y=1.08)
+
+        #2d color plot of data
+        cmap = "hot_r" 
+        plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
+            #cmap="hot_r", norm=colors.LogNorm(), snap=True)
+
+        cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=25, fraction=0.1, pad=0.01, \
+            spacing='proportional')
+        cbar.set_label("Probability",size=12)
+                    
+        #plt.tight_layout()
+        plt.tight_layout() #pad=0.4, w_pad=0.5, h_pad=1.0)
+        
+        #filename = dir+"/map_data_"+title+".eps"
+        filename = filename+".jpg"
+        plt.savefig(filename, dpi=300)   
