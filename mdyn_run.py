@@ -64,7 +64,7 @@ movemat_avg_diag = movemat_avg_diag[0:network.nreg_in]
 movemat_avg = movemat_avg / movemat_avg.sum(axis=0)
 prim_source = np.argmax(movemat_avg_diag)
 #print(prim_source)
-num_source = 6
+num_source = 12
 #print(movemat_avg[0:network.nreg_in, prim_source], np.sum(movemat_avg[:, prim_source]))
 sources = np.argpartition(movemat_avg[0:network.nreg_in, prim_source], -num_source)[-num_source:]
 sources2 = np.argpartition(movemat_avg_diag[0:network.nreg_in], -num_source)[-num_source:]
