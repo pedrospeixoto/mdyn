@@ -85,7 +85,7 @@ class MobileDynamics:
             #Update dataframe with network info
             network.add_reg_to_daydf(day_data)           
 
-            day_data.tmat, day_data.tmat_norm, day_data.reg0, daydata.reg1 = \
+            day_data.tmat, day_data.tmat_norm, day_data.reg0, day_data.reg1 = \
                 network.calc_transition_matrix(day_data)
 
             name = "move_mat_"+network.domain+"_"+network.subdomains
@@ -93,8 +93,12 @@ class MobileDynamics:
             np.savetxt( day_data.local_dir+name+"_norm.csv", day_data.tmat_norm)
             np.savetxt( day_data.local_dir+name+"_reg0.csv", day_data.reg0)
             np.savetxt( day_data.local_dir+name+"_reg1.csv", day_data.reg1)
-            np.savetxt( day_data.local_dir+name+"_reg_names.csv", network.regions)
-
+            np.save( day_data.local_dir+name+"_reg_names.npy", network.regions)
+            reg=list(network.regions.values())
+            with open(day_data.local_dir+name+"_reg_names.txt", "w") as output:
+                for r in reg:
+                    output.write("%s\n" % r)
+                            
             #To save ram memory keep only the transition matrix
             day_data.clean_data()
 

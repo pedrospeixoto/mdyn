@@ -425,7 +425,7 @@ class Network:
         # to be addressed as post-processing
 
 
-        if self.nregions<20:
+        if self.nregions < 10:
             print("")
             print("Transition Matrix (number of people moving to/from regions)")
             print(table)
@@ -440,18 +440,18 @@ class Network:
         #np.fill_diagonal(mat, mat.diagonal() + steady_users_per_reg)
         #print(mat)
         
-        if self.nregions<20:
+        if self.nregions < 10:
             print("Transition matrix including steady users")
             matprint(mat)
             print()
 
         #Normalize
         mat_normed = mat / mat.sum(axis=0)
-        if self.nregions<20:
+        if self.nregions<10:
             print("Normalized transition matrix (transition probability)")
             matprint(mat_normed)
         
-        if self.nregions > 20:
+        if self.nregions > 10:
             print("..done")
 
         return mat, mat_normed, reg0, reg1
