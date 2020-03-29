@@ -295,7 +295,11 @@ class Network:
         p = Point(lon, lat)
         inmaindomain = p.within(self.domain_geometry)
         #print(p, inmaindomain)
-
+        #debug=False
+        #if abs(lon+45.0160)<0.1:
+        #    if abs(lat+23.46410256410256)<0.1:
+        #        debug=True
+        #        print(p, debug)
         ireg=-1
         if inmaindomain:
             
@@ -308,24 +312,33 @@ class Network:
             dist_tmp = distance(lonv, latv, lon_tmp, lat_tmp)
 
             k = 10 # k nearest neighbours
-            inearreg = np.argpartition(dist_tmp, k)
+            inearreg = np.argpartition(dist_tmp, k) #[0:k]
             
             #Use geometry to check if point in subregion
-            for ireg in inearreg:
-                subreg_geometry = self.df_subdomains.loc[ireg, "geometry"]
+            for i in inearreg:
+                
+                subreg_geometry = self.df_subdomains.loc[i, "geometry"]
                 in_region=p.within(subreg_geometry)
+                #if debug:
+                #    print(i, in_region)
                 if in_region:
+                    ireg = i
                     return ireg
         
         else:
             #check if in neighbour states
            
             for index, nb in self.df_domain_nb.iterrows(): 
+                
                 #nb_name=nb[self.domain_gran]                
                 innbreg=p.within(nb.geometry)
+                #if debug:
+                #    print(index, nb, innbreg)
                 if innbreg:
                     ireg = index #self.regions_out.get(index, -1)
-            
+        #if debug:
+        #    print(p)
+        #    sys.exit(1)
         return ireg
 
     def add_reg_to_df(self, dom, data):
