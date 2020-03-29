@@ -51,7 +51,7 @@ movemat_avg = np.zeros(mdyn.movemats[0].shape)
 
 #Loop work with transitions matrices and average then
 for i, day in enumerate(mdyn.days_all):
-    print(i, day)
+    print("Load: ", i, day)
     
     mat = mdyn.movemats[i]
     movemat_avg = movemat_avg + mat
@@ -67,7 +67,8 @@ prim_source = np.argmax(movemat_avg_diag)
 num_source = 6
 #print(movemat_avg[0:network.nreg_in, prim_source], np.sum(movemat_avg[:, prim_source]))
 sources = np.argpartition(movemat_avg[0:network.nreg_in, prim_source], -num_source)[-num_source:]
-#print(sources)
+sources2 = np.argpartition(movemat_avg_diag[0:network.nreg_in], -num_source)[-num_source:]
+sources = np.unique(np.concatenate((sources, sources2), axis=0) )
 
 title_base = "move_mat_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
 print(network.regions)
