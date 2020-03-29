@@ -400,7 +400,7 @@ class Network:
         table = df.pivot_table(values='dt1', index=['reg1'],\
                      columns=['reg0'], aggfunc=np.count_nonzero, fill_value=0, dropna=False)
         
-        print(table.columns)
+        #print(table.columns)
         #Remove other outer regions from transition matrix
         #consider movements only data inside the domain
         #nb_regions = range(self.nreg_in, self.nregions+1, 1)
@@ -435,7 +435,7 @@ class Network:
         #Columns are regions at time 0
         #Rows are regions at time 1
         reg0 = table.columns
-        print(reg0)
+        #print(reg0)
         reg1 = table.index
         mat = table.as_matrix(columns=None)
         

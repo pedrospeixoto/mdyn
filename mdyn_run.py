@@ -53,12 +53,15 @@ for i, day in enumerate(mdyn.days_all):
     mat = mdyn.movemats_norm[i]
     reg0 = mdyn.movemats_reg0[i]
     reg1 = mdyn.movemats_reg1[i]
-    print(mdyn.movemats[i].shape)
-    print(mdyn.movemats_reg_names[i])
-    title = day.strftime("%Y-%m-%d")
-    map=Map(network)
-    map.map_move_by_reg(mat, reg0[0], reg1, network, title, title)
-    mex.matprint(mdyn.movemats_norm[i])
+    
+    title_base = "move_mat_"+network.domain+"_"+network.subdomains+"_"+day.strftime("%Y-%m-%d")
+    for j in reg0:
+        title = title_base+"_origin_"+mdyn.movemats_reg_names[i][j]
+        print("Creating plot for ", title)
+        filename = mdyn.dump_dir+title
+        map=Map(network)
+        map.map_move_by_reg(mat, j, reg1, network, title, filename)
+    #mex.matprint(mdyn.movemats_norm[i])
 
 
 

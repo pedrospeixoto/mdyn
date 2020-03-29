@@ -68,14 +68,14 @@ class Map:
         
         #Calculate 2d histogram
         density, _, _ = np.histogram2d(lat, lng, [self.dom.lat_bins_ext, self.dom.lon_bins_ext], density=False)
-
+        
         #Create color plot
         plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, density, cmap="hot_r", norm=colors.LogNorm(), snap=True)
-
+        
         #Add stuf to plot
         cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=20, fraction=0.1, pad=0.01)
         cbar.set_label(title,size=12)
-
+        
         #Save density plot to folder "dir"
         filename = dir+"/density_"+title+".eps"
         plt.savefig(filename, dpi=300)
@@ -167,6 +167,8 @@ class Map:
     
         data[data<0]=0.0
 
+        plt.title(title, y=1.08)
+
         #2d color plot of data
         cmap = "hot_r" 
         plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
@@ -174,13 +176,12 @@ class Map:
 
         cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=25, fraction=0.1, pad=0.01, \
             spacing='proportional')
-        cbar.set_label(title,size=12)
+        cbar.set_label("Probability",size=12)
                     
-        plt.tight_layout()
+        #plt.tight_layout()
+        plt.tight_layout() #pad=0.4, w_pad=0.5, h_pad=1.0)
         
-        filename=title
-        print(filename)
         #filename = dir+"/map_data_"+title+".eps"
         filename = filename+".jpg"
         plt.savefig(filename, dpi=300)   
-        plt.show()     
+        

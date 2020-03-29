@@ -175,10 +175,13 @@ class DayData:
                 s=str(i)
                 title = "density_"+self.day+" event "+str(i)
                 filename = self.local_dir+title+".jpg"
-                if not os.path.exists(filename) and load:
-                    map = Map(self.dom)
-                    map.map_density_data(self.df['lng'+s].values, self.df['lat'+s].values, \
-                        title, self.local_dir)
+                if not os.path.exists(filename) or ~load:
+                    try: 
+                        map = Map(self.dom)
+                        map.map_density_data(self.df['lng'+s].values, self.df['lat'+s].values, \
+                            title, self.local_dir)
+                    except:
+                        pass
 
             #Statistics
             print(self.df.describe())
