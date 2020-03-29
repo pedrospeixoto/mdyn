@@ -64,7 +64,7 @@ movemat_avg_diag = movemat_avg_diag[0:network.nreg_in]
 movemat_avg = movemat_avg / movemat_avg.sum(axis=0)
 prim_source = np.argmax(movemat_avg_diag)
 #print(prim_source)
-num_source = 12
+num_source = 20
 #print(movemat_avg[0:network.nreg_in, prim_source], np.sum(movemat_avg[:, prim_source]))
 sources = np.argpartition(movemat_avg[0:network.nreg_in, prim_source], -num_source)[-num_source:]
 sources2 = np.argpartition(movemat_avg_diag[0:network.nreg_in], -num_source)[-num_source:]
@@ -72,6 +72,7 @@ sources = np.unique(np.concatenate((sources, sources2), axis=0) )
 
 title_base = "move_mat_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
 print(network.regions)
+print(sources)
 #Plot main sources
 for j in sources:
     title = title_base+"_origin_"+network.regions[j]
