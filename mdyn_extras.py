@@ -85,3 +85,7 @@ def matprint(mat, fmt="g"):
         for i, y in enumerate(x):
             print(("{:"+str(col_maxes[i])+fmt+"}").format(y), end="  ")
         print("")
+
+#Ploting helpers
+markers = [ 'o', 'v', '^', '<', '>', 's', 'p', '*', 'h', 'H', '+', 'x', 'D', '.', ',', 'o', 'v', '^', '<', '>', '1', '2', '3', '4', '8', 's', 'p', '*', 'h', 'H', '+', 'x', 'D']
+thinmarkers = ['.', '1', '2', '3', '4', '8']

@@ -19,9 +19,9 @@ domain_gran = "NM_ESTADO"
 domain_shape = "maps/UFEBRASIL/UFEBRASIL"
 
 #Subdomain definitions
-subdomains = "SP-Municipios"
-subdomains_gran = "NM_MUNICIP"
-subdomains_shape = "maps/sp_municipios/35MUE250GC_SIR"
+subdomains = "SP-Mesoreg"
+subdomains_gran = "NM_MESO"
+subdomains_shape = "maps/sp_mesorregioes/35MEE250GC_SIR"
 
 #Network granularity
 latlon_gran = 0.5 #granularity of lat long spacing

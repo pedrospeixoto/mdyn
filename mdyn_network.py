@@ -160,6 +160,10 @@ class Network:
         self.domain_neib = df_domain_local.NEIGHBORS.values[0]
         self.domain_neib = self.domain_neib.split(',') 
         self.df_domain_nb=self.df_domain[self.df_domain[self.domain_gran].isin(self.domain_neib)]
+        #print(self.df_domain_nb)
+        self.df_domain_nb["idx"] = range(self.nreg_in, self.nreg_in+len(self.df_domain_nb), 1)
+        self.df_domain_nb=self.df_domain_nb.set_index("idx")
+        #print(self.df_domain_nb)
         domain_limit_coords=list(self.domain_geometry.envelope.exterior.coords)
 
 
@@ -315,12 +319,13 @@ class Network:
         
         else:
             #check if in neighbour states
+           
             for index, nb in self.df_domain_nb.iterrows(): 
-                nb_name=nb[self.domain_gran]
+                #nb_name=nb[self.domain_gran]                
                 innbreg=p.within(nb.geometry)
                 if innbreg:
-                    ireg = self.regions_out.get(nb_name, self.nregions)
-        
+                    ireg = index #self.regions_out.get(index, -1)
+            
         return ireg
 
     def add_reg_to_df(self, dom, data):
@@ -389,18 +394,15 @@ class Network:
         
         print()
         print("Generating transition matrices...", end="")
-
+                
         df=day.df
-        month=day.month
-        
         #df.to_csv("tmp.csv", header=True)
         table = df.pivot_table(values='dt1', index=['reg1'],\
                      columns=['reg0'], aggfunc=np.count_nonzero, fill_value=0, dropna=False)
         
-        
         #Remove other outer regions from transition matrix
         #consider movements only data inside the domain
-        nb_regions = range(self.nreg_in, self.nregions, 1)
+        nb_regions = range(self.nreg_in, self.nregions+1, 1)
         try:
             table = table.drop(columns=nb_regions)
             table = table.drop(nb_regions, axis=0)
@@ -420,6 +422,9 @@ class Network:
             pass
 
         #The resulting table has the people that moved, we now need to include people that did not move
+        # to be addressed as post-processing
+
+
         if self.nregions<20:
             print("")
             print("Transition Matrix (number of people moving to/from regions)")
@@ -428,6 +433,8 @@ class Network:
 
         #Columns are regions at time 0
         #Rows are regions at time 1
+        reg0 = table.columns
+        reg1 = table.index
         mat = table.as_matrix(columns=None)
         
         #np.fill_diagonal(mat, mat.diagonal() + steady_users_per_reg)
@@ -447,4 +454,4 @@ class Network:
         if self.nregions > 20:
             print("..done")
 
-        return mat, mat_normed
+        return mat, mat_normed, reg0, reg1
