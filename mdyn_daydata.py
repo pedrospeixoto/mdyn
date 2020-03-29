@@ -175,7 +175,7 @@ class DayData:
                 s=str(i)
                 title = "density_"+self.day+" event "+str(i)
                 filename = self.local_dir+title+".jpg"
-                if not os.path.exists(filename) or ~load:
+                if not os.path.exists(filename):
                     try: 
                         map = Map(self.dom)
                         map.map_density_data(self.df['lng'+s].values, self.df['lat'+s].values, \
@@ -202,7 +202,7 @@ class DayData:
                 plt.savefig(filename, dpi=300)
 
             filename = self.local_dir+"day_"+self.day+"_time_hist.jpg"
-            if not os.path.exists(filename) and load:
+            if not os.path.exists(filename):
                 t0_hours = pd.DatetimeIndex(time0).hour
                 t1_hours = pd.DatetimeIndex(time1).hour
                 fig, ax = plt.subplots(2,1)
