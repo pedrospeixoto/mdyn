@@ -16,6 +16,10 @@ from datetime import datetime
 from datetime import date
 from datetime import timedelta
 
+import calendar
+
+import imp
+
 from mdyn_daydata import DayData
 from mdyn_network import Network
 from mdyn_extras import daterange
@@ -118,6 +122,40 @@ class MobileDynamics:
             #DayData(day_str, self.data_dir)
             self.data.append(DayData(day_str, self.data_dir, load))
         
+    def collect_move_mat(self, domain, subdomains):
+
+        #Loop over days
+        self.movemats = [] #List of matrices per day
+        self.movemats_norm = [] #List of matrices per day
+        self.movemats_reg0 = [] #Regions t0 (depart from)
+        self.movemats_reg1 = [] #Regions t1 (arrive at)
+        self.movemats_reg_names = [] #Regions names
+
+        self.days_all = [] #List of dates per day
+        self.dates_dirs = [] #directory of day data
+        
+        name = "move_mat_"+domain+"_"+subdomains
+
+        np_load_old = np.load
+        np.load = lambda *a,**k: np_load_old(*a, allow_pickle=True, **k)
+
+        #Loop over folders with days 
+        for day in daterange(self.date_ini_obj, self.date_end_obj+timedelta(days=1)):
+            self.days_all.append(day)
+            self.dates_dirs.append(self.data_dir+"dt="+day.strftime("%Y-%m-%d")+"/")
+            local_dir = self.data_dir+"dt="+day.strftime("%Y-%m-%d")+"/"
+            try:
+                self.movemats.append(np.genfromtxt(local_dir+name+'.csv'))
+                self.movemats_norm.append(np.genfromtxt(local_dir+name+'_norm.csv'))
+                self.movemats_reg0.append(np.genfromtxt(local_dir+name+'_reg0.csv').astype(int))
+                self.movemats_reg1.append(np.genfromtxt(local_dir+name+'_reg1.csv').astype(int))
+                self.movemats_reg_names.append(np.load(local_dir+name+'_reg_names.npy'))
+            except:
+                print("Please run mdyn_build_model.py first to generate the movement matrices")
+                print(" (run with the same parameter file!)")
+                sys.exit(1)
+
+
     def simulate_daily(self, mode):
     
         #initial condition

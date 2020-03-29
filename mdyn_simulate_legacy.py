@@ -36,6 +36,11 @@ mdyn = MobileDynamics(
     load = load_data
     )
 
+#Domain definitions
+domain = "SÃO PAULO" #SP or RJ
+subdomains = "SP-Mesoreg"
+name = domain+"_"+subdomains
+
 #ilog = True
 ilog = False
 figext = ".jpg"
@@ -62,7 +67,17 @@ markers = mex.markers
 thinmarkers = mex.thinmarkers
 daterange = mex.daterange
 
-#Loop over folders with days and collect transition matrices
+mdyn.collect_move_mat(domain, subdomains)
+
+print(mdyn.days_all)
+print(mdyn.movemats)
+sys.exit(1)
+
+#Loop work with transitions matrices
+for i, day in mdyn.days_all:
+    print(i, day)
+    print(mdyn.movemats_norm[i])
+
 for day in daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=1)):
     print(day)
     #Load data for this day
@@ -72,7 +87,7 @@ for day in daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=1)):
 
     local_dir = mdyn.data_dir+"dt="+day.strftime("%Y-%m-%d")+"/"
 
-    tmat_local = np.genfromtxt(local_dir+'trans_mat.csv')
+    tmat_local = np.genfromtxt(local_dir+'move_mat_'+name+'.csv')
     print(tmat_local)
     (nlocal, mlocal) = tmat_local.shape
     print(nlocal, mlocal)
