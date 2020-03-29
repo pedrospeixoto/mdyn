@@ -3,6 +3,7 @@
 # conda activate mdyn
 import sys
 import os
+import getopt
 
 import numpy as np
 import pandas as pd
@@ -18,8 +19,47 @@ import geopy.distance
 #Garbage collection
 import gc
 
+#import functionality
+import imp
+
 #General functions
 #--------------------------------
+
+def get_input(args):
+    
+    param_file = None
+    run_opt = None
+    print(args)
+    #Get input parameters
+    try:
+        opts, args = getopt.getopt(args[1:],"hf:o:",["param_file=","run_opt="])
+    except getopt.GetoptError:
+        print(args+ '-f <param_file> -o <run_option>')
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt == '-h':
+            print(sys.argv[0]+ '-f <param_file> -o <run_option>')
+            print("<run_option>=")
+            print(" 0) Build model")
+            print(" 1) Analyse movement")
+            sys.exit()
+        elif opt in ("-i", "-f", "--ifile"):
+            param_file = arg
+        elif opt in ("-o", "--run_opt"):
+            run_opt = int(arg)
+
+    #Get parameters for simulation
+    ipar = getVarFromFile(param_file)
+
+    return ipar, run_opt
+
+def getVarFromFile(filename):
+    f = open(filename)
+    global ipar
+    ipar = imp.load_source('ipar', '', f)
+    f.close()
+    return ipar 
 
 def round_up(n, decimals=0): 
     multiplier = 10 ** decimals 
@@ -89,3 +129,6 @@ def matprint(mat, fmt="g"):
 #Ploting helpers
 markers = [ 'o', 'v', '^', '<', '>', 's', 'p', '*', 'h', 'H', '+', 'x', 'D', '.', ',', 'o', 'v', '^', '<', '>', '1', '2', '3', '4', '8', 's', 'p', '*', 'h', 'H', '+', 'x', 'D']
 thinmarkers = ['.', '1', '2', '3', '4', '8']
+colors = ['blue', 'red', 'yellow', 'orange',  'limegreen', \
+            'violet', 'purple', 'brown', 'cyan', 'olive', 'coral', 'lightgreen' ,'grey', \
+               'blue', 'red', 'yellow', 'orange',  'limegreen' ]
