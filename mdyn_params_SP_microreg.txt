@@ -20,3 +20,5 @@ date_ini = "2019-04-01"
 date_end = "2019-04-30"
 load_data = True 
 
+#Number of main sources for plots
+num_source = 20
