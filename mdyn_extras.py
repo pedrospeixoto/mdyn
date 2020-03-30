@@ -14,6 +14,9 @@ from datetime import datetime
 from datetime import date
 from datetime import timedelta
 
+import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
+
 import geopy.distance
 
 #Garbage collection
@@ -132,3 +135,21 @@ thinmarkers = ['.', '1', '2', '3', '4', '8']
 colors = ['blue', 'red', 'yellow', 'orange',  'limegreen', \
             'violet', 'purple', 'brown', 'cyan', 'olive', 'coral', 'lightgreen' ,'grey', \
                'blue', 'red', 'yellow', 'orange',  'limegreen' ]
+
+def plot_matrix(mat, title, dir):
+
+    filename=dir+title.replace("\n", "_")+".jpg"
+    title = title.replace("_", " ")
+
+    f, ax = plt.subplots(figsize=(6.2,5.6))
+    #ax = f.add_axes([0.17, 0.02, 0.72, 0.79])
+    #axcolor = f.add_axes([0.90, 0.02, 0.03, 0.79])
+    im = ax.matshow(mat, cmap="hot_r", norm=LogNorm())
+    #plt.imshow(mat, cmap="hot_r", norm=LogNorm(vmin=0.00000001, vmax=1))
+    cbar = plt.colorbar(im, orientation='horizontal', shrink=0.5, aspect=25, fraction=0.1, pad=0.01, \
+            spacing='proportional')
+    #cbar.set_label("Probability",size=12)
+    plt.title(title,  y=1.08)
+    plt.tight_layout() #pad=0.4, w_pad=0.5, h_pad=1.0)
+    #plt.show()
+    plt.savefig(filename)
