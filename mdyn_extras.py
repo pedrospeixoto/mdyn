@@ -40,6 +40,13 @@ def get_input(args):
         print(args+ '-f <param_file> -o <run_option>')
         sys.exit(2)
 
+    if len(opts) < 1:
+         print(sys.argv[0]+ '-f <param_file> -o <run_option>')
+         print("<run_option>=")
+         print(" 0) Build model")
+         print(" 1) Analyse movement")
+         sys.exit()
+         
     for opt, arg in opts:
         if opt == '-h':
             print(sys.argv[0]+ '-f <param_file> -o <run_option>')
@@ -51,6 +58,7 @@ def get_input(args):
             param_file = arg
         elif opt in ("-o", "--run_opt"):
             run_opt = int(arg)
+           
 
     #Get parameters for simulation
     ipar = getVarFromFile(param_file)
