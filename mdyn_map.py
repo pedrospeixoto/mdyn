@@ -217,7 +217,17 @@ class Map:
         filename = filename+".jpg"
         plt.savefig(filename, dpi=300)   
 
-    def map_lat_lon_z_data(self, lat, lon, z):
+    def map_lat_lon_z_data(self, lats, lons, z):
+
+        x, y = self.map(lons, lats)
+        print(x, y)
+        x2 = np.linspace(x[0][0],x[0][-1],x.shape[1]*2)
+        y2 = np.linspace(y[0][0],y[-1][0],y.shape[0]*2)
+
+        x2, y2 = np.meshgrid(x2, y2)
+
+        u10_2 = interp(u10,  x[0], np.flipud(y[:, 0]), x2, np.flipud(y2),order=1)
+        v10_2 = interp(v10,  x[0], np.flipud(y[:, 0]), x2, np.flipud(y2),order=1)
         print(lat, lon, z)
 
         for j, lon in enumerate(tqdm.tqdm(self.dom.lon_bins_ext)):
