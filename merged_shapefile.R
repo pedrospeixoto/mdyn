@@ -34,6 +34,7 @@ population <- population[population$populacao_estimada >= 2000000,]
 shape_setor <- subset(shape_setor,NM_MUNICIP %in% population$municipio)
 shape_state <- subset(shape_state,!(NM_MUNICIP %in% population$municipio))
 shape <- bind(shape_setor,shape_state)
+shape$ID[is.na(shape$ID)] <- shape$NM_MUNICIP[is.na(shape$ID)]
 writeOGR(shape, ".", "shape_sp_censitario_capital", driver="ESRI Shapefile")
 
 #Rio de Janeiro State
@@ -53,4 +54,5 @@ population <- population[population$populacao_estimada >= 2000000,]
 shape_setor <- subset(shape_setor,NM_MUNICIP %in% population$municipio)
 shape_state <- subset(shape_state,!(NM_MUNICIP %in% population$municipio))
 shape <- bind(shape_setor,shape_state)
+shape$ID[is.na(shape$ID)] <- shape$NM_MUNICIP[is.na(shape$ID)]
 writeOGR(shape, ".", "shape_rj_censitario_capital", driver="ESRI Shapefile")
