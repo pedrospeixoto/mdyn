@@ -355,7 +355,7 @@ class Network:
                 nan = lonnan*latnan
                 ilon=((lon[~nan]-dom.minlons)/dom.dlon).astype(int)
                 ilat=((lat[~nan]-dom.minlats)/dom.dlat).astype(int)
-                print(lon[~nan], lat[~nan], ilon, ilat)
+                #print(lon[~nan], lat[~nan], ilon, ilat)
                 reg = np.zeros(day.n).astype(int)
                 reg[nan] = -1
                 reg[~nan]=self.region_grid[ilat, ilon]

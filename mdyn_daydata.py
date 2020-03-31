@@ -145,6 +145,7 @@ class DayData:
             except:
                 pass
         
+
         return dfout
     
     def calc_basic_day_diagnostics(self):
@@ -160,6 +161,10 @@ class DayData:
             dt=(time1-time0).astype('timedelta64[h]') 
     
             self.df['dt1']=dt
+
+            #Filer dt larger than 24h
+            timefilter = self.df['dt1'] <= 24
+            self.df = self.df[timefilter] 
 
             load = self.load
 
