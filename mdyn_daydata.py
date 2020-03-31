@@ -165,7 +165,8 @@ class DayData:
             #Filer dt larger than 24h
             timefilter = self.df['dt1'] <= 24
             self.df = self.df[timefilter] 
-
+            self.n = len(self.df)
+            
             load = self.load
 
             if False:
