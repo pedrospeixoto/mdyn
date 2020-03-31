@@ -46,6 +46,7 @@ def get_input(args):
          print("<run_option>=")
          print(" 0) Build model")
          print(" 1) Analyse movement")
+         print(" 2) Isolation Index")
          sys.exit()
          
     for opt, arg in opts:
@@ -73,7 +74,7 @@ def getVarFromFile(filename):
     f.close()
     return ipar 
 
-def read_orc2df(local_dir, load):
+def read_orc2df(local_dir, name_base, load):
 
     #Ensure we have the "/"
     if local_dir[-1]!="/":
@@ -90,9 +91,13 @@ def read_orc2df(local_dir, load):
     #Do we have a pickle file and want to load it?
     if load:
         for f in pklfiles:
-            print("Found a pickle file: ", f, ". Loading data.")
-            df_local = pd.read_pickle(local_dir+f)
-            loaded = True
+            print("Found a pickle file: ", f, ". ", end="")
+            if name_base in f:
+                df_local = pd.read_pickle(local_dir+f)
+                print("Loading data.")
+                loaded = True
+            else:
+                print("But this pickle file does not match base name")
 
     if not loaded:
         for i, filename in enumerate(os.listdir(local_dir)):

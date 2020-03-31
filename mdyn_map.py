@@ -10,6 +10,8 @@ from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.colors as colors
 import matplotlib.cm as cm
 
+import tqdm as tqdm
+
 import sys
 
 import mdyn_network 
@@ -79,7 +81,6 @@ class Map:
         #Save density plot to folder "dir"
         filename = dir+"/density_"+title+".eps"
         plt.savefig(filename, dpi=300)
-
 
     def map_data(self, data, title, dir):
         
@@ -215,3 +216,16 @@ class Map:
         #filename = dir+"/map_data_"+title+".eps"
         filename = filename+".jpg"
         plt.savefig(filename, dpi=300)   
+
+    def map_lat_lon_z_data(self, lat, lon, z):
+        print(lat, lon, z)
+
+        for j, lon in enumerate(tqdm.tqdm(self.dom.lon_bins_ext)):
+            for i, lat in enumerate(self.dom.lat_bins_ext):
+                #get distribution for this lat lon
+                #print(lon, lat)
+                filter1=self.df['lng0']>lon
+                filter2=self.df['lng0']<(lon + self.dom.dlon)
+                filter3=self.df['lat0']>lat
+                filter4=self.df['lat0']<(lat+self.dom.dlat)
+                local_df = self.df[filter1 & filter2 & filter3 & filter4] 
