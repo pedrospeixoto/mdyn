@@ -1,0 +1,24 @@
+#Main domain definition
+domain = "SÃO PAULO" #SP or RJ
+domain_gran = "NM_ESTADO"
+domain_shape = "maps/UFEBRASIL/UFEBRASIL"
+
+#Subdomain definitions
+subdomains = "SP-Cidade"
+subdomains_gran = "ID"
+subdomains_shape = "maps/sp_mesclado/shape_sp_censitario_capital"
+
+#Network granularity
+latlon_gran = 0.2 #granularity of lat long spacing
+
+#Network pre-computation flag
+load_domain = True #Load precomp structures
+
+#Initialize mobile data and load data to dataframe
+data_dir = "data/visit_journey_sao_paulo_2019/"
+date_ini = "2020-02-01"
+date_end = "2020-02-29"
+load_data = True
+
+#Number of main sources for plots
+num_source = 4
