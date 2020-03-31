@@ -41,7 +41,7 @@ def get_input(args):
         sys.exit(2)
 
     if len(opts) < 1:
-         print(sys.argv[0]+ '-f <param_file> -o <run_option>')
+         print(sys.argv[0]+ ' -f <param_file> -o <run_option>')
          print("<run_option>=")
          print(" 0) Build model")
          print(" 1) Analyse movement")
