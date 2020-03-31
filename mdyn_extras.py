@@ -8,6 +8,7 @@ import getopt
 import numpy as np
 import pandas as pd
 import math
+import pyarrow.orc as orc
 
 import time
 from datetime import datetime
@@ -25,7 +26,7 @@ import gc
 #import functionality
 import imp
 
-#General functions
+#General input/output functions
 #--------------------------------
 
 def get_input(args):
@@ -72,6 +73,79 @@ def getVarFromFile(filename):
     f.close()
     return ipar 
 
+def read_orc2df(local_dir, load):
+
+    #Ensure we have the "/"
+    if local_dir[-1]!="/":
+        local_dir = local_dir+"/"
+
+    print("Loading data from ", local_dir )
+
+    if not os.path.exists(local_dir):
+        print( " Could not reach directory, stopping here.")
+        sys.exit(0)
+    
+    loaded = False
+    pklfiles = list_files_pkl(local_dir)
+    #Do we have a pickle file and want to load it?
+    if load:
+        for f in pklfiles:
+            print("Found a pickle file: ", f, ". Loading data.")
+            df_local = pd.read_pickle(local_dir+f)
+            loaded = True
+
+    if not loaded:
+        for i, filename in enumerate(os.listdir(local_dir)):
+
+            #Get data and convert to df pandas
+            try:
+                print(" Reading: ",filename)
+                orc_file = orc.ORCFile(local_dir+filename)
+                data = orc_file.read()
+                df_tmp = pd.DataFrame(data.to_pandas())
+            except:
+                print(" File not in orc format: ", filename, ". Ignoring.")
+                continue
+            
+            #Save in main data_frame
+            if i == 0:
+                df_local = pd.DataFrame(data.to_pandas())
+            else:
+                df_tmp = pd.DataFrame(data.to_pandas())
+            
+            df_local = pd.concat([df_local, df_tmp], ignore_index=True )
+
+        print(" Saving dataframe for future use as data.csv and data.pkl")
+        df_local.to_csv (local_dir+"data.csv", header=True) #Don't forget to add '.csv' at the end of the path
+        df_local.to_pickle (local_dir+"data.pkl") 
+    
+    return df_local
+
+def del_df(df):
+        
+        del [df]
+        gc.collect()
+        df=pd.DataFrame()
+        #df=df_tmp.copy()
+        
+
+def mem_usage(pandas_obj):
+    if isinstance(pandas_obj,pd.DataFrame):
+        usage_b = pandas_obj.memory_usage(deep=True).sum()
+    else: # we assume if not a df it's a series
+        usage_b = pandas_obj.memory_usage(deep=True)
+    usage_mb = usage_b / 1024 ** 2 # convert bytes to megabytes
+    return "{:03.2f} MB".format(usage_mb)
+
+
+#Get picle files
+def list_files_pkl(directory):
+    return (f for f in os.listdir(directory) if f.endswith('.pkl'))
+
+
+#General mathy functions
+#--------------------------------
+
 def round_up(n, decimals=0): 
     multiplier = 10 ** decimals 
     return np.round(math.ceil(n * multiplier) / multiplier ,  decimals)
@@ -94,10 +168,6 @@ def timestamp2datetime(ts):
     except:
         return np.nan
 
-#Get picle files
-def list_files_pkl(directory):
-    return (f for f in os.listdir(directory) if f.endswith('.pkl'))
-
 def distance(lon, lat, lon1,lat1):
     return np.array([geopy.distance.geodesic([lon[i], lat[i]], [lon1[i], lat1[i]]).km 
                 for i in range(len(lon)) ]).astype(float)
@@ -114,22 +184,11 @@ def distance_lat(lon, lat, lon1,lat1):
     signdistlat = np.sign(lat1-lat)
     return signdistlat*dist
 
-def del_df(df):
-        
-        del [df]
-        gc.collect()
-        df=pd.DataFrame()
-        #df=df_tmp.copy()
-        
 
-def mem_usage(pandas_obj):
-    if isinstance(pandas_obj,pd.DataFrame):
-        usage_b = pandas_obj.memory_usage(deep=True).sum()
-    else: # we assume if not a df it's a series
-        usage_b = pandas_obj.memory_usage(deep=True)
-    usage_mb = usage_b / 1024 ** 2 # convert bytes to megabytes
-    return "{:03.2f} MB".format(usage_mb)
-        
+#
+# General post processing functions
+#--------------------------------------
+
 def matprint(mat, fmt="g"):
     col_maxes = [max([len(("{:"+fmt+"}").format(x)) for x in col]) for col in mat.T]
     for x in mat:
