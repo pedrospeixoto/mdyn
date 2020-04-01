@@ -9,7 +9,8 @@ from mdyn_map import Map
 import mdyn_extras as mex
 
 def analyse_move_mats(mdyn, network, ipar):
-
+    print()
+    print("Analyse move mats:")
     #Analyse movement matrices
     mdyn.collect_move_mat(network)
 
@@ -111,7 +112,10 @@ def calc_move_mat_avg(mdyn, network, ipar):
     filename = mdyn.dump_dir+title_base+"_std_prob_move"
     movemat_std = np.std(mdyn.movemats_norm, axis=0)
     if not os.path.exists(filename+".jpg"):
-        mex.plot_matrix(movemat_std, title_base+"\nStd_Dev_of_Prob", filename)
+        try:
+            mex.plot_matrix(movemat_std, title_base+"\nStd_Dev_of_Prob", filename)
+        except:
+            pass
 
     return movemat_avg,  movemat_std, movemat_avg_diag
 
