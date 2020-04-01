@@ -86,7 +86,7 @@ class MobileDynamics:
             #day_data.calc_vel_day_diagnostics()
 
             #To be defined - to set proper periods of day
-            day_data.calc_time_day()
+            #day_data.calc_time_day()
 
             #Update dataframe with network info
             network.add_reg_to_daydf(day_data)           
