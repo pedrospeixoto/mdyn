@@ -44,6 +44,7 @@ def analyse_move_mats(mdyn, network, ipar):
         map=Map(network)
         map.map_move_by_reg(move_vec, network.regions, network, title, mdyn.dump_dir+title)
 
+    
 
 def simulate_move_mats(mdyn, network, ipar):
 
@@ -95,6 +96,14 @@ def calc_move_mat_avg(mdyn, network, ipar):
         if not os.path.exists(filename+".jpg"):
             mex.plot_matrix(mdyn.movemats_norm[i], title_base+"\nDay_Prob_Move", filename)
         movemat_avg = movemat_avg + mdyn.movemats[i]
+
+        #Plot matrix diagonal
+        diag = np.diag(mdyn.movemats_norm[i])
+        title_base = "move_mat_"+network.domain+"_"+network.subdomains+"_"+day.strftime("%Y-%m-%d")
+        filename=mdyn.dump_dir+title_base+"_diagonal_prob"
+        map=Map(network)
+        map.map_move_by_reg(diag, network.regions, network, title, mdyn.dump_dir+title)
+
         #mex.matprint(mdyn.movemats_norm[i])
 
     #Get primary and secondary sources
