@@ -102,7 +102,7 @@ def calc_move_mat_avg(mdyn, network, ipar):
         title_base = "move_mat_"+network.domain+"_"+network.subdomains+"_"+day.strftime("%Y-%m-%d")
         filename=mdyn.dump_dir+title_base+"_diagonal_prob"
         map=Map(network)
-        map.map_move_by_reg(diag, network.regions, network, title, mdyn.dump_dir+title)
+        map.map_move_by_reg(diag, network.regions, network, title_base+"\nDiagonal Prob_Move", filename)
 
         #mex.matprint(mdyn.movemats_norm[i])
 
