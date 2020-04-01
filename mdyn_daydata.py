@@ -74,10 +74,15 @@ class DayData:
         df_local = pd.DataFrame(columns=self.col_labels) 
         
         if not os.path.exists(local_dir):
-            print( " Could not reach directory, stopping here.")
+            print( " Could not reach directory, stopping here.", local_dir)
             sys.exit(0)
             #self.df = df_local
             #return self #empty dataframe
+        
+        dirContents = os.listdir(local_dir)
+        if len(dirContents) == 0:
+            print('Folder is Empty!', local_dir)
+            sys.exit(0)
         
         loaded = False
         pklfiles = list_files_pkl(local_dir)
