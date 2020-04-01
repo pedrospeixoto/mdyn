@@ -21,6 +21,7 @@ import mdyn_isol_index as isol
 #-----------------------------
 ipar, run_opt = mex.get_input(sys.argv)
 
+
 ipar.load_network = True
 
 #Initialize network
@@ -38,13 +39,14 @@ network = Network(
 
 #Initialize Data
 #-----------------------------
-if run_opt != 2:
+if run_opt < 10:
     mdyn = MobileDynamics(
         data_dir = ipar.data_dir,
         date_ini = ipar.date_ini,
         date_end = ipar.date_end,
         load = ipar.load_data
         )
+
 
 #Build model = generated movement model
 if run_opt == 0:
@@ -54,5 +56,8 @@ if run_opt == 1:
     mmat.analyse_move_mats(mdyn, network, ipar)
 
 if run_opt == 2:
+    mmat.simulate_move_mats(mdyn, network, ipar)
+
+if run_opt == 10:
     isol.isol_index(network, ipar)
 

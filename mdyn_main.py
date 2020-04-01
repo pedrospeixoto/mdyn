@@ -77,7 +77,9 @@ class MobileDynamics:
             
             #Load data for this day
             day_str=day.strftime("%Y-%m-%d")
+
             day_data = DayData(day_str, self.data_dir, network, load=self.load)
+
             day_data.calc_basic_day_diagnostics() 
             
             #Get useful info from this day (velocities)
@@ -158,91 +160,3 @@ class MobileDynamics:
                 print(" (run with the same parameter file!)")
                 sys.exit(1)
 
-
-    def simulate_daily(self, mode):
-    
-        #initial condition
-        
-        x = np.zeros([self.network.nreg_in])
-        x[3]=1
-
-        fig, ax = plt.subplots(figsize=(12,6))
-        labels = list(self.network.regions.values())
-        
-        ax.plot( x, 'o', label='IC')
-
-        #ax.set_ylim(0,450)
-        ax.set_ylabel('Individuals')
-        ax.set_title('Zombie Test')
-        ax.set_xticks(np.arange(len(x)))
-        ax.set_xticklabels(labels)
-        ax.set_yscale('log')
-        
-        
-        for i, day in enumerate(self.data):
-            #print(day.tmat, day.tmat.shape, x.shape)
-            x=np.matmul(day.tmat, x)
-            print(x.sum())
-            ax.plot( x, 'x', label=day.day)
-            ax.legend()
-            filename = self.dump_dir+"daily_simulation"+day.day+".jpg"
-            plt.savefig(filename, dpi=300)
-            del ax.lines[1]   
-            
-    def simulate_weekly(self, mode, dayoftheweek):
-
-        #initial condition
-        
-        x = np.zeros([self.network.nreg_in])
-        tmatweek = np.identity(self.network.nreg_in)
-        tmat_list = [] #List of transiction matrices
-        day_list = [] #List of dates used
-        for i, day in enumerate(self.data):
-            if day.day_weekday == dayoftheweek: #Monday=0
-                day_list.append(day.day)
-                tmat_list.append(tmatweek)
-                print("Transition matrix for Monday to Monday", day.day)
-                print(tmatweek)
-                tmatweek = np.identity(self.network.nreg_in)
-
-            #print(day.tmat, day.tmat.shape, x.shape)
-            tmatweek=np.matmul(day.tmat, tmatweek)
-
-        #Calculate the average matrix
-        #basicmat=np.zeros([self.network.nregions,self.network.nregions])
-        #for mat in tmat_list:
-        #    basicmat = basicmat + mat
-        if len(tmat_list) > 0:
-            basicmat=sum(tmat_list)/len(tmat_list)
-        else:
-            basicmat=tmat_list
-        print(basicmat)
-
-        #       
-        #Simulate 
-        x[3]=1
-
-        fig, ax = plt.subplots(figsize=(12,6))
-        labels = list(self.network.regions.values())
-        
-        ax.plot( x, 'o', label='IC')
-
-        #ax.set_ylim(0,450)
-        ax.set_ylabel('Individuals')
-        ax.set_title('Zombie Test')
-        ax.set_xticks(np.arange(len(x)))
-        ax.set_xticklabels(labels)
-        ax.set_yscale('log')
-        for i in range(20):
-            #print(day.tmat, day.tmat.shape, x.shape)
-            x=np.matmul(basicmat, x)
-            print(x.sum())
-            ax.plot( x, 'x', label=str(i))
-            ax.legend()
-            filename = self.dump_dir+"weekly_simulation"+str(i)+".jpg"
-            plt.savefig(filename, dpi=300)
-            del ax.lines[1]   
-        
-        
-
-        

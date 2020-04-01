@@ -225,12 +225,13 @@ class Map:
         x, y = self.map(x, y)
         
         plt.title(title, y=1.08)
-
+        print("  Plotting: ", title)
         #2d color plot of data
         cmap = "hot_r" 
-
-        plt.pcolormesh(x, y, z, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
-            
+        if "IsoIndex" in title:
+            plt.pcolormesh(x, y, z, vmin=0.001, vmax=1.0, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
+        else:
+            plt.pcolormesh(x, y, z, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
 
         cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=25, fraction=0.1, pad=0.01, \
             spacing='proportional')

@@ -46,7 +46,9 @@ def get_input(args):
          print("<run_option>=")
          print(" 0) Build model")
          print(" 1) Analyse movement")
-         print(" 2) Isolation Index")
+         print(" 2) Movement Simulation ")
+         print(" 10) Isolation Index")
+         
          sys.exit()
          
     for opt, arg in opts:
@@ -208,11 +210,11 @@ colors = ['blue', 'red', 'yellow', 'orange',  'limegreen', \
             'violet', 'purple', 'brown', 'cyan', 'olive', 'coral', 'lightgreen' ,'grey', \
                'blue', 'red', 'yellow', 'orange',  'limegreen' ]
 
-def plot_matrix(mat, title, dir):
+def plot_matrix(mat, title, filename):
 
-    filename=dir+title.replace("\n", "_")+".jpg"
+    filename=filename+".jpg"
     title = title.replace("_", " ")
-
+    print("  Plotting : ", filename )
     f, ax = plt.subplots(figsize=(6.2,5.6))
     #ax = f.add_axes([0.17, 0.02, 0.72, 0.79])
     #axcolor = f.add_axes([0.90, 0.02, 0.03, 0.79])
