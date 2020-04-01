@@ -1,3 +1,7 @@
+#----------------------
+# Net work definition
+#----------------------
+
 #Main domain definition
 domain = "SÃO PAULO" #SP or RJ
 domain_gran = "NM_ESTADO"
@@ -14,6 +18,10 @@ latlon_gran = 0.2 #granularity of lat long spacing
 #Network pre-computation flag
 load_domain = True #Load precomp structures
 
+#-----------------------------
+# Mobile Data Set Definition
+#-----------------------------
+
 #Initialize mobile data and load data to dataframe 
 data_dir = "data/visit_journey_sao_paulo_2019/"
 date_ini = "2019-12-01"
@@ -22,3 +30,17 @@ load_data = True
 
 #Number of main sources for plots
 num_source = 4
+
+#-----------------------------
+# Simulation configuration
+#------------------------------
+
+#Initial condition for simulation (file with num of cases per region)
+data_ini_by_reg = ""
+
+#Move matrix to use 
+simul_type = "day"
+simul_type = "avg"
+
+#Number of simulation days
+num_simul_days = 5

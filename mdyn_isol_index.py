@@ -15,6 +15,10 @@ import matplotlib.cm as cm
 
 import tqdm as tqdm
 
+import time
+from datetime import datetime
+from datetime import date
+from datetime import timedelta
 
 from mdyn_map import Map
 import mdyn_extras as mex
@@ -30,21 +34,29 @@ def isol_index(network, ipar):
     df = org_data(df, network, data_dir)
     
     vars = ['total_users', 'fixed_users', 'IsoIndex']
-    for var in vars:
-        table = df.pivot_table(values=var, index=['lat'],\
-                        columns=['lon'], aggfunc=np.average, fill_value=0, dropna=False)
 
-        #table.plot(figsize=(16, 9), title='Population');
-        #plt.show()
+    ipar.date_ini_obj = datetime.strptime(ipar.date_ini, '%Y-%m-%d')
+    ipar.date_end_obj = datetime.strptime(ipar.date_end, '%Y-%m-%d')
+    ipar.days = (ipar.date_end_obj - ipar.date_ini_obj).days + 1
+    
+    for day in mex.daterange(ipar.date_ini_obj, ipar.date_end_obj+timedelta(days=1)):
+        #Filter data frame per day
+        day_str=day.strftime("%Y-%m-%d")
+        print("Calculating isolation index for day: ", day_str)
+        day_filter = df['day'] == day_str 
+        df_local = df[day_filter]
 
-        #print(table.loc['-19.93', ])
-        map = Map(network)  
-        title = base_name+"_"+var
-        filename = data_dir+base_name+"_"+var
-        lon = np.array(table.columns)
-        lat = np.array(table.index)
-        mat = table.as_matrix(columns=None)
-        map.map_lat_lon_z_data(lat, lon, mat, title, filename)
+        for var in vars:
+            table = df_local.pivot_table(values=var, index=['lat'],\
+                            columns=['lon'], aggfunc=np.average, fill_value=0, dropna=False)
+
+            map = Map(network)  
+            title = var+"_"+day_str
+            filename = "dump/"+var+"_"+day_str
+            lon = np.array(table.columns)
+            lat = np.array(table.index)
+            mat = table.as_matrix(columns=None)
+            map.map_lat_lon_z_data(lat, lon, mat, title, filename)
 
 
 def org_data(dflocal, network, dir):
