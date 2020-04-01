@@ -209,7 +209,7 @@ class Map:
         #2d color plot of data
         cmap = "hot_r" 
         if "Diag" in title:
-            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.01, vmax=1.0, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.1, vmax=1.0, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
         else:
             plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.0001, vmax=1.0, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
             #cmap="hot_r", norm=colors.LogNorm(), snap=True)
