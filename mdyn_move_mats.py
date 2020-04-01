@@ -89,7 +89,7 @@ def calc_move_mat_avg(mdyn, network, ipar):
 
     #Loop work with transitions matrices and average then
     for i, day in enumerate(mdyn.days_all):
-        print("Calculating avg on: ", i, day)
+        print("Calculating on: ", i, day)
         
         title_base = "move_mat_"+network.domain+"_"+network.subdomains+"_"+day.strftime("%Y-%m-%d")
         filename=mdyn.dump_dir+title_base+"_day_prob_move"
@@ -102,7 +102,7 @@ def calc_move_mat_avg(mdyn, network, ipar):
         title_base = "move_mat_"+network.domain+"_"+network.subdomains+"_"+day.strftime("%Y-%m-%d")
         filename=mdyn.dump_dir+title_base+"_diagonal_prob"
         if not os.path.exists(filename+".jpg"):
-            print("Plotting ", filename)
+            print("  Plotting :", filename)
             map=Map(network)
             map.map_move_by_reg(diag, network.regions, network, title_base+"\nDiagonal Prob_Move", filename)
 
