@@ -21,7 +21,6 @@ import matplotlib.cm as cm
 import matplotlib.dates as mdates
 
 import geopy.distance
-from windrose import WindroseAxes
 
 import tqdm as tqdm
 
@@ -32,11 +31,13 @@ from mdyn_extras import distance, distance_lat, distance_lon, daterange, timesta
 import gc
 
 
+    
+
 #Main class for dataframe for a single day
-class DayData:
+class ReadData:
     
     #Class for data per day
-    def __init__(self, day, data_dir, network, load = False):
+    def __init__(self, data_dir, network, load = False):
         self.load = load
         self.read_day_data(day, data_dir)
         self.dom = network
@@ -145,7 +146,6 @@ class DayData:
             except:
                 pass
         
-
         return dfout
     
     def calc_basic_day_diagnostics(self):
@@ -162,11 +162,6 @@ class DayData:
     
             self.df['dt1']=dt
 
-            #Filer dt larger than 24h
-            timefilter = self.df['dt1'] <= 24
-            self.df = self.df[timefilter] 
-            self.n = len(self.df)
-            
             load = self.load
 
             if False:
