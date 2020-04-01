@@ -49,7 +49,7 @@ def analyse_move_mats(mdyn, network, ipar):
 def simulate_move_mats(mdyn, network, ipar):
 
     #Analyse movement matrices
-    mdyn.collect_move_mat(network.domain, network.subdomains)
+    mdyn.collect_move_mat(network)
 
     movemat_avg, movemat_std, movemat_avg_diag = calc_move_mat_avg(mdyn, network, ipar)
     #Sources to plot 
@@ -60,7 +60,7 @@ def simulate_move_mats(mdyn, network, ipar):
     data_ini_regv[12] = 100.0
     day_state = data_ini_regv
 
-    title_base = "move_mat_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
+    title_base = "Simul_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
     #simulate scenario
     for i, day in enumerate(mdyn.days_all):
     #for j in num_simul_days:
@@ -75,9 +75,10 @@ def simulate_move_mats(mdyn, network, ipar):
             mat = movemat_avg
         else:
             mat = mdyn.movemats_norm[i]
-            day_state=np.matmul(mat, day_state)
-        sumv = np.sum(day_state)
 
+        day_state=np.matmul(mat, day_state)
+
+        sumv = np.sum(day_state)
         if abs(sumv-np.sum(data_ini_regv))>0.001:
             print("Warning: Mass not being conserved! ", sumv)
     
