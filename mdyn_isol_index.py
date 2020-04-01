@@ -28,17 +28,23 @@ def isol_index(network, ipar):
     df = mex.read_orc2df(data_dir, base_name, True)
     
     df = org_data(df, network, data_dir)
+    
+    vars = ['total_users', 'fixed_users', 'IsoIndex']
+    for var in vars:
+        table = df.pivot_table(values=var, index=['lat'],\
+                        columns=['lon'], aggfunc=np.average, fill_value=0, dropna=False)
 
-    table = df.pivot_table(values='total_users', index=['lat'],\
-                     columns=['lon'], aggfunc=np.average, fill_value=0, dropna=False)
+        #table.plot(figsize=(16, 9), title='Population');
+        #plt.show()
 
-    print(table)
-    #table.plot(figsize=(16, 9), title='Population');
-    #plt.show()
-
-    #print(table.loc['-19.93', ])
-    map = Map(network)                
-    map.map_lat_lon_z_data(df['lat'].values, df['lon'].values, df['IsoIndex'].values)
+        #print(table.loc['-19.93', ])
+        map = Map(network)  
+        title = base_name+"_"+var
+        filename = data_dir+base_name+"_"+var
+        lon = np.array(table.columns)
+        lat = np.array(table.index)
+        mat = table.as_matrix(columns=None)
+        map.map_lat_lon_z_data(lat, lon, mat, title, filename)
 
 
 def org_data(dflocal, network, dir):

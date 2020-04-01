@@ -10,6 +10,8 @@ from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.colors as colors
 import matplotlib.cm as cm
 
+from itertools import product
+
 import tqdm as tqdm
 
 import sys
@@ -217,25 +219,27 @@ class Map:
         filename = filename+".jpg"
         plt.savefig(filename, dpi=300)   
 
-    def map_lat_lon_z_data(self, lats, lons, z):
+    def map_lat_lon_z_data(self, lats, lons, z, title, filename):
+        
+        x, y = np.meshgrid(lons, lats)
+        x, y = self.map(x, y)
+        
+        plt.title(title, y=1.08)
 
-        x, y = self.map(lons, lats)
-        print(x, y)
-        x2 = np.linspace(x[0][0],x[0][-1],x.shape[1]*2)
-        y2 = np.linspace(y[0][0],y[-1][0],y.shape[0]*2)
+        #2d color plot of data
+        cmap = "hot_r" 
 
-        x2, y2 = np.meshgrid(x2, y2)
+        plt.pcolormesh(x, y, z, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
+            
 
-        u10_2 = interp(u10,  x[0], np.flipud(y[:, 0]), x2, np.flipud(y2),order=1)
-        v10_2 = interp(v10,  x[0], np.flipud(y[:, 0]), x2, np.flipud(y2),order=1)
-        print(lat, lon, z)
-
-        for j, lon in enumerate(tqdm.tqdm(self.dom.lon_bins_ext)):
-            for i, lat in enumerate(self.dom.lat_bins_ext):
-                #get distribution for this lat lon
-                #print(lon, lat)
-                filter1=self.df['lng0']>lon
-                filter2=self.df['lng0']<(lon + self.dom.dlon)
-                filter3=self.df['lat0']>lat
-                filter4=self.df['lat0']<(lat+self.dom.dlat)
-                local_df = self.df[filter1 & filter2 & filter3 & filter4] 
+        cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=25, fraction=0.1, pad=0.01, \
+            spacing='proportional')
+        cbar.set_label("Probability",size=12)
+        
+        #plt.tight_layout()
+        plt.tight_layout() #pad=0.4, w_pad=0.5, h_pad=1.0)
+        
+        #filename = dir+"/map_data_"+title+".eps"
+        filename = filename+".jpg"
+        plt.savefig(filename, dpi=300)   
+        
