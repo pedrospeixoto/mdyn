@@ -25,7 +25,7 @@ load_domain = True #Load precomp structures
 #Initialize mobile data and load data to dataframe 
 data_dir = "data/visit_journey_sao_paulo_2019/"
 date_ini = "2020-02-01"
-date_end = "2020-02-03"
+date_end = "2020-02-01"
 load_data = True 
 
 #Number of main sources for plots

@@ -180,7 +180,7 @@ class ReadData:
                     try: 
                         map = Map(self.dom)
                         map.map_density_data(self.df['lng'+s].values, self.df['lat'+s].values, \
-                            title, self.local_dir)
+                            title, filename)
                     except:
                         pass
 

@@ -68,7 +68,7 @@ class Map:
         self.fig = fig
 
 
-    def map_density_data(self, lng, lat, title, dir):
+    def map_density_data(self, lng, lat, title, filename):
         
         #Calculate 2d histogram
         density, _, _ = np.histogram2d(lat, lng, [self.dom.lat_bins_ext, self.dom.lon_bins_ext], density=False)
@@ -81,7 +81,6 @@ class Map:
         cbar.set_label(title,size=12)
         
         #Save density plot to folder "dir"
-        filename = dir+"/density_"+title+".eps"
         plt.savefig(filename, dpi=300)
 
     def map_data(self, data, title, dir):
