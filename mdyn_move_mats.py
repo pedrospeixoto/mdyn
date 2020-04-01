@@ -57,7 +57,11 @@ def simulate_move_mats(mdyn, network, ipar):
 
     #Initial condition
     data_ini_regv = np.zeros([network.nregions])
-    data_ini_regv[12] = 100.0
+    try:
+        data_ini_regv[268] = 100.0
+    except:
+        data_ini_regv[10] = 100.0
+        
     day_state = data_ini_regv
 
     title_base = "Simul_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
