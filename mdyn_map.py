@@ -188,10 +188,10 @@ class Map:
         plt.savefig(filename, dpi=300)   
         
     def map_move_by_reg(self, movevec, reg1, network, title, filename):
-        print(network.regions)
+        #print(network.regions)
 
-        print("REG1:", reg1, len(reg1))
-        print("movve:", movevec, len(movevec), len(reg1))
+        #print("REG1:", reg1, len(reg1))
+        #print("movve:", movevec, len(movevec), len(reg1))
 
         data=network.region_grid
         data=data.astype(float)
