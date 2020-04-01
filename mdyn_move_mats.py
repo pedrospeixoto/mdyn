@@ -109,8 +109,8 @@ def calc_move_mat_avg(mdyn, network, ipar):
         mex.plot_matrix(movemat_avg, title_base+"\nMean_Prob", filename)
 
     filename = mdyn.dump_dir+title_base+"_std_prob_move"
+    movemat_std = np.std(mdyn.movemats_norm, axis=0)
     if not os.path.exists(filename+".jpg"):
-        movemat_std = np.std(mdyn.movemats_norm, axis=0)
         mex.plot_matrix(movemat_std, title_base+"\nStd_Dev_of_Prob", filename)
 
     return movemat_avg,  movemat_std, movemat_avg_diag
