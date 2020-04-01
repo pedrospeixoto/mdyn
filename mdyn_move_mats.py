@@ -94,6 +94,7 @@ def calc_move_mat_avg(mdyn, network, ipar):
         title_base = "move_mat_"+network.domain+"_"+network.subdomains+"_"+day.strftime("%Y-%m-%d")
         filename=mdyn.dump_dir+title_base+"_day_prob_move"
         if not os.path.exists(filename+".jpg"):
+            print("  Plotting :", filename)
             mex.plot_matrix(mdyn.movemats_norm[i], title_base+"\nDay_Prob_Move", filename)
         movemat_avg = movemat_avg + mdyn.movemats[i]
 
