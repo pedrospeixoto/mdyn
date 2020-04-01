@@ -435,15 +435,13 @@ class Network:
         except:
             pass
 
-        #The resulting table has the people that moved, we now need to include people that did not move
-        # to be addressed as post-processing
+        
 
-
-        if self.nregions < 10:
-            print("")
-            print("Transition Matrix (number of people moving to/from regions)")
-            print(table)
-            print()
+        #debug tool only!!!!
+        #table = table.drop(columns=[5])
+        #table = table.drop(columns=[9])
+        #table = table.drop([4], axis=0)
+        #table = table.drop([9], axis=0)
 
         #Columns are regions at time 0
         #Rows are regions at time 1
@@ -451,10 +449,71 @@ class Network:
         #print(reg0)
         reg1 = table.index
         mat = table.as_matrix(columns=None)
-        
+
+        #print(list(reg0))
+        #print(list(self.regions.keys()))
+        #Check if we lost a region
+        nreg0=len(list(reg0))
+        nreg1=len(list(reg1))
+        nreg=len(self.regions)
+        reg = list(self.regions.keys())
+        n , m = mat.shape
+        print(n,m)
+        if nreg0==nreg:
+            print("Matrix check origin: ok!...", end="")
+        elif nreg>nreg0:
+            print("Missing columns..", end="")
+            missing_col=list(set(reg)-set(reg0))
+            missing_col.sort()
+            print(missing_col, end="")
+            
+            for i in missing_col:
+                col = np.zeros((n,1))
+                if i in reg1:
+                    col[i, 0]=1.0
+                mat = np.hstack((mat[:,:i], col, mat[:,i:]))
+                reg0 = np.hstack((reg0[:i], [i], reg0[i:]))
+            print("..fixed!", end="")
+        else:
+            print("Something is wrong with your region data...and I don't know what it is...")
+            sys.exit(1)
+
+        #re-set mat sizes
+        n , m = mat.shape
+
+        #print(reg0)
+        if nreg1==nreg:
+            print("Matrix check destination: ok!...", end="")
+        elif nreg>nreg1:
+            print("..Missing row:", end="")
+            missing_row=(list(set(reg)-set(reg1)))
+            missing_row.sort()
+            print(missing_row, end="")
+            for i in missing_row:
+                row = np.zeros((1,m))
+                if i in reg0:
+                    row[0, i]=1.0
+                #print(mat[:i,:].shape, row.shape, mat[i:,:].shape)
+                mat = np.vstack((mat[:i,:], row, mat[i:,:]))
+                reg1 = np.hstack((reg1[:i], [i], reg1[i:]))
+            print("..fixed!", end="")
+        else:
+            print("Something is wrong with your region data...and I don't know what it is...")
+            sys.exit(1)
+
+        #print(reg1)
+        #matprint(mat)
+
+        #The resulting table has the people that moved, we now need to include people that did not move
+        # to be addressed as post-processing
+        if self.nregions < 10:
+            print("")
+            print("Transition Matrix (number of people moving to/from regions)")
+            print(table)
+            print()
+
         #np.fill_diagonal(mat, mat.diagonal() + steady_users_per_reg)
-        #print(mat)
-        
+        #print(mat)        
         if self.nregions < 10:
             print("Transition matrix including steady users")
             matprint(mat)
