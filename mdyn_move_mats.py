@@ -81,7 +81,7 @@ def simulate_move_mats(mdyn, network, ipar):
     
 
 
-def calc_move_mat_avg(mdyn, networ, ipar):
+def calc_move_mat_avg(mdyn, network, ipar):
     #Period mean move mat
     movemat_avg = np.zeros(mdyn.movemats[0].shape)
 
