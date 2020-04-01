@@ -124,7 +124,7 @@ class MobileDynamics:
             #DayData(day_str, self.data_dir)
             self.data.append(DayData(day_str, self.data_dir, load))
         
-    def collect_move_mat(self, domain, subdomains):
+    def collect_move_mat(self, network):
 
         #Loop over days
         self.movemats = [] #List of matrices per day
@@ -136,7 +136,7 @@ class MobileDynamics:
         self.days_all = [] #List of dates per day
         self.dates_dirs = [] #directory of day data
         
-        name = "move_mat_"+domain+"_"+subdomains
+        name = "move_mat_"+network.domain+"_"+network.subdomains
 
         np_load_old = np.load
         np.load = lambda *a,**k: np_load_old(*a, allow_pickle=True, **k)
@@ -160,3 +160,8 @@ class MobileDynamics:
                 print(" (run with the same parameter file!)")
                 sys.exit(1)
 
+        #check if regions are matching
+        net_reg = network.regions
+        for i, reg in enumerate(self.movemats_reg0):
+            if not all( reg == list(net_reg.keys())) :
+                print("Warning: regions not matching: ", reg, list(net_reg.keys()))

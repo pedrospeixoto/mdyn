@@ -11,7 +11,7 @@ import mdyn_extras as mex
 def analyse_move_mats(mdyn, network, ipar):
 
     #Analyse movement matrices
-    mdyn.collect_move_mat(network.domain, network.subdomains)
+    mdyn.collect_move_mat(network)
 
     #Calculate matrix statistics
     movemat_avg, movemat_std, movemat_avg_diag = calc_move_mat_avg(mdyn, network, ipar)
