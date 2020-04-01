@@ -9,7 +9,7 @@ subdomains_gran = "ID"
 subdomains_shape = "maps/sp_mesclado/shape_sp_censitario_capital"
 
 #Network granularity
-latlon_gran = 0.2 #granularity of lat long spacing
+latlon_gran = 0.01 #granularity of lat long spacing
 
 #Network pre-computation flag
 load_domain = True #Load precomp structures
