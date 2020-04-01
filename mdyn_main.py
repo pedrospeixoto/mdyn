@@ -155,13 +155,8 @@ class MobileDynamics:
                 with open(local_dir+name+'_reg_names.txt') as f:
                     reg_names = f.read().splitlines()            
                 self.movemats_reg_names.append(reg_names)
+                print("Loaded matrix for :", day )
             except:
                 print("Please run mdyn_build_model.py first to generate the movement matrices")
                 print(" (run with the same parameter file!)")
                 sys.exit(1)
-
-        #check if regions are matching
-        net_reg = network.regions
-        for i, reg in enumerate(self.movemats_reg0):
-            if not all( reg == list(net_reg.keys())) :
-                print("Warning: regions not matching: ", reg, list(net_reg.keys()))
