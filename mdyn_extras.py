@@ -214,7 +214,7 @@ def plot_matrix(mat, title, filename):
 
     filename=filename+".jpg"
     title = title.replace("_", " ")
-    print("  Plotting : ", filename )
+    #print("  Plotting : ", filename )
     f, ax = plt.subplots(figsize=(6.2,5.6))
     #ax = f.add_axes([0.17, 0.02, 0.72, 0.79])
     #axcolor = f.add_axes([0.90, 0.02, 0.03, 0.79])
