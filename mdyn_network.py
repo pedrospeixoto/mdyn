@@ -458,7 +458,7 @@ class Network:
         nreg=len(self.regions)
         reg = list(self.regions.keys())
         n , m = mat.shape
-        print(n,m)
+        
         if nreg0==nreg:
             print("Matrix check origin: ok!...", end="")
         elif nreg>nreg0:
