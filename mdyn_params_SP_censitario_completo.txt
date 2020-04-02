@@ -1,12 +1,12 @@
 #Main domain definition
-domain = "RIO DE JANEIRO" #SP or RJ
+domain = "SÃO PAULO" #SP or RJ
 domain_gran = "NM_ESTADO"
 domain_shape = "maps/UFEBRASIL/UFEBRASIL"
 
 #Subdomain definitions
-subdomains = "RJ-Setor_Cidade"
+subdomains = "SP-Setor_Completo"
 subdomains_gran = "ID"
-subdomains_shape = "maps/rj_mesclado/shape_rj_censitario_capital"
+subdomains_shape = "maps/sp_setores_censitarios/setor_censitario_sao_paulo"
 
 #Network granularity
 latlon_gran = 0.01 #granularity of lat long spacing
@@ -15,13 +15,13 @@ latlon_gran = 0.01 #granularity of lat long spacing
 load_domain = True #Load precomp structures
 
 #Initialize mobile data and load data to dataframe
-data_dir = "data/visit_journey_rio_2019/"
-date_ini = "2020-01-01"
-date_end = "2020-12-31"
+data_dir = "data/visit_journey_sao_paulo_2019/"
+date_ini = "2019-01-01"
+date_end = "2019-12-31"
 load_data = True
 
 #Number of main sources for plots
 num_source = 4
 
 #sudo ln -s /storage/inloco/data data
-#python mdyn_run.py -f mdyn_params_RJ_censitario.txt -o 0
+#python mdyn_run.py -f mdyn_params_SP_censitario_completo.txt -o 0
