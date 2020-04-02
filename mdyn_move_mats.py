@@ -77,8 +77,8 @@ def simulate_move_mats(mdyn, network, ipar):
 
     for i, day in enumerate(drange):
     #for j in num_simul_days:
-        
-        title = title_base+"_day_"+day.strftime("%Y-%m-%d")
+        indx = '{:02d}'.format(i)
+        title = title_base+"_day_"+indx #+day.strftime("%Y-%m-%d")
         print("Creating plot for ", title)
             
         map=Map(network)

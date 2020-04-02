@@ -221,7 +221,7 @@ class Map:
 
         cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=25, fraction=0.1, pad=0.01, \
             spacing='proportional')
-        cbar.set_label("Probability",size=12)
+        cbar.set_label(label,size=12)
                     
         #plt.tight_layout()
         plt.tight_layout() #pad=0.4, w_pad=0.5, h_pad=1.0)
