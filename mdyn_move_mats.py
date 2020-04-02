@@ -46,7 +46,7 @@ def analyse_move_mats(mdyn, network, ipar):
             print("Warning: Probability with sum not 1.", sumv)
             
         map=Map(network)
-        map.map_move_by_reg(move_vec, network.regions, network, title, mdyn.dump_dir+title)
+        map.map_move_by_reg(move_vec, network.regions, network, title, mdyn.dump_dir+title+".jpg")
 
 def analyse_move_mats_dow(mdyn, network, ipar):
     print()
@@ -143,8 +143,8 @@ def calc_move_mat_avg(mdyn, network, ipar):
         print("Calculating on: ", i, day)
         
         title_base = "move_mat_"+network.domain+"_"+network.subdomains+"_"+day.strftime("%Y-%m-%d")
-        filename=mdyn.dump_dir+title_base+"_day_prob_move"
-        if not os.path.exists(filename+".jpg"):
+        filename=mdyn.dump_dir+title_base+"_day_prob_move.jpg"
+        if not os.path.exists(filename):
             print("  Plotting :", filename)
             mex.plot_matrix(mdyn.movemats_norm[i], title_base+"\nDay_Prob_Move", filename)
         movemat_avg = movemat_avg + mdyn.movemats[i]
@@ -152,8 +152,8 @@ def calc_move_mat_avg(mdyn, network, ipar):
         #Plot matrix diagonal
         diag = np.diag(mdyn.movemats_norm[i])
         title_base = "move_mat_"+network.domain+"_"+network.subdomains+"_"+day.strftime("%Y-%m-%d")
-        filename=mdyn.dump_dir+title_base+"_diagonal_prob"
-        if not os.path.exists(filename+".jpg"):
+        filename=mdyn.dump_dir+title_base+"_diagonal_prob.jpg"
+        if not os.path.exists(filename):
             print("  Plotting :", filename)
             map=Map(network)
             map.map_move_by_reg(diag, network.regions, network, title_base+"\nDiagonal Prob_Move", filename)
@@ -167,14 +167,14 @@ def calc_move_mat_avg(mdyn, network, ipar):
     movemat_avg = movemat_avg / movemat_avg.sum(axis=0)
 
     title_base = "move_mat_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
-    filename = mdyn.dump_dir+title_base+"_avg_prob_move"
+    filename = mdyn.dump_dir+title_base+"_avg_prob_move.jpg"
     
-    if not os.path.exists(filename+".jpg"):
+    if not os.path.exists(filename):
         mex.plot_matrix(movemat_avg, title_base+"\nMean_Prob", filename)
 
-    filename = mdyn.dump_dir+title_base+"_std_prob_move"
+    filename = mdyn.dump_dir+title_base+"_std_prob_move.jpg"
     movemat_std = np.std(mdyn.movemats_norm, axis=0)
-    if not os.path.exists(filename+".jpg"):
+    if not os.path.exists(filename):
         try:
             mex.plot_matrix(movemat_std, title_base+"\nStd_Dev_of_Prob", filename)
         except:
@@ -201,11 +201,27 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
 
         #Plot matrix diagonal
         diag = np.diag(mdyn.movemats_norm[i])
+        
         filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"day_prob_diag.jpg"
         if not os.path.exists(filename):
             print("  Plotting :", filename)
             map=Map(network)
             map.map_move_by_reg(diag, network.regions, network, title_base+"\nDiagonal Prob Move", filename)
+
+        diag_raw = np.diag(mdyn.movemats[i])
+        num_source = 10
+        sources = np.argpartition(diag_raw, -num_source)[-num_source:]
+        
+        print("Main regions:", sources)
+        #Plot main sources
+        for j in sources:
+            title = title_base+"\nOrigin "+network.regions[j]
+            filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+"day_prob.jpg"
+            print("Creating plot for ", filename)
+            move_vec = mdyn.movemats_norm[i][:, j]
+                
+            map=Map(network)
+            map.map_move_by_reg(move_vec, network.regions, network, title, filename)
 
         #mex.matprint(mdyn.movemats_norm[i])
 
