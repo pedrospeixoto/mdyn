@@ -175,9 +175,9 @@ class DayData:
             
             load = self.load
 
-            if False:
-
+            if True:
                 #Distances
+                print("Calculating distances...")
                 self.df['dist1']=distance(
                     self.df['lng0'].values, self.df['lat0'].values, 
                     self.df['lng1'].values, self.df['lat1'].values)
