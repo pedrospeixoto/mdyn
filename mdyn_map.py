@@ -213,7 +213,7 @@ class Map:
             label = "Probability"
         elif "Simul" in title:
             plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1, vmax=100., cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
-            label = "Number of Infected People"
+            label = "Number of People"
         else:
             plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.000001, vmax=1.0, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
             label = "Probability"
@@ -227,7 +227,7 @@ class Map:
         plt.tight_layout() #pad=0.4, w_pad=0.5, h_pad=1.0)
         
         #filename = dir+"/map_data_"+title+".eps"
-        filename = filename+".jpg"
+        #filename = filename+".jpg"
         plt.savefig(filename, dpi=300)   
 
     def map_lat_lon_z_data(self, lats, lons, z, title, filename):
