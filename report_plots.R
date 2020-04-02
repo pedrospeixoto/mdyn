@@ -41,10 +41,10 @@ scales_y <- list(
 )
 
 p <- ggplot(data,aes(x = day,y = Users,pch = Weekend,linetype = Year,group = Year)) + themes + titles +
-  ylab("Total Number of App Uses") + xlab("Day of March") +
+  ylab("Total Number of Recordings") + xlab("Day of March") +
   geom_point(size = 3) + geom_line() + scale_shape_manual(values = c(19,0)) + 
   facet_grid_sc(rows = vars(City),scales = list(y = scales_y)) + 
   scale_x_continuous(breaks = seq(1,30,2))
-pdf(file = "total_use.pdf",width = 15,height = 10)
+pdf(file = "total_use.pdf",width = 10,height = (2/3)*10)
 p
 dev.off()
