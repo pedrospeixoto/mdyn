@@ -13,7 +13,7 @@ subdomains_gran = "NM_MUNICIP"
 subdomains_shape = "/home/pedrosp/mdyn/maps/sp_municipios/35MUE250GC_SIR"
 
 #Network granularity
-latlon_gran = 0.2 #granularity of lat long spacing
+latlon_gran = 0.01 #granularity of lat long spacing
 
 #Network pre-computation flag
 load_domain = True #Load precomp structures

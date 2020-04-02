@@ -29,6 +29,9 @@ import imp
 #General input/output functions
 #--------------------------------
 
+
+weekdays = 'Mon Tue Wed Thu Fri Sat Sun'.split()
+
 def get_input(args):
     
     param_file = None
@@ -46,8 +49,8 @@ def get_input(args):
          print("<run_option>=")
          print(" 0) Build model")
          print(" 1) Analyse movement")
-         print(" 2) Movement Simulation ")
-         print(" 10) Isolation Index")
+         print(" 20) Movement Simulation ")
+         print(" 30) Isolation Index")
          
          sys.exit()
          
@@ -222,7 +225,9 @@ colors = ['blue', 'red', 'yellow', 'orange',  'limegreen', \
 
 def plot_matrix(mat, title, filename):
 
-    filename=filename+".jpg"
+    if filename[-3:] != "jpg":
+        filename=filename+".jpg"
+
     title = title.replace("_", " ")
     #print("  Plotting : ", filename )
     f, ax = plt.subplots(figsize=(6.2,5.6))
