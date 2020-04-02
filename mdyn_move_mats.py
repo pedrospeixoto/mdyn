@@ -61,12 +61,17 @@ def simulate_move_mats(mdyn, network, ipar):
         data_ini_regv[268] = 100.0
     except:
         data_ini_regv[10] = 100.0
-        
+
     day_state = data_ini_regv
 
     title_base = "Simul_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
     #simulate scenario
-    for i, day in enumerate(mdyn.days_all):
+    if ipar.simul_type == "avg":
+        drange = mex.daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=40))
+    else:
+        drange = mdyn.days_all
+
+    for i, day in enumerate(drange):
     #for j in num_simul_days:
         
         title = title_base+"_day_"+day.strftime("%Y-%m-%d")
