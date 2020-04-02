@@ -5,6 +5,10 @@ import os
 import numpy as np
 import statistics
 
+from datetime import datetime
+from datetime import date
+from datetime import timedelta
+
 from mdyn_map import Map
 import mdyn_extras as mex
 
