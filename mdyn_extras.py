@@ -176,9 +176,9 @@ def timestamp2datetime(ts):
         return np.nan
 
 def distance(lon1, lat1, lon2,lat2):
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-    R = 6.3781*10e3 #km 
+    dlon = np.radians(lon2) - np.radians(lon1)
+    dlat = np.radians(lat2) - np.radians(lat1)
+    R = 6378.1 #km 
     a = np.square(np.sin(0.5*dlat)) + \
         np.multiply(np.multiply(np.cos(lat1),  np.cos(lat2)),  np.square(np.sin(0.5*dlon )))
     b = 2.0 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
