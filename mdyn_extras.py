@@ -225,7 +225,9 @@ colors = ['blue', 'red', 'yellow', 'orange',  'limegreen', \
 
 def plot_matrix(mat, title, filename):
 
-    filename=filename+".jpg"
+    if filename[-3:] != "jpg":
+        filename=filename+".jpg"
+
     title = title.replace("_", " ")
     #print("  Plotting : ", filename )
     f, ax = plt.subplots(figsize=(6.2,5.6))
