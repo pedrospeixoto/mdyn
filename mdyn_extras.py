@@ -29,6 +29,9 @@ import imp
 #General input/output functions
 #--------------------------------
 
+
+weekdays = 'Mon Tue Wed Thu Fri Sat Sun'.split()
+
 def get_input(args):
     
     param_file = None
@@ -46,8 +49,8 @@ def get_input(args):
          print("<run_option>=")
          print(" 0) Build model")
          print(" 1) Analyse movement")
-         print(" 2) Movement Simulation ")
-         print(" 10) Isolation Index")
+         print(" 20) Movement Simulation ")
+         print(" 30) Isolation Index")
          
          sys.exit()
          

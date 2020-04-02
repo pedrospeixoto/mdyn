@@ -56,8 +56,11 @@ if run_opt == 1:
     mmat.analyse_move_mats(mdyn, network, ipar)
 
 if run_opt == 2:
+    mmat.analyse_move_mats_dow(mdyn, network, ipar)
+
+if run_opt == 20:
     mmat.simulate_move_mats(mdyn, network, ipar)
 
-if run_opt == 10:
+if run_opt == 30:
     isol.isol_index(network, ipar)
 
