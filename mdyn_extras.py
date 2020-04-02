@@ -175,9 +175,19 @@ def timestamp2datetime(ts):
     except:
         return np.nan
 
-def distance(lon, lat, lon1,lat1):
-    return np.array([geopy.distance.geodesic([lon[i], lat[i]], [lon1[i], lat1[i]]).km 
-                for i in range(len(lon)) ]).astype(float)
+def distance(lon1, lat1, lon2,lat2):
+    dlon = np.radians(lon2) - np.radians(lon1)
+    dlat = np.radians(lat2) - np.radians(lat1)
+    R = 6378.1 #km 
+    a = np.square(np.sin(0.5*dlat)) + \
+        np.multiply(np.multiply(np.cos(lat1),  np.cos(lat2)),  np.square(np.sin(0.5*dlon )))
+    b = 2.0 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
+
+    distance = R * b
+    return distance
+    #Slow but more precise
+    #return np.array([geopy.distance.geodesic([lon[i], lat[i]], [lon1[i], lat1[i]]).km 
+    #            for i in range(len(lon)) ]).astype(float)
 
 def distance_lon(lon, lat, lon1,lat1):
     dist = np.array([geopy.distance.geodesic([lon[i], lat[i]], [lon1[i], lat1[i]]).km 

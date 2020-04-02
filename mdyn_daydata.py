@@ -175,12 +175,16 @@ class DayData:
             
             load = self.load
 
-            if False:
-
+            if True:
                 #Distances
+                print("Calculating distances...")
                 self.df['dist1']=distance(
                     self.df['lng0'].values, self.df['lat0'].values, 
                     self.df['lng1'].values, self.df['lat1'].values)
+
+            filename = self.local_dir+"day_"+self.day+"_proc_data.csv"
+            if not os.path.exists(filename):
+                self.df.to_csv(filename, header=True) #Don't forget to add '.csv' at the end of the path
 
             #Data density - takes time
             for i in tqdm.tqdm(range(3)):
@@ -200,10 +204,6 @@ class DayData:
             filename = self.local_dir+"day_"+self.day+"_basic_stats.csv"
             if not os.path.exists(filename) and load:
                 self.df.describe().to_csv(filename, header=True) #Don't forget to add '.csv' at the end of the path
-
-            filename = self.local_dir+"day_"+self.day+"_base_data.csv"
-            if not os.path.exists(filename):
-                self.df.to_csv(filename, header=True) #Don't forget to add '.csv' at the end of the path
             
             #Histograms
             filename = self.local_dir+"day_"+self.day+"_basic_stats.jpg"
