@@ -110,7 +110,7 @@ class DayData:
                 df_tmp = self.org_day_data(df_tmp)
                 df_local = pd.concat([df_local, df_tmp], ignore_index=True )
             
-            print(" Saving dataframe for future use as data.csv and data.pkl")
+            print(" Saving dataframe for future use as data.pkl")
             #df_local.to_csv (local_dir+"data.csv", header=True) #Don't forget to add '.csv' at the end of the path
             df_local.to_pickle (local_dir+"data.pkl") 
         
@@ -175,7 +175,7 @@ class DayData:
             
             load = self.load
 
-            if True:
+            if False:
                 #Distances
                 print("Calculating distances...")
                 self.df['dist1']=distance(
@@ -184,7 +184,18 @@ class DayData:
 
             filename = self.local_dir+"day_"+self.day+"_proc_data.csv"
             if not os.path.exists(filename):
+                #Distances
+                print("Calculating distances...")
+                self.df['dist1']=distance(
+                    self.df['lng0'].values, self.df['lat0'].values, 
+                    self.df['lng1'].values, self.df['lat1'].values)
+
+                print(" Saving full dataframe for future use as proc_data.csv")
                 self.df.to_csv(filename, header=True) #Don't forget to add '.csv' at the end of the path
+            else:
+                print("Loading distances...")
+                self.df['dist1'] = pd.read_csv(filename, usecols = ['dist1'])
+
 
             #Data density - takes time
             for i in tqdm.tqdm(range(3)):
