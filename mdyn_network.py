@@ -513,7 +513,7 @@ class Network:
         n , m = mat.shape
         if n!=m:
             print("Matrix not square!!!")
-            sys.exit(!)
+            sys.exit(1)
 
         #Fix diagonal bo be nonzero
         for i in  range(n):
