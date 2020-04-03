@@ -48,3 +48,18 @@ p <- ggplot(data,aes(x = day,y = Users,pch = Weekend,linetype = Year,group = Yea
 pdf(file = "total_use.pdf",width = 10,height = (2/3)*10)
 p
 dev.off()
+
+#Plot lambda
+dados <- data.frame(x = c(0,1))
+f <- function(x){
+  (x < 0.25)*3 + (x >= 0.25)*(3/0.75)*(1 - x)
+}
+
+p <- ggplot(dados,aes(x = x)) + themes + titles + stat_function(fun = f) + 
+  scale_x_continuous(breaks = c(0,0.25,1),labels = c("0",expression(hat(p)[ii]^{M}),"1")) +
+  xlab(expression(hat(p)[ii]^{n})) + ylab(expression(lambda~"(i,t)")) +
+  scale_y_continuous(breaks = c(0,3),labels = c("0",expression(lambda)),limits = c(0,3.5)) +
+  geom_segment(aes(x = 0.25,xend = 0.25,y = 0,yend = 3),linetype = "dashed")
+pdf(file = "relation_lambda.pdf",width = 10,height = (2/3)*10)
+p
+dev.off()
