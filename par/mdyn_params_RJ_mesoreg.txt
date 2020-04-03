@@ -1,0 +1,46 @@
+#----------------------
+# Net work definition
+#----------------------
+
+#Main domain definition
+domain = "RIO DE JANEIRO" #SP or RJ
+domain_gran = "NM_ESTADO"
+domain_shape = "maps/UFEBRASIL/UFEBRASIL"
+
+#Subdomain definitions
+subdomains = "RJ-Mesoreg"
+subdomains_gran = "NM_MESO"
+subdomains_shape = "maps/rj_mesorregioes/33MEE250GC_SIR"
+
+#Network granularity
+latlon_gran = 0.2 #granularity of lat long spacing
+
+#Network pre-computation flag
+load_domain = True #Load precomp structures
+
+#-----------------------------
+# Mobile Data Set Definition
+#-----------------------------
+
+#Initialize mobile data and load data to dataframe 
+data_dir = "data/visit_journey_rio_2019/"
+date_ini = "2020-02-01"
+date_end = "2020-02-02"
+load_data = True 
+
+#Number of main sources for plots
+num_source = 4
+
+#-----------------------------
+# Simulation configuration
+#------------------------------
+
+#Initial condition for simulation (file with num of cases per region)
+data_ini_by_reg = ""
+
+#Move matrix to use 
+simul_type = "day"
+simul_type = "avg"
+
+#Number of simulation days
+num_simul_days = 5
