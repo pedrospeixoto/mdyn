@@ -253,7 +253,7 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
 
         filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"_std_prob_move.jpg"
         movemat_std = np.std(mdyn.movemats_norm, axis=0)
-        if not os.path.exists(filename) and network.nregions < 20::
+        if not os.path.exists(filename) and network.nregions < 20:
             try:
                 mex.plot_matrix(movemat_std, title_base+"\nStd_Dev_of_Prob", filename)
             except:
