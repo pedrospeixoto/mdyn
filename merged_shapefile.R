@@ -65,7 +65,9 @@ shape_setor <- readOGR(dsn = "~/GDrive/github/mdyn/maps/rj_setores_censitarios/3
 #Merging the neighborhoods
 shape_setor$key <- factor(paste(shape_setor$NM_MUNICIP,shape_setor$NM_BAIRRO)) 
 shape_bairro <-  gUnaryUnion(shape_setor,shape_setor$key)
-writeOGR(as(shape_bairro, "SpatialPolygonsDataFrame"), ".", "shape_rj_bairro", driver="ESRI Shapefile")
+shape_bairro_dt <- as(shape_bairro, "SpatialPolygonsDataFrame")
+shape_bairro_dt$ID <- names(shape_bairro)
+writeOGR(shape_bairro_dt, ".", "shape_rj_bairro", driver="ESRI Shapefile")
 
 #Merging shapefiles
 # shape_setor <- subset(shape_setor,NM_MUNICIP %in% population$municipio)
