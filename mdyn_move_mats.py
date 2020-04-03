@@ -251,6 +251,61 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
 
     return movemat_avg,  movemat_std, movemat_avg_diag
 
+def simulate_model(mdyn, network, ipar):
+
+    #Analyse movement matrices
+    mdyn.collect_move_mat(network)
+
+    movemat_avg, movemat_std, movemat_avg_diag = calc_move_mat_avg_dow(mdyn, network, ipar)
+    #Sources to plot 
+    #num_simul_days = ipar.num_simul_days #min(network.nregions-2, 20)
+    
+    #Initial condition
+    data_ini_regv = np.zeros([network.nregions])
+    for key in ipar.data_ini_by_reg:
+        data_ini_regv[key] = ipar.data_ini_by_reg[key]
+    #try:
+    #    data_ini_regv[268] = 100.0
+    #except:
+    #    data_ini_regv[10] = 100.0
+
+    day_state = data_ini_regv
+
+    title_base = "Simul_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
+    #simulate scenario
+    
+    drange = mex.daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=ipar.num_simul_days))
+    
+    for i, day in enumerate(drange):
+    #for j in num_simul_days:
+        indx = '{:02d}'.format(i)
+        title = title_base+"_day_"+indx #+day.strftime("%Y-%m-%d")
+        print("Creating plot for ", title)
+            
+        map=Map(network)
+        map.map_move_by_reg(day_state, network.regions, network, title, mdyn.dump_dir+title)
+
+        if day in mdyn.days_all: 
+            mat = mdyn.movemats_norm[i]
+        else:
+            #Use matrix with dow average
+            dow = day.weekday()
+            mat = movemat_avg[dow]
+
+        day_state=model(day_state, mat, ipar, network)
+
+        sumv = np.sum(day_state)
+        print("Number of infected people:", np.sum(day_state))
+        
+def model(day_state, mat, ipar, network):
+    if ipar.model == 0:
+        day_state=np.matmul(mat, day_state)
+    elif ipar.model == 1:
+        tmp = np.divide(network.reg_pop - day_state, network.reg_pop)
+        day_state=day_state + ipar.infec_rate * np.multiply(day_state, tmp) + \
+            np.matmul(mat, day_state) - np.matmul(mat.transpose(), day_state)
+
+    return day_state
 
 """     def simulate_daily(self, mode):
     
