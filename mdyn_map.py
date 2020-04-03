@@ -28,12 +28,15 @@ class Map:
         
         lat0=0.5*(network.maxlats+network.minlats)
         lon0=0.5*(network.maxlons+network.minlons)
-
+        width=1.1e6
+        height=7.2e5
+        width = (network.maxlons-network.minlons)*0.9e5
+        height = (network.maxlats-network.minlats)*0.8e5
         #Define map projection
         #map = Basemap(projection='merc', resolution='h',
         #    llcrnrlon=dom.minlons-1, llcrnrlat=dom.minlats-1,
         #    urcrnrlon=dom.maxlons+1, urcrnrlat=dom.maxlats+1)
-        map = Basemap(width=1.1e6,height=7.2e5,\
+        map = Basemap(width=width,height=height,\
             projection='gnom',lat_0=lat0,lon_0=lon0, resolution="f")
             #width=2E6, height=2E6, lat_0=lat0, lon_0=lon0,
         #map = Basemap(width=12000000,height=9000000,
