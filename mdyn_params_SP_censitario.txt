@@ -8,6 +8,12 @@ subdomains = "SP-Cidade"
 subdomains_gran = "ID"
 subdomains_shape = "maps/sp_mesclado/shape_sp_censitario_capital"
 
+#Population
+domain_pop = "maps/population/population_ufebrasil.csv"
+domain_pop_labels = ["Estado", "Populacao"]
+subdomains_pop = "maps/population/population_sp_mun.csv"
+subdomains_pop_labels = ["municipio", "populacao_estimada"]
+
 #Network granularity
 latlon_gran = 0.01 #granularity of lat long spacing
 

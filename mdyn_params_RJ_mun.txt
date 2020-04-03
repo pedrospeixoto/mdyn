@@ -8,6 +8,12 @@ subdomains = "RJ-Municipios"
 subdomains_gran = "NM_MUNICIP"
 subdomains_shape = "maps/rj_municipios/33MUE250GC_SIR"
 
+#Population
+domain_pop = "maps/population/population_ufebrasil.csv"
+domain_pop_labels = ["Estado", "Populacao"]
+subdomains_pop = "maps/population/population_rj_mun.csv"
+subdomains_pop_labels = ["municipio", "populacao_estimada"]
+
 #Network granularity
 latlon_gran = 0.01 #granularity of lat long spacing
 
