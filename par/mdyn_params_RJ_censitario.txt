@@ -21,9 +21,9 @@ latlon_gran = 0.01 #granularity of lat long spacing
 load_domain = True #Load precomp structures
 
 #Initialize mobile data and load data to dataframe
-data_dir = "data/visit_journey_rio_2019/"
-date_ini = "2020-01-01"
-date_end = "2020-12-31"
+data_dir = "data/visit_journey_rio_2018/"
+date_ini = "2019-03-01"
+date_end = "2019-03-31"
 load_data = True
 
 #Number of main sources for plots
