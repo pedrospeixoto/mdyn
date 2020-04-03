@@ -30,4 +30,4 @@ load_data = True
 num_source = 4
 
 #sudo ln -s /storage/inloco/data data
-#python mdyn_run.py -f mdyn_params_SP_bairros.txt -o 0
+#python mdyn_run.py -f par/mdyn_params_SP_bairros.txt -o 0
