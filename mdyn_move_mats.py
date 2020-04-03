@@ -286,7 +286,7 @@ def simulate_model(mdyn, network, ipar):
     ntime = mdyn.days+ipar.num_simul_days
     data_evol = np.zeros((network.nregions, ntime))
     title_base = "Model_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
-    title_base = title_base + "_r"+str(ipar.infec_rate)
+    title_base = title_base + "_r"+str(ipar.infec_rate).replace(".","")
     #simulate scenario
     drange = mex.daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=ipar.num_simul_days))
     
