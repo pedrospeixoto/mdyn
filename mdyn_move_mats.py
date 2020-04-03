@@ -295,7 +295,7 @@ def simulate_model(mdyn, network, ipar):
         indx = '{:02d}'.format(i)
         title = title_base+"_day_"+indx #+day.strftime("%Y-%m-%d")
         print("Creating plot for ", title)
-            
+        print()    
         map=Map(network)
         map.map_move_by_reg(day_state, network.regions, network, title, mdyn.dump_dir+title)
 
@@ -312,7 +312,7 @@ def simulate_model(mdyn, network, ipar):
         day_state = model(day_state, mat, ipar, network)
 
         sumv = np.sum(day_state)
-        print("Number of infected people:", sumv)
+        print("Num infected, avg, max, min:", sumv, np.average(day_state), np.max(day_state), np.min(day_state))
         
 def model(day_state, mat, ipar, network):
 
