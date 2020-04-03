@@ -312,8 +312,13 @@ def simulate_model(mdyn, network, ipar):
         day_state = model(day_state, mat, ipar, network)
 
         sumv = np.sum(day_state)
-        print("Num infected, avg, max, min:", sumv, np.average(day_state), np.max(day_state), np.min(day_state))
+        maxv = np.max(day_state)
+        print("Num infected, avg, max, min:", sumv, np.average(day_state), maxv, np.min(day_state))
         
+        if maxv > np.max(network.reg_pop):
+            print( "Too many people infected, reached the limit of the model")
+            sys.exit(1)
+
 def model(day_state, mat, ipar, network):
 
     if ipar.model == 0: #simple model
