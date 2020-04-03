@@ -320,11 +320,17 @@ def model(day_state, mat, ipar, network):
         day_state=np.matmul(mat, day_state)
 
     elif ipar.model == 1: #Infected model
-        
-        tmp = np.divide(network.reg_pop - day_state, network.reg_pop)
-        
-        day_state= day_state + ipar.infec_rate * np.multiply(day_state, tmp) + \
-            np.matmul(mat, day_state) - np.matmul(mat.transpose(), day_state)
+
+        pop_inf = np.divide(network.reg_pop - day_state, network.reg_pop)
+        print(np.average(pop_inf))
+        local_inf = day_state + ipar.infec_rate * np.multiply(day_state, pop_inf)
+        print(np.average(local_inf))
+        out_inf = np.matmul(mat, day_state)
+        print(np.average(out_inf))
+        in_inf = np.matmul(mat.transpose(), day_state)
+        print(np.average(in_inf))
+        day_state= local_inf + out_inf - in_inf
+        print(np.average(day_state))
 
     return day_state
 
