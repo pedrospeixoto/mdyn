@@ -322,15 +322,19 @@ def model(day_state, mat, ipar, network):
     elif ipar.model == 1: #Infected model
 
         pop_inf = np.divide(network.reg_pop - day_state, network.reg_pop)*np.heaviside(0,0) #(N-I)/N
-        print(np.average(pop_inf), np.max(pop_inf), np.min(pop_inf))
+        print("(N-I)/N :    avg, max, min :", np.average(pop_inf), np.max(pop_inf), np.min(pop_inf))
+
         local_inf = day_state + ipar.infec_rate * np.multiply(day_state, pop_inf) #I+rI(N-I)/N 
-        print(np.average(local_inf), np.max(local_inf), np.min(local_inf))
+        print("I+rI(N-I)/N : avg, max, min :", np.average(local_inf), np.max(local_inf), np.min(local_inf))
+
         out_inf = np.divide(np.matmul(mat, day_state), network.reg_pop) #AI/N
-        print(np.average(out_inf), np.max(out_inf), np.min(out_inf))
+        print("AI/N :        avg, max, min :", np.average(out_inf), np.max(out_inf), np.min(out_inf))
+
         in_inf = np.divide(np.matmul(mat.transpose(), day_state), network.reg_pop) #AtI/N
-        print(np.average(in_inf), np.max(in_inf), np.min(in_inf))
+        print("AtI/N :       avg, max, min :", np.average(in_inf), np.max(in_inf), np.min(in_inf))
+
         day_state= local_inf +out_inf - in_inf
-        print(np.average(day_state), np.max(day_state), np.min(day_state))
+        print("I+rI(N-I)/N + AI/N-AtI/N : avg, max, min :",np.average(day_state), np.max(day_state), np.min(day_state))
 
     return day_state
 
