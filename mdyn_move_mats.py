@@ -217,11 +217,12 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
         for j in sources:
             title = title_base+"\nOrigin "+network.regions[j]
             filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+"day_prob.jpg"
-            print("Creating plot for ", filename)
-            move_vec = mdyn.movemats_norm[i][:, j]
-                
-            map=Map(network)
-            map.map_move_by_reg(move_vec, network.regions, network, title, filename)
+            if not os.path.exists(filename):
+                print("Creating plot for ", filename)
+                move_vec = mdyn.movemats_norm[i][:, j]
+                    
+                map=Map(network)
+                map.map_move_by_reg(move_vec, network.regions, network, title, filename)
 
         #mex.matprint(mdyn.movemats_norm[i])
 
