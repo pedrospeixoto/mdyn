@@ -36,10 +36,6 @@ num_source = 20
 #Initial condition for simulation (file with num of cases per region)
 data_ini_by_reg = { 268 : 100.0 }
 
-#Move matrix to use 
-simul_type = "day"
-simul_type = "avg"
-
 #Number of simulation days
 num_simul_days = 5
 
