@@ -69,6 +69,11 @@ def get_input(args):
 
     #Get parameters for simulation
     ipar = getVarFromFile(param_file)
+    ipar.param_file=param_file
+    base_name=os.path.basename(param_file)
+    dump_dir="dump/"+os.path.splitext(base_name)[0]+"/"
+    
+    ipar.dump_dir = dump_dir
 
     return ipar, run_opt
 

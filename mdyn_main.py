@@ -29,7 +29,7 @@ from matplotlib import animation
 
 class MobileDynamics:
 
-    def __init__(self, data_dir=None, date_ini=None, date_end=None, load=False):
+    def __init__(self, data_dir=None, date_ini=None, date_end=None, dump_dir=None, load=False):
             
         print("")
         print("Mobile Dynamics Data Analysis")
@@ -60,7 +60,7 @@ class MobileDynamics:
         print("Number of days to analyse:", self.days)
 
         self.load = load
-        self.dump_dir = 'dump/'
+        self.dump_dir = dump_dir
         
         if not os.path.exists(self.dump_dir):
             os.makedirs(self.dump_dir)
