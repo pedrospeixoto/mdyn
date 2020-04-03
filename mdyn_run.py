@@ -48,6 +48,7 @@ if run_opt < 30:
         data_dir = ipar.data_dir,
         date_ini = ipar.date_ini,
         date_end = ipar.date_end,
+        dump_dir = ipar.dump_dir,
         load = ipar.load_data
         )
 
