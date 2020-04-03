@@ -232,8 +232,9 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
 
     #print(movemat_avg_diag)
     for i in range(7):
-        movemat_avg[i] = movemat_avg[i] / movemat_avg[i].sum(axis=0)
-
+        if np.sum(np.sum(movemat_avg[i])) > 0 :
+            movemat_avg[i] = movemat_avg[i] / movemat_avg[i].sum(axis=0)
+        
         title_base = network.domain+" "+network.subdomains+" "+mdyn.date_ini+" "+mdyn.date_end+" "+mex.weekdays[i]
         filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"avg_prob_move.jpg"
 
@@ -291,6 +292,7 @@ def simulate_model(mdyn, network, ipar):
             #Use matrix with dow average
             dow = day.weekday()
             mat = movemat_avg[dow]
+            
 
         day_state=model(day_state, mat, ipar, network)
 
@@ -298,12 +300,15 @@ def simulate_model(mdyn, network, ipar):
         print("Number of infected people:", np.sum(day_state))
         
 def model(day_state, mat, ipar, network):
-    if ipar.model == 0:
+
+    if ipar.model == 0: #simple model
         day_state=np.matmul(mat, day_state)
-    elif ipar.model == 1:
+
+    elif ipar.model == 1: #Infected model
         tmp = np.divide(network.reg_pop - day_state, network.reg_pop)
-        day_state=day_state + ipar.infec_rate * np.multiply(day_state, tmp) + \
-            np.matmul(mat, day_state) - np.matmul(mat.transpose(), day_state)
+        
+        day_state= day_state + ipar.infec_rate * np.multiply(day_state, tmp) + \
+            np.matmul(mat.transpose(), day_state) - np.matmul(mat.transpose(), day_state)
 
     return day_state
 
