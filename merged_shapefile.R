@@ -67,6 +67,7 @@ shape_setor$key <- factor(paste(shape_setor$NM_MUNICIP,shape_setor$NM_BAIRRO))
 shape_bairro <-  gUnaryUnion(shape_setor,shape_setor$key)
 shape_bairro_dt <- as(shape_bairro, "SpatialPolygonsDataFrame")
 shape_bairro_dt$ID <- names(shape_bairro)
+shape_bairro_dt$dummy <- NULL
 writeOGR(shape_bairro_dt, ".", "shape_rj_bairro", driver="ESRI Shapefile")
 
 #Merging shapefiles
