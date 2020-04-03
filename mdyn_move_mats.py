@@ -193,7 +193,7 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
         dow = day.weekday()
         diag_raw = np.diag(mdyn.movemats[i])
         #Adjust diagonal according to population size
-        moving = mdyn.movemats[i].sum(axis=0) - diag_raw)
+        moving = mdyn.movemats[i].sum(axis=0) - diag_raw
         #print("move: ", np.average(moving))
         #print("diag:", np.average(np.diag(mdyn.movemats[i])))
         diag = network.reg_pop - moving
