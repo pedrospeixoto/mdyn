@@ -15,7 +15,7 @@ subdomains_pop = "maps/population/population_rj_mun.csv"
 subdomains_pop_labels = ["municipio", "populacao_estimada"]
 
 #Network granularity
-  latlon_gran = 0.01 #granularity of lat long spacing
+latlon_gran = 0.01 #granularity of lat long spacing
 
 #Network pre-computation flag
 load_domain = True #Load precomp structures
@@ -30,4 +30,4 @@ load_data = True
 num_source = 4
 
 #sudo ln -s /storage/inloco/data data
-#python mdyn_run.py -f mdyn_params_RJ_censitario.txt -o 0
+#python mdyn_run.py -f par/mdyn_params_RJ_bairros.txt -o 0
