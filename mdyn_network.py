@@ -485,6 +485,7 @@ class Network:
                 if i in reg1:
                     col[i, 0]=1.0
                 mat = np.hstack((mat[:,:i], col, mat[:,i:]))
+                print(mat.shape)
                 reg0 = np.hstack((reg0[:i], [i], reg0[i:]))
             print("..fixed!", end="")
         else:
