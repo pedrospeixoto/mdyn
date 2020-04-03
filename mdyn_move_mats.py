@@ -38,7 +38,7 @@ def analyse_move_mats(mdyn, network, ipar):
     print("Main regions:", sources)
     #Plot main sources
     for j in sources:
-        title = title_base+"_origin_"+network.regions[j]
+        title = title_base+"_origin_"+str(network.regions[j])
         print("Creating plot for ", title)
         move_vec = movemat_avg[:, j]
         sumv = np.sum(move_vec)
@@ -75,7 +75,7 @@ def analyse_move_mats_dow(mdyn, network, ipar):
     #Plot main sources
     for i in range(7):
         for j in sources:
-            title = title_base+" "+mex.weekdays[i]+"\n Origin "+network.regions[j]
+            title = title_base+" "+mex.weekdays[i]+"\n Origin "+str(network.regions[j])
             filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+".jpg"
             
             print("Creating plot for ", filename)
@@ -191,12 +191,15 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
     for i, day in enumerate(mdyn.days_all):
         print("Calculating on: ", i, day)
         dow = day.weekday()
-
+        diag_raw = np.diag(mdyn.movemats[i])
         #Adjust diagonal according to population size
-        moving = mdyn.movemats[i].sum(axis=0) - np.diag(mdyn.movemats[i])
+        moving = mdyn.movemats[i].sum(axis=0) - diag_raw)
+        #print("move: ", np.average(moving))
+        #print("diag:", np.average(np.diag(mdyn.movemats[i])))
         diag = network.reg_pop - moving
+        #print("new diag : ", np.average(diag))
         np.fill_diagonal(mdyn.movemats[i], diag, wrap=False)
-        
+        #print("new mat diag: ", np.average(np.diag(mdyn.movemats[i])))
         title_base = network.domain+" "+network.subdomains+" "+day.strftime("%Y-%m-%d")+" "+mex.weekdays[dow]
         #filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"day_prob_move.jpg"
         #if not os.path.exists(filename+".jpg"):
@@ -206,22 +209,22 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
         movemat_avg[dow] = movemat_avg[dow] + mdyn.movemats[i]
 
         #Plot matrix diagonal
-        diag = np.diag(mdyn.movemats_norm[i])
+        diag_norm = np.diag(mdyn.movemats_norm[i])
         
         filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"day_prob_diag.jpg"
         if not os.path.exists(filename):
             print("  Plotting :", filename)
             map=Map(network)
-            map.map_move_by_reg(diag, network.regions, network, title_base+"\nDiagonal Prob Move", filename)
+            map.map_move_by_reg(diag_norm, network.regions, network, title_base+"\nDiagonal Prob Move", filename)
 
-        diag_raw = np.diag(mdyn.movemats[i])
+        
         num_source = 10
         sources = np.argpartition(diag_raw, -num_source)[-num_source:]
         
         print("Main regions:", sources)
         #Plot main sources
         for j in sources:
-            title = title_base+"\nOrigin "+network.regions[j]
+            title = title_base+"\nOrigin "+str(network.regions[j])
             filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+"day_prob.jpg"
             if not os.path.exists(filename):
                 print("Creating plot for ", filename)
@@ -244,13 +247,13 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
         title_base = network.domain+" "+network.subdomains+" "+mdyn.date_ini+" "+mdyn.date_end+" "+mex.weekdays[i]
         filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"avg_prob_move.jpg"
 
-        if np.sum(np.sum((movemat_avg[i]))) > 0:
+        if np.sum(np.sum((movemat_avg[i]))) > 0 and network.nregions < 20:
             if not os.path.exists(filename):
                 mex.plot_matrix(movemat_avg[i], title_base+"\nMean Move Prob", filename)
 
         filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"_std_prob_move.jpg"
         movemat_std = np.std(mdyn.movemats_norm, axis=0)
-        if not os.path.exists(filename):
+        if not os.path.exists(filename) and network.nregions < 20::
             try:
                 mex.plot_matrix(movemat_std, title_base+"\nStd_Dev_of_Prob", filename)
             except:
