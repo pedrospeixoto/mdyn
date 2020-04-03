@@ -141,8 +141,8 @@ class Network:
             print("Done. Saving subdomains shape structure for future use")
             df.to_file(self.subdomains_shape_file_mdyn)
 
-        print(df)
-        #print(df.head)
+        #print(df)
+        print(df.head)
 
         #Indexes columns
         idx = np.arange(len(df))
