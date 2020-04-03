@@ -19,10 +19,10 @@ setwd("~/GDrive/github/mdyn")
 #São Paulo State
 
 #Read shapefiles
-shape_state <- readOGR(dsn = "~/GDrive/github/mdyn/maps/sp_municipios/35MUE250GC_SIR_mdyn.shp",
-                       stringsAsFactors = F)
-#shape_setor <- readOGR(dsn = "~/GDrive/github/mdyn/maps/sp_setores_censitarios/setor_censitario_sao_paulo.shp",
-#                       stringsAsFactors = F,encoding = "latin1")
+# shape_state <- readOGR(dsn = "~/GDrive/github/mdyn/maps/sp_municipios/35MUE250GC_SIR_mdyn.shp",
+#                        stringsAsFactors = F)
+shape_setor <- readOGR(dsn = "~/GDrive/github/mdyn/maps/sp_setores_censitarios/setor_censitario_sao_paulo.shp",
+                       stringsAsFactors = F,encoding = "latin1")
 
 #Correct symbols
 # shape_state$NM_MUNICIP[shape_state$NM_MUNICIP == "EMBU DAS ARTES"] <- "EMBU"
@@ -35,7 +35,10 @@ shape_state <- readOGR(dsn = "~/GDrive/github/mdyn/maps/sp_municipios/35MUE250GC
 #Merging the neighborhoods
 shape_setor$key <- factor(paste(shape_setor$NM_MUNICIP,shape_setor$NM_BAIRRO)) 
 shape_bairro <-  gUnaryUnion(shape_setor,shape_setor$key)
-writeOGR(as(shape_bairro, "SpatialPolygonsDataFrame"), ".", "shape_sp_bairro", driver="ESRI Shapefile")
+shape_bairro_dt <- as(shape_bairro, "SpatialPolygonsDataFrame")
+shape_bairro_dt$ID <- names(shape_bairro)
+shape_bairro_dt$dummy <- NULL
+writeOGR(shape_bairro_dt, ".", "shape_sp_bairro", driver="ESRI Shapefile")
 
 #Population
 #population <- read.csv("~/GDrive/github/mdyn/maps/population/population_sp.csv",sep = ";")
