@@ -30,16 +30,20 @@ network = Network(
             domain = ipar.domain, 
             domain_gran = ipar.domain_gran,
             domain_shape = ipar.domain_shape, 
+            domain_pop = ipar.domain_pop,
+            domain_pop_labels = ipar.domain_pop_labels,
             subdomains = ipar.subdomains, 
             subdomains_gran = ipar.subdomains_gran,
             subdomains_shape = ipar.subdomains_shape,
+            subdomains_pop = ipar.subdomains_pop,
+            subdomains_pop_labels = ipar.subdomains_pop_labels,
             latlon_gran = ipar.latlon_gran,
             load = ipar.load_network
             )
 
 #Initialize Data
 #-----------------------------
-if run_opt < 10:
+if run_opt < 30:
     mdyn = MobileDynamics(
         data_dir = ipar.data_dir,
         date_ini = ipar.date_ini,
