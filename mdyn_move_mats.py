@@ -265,13 +265,10 @@ def simulate_model(mdyn, network, ipar):
     data_ini_regv = np.zeros([network.nregions])
     for key in ipar.data_ini_by_reg:
         data_ini_regv[key] = ipar.data_ini_by_reg[key]
-    #try:
-    #    data_ini_regv[268] = 100.0
-    #except:
-    #    data_ini_regv[10] = 100.0
 
     day_state = data_ini_regv
-
+    ntime = mdyn.days+ipar.num_simul_days
+    data_evol = np.zeros((network.nregions, ntime))
     title_base = "Model_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
     #simulate scenario
     
@@ -286,6 +283,9 @@ def simulate_model(mdyn, network, ipar):
         map=Map(network)
         map.map_move_by_reg(day_state, network.regions, network, title, mdyn.dump_dir+title)
 
+        #Save day state
+        data_evol[:,i] = day_state
+
         if day in mdyn.days_all: 
             mat = mdyn.movemats_norm[i]
         else:
@@ -297,7 +297,7 @@ def simulate_model(mdyn, network, ipar):
         day_state=model(day_state, mat, ipar, network)
 
         sumv = np.sum(day_state)
-        print("Number of infected people:", np.sum(day_state))
+        print("Number of infected people:", sumv)
         
 def model(day_state, mat, ipar, network):
 
@@ -308,7 +308,7 @@ def model(day_state, mat, ipar, network):
         tmp = np.divide(network.reg_pop - day_state, network.reg_pop)
         
         day_state= day_state + ipar.infec_rate * np.multiply(day_state, tmp) + \
-            np.matmul(mat.transpose(), day_state) - np.matmul(mat.transpose(), day_state)
+            np.matmul(mat, day_state) - np.matmul(mat.transpose(), day_state)
 
     return day_state
 
