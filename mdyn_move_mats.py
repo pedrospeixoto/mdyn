@@ -38,7 +38,7 @@ def analyse_move_mats(mdyn, network, ipar):
     print("Main regions:", sources)
     #Plot main sources
     for j in sources:
-        title = title_base+"_origin_"+network.regions[j]
+        title = title_base+"_origin_"+str(network.regions[j])
         print("Creating plot for ", title)
         move_vec = movemat_avg[:, j]
         sumv = np.sum(move_vec)
@@ -75,7 +75,7 @@ def analyse_move_mats_dow(mdyn, network, ipar):
     #Plot main sources
     for i in range(7):
         for j in sources:
-            title = title_base+" "+mex.weekdays[i]+"\n Origin "+network.regions[j]
+            title = title_base+" "+mex.weekdays[i]+"\n Origin "+str(network.regions[j])
             filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+".jpg"
             
             print("Creating plot for ", filename)
@@ -187,16 +187,25 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
     #Period mean move mat per dow
     movemat_avg = [np.zeros(mdyn.movemats[0].shape)]*7
 
-    #Loop work with transitions matrices and average then by day of the week
+    if np.sum(network.reg_pop) > 0.0:
+        print("Warning: Will adjust raw data matrices for region populations")
+            
+
+    #Loop work with transitions matrices and average them by day of the week
     for i, day in enumerate(mdyn.days_all):
         print("Calculating on: ", i, day)
         dow = day.weekday()
-
+        diag_raw = np.diag(mdyn.movemats[i])
         #Adjust diagonal according to population size
-        moving = mdyn.movemats[i].sum(axis=0) - np.diag(mdyn.movemats[i])
-        diag = network.reg_pop - moving
-        np.fill_diagonal(mdyn.movemats[i], diag, wrap=False)
-        
+        moving = mdyn.movemats[i].sum(axis=0) - diag_raw
+        print("move: ", np.average(moving))
+        print("diag:", np.average(np.diag(mdyn.movemats[i])))
+        if np.sum(network.reg_pop) > 0.0:
+            diag = network.reg_pop - moving
+            np.fill_diagonal(mdyn.movemats[i], diag, wrap=False)
+
+        print("new diag : ", np.average(diag))
+        print("new mat diag: ", np.average(np.diag(mdyn.movemats[i])))
         title_base = network.domain+" "+network.subdomains+" "+day.strftime("%Y-%m-%d")+" "+mex.weekdays[dow]
         #filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"day_prob_move.jpg"
         #if not os.path.exists(filename+".jpg"):
@@ -206,22 +215,22 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
         movemat_avg[dow] = movemat_avg[dow] + mdyn.movemats[i]
 
         #Plot matrix diagonal
-        diag = np.diag(mdyn.movemats_norm[i])
+        diag_norm = np.diag(mdyn.movemats_norm[i])
         
         filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"day_prob_diag.jpg"
         if not os.path.exists(filename):
             print("  Plotting :", filename)
             map=Map(network)
-            map.map_move_by_reg(diag, network.regions, network, title_base+"\nDiagonal Prob Move", filename)
+            map.map_move_by_reg(diag_norm, network.regions, network, title_base+"\nDiagonal Prob Move", filename)
 
-        diag_raw = np.diag(mdyn.movemats[i])
+        
         num_source = 10
         sources = np.argpartition(diag_raw, -num_source)[-num_source:]
         
         print("Main regions:", sources)
-        #Plot main sources
+        #Plot daily main sources
         for j in sources:
-            title = title_base+"\nOrigin "+network.regions[j]
+            title = title_base+"\nOrigin "+str(network.regions[j])
             filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+"day_prob.jpg"
             if not os.path.exists(filename):
                 print("Creating plot for ", filename)
@@ -232,25 +241,26 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
 
         #mex.matprint(mdyn.movemats_norm[i])
 
-    #Get primary and secondary sources
+    #Save 1st diagonal for future use, just as a refernce to get main sources
     movemat_avg_diag = np.diag(movemat_avg[0])
     movemat_avg_diag = movemat_avg_diag[0:network.nreg_in]
 
     #print(movemat_avg_diag)
     for i in range(7):
+        #normalize move mat
         if np.sum(np.sum(movemat_avg[i])) > 0 :
             movemat_avg[i] = movemat_avg[i] / movemat_avg[i].sum(axis=0)
         
         title_base = network.domain+" "+network.subdomains+" "+mdyn.date_ini+" "+mdyn.date_end+" "+mex.weekdays[i]
         filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"avg_prob_move.jpg"
 
-        if np.sum(np.sum((movemat_avg[i]))) > 0:
+        if np.sum(np.sum((movemat_avg[i]))) > 0 and network.nregions < 20:
             if not os.path.exists(filename):
                 mex.plot_matrix(movemat_avg[i], title_base+"\nMean Move Prob", filename)
 
         filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"_std_prob_move.jpg"
         movemat_std = np.std(mdyn.movemats_norm, axis=0)
-        if not os.path.exists(filename):
+        if not os.path.exists(filename) and network.nregions < 20:
             try:
                 mex.plot_matrix(movemat_std, title_base+"\nStd_Dev_of_Prob", filename)
             except:
@@ -276,8 +286,8 @@ def simulate_model(mdyn, network, ipar):
     ntime = mdyn.days+ipar.num_simul_days
     data_evol = np.zeros((network.nregions, ntime))
     title_base = "Model_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
+    title_base = title_base + "_r"+str(ipar.infec_rate).replace(".","")
     #simulate scenario
-    
     drange = mex.daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=ipar.num_simul_days))
     
     for i, day in enumerate(drange):
@@ -299,8 +309,7 @@ def simulate_model(mdyn, network, ipar):
             dow = day.weekday()
             mat = movemat_avg[dow]
             
-
-        day_state=model(day_state, mat, ipar, network)
+        day_state = model(day_state, mat, ipar, network)
 
         sumv = np.sum(day_state)
         print("Number of infected people:", sumv)
@@ -308,13 +317,20 @@ def simulate_model(mdyn, network, ipar):
 def model(day_state, mat, ipar, network):
 
     if ipar.model == 0: #simple model
-        day_state=np.matmul(mat, day_state)
+        day_state=(1.0+ipar.infec_rate)*day_state + np.matmul(mat, day_state)
 
     elif ipar.model == 1: #Infected model
-        tmp = np.divide(network.reg_pop - day_state, network.reg_pop)
-        
-        day_state= day_state + ipar.infec_rate * np.multiply(day_state, tmp) + \
-            np.matmul(mat, day_state) - np.matmul(mat.transpose(), day_state)
+
+        pop_inf = np.divide(network.reg_pop - day_state, network.reg_pop)
+        print(np.average(pop_inf))
+        local_inf = day_state + ipar.infec_rate * np.multiply(day_state, pop_inf)
+        print(np.average(local_inf))
+        out_inf = np.matmul(mat, day_state)
+        print(np.average(out_inf), np.max(out_inf), np.min(out_inf))
+        in_inf = np.matmul(mat.transpose(), day_state)
+        print(np.average(in_inf), np.max(in_inf), np.min(in_inf))
+        day_state= local_inf + out_inf - in_inf
+        print(np.average(day_state), np.max(day_state), np.min(day_state))
 
     return day_state
 

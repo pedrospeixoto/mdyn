@@ -80,6 +80,7 @@ class Network:
         try:
             self.load_pop()
         except:
+            print("Warning: No population data!!!")
             pass
 
     def load_domain(self):
