@@ -482,8 +482,6 @@ class Network:
 
             for i in missing_col:
                 col = np.zeros((n,1))
-                if i in reg1:
-                    col[i, 0]=1.0
                 mat = np.hstack((mat[:,:i], col, mat[:,i:]))
                 print(mat.shape)
                 reg0 = np.hstack((reg0[:i], [i], reg0[i:]))
@@ -494,7 +492,6 @@ class Network:
 
         #re-set mat sizes
         n , m = mat.shape
-
         #print(reg0)
         if nreg1==nreg:
             print("Matrix check destination: ok!...", end="")
@@ -505,16 +502,23 @@ class Network:
             print(missing_row, end="")
             for i in missing_row:
                 row = np.zeros((1,m))
-                if i in reg0:
-                    row[0, i]=1.0
                 #print(mat[:i,:].shape, row.shape, mat[i:,:].shape)
                 mat = np.vstack((mat[:i,:], row, mat[i:,:]))
-                print(mat.shape)
                 reg1 = np.hstack((reg1[:i], [i], reg1[i:]))
             print("..fixed!", end="")
         else:
             print("Something is wrong with your region data...and I don't know what it is...")
             sys.exit(1)
+
+        n , m = mat.shape
+        if n!=m:
+            print("Matrix not square!!!")
+            sys.exit(!)
+
+        #Fix diagonal bo be nonzero
+        for i in  range(n):
+            if mat[i,i] == 0.0:
+                mat[i,i] == 1.0
 
         #print(reg1)
         #matprint(mat)
