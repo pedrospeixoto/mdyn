@@ -326,11 +326,11 @@ def model(day_state, mat, ipar, network):
         local_inf = day_state + ipar.infec_rate * np.multiply(day_state, pop_inf)
         print(np.average(local_inf))
         out_inf = np.matmul(mat, day_state)
-        print(np.average(out_inf), np.maxvals(out_inf), np.minvals(out_inf))
+        print(np.average(out_inf), np.max(out_inf), np.min(out_inf))
         in_inf = np.matmul(mat.transpose(), day_state)
-        print(np.average(in_inf), np.maxvals(in_inf), np.minvals(in_inf))
+        print(np.average(in_inf), np.max(in_inf), np.min(in_inf))
         day_state= local_inf + out_inf - in_inf
-        print(np.average(day_state), np.maxvals(day_state), np.minvals(day_state))
+        print(np.average(day_state), np.max(day_state), np.min(day_state))
 
     return day_state
 
