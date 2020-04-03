@@ -191,12 +191,18 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
     for i, day in enumerate(mdyn.days_all):
         print("Calculating on: ", i, day)
         dow = day.weekday()
+
+        #Adjust diagonal according to population size
+        moving = mdyn.movemats[i].sum(axis=0) - np.diag(mdyn.movemats[i])
+        diag = network.reg_pop - moving
+        np.fill_diagonal(mdyn.movemats[i], diag, wrap=False)
         
         title_base = network.domain+" "+network.subdomains+" "+day.strftime("%Y-%m-%d")+" "+mex.weekdays[dow]
         #filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"day_prob_move.jpg"
         #if not os.path.exists(filename+".jpg"):
         #    print("  Plotting :", filename)
         #    mex.plot_matrix(mdyn.movemats_norm[i], title_base+"\nDay Prob Move", filename)
+        
         movemat_avg[dow] = movemat_avg[dow] + mdyn.movemats[i]
 
         #Plot matrix diagonal

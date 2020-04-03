@@ -460,8 +460,8 @@ class Network:
         reg1 = table.index
         mat = table.as_matrix(columns=None)
 
-        #print(list(reg0))
-        #print(list(self.regions.keys()))
+        print(list(reg0))
+        print(list(self.regions.keys()))
         #Check if we lost a region
         nreg0=len(list(reg0))
         nreg1=len(list(reg1))
