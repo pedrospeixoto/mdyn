@@ -1,0 +1,33 @@
+#Main domain definition
+domain = "RIO DE JANEIRO" #SP or RJ
+domain_gran = "NM_ESTADO"
+domain_shape = "maps/UFEBRASIL/UFEBRASIL"
+
+#Subdomain definitions
+subdomains = "RJ_bairro"
+subdomains_gran = "ID"
+subdomains_shape = "maps/rj_bairros/shape_rj_bairro"
+
+#Population
+domain_pop = "maps/population/population_ufebrasil.csv"
+domain_pop_labels = ["Estado", "Populacao"]
+subdomains_pop = "maps/population/population_rj_mun.csv"
+subdomains_pop_labels = ["municipio", "populacao_estimada"]
+
+#Network granularity
+latlon_gran = 0.01 #granularity of lat long spacing
+
+#Network pre-computation flag
+load_domain = True #Load precomp structures
+
+#Initialize mobile data and load data to dataframe
+data_dir = "data/visit_journey_rio_2018/"
+date_ini = "2019-03-01"
+date_end = "2019-03-31"
+load_data = True
+
+#Number of main sources for plots
+num_source = 4
+
+#sudo ln -s /storage/inloco/data data
+#python mdyn_run.py -f par/mdyn_params_RJ_bairros.txt -o 0
