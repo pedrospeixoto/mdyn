@@ -77,7 +77,7 @@ class Network:
         self.build_grid_network()
 
         #Load regions' populations
-        #self.load_pop()
+        self.load_pop()
 
     def load_domain(self):
 
@@ -575,5 +575,7 @@ class Network:
             except:
                 print("Cant find this region's population:", region )
                 sys.exit(1)
-            self.reg_pop[reg] = pop
+            
+            self.reg_pop[i] = pop
+        
         print("Done.")

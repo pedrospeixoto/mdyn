@@ -53,7 +53,7 @@ if run_opt < 30:
         )
 
 
-#Build model = generated movement model
+#Build model = generate movement model
 if run_opt == 0:
     mdyn.build_model(network)
 
@@ -65,6 +65,9 @@ if run_opt == 2:
 
 if run_opt == 20:
     mmat.simulate_move_mats(mdyn, network, ipar)
+
+if run_opt == 21:
+    mmat.simulate_model(mdyn, network, ipar)
 
 if run_opt == 30:
     isol.isol_index(network, ipar)
