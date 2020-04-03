@@ -214,6 +214,9 @@ class Map:
         if "Diag" in title:
             plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.1, vmax=1.0, cmap=cmap, snap=True) #, norm=norm)  
             label = "Probability"
+        elif "Model" in title:
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
+            label = "Number of People"
         elif "Simul" in title:
             plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1, vmax=100., cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
             label = "Number of People"

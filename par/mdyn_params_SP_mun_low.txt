@@ -34,7 +34,7 @@ num_source = 20
 #------------------------------
 
 #Initial condition for simulation (file with num of cases per region)
-data_ini_by_reg = ""
+data_ini_by_reg = { 268 : 100.0 }
 
 #Move matrix to use 
 simul_type = "day"
@@ -42,3 +42,9 @@ simul_type = "avg"
 
 #Number of simulation days
 num_simul_days = 5
+
+#Type of model 
+# 0: simple mat iteration
+# 1: only infected - see diego's doc
+model = 1
+infec_rate = 1  #infection rate per day
