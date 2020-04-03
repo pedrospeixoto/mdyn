@@ -321,8 +321,8 @@ def model(day_state, mat, ipar, network):
 
     elif ipar.model == 1: #Infected model
 
-        pop_inf = np.divide(network.reg_pop - day_state, network.reg_pop)*np.heaviside(0,0) #(N-I)/N
-        print("(N-I)/N :    avg, max, min :", np.average(pop_inf), np.max(pop_inf), np.min(pop_inf))
+        pop_inf = np.heaviside( np.divide(network.reg_pop - day_state, network.reg_pop), 0) #(N-I)/N
+        print("(N-I)/N :     avg, max, min :", np.average(pop_inf), np.max(pop_inf), np.min(pop_inf))
 
         local_inf = day_state + ipar.infec_rate * np.multiply(day_state, pop_inf) #I+rI(N-I)/N 
         print("I+rI(N-I)/N : avg, max, min :", np.average(local_inf), np.max(local_inf), np.min(local_inf))
