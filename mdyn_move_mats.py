@@ -187,6 +187,10 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
     #Period mean move mat per dow
     movemat_avg = [np.zeros(mdyn.movemats[0].shape)]*7
 
+    if np.sum(network.reg_pop) > 0.0:
+        print("Warning: Will adjust raw data matrices for region populations")
+            
+
     #Loop work with transitions matrices and average then by day of the week
     for i, day in enumerate(mdyn.days_all):
         print("Calculating on: ", i, day)
@@ -196,9 +200,11 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
         moving = mdyn.movemats[i].sum(axis=0) - diag_raw
         #print("move: ", np.average(moving))
         #print("diag:", np.average(np.diag(mdyn.movemats[i])))
-        diag = network.reg_pop - moving
+        if np.sum(network.reg_pop) > 0.0:
+            diag = network.reg_pop - moving
+            np.fill_diagonal(mdyn.movemats[i], diag, wrap=False)
+
         #print("new diag : ", np.average(diag))
-        np.fill_diagonal(mdyn.movemats[i], diag, wrap=False)
         #print("new mat diag: ", np.average(np.diag(mdyn.movemats[i])))
         title_base = network.domain+" "+network.subdomains+" "+day.strftime("%Y-%m-%d")+" "+mex.weekdays[dow]
         #filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"day_prob_move.jpg"
