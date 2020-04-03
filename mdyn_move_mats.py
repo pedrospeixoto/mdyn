@@ -317,7 +317,7 @@ def simulate_model(mdyn, network, ipar):
 def model(day_state, mat, ipar, network):
 
     if ipar.model == 0: #simple model
-        day_state=np.matmul(mat, day_state)
+        day_state=(1.0+ipar.infec_rate)*day_state + np.matmul(mat, day_state)
 
     elif ipar.model == 1: #Infected model
 
