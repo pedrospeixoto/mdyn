@@ -463,8 +463,8 @@ class Network:
         reg1 = table.index
         mat = table.as_matrix(columns=None)
 
-        print(list(reg0))
-        print(list(self.regions.keys()))
+        #print(list(reg0))
+        #print(list(self.regions.keys()))
         #Check if we lost a region
         nreg0=len(list(reg0))
         nreg1=len(list(reg1))
@@ -483,7 +483,7 @@ class Network:
             for i in missing_col:
                 col = np.zeros((n,1))
                 mat = np.hstack((mat[:,:i], col, mat[:,i:]))
-                print(mat.shape)
+                #print(mat.shape)
                 reg0 = np.hstack((reg0[:i], [i], reg0[i:]))
             print("..fixed!", end="")
         else:
