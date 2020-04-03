@@ -77,7 +77,10 @@ class Network:
         self.build_grid_network()
 
         #Load regions' populations
-        #self.load_pop()
+        try:
+            self.load_pop()
+        except:
+            pass
 
     def load_domain(self):
 
