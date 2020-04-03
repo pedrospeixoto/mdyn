@@ -509,6 +509,7 @@ class Network:
                     row[0, i]=1.0
                 #print(mat[:i,:].shape, row.shape, mat[i:,:].shape)
                 mat = np.vstack((mat[:i,:], row, mat[i:,:]))
+                print(mat.shape)
                 reg1 = np.hstack((reg1[:i], [i], reg1[i:]))
             print("..fixed!", end="")
         else:
