@@ -53,5 +53,5 @@ num_simul_days = 30
 #Type of model 
 # 0: simple mat iteration
 # 1: only infected - see diego's doc
-model = 1
-infec_rate = 1  #infection rate per day
+model = 0
+infec_rate = 0.4  #infection rate per day
