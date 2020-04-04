@@ -12,6 +12,8 @@ library(geosphere)
 library(mapview) 
 library(rgeos)
 library(sf)
+library(svMisc)
+library(progress)
 
 #wd
 setwd("~/GDrive/github/mdyn")
@@ -80,3 +82,53 @@ writeOGR(shape_bairro_dt, ".", "shape_rj_bairro", driver="ESRI Shapefile")
 # shape$ID[is.na(shape$ID)] <- shape$NM_MUNICIP[is.na(shape$ID)]
 # writeOGR(shape, ".", "shape_rj_censitario_capital", driver="ESRI Shapefile")
 # salvar_plot(p = p,arquivo = "censitario_rio_capital.pdf",width = 150,height = 100)
+
+#Find out city of each subdistrict
+shape_rj <- readOGR(dsn = "~/GDrive/github/mdyn/maps/rj_municipios/33MUE250GC_SIR.shp",stringsAsFactors = F)
+shape_sp <- readOGR(dsn = "~/GDrive/github/mdyn/maps/sp_municipios/35MUE250GC_SIR_mdyn.shp",stringsAsFactors = F)
+shape_rj_sub <- readOGR(dsn = "~/GDrive/github/mdyn/maps/rj_subdistritos/shape_rj_subdistritos.shp",stringsAsFactors = F)
+shape_sp_sub <- readOGR(dsn = "~/GDrive/github/mdyn/maps/sp_subdistritos/shape_sp_subdistritos.shp",stringsAsFactors = F)
+
+domain <- shape_rj
+sub_domain <- shape_rj_sub
+name_sub <- "MUNICIPIO"
+name_dom <- "NM_MUNICIP"
+
+get_domain <- function(domain,sub_domain,name_sub,name_dom){
+  shp <- sub_domain
+  pb <- progress_bar$new(
+    format = " finding cities [:bar] :percent eta: :eta",
+    total = nrow(shp)*nrow(domain), clear = FALSE, width= 60)
+  for(i in 1:nrow(shp)){
+    dist <- data.frame("city" = rep(NA,nrow(domain)),"dist" = rep(NA,nrow(domain)))
+    c <- 1
+    for(dom in 1:nrow(domain)){
+      pb$tick()
+      int <- gIntersection(spgeom1 = gBuffer(domain[dom,], byid=TRUE, width=0),spgeom2 = gBuffer(shp[i,], byid=TRUE, width=0))
+      if(!is.null(int)){
+        dist$city[c] <- domain[[name_dom]][dom]
+        dist$dist[c] <- gArea(int)
+        c <- c + 1
+      }
+    }
+    if(c == 1)
+      cat(paste("Domain not found for sub_domain",i,"\n"))
+    else{
+      dist <- na.omit(dist)
+      shp[[name_sub]][i] <- dist$city[dist$dist == max(dist$dist)]
+    }
+  }  
+  return(shp)
+}
+shape_rj_sub_municipio <- get_domain(domain = shape_rj,sub_domain = shape_rj_sub,name_sub = "MUNICIPIO",
+                                     name_dom = "NM_MUNICIP")
+writeOGR(shape_rj_sub_municipio, ".", "shape_rj_subdistritos_municipio", driver="ESRI Shapefile")
+shape_sp_sub_municipio <- get_domain(domain = shape_sp,sub_domain = shape_sp_sub,name_sub = "MUNICIPIO",
+                                     name_dom = "NM_MUNICIP")
+writeOGR(shape_sp_sub_municipio, ".", "shape_sp_subdistritos_municipio", driver="ESRI Shapefile")
+
+map <- ggplot(fortify(shape_rj_sub_municipio,region = "MUNICIPIO"),aes(x = long, y = lat, group = group,fill = id)) + 
+  geom_polygon() + theme_void() +guide(show.legend = F)
+  shape_rj_sub_municipio$MUNICIPIO
+  head(shape_rj_sub_municipio)
+  
