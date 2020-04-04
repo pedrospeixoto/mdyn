@@ -187,11 +187,13 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
     #Period mean move mat per dow
     movemat_avg = [np.zeros(mdyn.movemats[0].shape)]*7
 
-    if np.sum(network.reg_pop) > 0.0:
-        print("Warning: Will adjust raw data matrices for region populations")
-            
+    
+    print("Warning: Will adjust raw data matrices for region populations")
+    mdyn.movemats_adj = [np.zeros(mdyn.movemats[0].shape)]*len(mdyn.days_all)
+
     #Loop work with transitions matrices and average them by day of the week
     for i, day in enumerate(mdyn.days_all):
+        print()
         print("Calculating on: ", i, day)
         dow = day.weekday()
         
@@ -200,49 +202,42 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
             np.average(np.diag(mdyn.movemats[i])), np.max(np.diag(mdyn.movemats[i])), np.min(np.diag(mdyn.movemats[i])))
         move_orig = mdyn.movemats[i].sum(axis=0) - diag_orig
         print(" Original Moving  (avg, max, min):", \
-            np.average(move_orig), np.max(move_orig), np.min(move_orig))
-        print(" Original Move Probability : ", np.average(move_orig.sum(axis=0))/np.average(diag_orig))
-
-        mat_adj = mdyn.movemats[i]      
+            np.average(move_orig), np.max(move_orig), np.min(move_orig))    
 
         #Only movement is trustworthy in the data, so use it and adjust diagonal
         #Adjust diagonal according to population size
         #Normalize matrix to population
         if np.sum(network.reg_pop) > 0.0:
             diag_adj = network.reg_pop - move_orig
-            mat_adj =  mdyn.movemats[i]
+            mat_adj =  np.copy(mdyn.movemats[i])
             np.fill_diagonal(mat_adj, diag_adj, wrap=False)
+            mdyn.movemats_adj[i] = mat_adj
         else:
             diag_adj = np.diag(mdyn.movemats[i])
+            mdyn.movemats_adj[i] = mdyn.movemats[i] 
         
-        mdyn.movemats[i] = mat_adj
-
         title_base = network.domain+" "+network.subdomains+" "+day.strftime("%Y-%m-%d")+" "+mex.weekdays[dow]
-        #filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"day_prob_move.jpg"
-        #if not os.path.exists(filename+".jpg"):
-        #    print("  Plotting :", filename)
-        #    mex.plot_matrix(mdyn.movemats_norm[i], title_base+"\nDay Prob Move", filename)
+                
+        movemat_avg[dow] = movemat_avg[dow] + mdyn.movemats_adj[i]
         
-        movemat_avg[dow] = movemat_avg[dow] + mdyn.movemats[i]
-
         #Plot matrix diagonal
         diag_norm = np.diag(mdyn.movemats_norm[i])
-        
-        filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"day_prob_diag.jpg"
+
+        filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"_day_prob_diag.jpg"
         if not os.path.exists(filename):
             print("  Plotting :", filename)
             map=Map(network)
             map.map_move_by_reg(diag_norm, network.regions, network, title_base+"\nDiagonal Prob Move", filename)
 
+        num_source = ipar.num_source
         
-        num_source = 10
         sources = np.argpartition(diag_orig, -num_source)[-num_source:]
         
         print("Main regions:", sources)
         #Plot daily main sources
         for j in sources:
             title = title_base+"\nOrigin "+str(network.regions[j])
-            filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+"day_prob.jpg"
+            filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+"_day_prob.jpg"
             if not os.path.exists(filename):
                 print("Creating plot for ", filename)
                 move_vec = mdyn.movemats_norm[i][:, j]
@@ -250,27 +245,40 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
                 map=Map(network)
                 map.map_move_by_reg(move_vec, network.regions, network, title, filename)
 
+        #Plot daily main sources - adjusted matrices
+        for j in sources:
+            title = title_base+"\nOrigin "+str(network.regions[j])
+            filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+"_adj_day_prob.jpg"
+            if not os.path.exists(filename):
+                print("Creating plot for ", filename)
+                move_vec = mdyn.movemats_adj[i][:, j]
+                move_vec = move_vec/np.sum(move_vec)
+                    
+                map=Map(network)
+                map.map_move_by_reg(move_vec, network.regions, network, title, filename)
         #mex.matprint(mdyn.movemats_norm[i])
 
     #Save 1st diagonal for future use, just as a refernce to get main sources
     movemat_avg_diag = np.diag(movemat_avg[0])
     movemat_avg_diag = movemat_avg_diag[0:network.nreg_in]
 
+    #Calculate average matrices
     #print(movemat_avg_diag)
     for i in range(7):
         #normalize move mat
         if np.sum(np.sum(movemat_avg[i])) > 0 :
             movemat_avg[i] = movemat_avg[i] / movemat_avg[i].sum(axis=0)
         
+        #PLot avg matrices
         title_base = network.domain+" "+network.subdomains+" "+mdyn.date_ini+" "+mdyn.date_end+" "+mex.weekdays[i]
         filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"avg_prob_move.jpg"
-
         if np.sum(np.sum((movemat_avg[i]))) > 0 and network.nregions < 20:
             if not os.path.exists(filename):
                 mex.plot_matrix(movemat_avg[i], title_base+"\nMean Move Prob", filename)
 
-        filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"_std_prob_move.jpg"
+        #Std dev and its plot
         movemat_std = np.std(mdyn.movemats_norm, axis=0)
+        filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"_std_prob_move.jpg"
         if not os.path.exists(filename) and network.nregions < 20:
             try:
                 mex.plot_matrix(movemat_std, title_base+"\nStd_Dev_of_Prob", filename)
@@ -297,7 +305,7 @@ def simulate_model(mdyn, network, ipar):
     ntime = mdyn.days+ipar.num_simul_days
     data_evol = np.zeros((network.nregions, ntime))
     title_base = "Model_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
-    title_base = title_base + "_r"+str(ipar.infec_rate).replace(".","")
+    title_base = title_base + "_r"+str(ipar.infec_rate).replace(".","")+"_s"+str(int(ipar.spread_rate))
     #simulate scenario
     drange = mex.daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=ipar.num_simul_days))
     
@@ -324,7 +332,8 @@ def simulate_model(mdyn, network, ipar):
 
         sumv = np.sum(day_state)
         maxv = np.max(day_state)
-        print("Num infected, avg, max, min:", sumv, np.average(day_state), maxv, np.min(day_state))
+        minv = np.min(day_state)
+        print("Num infected, avg, max, min:", sumv, np.average(day_state), maxv, minv)
         
         if maxv > np.max(network.reg_pop):
             print( "Too many people infected, reached the limit of the model")
@@ -352,92 +361,26 @@ def model(day_state, mat, ipar, network):
         day_state= local_inf +out_inf - in_inf
         print("I+rI(N-I)/N + AI/N-AtI/N : avg, max, min :",np.average(day_state), np.max(day_state), np.min(day_state))
 
+    elif ipar.model == 2: #2 parameter model
+
+        pop_inf = np.divide(network.reg_pop - day_state, network.reg_pop)  #(N-I)/N
+        pop_inf = pop_inf.clip(min=0) #Make positive
+        print("(N-I)/N :     avg, max, min :", np.average(pop_inf), np.max(pop_inf), np.min(pop_inf))
+
+        local_inf = day_state + ipar.infec_rate * np.multiply(day_state, pop_inf) #I+rI(N-I)/N 
+        print("I+rI(N-I)/N : avg, max, min :", np.average(local_inf), np.max(local_inf), np.min(local_inf))
+
+        out_inf = np.divide(np.matmul(mat, day_state), network.reg_pop) #AI/N
+        print("AI/N :        avg, max, min :", np.average(out_inf), np.max(out_inf), np.min(out_inf))
+
+        in_inf = np.divide(np.matmul(mat.transpose(), day_state), network.reg_pop) #AtI/N
+        print("AtI/N :       avg, max, min :", np.average(in_inf), np.max(in_inf), np.min(in_inf))
+
+        day_state = local_inf + ipar.spread_rate*(out_inf) # - in_inf)
+        day_state = day_state.clip(min=0) #Make poisite
+        print("I+rI(N-I)/N + s(AI/N-AtI/N): avg,max,min :",np.average(day_state), np.max(day_state), np.min(day_state))
+        tmp_state = np.copy(day_state)
+        tmp_state[268] = 0.0
+        print("Non source: avg,max,min :",np.average(tmp_state), np.max(tmp_state), np.min(tmp_state))
+
     return day_state
-
-"""     def simulate_daily(self, mode):
-    
-        #initial condition
-        
-        x = np.zeros([self.network.nreg_in])
-        x[3]=1
-
-        fig, ax = plt.subplots(figsize=(12,6))
-        labels = list(self.network.regions.values())
-        
-        ax.plot( x, 'o', label='IC')
-
-        #ax.set_ylim(0,450)
-        ax.set_ylabel('Individuals')
-        ax.set_title('Zombie Test')
-        ax.set_xticks(np.arange(len(x)))
-        ax.set_xticklabels(labels)
-        ax.set_yscale('log')
-        
-        
-        for i, day in enumerate(self.data):
-            #print(day.tmat, day.tmat.shape, x.shape)
-            x=np.matmul(day.tmat, x)
-            print(x.sum())
-            ax.plot( x, 'x', label=day.day)
-            ax.legend()
-            filename = self.dump_dir+"daily_simulation"+day.day+".jpg"
-            plt.savefig(filename, dpi=300)
-            del ax.lines[1]   
-            
-    def simulate_weekly(self, mode, dayoftheweek):
-
-        #initial condition
-        
-        x = np.zeros([self.network.nreg_in])
-        tmatweek = np.identity(self.network.nreg_in)
-        tmat_list = [] #List of transiction matrices
-        day_list = [] #List of dates used
-        for i, day in enumerate(self.data):
-            if day.day_weekday == dayoftheweek: #Monday=0
-                day_list.append(day.day)
-                tmat_list.append(tmatweek)
-                print("Transition matrix for Monday to Monday", day.day)
-                print(tmatweek)
-                tmatweek = np.identity(self.network.nreg_in)
-
-            #print(day.tmat, day.tmat.shape, x.shape)
-            tmatweek=np.matmul(day.tmat, tmatweek)
-
-        #Calculate the average matrix
-        #basicmat=np.zeros([self.network.nregions,self.network.nregions])
-        #for mat in tmat_list:
-        #    basicmat = basicmat + mat
-        if len(tmat_list) > 0:
-            basicmat=sum(tmat_list)/len(tmat_list)
-        else:
-            basicmat=tmat_list
-        print(basicmat)
-
-        #       
-        #Simulate 
-        x[3]=1
-
-        fig, ax = plt.subplots(figsize=(12,6))
-        labels = list(self.network.regions.values())
-        
-        ax.plot( x, 'o', label='IC')
-
-        #ax.set_ylim(0,450)
-        ax.set_ylabel('Individuals')
-        ax.set_title('Zombie Test')
-        ax.set_xticks(np.arange(len(x)))
-        ax.set_xticklabels(labels)
-        ax.set_yscale('log')
-        for i in range(20):
-            #print(day.tmat, day.tmat.shape, x.shape)
-            x=np.matmul(basicmat, x)
-            print(x.sum())
-            ax.plot( x, 'x', label=str(i))
-            ax.legend()
-            filename = self.dump_dir+"weekly_simulation"+str(i)+".jpg"
-            plt.savefig(filename, dpi=300)
-            del ax.lines[1]   
-        
-        
- """
-        

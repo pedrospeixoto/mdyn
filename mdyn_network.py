@@ -33,23 +33,23 @@ class Network:
 
     #cities = {}
 
-    def __init__(self,
-        domain = None,
-        domain_gran = None,
-        domain_shape = None,
-        domain_pop=None,
-        domain_pop_labels=None,
-        subdomains = None,
-        subdomains_gran = None,
-        subdomains_shape=None,
-        subdomains_pop=None,
-        subdomains_pop_labels=None,
-        latlon_gran = 0.01,
-        load = False
-        ):
+    def __init__(self, ipar):
         print("")
         print("Mobile Dynamics Network Construction")
         print("-----------------------------------")
+
+        domain = ipar.domain
+        domain_gran = ipar.domain_gran
+        domain_shape = ipar.domain_shape
+        domain_pop = ipar.domain_pop
+        domain_pop_labels = ipar.domain_pop_labels
+        subdomains = ipar.subdomains
+        subdomains_gran = ipar.subdomains_gran
+        subdomains_shape = ipar.subdomains_shape
+        subdomains_pop = ipar.subdomains_pop
+        subdomains_pop_labels = ipar.subdomains_pop_labels
+        latlon_gran = ipar.latlon_gran
+        load = ipar.load_network
 
         self.domain = domain
         self.domain_gran= domain_gran
