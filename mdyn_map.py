@@ -52,7 +52,7 @@ class Map:
         #    lat_0=-22,lon_0=-48.3)
 
         #Config map
-        #map.drawcoastlines()
+        map.drawcoastlines()
         map.drawcountries(color='k',linestyle='-', linewidth=0.8)
         #map.fillcontinents(color = 'coral')
         map.drawmapboundary()

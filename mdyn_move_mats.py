@@ -353,9 +353,9 @@ def simulate_model(mdyn, network, ipar):
     risk_time = risk_time.astype(float)
     ones = np.ones(len(risk_time))
     risk_index = ones-(risk_time/np.max(risk_time))
-    risk_time[risk_time<0]=np.nan
-    risk_time[risk_time<1]=1.0
     risk_index[risk_time<0]=np.nan
+    risk_time[risk_time<0]=np.nan
+    risk_time[risk_time<1]=1.0    
 
     title = title_base+"_risk_time_with_lim_"+str(ipar.risk_lim)
     filename = mdyn.dump_dir+title_base+"_risk_lim_"+str(ipar.risk_lim)+".jpg"
