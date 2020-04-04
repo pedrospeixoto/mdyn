@@ -516,10 +516,10 @@ class Network:
             print("Matrix not square!!!")
             sys.exit(1)
 
-        #Fix diagonal bo be nonzero
+        #Fix diagonal be one where zero, just to avoid null divisions
         for i in  range(n):
             if mat[i,i] == 0.0:
-                mat[i,i] == 1.0
+                mat[i,i] = 1.0
 
         #print(reg1)
         #matprint(mat)
