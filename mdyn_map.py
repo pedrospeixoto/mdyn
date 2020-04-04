@@ -204,7 +204,7 @@ class Map:
         for ir1 in reg1:
             data[data==ir1]=move_from_r0[ir1]
     
-        data[data<0]=0.0
+        data[data<0]=np.nan
 
         title = title.replace("_", " ")
         plt.title(title, y=1.08)
@@ -214,6 +214,12 @@ class Map:
         if "Diag" in title:
             plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.1, vmax=1.0, cmap=cmap, snap=True) #, norm=norm)  
             label = "Probability"
+        elif "index" in title:
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0, vmax=1, cmap=cmap , snap=True) #, norm=norm)  
+            label = "Risk index"
+        elif "time" in title:
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1.0, vmax=60.0, cmap="hot", snap=True) #, norm=norm)  
+            label = "Days to reach risk limit"
         elif "Model" in title:
             plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
             label = "Number of People"
