@@ -52,3 +52,11 @@ simul_type = "avg"
 
 #Number of simulation days
 num_simul_days = 5
+
+#Type of model 
+# 0: simple mat iteration
+# 1: only infected - see diego's doc
+# 2: two parameter model
+model = 2
+infec_rate = 0.4  #infection rate per day
+spread_rate = 1.0 #Spatial spread rate
