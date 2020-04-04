@@ -31,12 +31,13 @@ load_domain = True #Load precomp structures
 
 #Initialize mobile data and load data to dataframe
 data_dir = "data/visit_journey_sao_paulo_2018/"
-date_ini = "2019-03-11"
-date_end = "2019-03-31"
+date_ini = "2019-03-01"
+date_end = "2019-03-30"
 load_data = True
 
 #Number of main sources for plots
 num_source = 20
+
 
 
 #-----------------------------
@@ -44,11 +45,15 @@ num_source = 20
 #------------------------------
 
 #Initial condition for simulation (file with num of cases per region)
-data_ini_by_reg = ""
-
-#Move matrix to use
-simul_type = "day"
-simul_type = "avg"
+data_ini_by_reg = { 268 : 100.0 }
 
 #Number of simulation days
-num_simul_days = 5
+num_simul_days = 30
+
+#Type of model 
+# 0: simple mat iteration
+# 1: only infected - see diego's doc
+# 2: two parameter model
+model = 2
+infec_rate = 0.4  #infection rate per day
+spread_rate = 1.0 #Spatial spread rate
