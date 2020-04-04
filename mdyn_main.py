@@ -29,8 +29,13 @@ from matplotlib import animation
 
 class MobileDynamics:
 
-    def __init__(self, data_dir=None, date_ini=None, date_end=None, dump_dir=None, load=False):
-            
+    def __init__(self, ipar): 
+        data_dir = ipar.data_dir
+        date_ini = ipar.date_ini
+        date_end = ipar.date_end
+        dump_dir = ipar.dump_dir
+        load = ipar.load_data
+
         print("")
         print("Mobile Dynamics Data Analysis")
         print("-----------------------------")
