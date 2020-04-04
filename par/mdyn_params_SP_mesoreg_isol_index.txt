@@ -8,6 +8,13 @@ subdomains = "SP-Mesoreg"
 subdomains_gran = "NM_MESO"
 subdomains_shape = "maps/sp_mesorregioes/35MEE250GC_SIR"
 
+#Population
+domain_pop = "maps/population/population_ufebrasil.csv"
+domain_pop_labels = ["Estado", "Populacao"]
+subdomains_pop = "maps/population/population_sp_mun.csv"
+subdomains_pop_labels = ["municipio", "populacao_estimada"]
+
+
 #Network granularity
 latlon_gran = 0.2 #granularity of lat long spacing
 

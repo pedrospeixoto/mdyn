@@ -190,22 +190,33 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
     if np.sum(network.reg_pop) > 0.0:
         print("Warning: Will adjust raw data matrices for region populations")
             
-
     #Loop work with transitions matrices and average them by day of the week
     for i, day in enumerate(mdyn.days_all):
         print("Calculating on: ", i, day)
         dow = day.weekday()
-        diag_raw = np.diag(mdyn.movemats[i])
-        #Adjust diagonal according to population size
-        moving = mdyn.movemats[i].sum(axis=0) - diag_raw
-        print("move: ", np.average(moving))
-        print("diag:", np.average(np.diag(mdyn.movemats[i])))
-        if np.sum(network.reg_pop) > 0.0:
-            diag = network.reg_pop - moving
-            np.fill_diagonal(mdyn.movemats[i], diag, wrap=False)
+        
+        diag_orig = np.diag(mdyn.movemats[i])
+        print(" Original Diagonal(avg, max, min)       :", \
+            np.average(np.diag(mdyn.movemats[i])), np.max(np.diag(mdyn.movemats[i])), np.min(np.diag(mdyn.movemats[i])))
+        move_orig = mdyn.movemats[i].sum(axis=0) - diag_orig
+        print(" Original Moving  (avg, max, min):", \
+            np.average(move_orig), np.max(move_orig), np.min(move_orig))
+        print(" Original Move Probability : ", np.average(move_orig.sum(axis=0))/np.average(diag_orig))
 
-        print("new diag : ", np.average(diag))
-        print("new mat diag: ", np.average(np.diag(mdyn.movemats[i])))
+        mat_adj = mdyn.movemats[i]      
+
+        #Only movement is trustworthy in the data, so use it and adjust diagonal
+        #Adjust diagonal according to population size
+        #Normalize matrix to population
+        if np.sum(network.reg_pop) > 0.0:
+            diag_adj = network.reg_pop - move_orig
+            mat_adj =  mdyn.movemats[i]
+            np.fill_diagonal(mat_adj, diag_adj, wrap=False)
+        else:
+            diag_adj = np.diag(mdyn.movemats[i])
+        
+        mdyn.movemats[i] = mat_adj
+
         title_base = network.domain+" "+network.subdomains+" "+day.strftime("%Y-%m-%d")+" "+mex.weekdays[dow]
         #filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"day_prob_move.jpg"
         #if not os.path.exists(filename+".jpg"):
@@ -225,7 +236,7 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
 
         
         num_source = 10
-        sources = np.argpartition(diag_raw, -num_source)[-num_source:]
+        sources = np.argpartition(diag_orig, -num_source)[-num_source:]
         
         print("Main regions:", sources)
         #Plot daily main sources
