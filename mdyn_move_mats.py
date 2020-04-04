@@ -4,6 +4,7 @@ import os
 
 import numpy as np
 import statistics
+from scipy import stats
 
 from datetime import datetime
 from datetime import date
@@ -314,11 +315,13 @@ def simulate_model(mdyn, network, ipar):
     for i, day in enumerate(drange):
     #for j in num_simul_days:
         indx = '{:02d}'.format(i)
-        title = title_base+"_day_"+indx #+day.strftime("%Y-%m-%d")
-        print("Creating plot for ", title)
-        print()    
-        map=Map(network)
-        map.map_move_by_reg(day_state, network.regions, network, title, mdyn.dump_dir+title)
+        title = title_base+"_day_"+day.strftime("%Y-%m-%d")
+        filename = mdyn.dump_dir+title_base+"_day_"+indx+".jpg"
+        if not os.path.exists(filename):
+            print("Creating plot  ", filename)
+            print()    
+            map=Map(network)
+            map.map_move_by_reg(day_state, network.regions, network, title, filename)
 
         #Save day state
         data_evol[:,i] = day_state
@@ -337,9 +340,37 @@ def simulate_model(mdyn, network, ipar):
         minv = np.min(day_state)
         print("Num infected, avg, max, min:", sumv, np.average(day_state), maxv, minv)
         
-        if maxv > np.max(network.reg_pop):
+        if maxv > np.sum(network.reg_pop):
             print( "Too many people infected, reached the limit of the model")
-            sys.exit(1)
+            break
+
+    filename = mdyn.dump_dir+title_base+".csv"
+    np.savetxt(filename, data_evol, delimiter=",")
+    filename = mdyn.dump_dir+title_base+".npy"
+    np.save(filename, data_evol)
+
+    risk_time = mex.risk_time(data_evol, ipar.risk_lim)
+    risk_time = risk_time.astype(float)
+    ones = np.ones(len(risk_time))
+    risk_index = ones-(risk_time/np.max(risk_time))
+    risk_time[risk_time<0]=np.nan
+    risk_time[risk_time<1]=1.0
+    risk_index[risk_time<0]=np.nan
+
+    title = title_base+"_risk_time_with_lim_"+str(ipar.risk_lim)
+    filename = mdyn.dump_dir+title_base+"_risk_lim_"+str(ipar.risk_lim)+".jpg"
+    print(" Plotting risk time ", filename)
+    map=Map(network)
+    map.map_move_by_reg(risk_time, network.regions, network, title, filename)
+
+    title = title_base+"_risk_index"
+    filename = mdyn.dump_dir+title_base+"_risk_index.jpg"
+    print(" Plotting risk index ", filename)
+    map=Map(network)
+    map.map_move_by_reg(risk_index, network.regions, network, title, filename)
+
+
+
 
 def model(day_state, mat, ipar, network):
 
@@ -348,7 +379,7 @@ def model(day_state, mat, ipar, network):
 
     elif ipar.model == 1: #Infected model
 
-        pop_inf = np.divide(network.reg_pop - day_state, network.reg_pop) * np.heaviside( np.divide(network.reg_pop - day_state, network.reg_pop), 0) #(N-I)/N
+        pop_inf = np.divide(network.reg_pop - day_state, network.reg_pop) #* np.heaviside( np.divide(network.reg_pop - day_state, network.reg_pop), 0) #(N-I)/N
         print("(N-I)/N :     avg, max, min :", np.average(pop_inf), np.max(pop_inf), np.min(pop_inf))
 
         local_inf = day_state + ipar.infec_rate * np.multiply(day_state, pop_inf) #I+rI(N-I)/N 
@@ -367,23 +398,26 @@ def model(day_state, mat, ipar, network):
 
         pop_inf = np.divide(network.reg_pop - day_state, network.reg_pop)  #(N-I)/N
         pop_inf = pop_inf.clip(min=0) #Make positive
-        print("(N-I)/N :     avg, max, min :", np.average(pop_inf), np.max(pop_inf), np.min(pop_inf))
+        #print("(N-I)/N :     avg, max, min :", np.average(pop_inf), np.max(pop_inf), np.min(pop_inf))
 
         #local_inf = day_state + ipar.infec_rate * np.multiply(day_state, pop_inf) #I+rI(N-I)/N 
         local_inf = day_state + ipar.infec_rate * day_state #I+rI #
-        print("I+rI(N-I)/N : avg, max, min :", np.average(local_inf), np.max(local_inf), np.min(local_inf))
+        #print("I+rI(N-I)/N : avg, max, min :", np.average(local_inf), np.max(local_inf), np.min(local_inf))
 
         #out_inf = np.divide(np.matmul(mat, day_state), network.reg_pop) #AI/N
-        out_inf = np.matmul(mat, day_state) #AI
-        print("AI/N :        avg, max, min :", np.average(out_inf), np.max(out_inf), np.min(out_inf))
+        move_mat = np.copy(mat)
+        zero = np.zeros([mat.shape[0]])
+        np.fill_diagonal(move_mat, zero) 
+        out_inf = np.matmul(move_mat, day_state) #AI
+        #print("AI/N :        avg, max, min :", np.average(out_inf), np.max(out_inf), np.min(out_inf))
 
         #in_inf = np.divide(np.matmul(mat.transpose(), day_state), network.reg_pop) #AtI/N
         in_inf = np.matmul(mat.transpose(), day_state) #AtI
-        print("AtI/N :       avg, max, min :", np.average(in_inf), np.max(in_inf), np.min(in_inf))
+        #print("AtI/N :       avg, max, min :", np.average(in_inf), np.max(in_inf), np.min(in_inf))
 
         day_state = local_inf + ipar.spread_rate*(out_inf) # - in_inf)
         day_state = day_state.clip(min=0) #Make poisite
-        print("I+rI(N-I)/N + s(AI/N-AtI/N): avg,max,min :",np.average(day_state), np.max(day_state), np.min(day_state))
+        #print("I+rI(N-I)/N + s(AI/N-AtI/N): avg,max,min :",np.average(day_state), np.max(day_state), np.min(day_state))
         tmp_state = np.copy(day_state)
         tmp_state[268] = 0.0
         print("Non source: avg,max,min :",np.average(tmp_state), np.max(tmp_state), np.min(tmp_state))

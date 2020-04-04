@@ -32,6 +32,18 @@ import imp
 
 weekdays = 'Mon Tue Wed Thu Fri Sat Sun'.split()
 
+def risk_time(A, c):
+    n, m = A.shape
+    risktime = np.full(n, -1)
+    
+    for i in range(n):
+        for j in range(m):
+            if A[i, j] > c:
+                risktime[i]=j
+                break
+
+    return risktime
+
 def get_input(args):
     
     param_file = None
