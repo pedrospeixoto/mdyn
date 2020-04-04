@@ -189,7 +189,7 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
 
     
     print("Warning: Will adjust raw data matrices for region populations")
-    mdyn.movemats_adj = [np.zeros(mdyn.movemats[0].shape)]*7
+    mdyn.movemats_adj = [np.zeros(mdyn.movemats[0].shape)]*len(mdyn.days_all)
 
     #Loop work with transitions matrices and average them by day of the week
     for i, day in enumerate(mdyn.days_all):
