@@ -305,7 +305,9 @@ def simulate_model(mdyn, network, ipar):
     ntime = mdyn.days+ipar.num_simul_days
     data_evol = np.zeros((network.nregions, ntime))
     title_base = "Model_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
-    title_base = title_base + "_r"+str(ipar.infec_rate).replace(".","")+"_s"+str(int(ipar.spread_rate))
+    title_base = title_base + "_r"+str(ipar.infec_rate).replace(".","") \
+        +"_s"+str(ipar.spread_rate).replace(".","") 
+        #+"_s"+str(int(ipar.spread_rate))
     #simulate scenario
     drange = mex.daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=ipar.num_simul_days))
     
@@ -367,13 +369,16 @@ def model(day_state, mat, ipar, network):
         pop_inf = pop_inf.clip(min=0) #Make positive
         print("(N-I)/N :     avg, max, min :", np.average(pop_inf), np.max(pop_inf), np.min(pop_inf))
 
-        local_inf = day_state + ipar.infec_rate * np.multiply(day_state, pop_inf) #I+rI(N-I)/N 
+        #local_inf = day_state + ipar.infec_rate * np.multiply(day_state, pop_inf) #I+rI(N-I)/N 
+        local_inf = day_state + ipar.infec_rate * day_state #I+rI #
         print("I+rI(N-I)/N : avg, max, min :", np.average(local_inf), np.max(local_inf), np.min(local_inf))
 
-        out_inf = np.divide(np.matmul(mat, day_state), network.reg_pop) #AI/N
+        #out_inf = np.divide(np.matmul(mat, day_state), network.reg_pop) #AI/N
+        out_inf = np.matmul(mat, day_state) #AI
         print("AI/N :        avg, max, min :", np.average(out_inf), np.max(out_inf), np.min(out_inf))
 
-        in_inf = np.divide(np.matmul(mat.transpose(), day_state), network.reg_pop) #AtI/N
+        #in_inf = np.divide(np.matmul(mat.transpose(), day_state), network.reg_pop) #AtI/N
+        in_inf = np.matmul(mat.transpose(), day_state) #AtI
         print("AtI/N :       avg, max, min :", np.average(in_inf), np.max(in_inf), np.min(in_inf))
 
         day_state = local_inf + ipar.spread_rate*(out_inf) # - in_inf)
