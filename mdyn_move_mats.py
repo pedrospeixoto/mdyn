@@ -316,10 +316,11 @@ def simulate_model(mdyn, network, ipar):
         indx = '{:02d}'.format(i)
         title = title_base+"_day_"+day.strftime("%Y-%m-%d")
         filename = mdyn.dump_dir+title_base+"_day_"+indx+".jpg"
-        print("Creating plot  ", filename)
-        print()    
-        map=Map(network)
-        map.map_move_by_reg(day_state, network.regions, network, title, filename)
+        if not os.path.exists(filename):
+            print("Creating plot  ", filename)
+            print()    
+            map=Map(network)
+            map.map_move_by_reg(day_state, network.regions, network, title, filename)
 
         #Save day state
         data_evol[:,i] = day_state
@@ -340,7 +341,7 @@ def simulate_model(mdyn, network, ipar):
         
         if maxv > np.sum(network.reg_pop):
             print( "Too many people infected, reached the limit of the model")
-            sys.exit(1)
+            break
 
     filename = mdyn.dump_dir+title_base+".csv"
     np.savetxt(filename, data_evol, delimiter=",")
@@ -358,13 +359,8 @@ def simulate_model(mdyn, network, ipar):
     map=Map(network)
     map.map_move_by_reg(risk_time, network.regions, network, title, filename)
 
-    q1 = risk_time < ipar.risk_q1
-    q1 = q1.astype(int)
-    q2 = risk_time < ipar.risk_q2
-    q2 = q2.astype(int)
-    q3 = risk_time < ipar.risk_q3
-    q3 = q3.astype(int)
-    risk_index = (q1+q3+q3)/3.0
+    ones = np.ones(len(risk_time))
+    risk_index = ones-risk_time/np.max(risk_time)
     title = title_base+"_risk_index"
     filename = mdyn.dump_dir+title_base+"_risk_index.jpg"
     print(" Plotting risk index ", filename)
