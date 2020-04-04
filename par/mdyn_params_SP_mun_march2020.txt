@@ -45,7 +45,7 @@ num_source = 2
 #------------------------------
 
 #Initial condition for simulation (file with num of cases per region)
-data_ini_by_reg = { 268 : 100.0 }
+data_ini_by_reg = { 268 : 1.0 }
 
 #Number of simulation days
 num_simul_days = 30
@@ -57,3 +57,8 @@ num_simul_days = 30
 model = 2
 infec_rate = 0.4  #infection rate per day
 spread_rate = 0.1 #Spatial spread rate
+
+risk_lim = 10 #Infected people to consider risk limit
+risk_q1 = 10 # high risk -  days
+risk_q2 = 20 # med risk -  days
+risk_q3 = 30 # low risk -  days
