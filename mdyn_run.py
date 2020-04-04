@@ -26,31 +26,12 @@ ipar.load_network = True
 
 #Initialize network
 #-----------------------------
-network = Network(
-            domain = ipar.domain, 
-            domain_gran = ipar.domain_gran,
-            domain_shape = ipar.domain_shape, 
-            domain_pop = ipar.domain_pop,
-            domain_pop_labels = ipar.domain_pop_labels,
-            subdomains = ipar.subdomains, 
-            subdomains_gran = ipar.subdomains_gran,
-            subdomains_shape = ipar.subdomains_shape,
-            subdomains_pop = ipar.subdomains_pop,
-            subdomains_pop_labels = ipar.subdomains_pop_labels,
-            latlon_gran = ipar.latlon_gran,
-            load = ipar.load_network
-            )
-
+network = Network(ipar)
+        
 #Initialize Data
 #-----------------------------
 if run_opt < 30:
-    mdyn = MobileDynamics(
-        data_dir = ipar.data_dir,
-        date_ini = ipar.date_ini,
-        date_end = ipar.date_end,
-        dump_dir = ipar.dump_dir,
-        load = ipar.load_data
-        )
+    mdyn = MobileDynamics(ipar) 
 
 
 #Build model = generate movement model
