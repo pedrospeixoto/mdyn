@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.colors as colors
 import matplotlib.cm as cm
+from matplotlib.ticker import MaxNLocator
 
 from itertools import product
 
@@ -221,7 +222,7 @@ class Map:
             plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1.0, vmax=60.0, cmap="hot", snap=True) #, norm=norm)  
             label = "Days to reach risk limit"
         elif "Model" in title:
-            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.01, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
             label = "Number of People"
         elif "Simul" in title:
             plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1, vmax=100., cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
@@ -234,7 +235,11 @@ class Map:
         cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=25, fraction=0.1, pad=0.01, \
             spacing='proportional')
         cbar.set_label(label,size=12)
-                    
+        if "index" in title:
+            cbar.set_ticks([0, 0.5, 1.0])
+            cbar.ax.set_xticklabels([ 'Low', 'Medium', 'High']) 
+
+
         #plt.tight_layout()
         plt.tight_layout() #pad=0.4, w_pad=0.5, h_pad=1.0)
         
