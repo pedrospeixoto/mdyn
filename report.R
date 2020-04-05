@@ -1,13 +1,6 @@
 #Build plots for report
 
-library(ggplot2)
-library(readODS)
-library(tidyverse)
-library(lubridate)
-library(facetscales)
-library(plyr)
-library(data.table)
-library(rgdal)
+
 
 titles <- theme(strip.text = element_text(size = 12), axis.text = element_text(size = 12,color = "black"), 
                 axis.title = element_text(size = 14), legend.text = element_text(size = 14),
@@ -137,6 +130,36 @@ for(city in states)
       write.csv(mat,file = f2,row.names = F,col.names = F)
     }
 write.csv(x = tab[["sao_paulo"]],file = "rank_sao_paulo_municipios_March_2019_2020.csv")
-write.csv(x = tab[["rio"]],file = "rank_sao_paulo_municipios_March_2019_2020.csv")
+write.csv(x = tab[["rio"]],file = "rank_rio_municipios_March_2019_2020.csv")
+
+#Statistics
+tab <- list()
+
+tab[["sao_paulo"]] <- read.csv(file = "rank_sao_paulo_municipios_March_2019_2020.csv")
+tab[["sao_paulo"]]$X <- NULL
+w <- vector()
+for(i in 1:(ncol(tab[["sao_paulo"]])-4))
+  w[i] <- mean(tab[["sao_paulo"]][tab[["sao_paulo"]]$year == "2020",i])
+names(w) <- names(tab[["sao_paulo"]])[c(1:(ncol(tab[["sao_paulo"]])-4))]
+w <- w[order(w,decreasing = T)]
+tab[["sao_paulo"]] <- tab[["sao_paulo"]][,colnames(tab[["sao_paulo"]]) %in% c(names(w)[1:20],"day","year","city","month")]
+tab[["sao_paulo"]] <- tab[["sao_paulo"]] %>% gather("City","Rank",-day,-year,-city,-month)
+View(tab[["sao_paulo"]])
+
+tab[["rio"]] <- read.csv(file = "rank_rio_municipios_March_2019_2020.csv")
+tab[["rio"]]$X <- NULL
+w <- vector()
+for(i in 1:(ncol(tab[["rio"]])-4))
+  w[i] <- mean(tab[["rio"]][tab[["rio"]]$year == "2020",i])
+names(w) <- names(tab[["rio"]])[c(1:(ncol(tab[["rio"]])-4))]
+w <- w[order(w,decreasing = T)]
+tab[["rio"]] <- tab[["rio"]][,colnames(tab[["rio"]]) %in% c(names(w)[1:20],"day","year","city","month")]
+tab[["rio"]] <- tab[["rio"]] %>% gather("City","Rank",-day,-year,-city,-month)
+View(tab[["rio"]])
+
+library(autoAnalise)
+a <- auto_resumo(x = factor(paste(tab[["sao_paulo"]]$City,tab[["sao_paulo"]]$year)),y = tab[["sao_paulo"]]$Rank,excel = T,
+                 arquivo = "rank_sp.xlsx")
+
 
 
