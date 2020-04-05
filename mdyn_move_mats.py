@@ -191,6 +191,7 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
     
     print("Warning: Will adjust raw data matrices for region populations")
     mdyn.movemats_adj = [np.zeros(mdyn.movemats[0].shape)]*len(mdyn.days_all)
+    mdyn.movemats_adj_norm = [np.zeros(mdyn.movemats[0].shape)]*len(mdyn.days_all)
 
     #Loop work with transitions matrices and average them by day of the week
     for i, day in enumerate(mdyn.days_all):
@@ -213,9 +214,11 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
             mat_adj =  np.copy(mdyn.movemats[i])
             np.fill_diagonal(mat_adj, diag_adj, wrap=False)
             mdyn.movemats_adj[i] = mat_adj
+            mdyn.movemats_adj_norm[i] = mat_adj/ mat_adj.sum(axis=0)
         else:
             diag_adj = np.diag(mdyn.movemats[i])
             mdyn.movemats_adj[i] = mdyn.movemats[i] 
+            mdyn.movemats_adj_norm[i] = mdyn.movemats_norm[i]
         
         title_base = network.domain+" "+network.subdomains+" "+day.strftime("%Y-%m-%d")+" "+mex.weekdays[dow]
                 
@@ -252,8 +255,7 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
             filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+"_adj_day_prob.jpg"
             if not os.path.exists(filename):
                 print("Creating plot for ", filename)
-                move_vec = mdyn.movemats_adj[i][:, j]
-                move_vec = move_vec/np.sum(move_vec)
+                move_vec = mdyn.movemats_adj_norm[i][:, j]
                     
                 map=Map(network)
                 map.map_move_by_reg(move_vec, network.regions, network, title, filename)
@@ -317,7 +319,7 @@ def simulate_model(mdyn, network, ipar):
         indx = '{:02d}'.format(i)
         title = title_base+"_day_"+day.strftime("%Y-%m-%d")
         filename = mdyn.dump_dir+title_base+"_day_"+indx+".jpg"
-        if not os.path.exists(filename):
+        if not os.path.exists(filename) or True:
             print("Creating plot  ", filename)
             print()    
             map=Map(network)
@@ -327,7 +329,7 @@ def simulate_model(mdyn, network, ipar):
         data_evol[:,i] = day_state
 
         if day in mdyn.days_all: 
-            mat = mdyn.movemats_norm[i]
+            mat = mdyn.movemats_adj_norm[i]
         else:
             #Use matrix with dow average
             dow = day.weekday()
@@ -338,7 +340,7 @@ def simulate_model(mdyn, network, ipar):
         sumv = np.sum(day_state)
         maxv = np.max(day_state)
         minv = np.min(day_state)
-        print("Num infected, avg, max, min:", sumv, np.average(day_state), maxv, minv)
+        print(day, "Num infected, avg, max, min:", sumv, np.average(day_state), maxv, minv)
         
         if maxv > np.sum(network.reg_pop):
             print( "Too many people infected, reached the limit of the model")
@@ -401,7 +403,7 @@ def model(day_state, mat, ipar, network):
         #print("(N-I)/N :     avg, max, min :", np.average(pop_inf), np.max(pop_inf), np.min(pop_inf))
 
         #local_inf = day_state + ipar.infec_rate * np.multiply(day_state, pop_inf) #I+rI(N-I)/N 
-        local_inf = day_state + ipar.infec_rate * day_state #I+rI #
+        local_inf = day_state + ipar.infec_rate * day_state*pop_inf #I+rI #
         #print("I+rI(N-I)/N : avg, max, min :", np.average(local_inf), np.max(local_inf), np.min(local_inf))
 
         #out_inf = np.divide(np.matmul(mat, day_state), network.reg_pop) #AI/N
@@ -418,8 +420,8 @@ def model(day_state, mat, ipar, network):
         day_state = local_inf + ipar.spread_rate*(out_inf) # - in_inf)
         day_state = day_state.clip(min=0) #Make positive
         #print("I+rI(N-I)/N + s(AI/N-AtI/N): avg,max,min :",np.average(day_state), np.max(day_state), np.min(day_state))
-        #tmp_state = np.copy(day_state)
-        #tmp_state[268] = 0.0
-        #print("Non source: avg,max,min :",np.average(tmp_state), np.max(tmp_state), np.min(tmp_state))
+        tmp_state = np.copy(day_state)
+        tmp_state[np.argmax(tmp_state)] = 0.0
+        print("Non source: avg,max,min :",np.average(tmp_state), np.max(tmp_state), np.min(tmp_state))
 
     return day_state

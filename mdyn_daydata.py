@@ -210,6 +210,17 @@ class DayData:
                     except:
                         pass
 
+            #Data density - join event 0 and 1
+            title = "density_"+self.day+" event0+1"
+            filename = self.local_dir+title+".jpg"
+            if not os.path.exists(filename):
+                    print("Ploting density")
+                    map = Map(self.dom)
+                    lons = np.concatenate((self.df['lng0'].values, self.df['lng1'].values))
+                    lats = np.concatenate((self.df['lat0'].values, self.df['lat1'].values))
+                    map.map_density_data(lons, lats, \
+                        title, filename)
+
             #Statistics
             print(self.df.describe())
             filename = self.local_dir+"day_"+self.day+"_basic_stats.csv"
