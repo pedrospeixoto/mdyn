@@ -5,6 +5,7 @@ import os
 import numpy as np
 import statistics
 from scipy import stats
+import pandas as pd
 
 from datetime import datetime
 from datetime import date
@@ -319,7 +320,7 @@ def simulate_model(mdyn, network, ipar):
         indx = '{:02d}'.format(i)
         title = title_base+"_day_"+day.strftime("%Y-%m-%d")
         filename = mdyn.dump_dir+title_base+"_day_"+indx+".jpg"
-        if not os.path.exists(filename) or True:
+        if not os.path.exists(filename):
             print("Creating plot  ", filename)
             print()    
             map=Map(network)
@@ -346,9 +347,9 @@ def simulate_model(mdyn, network, ipar):
             print( "Too many people infected, reached the limit of the model")
             break
 
-    filename = mdyn.dump_dir+title_base+".csv"
+    filename = mdyn.dump_dir+title_base+"data_evol.csv"
     np.savetxt(filename, data_evol, delimiter=",")
-    filename = mdyn.dump_dir+title_base+".npy"
+    filename = mdyn.dump_dir+title_base+"data_evol.npy"
     np.save(filename, data_evol)
 
     risk_time = mex.risk_time(data_evol, ipar.risk_lim)
@@ -358,6 +359,19 @@ def simulate_model(mdyn, network, ipar):
     risk_index[risk_time<0]=np.nan
     risk_time[risk_time<0]=np.nan
     risk_time[risk_time<1]=1.0    
+    
+    filename = mdyn.dump_dir+title_base+"_risk_index.npy"
+    np.save(filename, risk_index)
+    filename = mdyn.dump_dir+title_base+"_risk_index.csv"
+    np.savetxt(filename, risk_index, delimiter=",")
+
+    risk_ind_fmt = {"Region": list(network.regions.values()) , "Index": risk_index}
+    df_risk_ind = pd.DataFrame(risk_ind_fmt)
+    df_risk_ind = df_risk_ind.sort_values(["Index"], ascending = (False))
+    print(df_risk_ind)
+
+    filename = mdyn.dump_dir+title_base+"_risk_index_list.csv"
+    df_risk_ind.to_csv (filename, index = False, header=True)
 
     title = title_base+"_risk_time_with_lim_"+str(ipar.risk_lim)
     filename = mdyn.dump_dir+title_base+"_risk_lim_"+str(ipar.risk_lim)+".jpg"
