@@ -127,8 +127,6 @@ shape_sp_sub_municipio <- get_domain(domain = shape_sp,sub_domain = shape_sp_sub
                                      name_dom = "NM_MUNICIP")
 writeOGR(shape_sp_sub_municipio, ".", "shape_sp_subdistritos_municipio", driver="ESRI Shapefile")
 
-map <- ggplot(fortify(shape_rj_sub_municipio,region = "MUNICIPIO"),aes(x = long, y = lat, group = group,fill = id)) + 
-  geom_polygon() + theme_void() +guide(show.legend = F)
-  shape_rj_sub_municipio$MUNICIPIO
-  head(shape_rj_sub_municipio)
-  
+shp <- readOGR(dsn = "~/GDrive/github/mdyn/maps/sp_subdistritos/shape_sp_subdistritos_municipio.shp",stringsAsFactors = F)
+
+
