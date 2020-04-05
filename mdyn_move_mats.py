@@ -353,9 +353,9 @@ def simulate_model(mdyn, network, ipar):
     risk_time = risk_time.astype(float)
     ones = np.ones(len(risk_time))
     risk_index = ones-(risk_time/np.max(risk_time))
-    risk_time[risk_time<0]=np.nan
-    risk_time[risk_time<1]=1.0
     risk_index[risk_time<0]=np.nan
+    risk_time[risk_time<0]=np.nan
+    risk_time[risk_time<1]=1.0    
 
     title = title_base+"_risk_time_with_lim_"+str(ipar.risk_lim)
     filename = mdyn.dump_dir+title_base+"_risk_lim_"+str(ipar.risk_lim)+".jpg"
@@ -416,10 +416,10 @@ def model(day_state, mat, ipar, network):
         #print("AtI/N :       avg, max, min :", np.average(in_inf), np.max(in_inf), np.min(in_inf))
 
         day_state = local_inf + ipar.spread_rate*(out_inf) # - in_inf)
-        day_state = day_state.clip(min=0) #Make poisite
+        day_state = day_state.clip(min=0) #Make positive
         #print("I+rI(N-I)/N + s(AI/N-AtI/N): avg,max,min :",np.average(day_state), np.max(day_state), np.min(day_state))
-        tmp_state = np.copy(day_state)
-        tmp_state[268] = 0.0
-        print("Non source: avg,max,min :",np.average(tmp_state), np.max(tmp_state), np.min(tmp_state))
+        #tmp_state = np.copy(day_state)
+        #tmp_state[268] = 0.0
+        #print("Non source: avg,max,min :",np.average(tmp_state), np.max(tmp_state), np.min(tmp_state))
 
     return day_state
