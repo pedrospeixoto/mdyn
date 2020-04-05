@@ -299,7 +299,15 @@ class Network:
             np.savetxt(self.gridname+".csv", self.region_grid)
             np.save(self.gridname, self.region_grid)
             print("Regions saved in file "+self.gridname)
+            
+            #Map the regions
+            print( "Plotting regions")
+            map = Map(self)
+            map.map_reg_data(self, self.gridname )
 
+
+        if not os.path.exists(self.gridname+".jpg"):
+            print( "Plotting regions")
             #Map the regions
             map = Map(self)
             map.map_reg_data(self, self.gridname )

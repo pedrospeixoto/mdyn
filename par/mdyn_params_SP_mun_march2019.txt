@@ -39,13 +39,12 @@ load_data = True
 num_source = 20
 
 
-
 #-----------------------------
 # Simulation configuration
 #------------------------------
 
 #Initial condition for simulation (file with num of cases per region)
-data_ini_by_reg = { 268 : 100.0 }
+data_ini_by_reg = { 268 : 1.0 }
 
 #Number of simulation days
 num_simul_days = 30
@@ -56,4 +55,7 @@ num_simul_days = 30
 # 2: two parameter model
 model = 2
 infec_rate = 0.4  #infection rate per day
-spread_rate = 1.0 #Spatial spread rate
+spread_rate = 0.1 #Spatial spread rate
+
+risk_lim = 0.5 #Infected people to consider risk limit
+

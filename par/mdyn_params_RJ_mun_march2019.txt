@@ -44,14 +44,10 @@ num_source = 20
 #------------------------------
 
 #Initial condition for simulation (file with num of cases per region)
-data_ini_by_reg = ""
-
-#Move matrix to use 
-simul_type = "day"
-simul_type = "avg"
+data_ini_by_reg = { 17 : 1.0 }
 
 #Number of simulation days
-num_simul_days = 5
+num_simul_days = 30
 
 #Type of model 
 # 0: simple mat iteration
@@ -59,4 +55,7 @@ num_simul_days = 5
 # 2: two parameter model
 model = 2
 infec_rate = 0.4  #infection rate per day
-spread_rate = 1.0 #Spatial spread rate
+spread_rate = 0.1 #Spatial spread rate
+
+risk_lim = 0.5 #Infected people to consider risk limit
+
