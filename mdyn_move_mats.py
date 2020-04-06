@@ -187,8 +187,8 @@ def calc_move_mat_avg(mdyn, network, ipar):
 
 def calc_move_mat_avg_dow(mdyn, network, ipar):
     #Period mean move mat per dow
+    movemat_avg_adj = [np.zeros(mdyn.movemats[0].shape)]*7
     movemat_avg = [np.zeros(mdyn.movemats[0].shape)]*7
-
     
     print("Warning: Will adjust raw data matrices for region populations")
     mdyn.movemats_adj = [np.zeros(mdyn.movemats[0].shape)]*len(mdyn.days_all)
@@ -223,8 +223,9 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
         
         title_base = network.domain+" "+network.subdomains+" "+day.strftime("%Y-%m-%d")+" "+mex.weekdays[dow]
                 
-        movemat_avg[dow] = movemat_avg[dow] + mdyn.movemats_adj[i]
-        
+        movemat_avg_adj[dow] = movemat_avg_adj[dow] + mdyn.movemats_adj[i]
+        movemat_avg[dow] = movemat_avg[dow] + mdyn.movemats[i]
+
         #Plot matrix diagonal
         diag_norm = np.diag(mdyn.movemats_norm[i])
 
@@ -260,25 +261,28 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
                     
                 map=Map(network)
                 map.map_move_by_reg(move_vec, network.regions, network, title, filename)
+            
+
         #mex.matprint(mdyn.movemats_norm[i])
 
     #Save 1st diagonal for future use, just as a refernce to get main sources
-    movemat_avg_diag = np.diag(movemat_avg[0])
+    movemat_avg_diag = np.diag(movemat_avg_adj[0])
     movemat_avg_diag = movemat_avg_diag[0:network.nreg_in]
 
     #Calculate average matrices
     #print(movemat_avg_diag)
     for i in range(7):
         #normalize move mat
-        if np.sum(np.sum(movemat_avg[i])) > 0 :
+        if np.sum(np.sum(movemat_avg_adj[i])) > 0 :
+            movemat_avg_adj[i] = movemat_avg_adj[i] / movemat_avg_adj[i].sum(axis=0)
             movemat_avg[i] = movemat_avg[i] / movemat_avg[i].sum(axis=0)
-        
+
         #PLot avg matrices
         title_base = network.domain+" "+network.subdomains+" "+mdyn.date_ini+" "+mdyn.date_end+" "+mex.weekdays[i]
         filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"avg_prob_move.jpg"
-        if np.sum(np.sum((movemat_avg[i]))) > 0 and network.nregions < 20:
+        if np.sum(np.sum((movemat_avg_adj[i]))) > 0 and network.nregions < 20:
             if not os.path.exists(filename):
-                mex.plot_matrix(movemat_avg[i], title_base+"\nMean Move Prob", filename)
+                mex.plot_matrix(movemat_avg_adj[i], title_base+"\nMean Move Prob", filename)
 
         #Std dev and its plot
         movemat_std = np.std(mdyn.movemats_norm, axis=0)
@@ -288,8 +292,19 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
                 mex.plot_matrix(movemat_std, title_base+"\nStd_Dev_of_Prob", filename)
             except:
                 pass
+        
+        #Plot daily main sources - non adjusted matrices
+        for j in sources:
+            title = title_base+"\nOrigin "+str(network.regions[j])
+            filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+"_dow_avg_prob.jpg"
+            if not os.path.exists(filename):
+                print("Creating plot for ", filename)
+                move_vec = movemat_avg[i][:, j]
+                    
+                map=Map(network)
+                map.map_move_by_reg(move_vec, network.regions, network, title, filename)
 
-    return movemat_avg,  movemat_std, movemat_avg_diag
+    return movemat_avg_adj,  movemat_std, movemat_avg_diag
 
 def simulate_model(mdyn, network, ipar):
 
