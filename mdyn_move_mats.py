@@ -428,7 +428,7 @@ def model(day_state, mat, ipar, network):
         #print("AI/N :        avg, max, min :", np.average(out_inf), np.max(out_inf), np.min(out_inf))
 
         #in_inf = np.divide(np.matmul(mat.transpose(), day_state), network.reg_pop) #AtI/N
-        in_inf = np.matmul(mat.transpose(), day_state) #AtI
+        in_inf = np.matmul(move_mat.transpose(), day_state) #AtI
         #print("AtI/N :       avg, max, min :", np.average(in_inf), np.max(in_inf), np.min(in_inf))
 
         day_state = local_inf + ipar.spread_rate*(out_inf) # - in_inf)
