@@ -142,7 +142,7 @@ for(i in 1:(ncol(tab[["sao_paulo"]])-4))
   w[i] <- mean(tab[["sao_paulo"]][tab[["sao_paulo"]]$year == "2020",i])
 names(w) <- names(tab[["sao_paulo"]])[c(1:(ncol(tab[["sao_paulo"]])-4))]
 w <- w[order(w,decreasing = T)]
-tab[["sao_paulo"]] <- tab[["sao_paulo"]][,colnames(tab[["sao_paulo"]]) %in% c(names(w)[1:20],"day","year","city","month")]
+tab[["sao_paulo"]] <- tab[["sao_paulo"]][,colnames(tab[["sao_paulo"]]) %in% c(names(w)[2:16],"day","year","city","month")]
 tab[["sao_paulo"]] <- tab[["sao_paulo"]] %>% gather("City","Rank",-day,-year,-city,-month)
 View(tab[["sao_paulo"]])
 
@@ -153,12 +153,14 @@ for(i in 1:(ncol(tab[["rio"]])-4))
   w[i] <- mean(tab[["rio"]][tab[["rio"]]$year == "2020",i])
 names(w) <- names(tab[["rio"]])[c(1:(ncol(tab[["rio"]])-4))]
 w <- w[order(w,decreasing = T)]
-tab[["rio"]] <- tab[["rio"]][,colnames(tab[["rio"]]) %in% c(names(w)[1:20],"day","year","city","month")]
+tab[["rio"]] <- tab[["rio"]][,colnames(tab[["rio"]]) %in% c(names(w)[2:16],"day","year","city","month")]
 tab[["rio"]] <- tab[["rio"]] %>% gather("City","Rank",-day,-year,-city,-month)
 View(tab[["rio"]])
 
 library(autoAnalise)
-a <- auto_resumo(x = factor(paste(tab[["sao_paulo"]]$City,tab[["sao_paulo"]]$year)),y = tab[["sao_paulo"]]$Rank,excel = T,
+a <- auto_resumo(x = factor(paste(tab[["rio"]]$City,"-",tab[["rio"]]$year)),y = tab[["rio"]]$Rank,excel = T,
+                 arquivo = "rank_rj.xlsx")
+a <- auto_resumo(x = factor(paste(tab[["sao_paulo"]]$City,"-",tab[["sao_paulo"]]$year)),y = tab[["sao_paulo"]]$Rank,excel = T,
                  arquivo = "rank_sp.xlsx")
 
 
