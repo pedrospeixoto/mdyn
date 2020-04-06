@@ -365,12 +365,12 @@ def simulate_model(mdyn, network, ipar):
     filename = mdyn.dump_dir+title_base+"_risk_index.csv"
     np.savetxt(filename, risk_index, delimiter=",")
 
-    risk_ind_fmt = {"Region": list(network.regions.values()) , "Index": risk_index}
+    risk_ind_fmt = {"Region": list(network.regions.values()) , "Index": risk_index, "Time": risk_time}
     df_risk_ind = pd.DataFrame(risk_ind_fmt)
     df_risk_ind = df_risk_ind.sort_values(["Index"], ascending = (False))
     print(df_risk_ind)
 
-    filename = mdyn.dump_dir+title_base+"_risk_index_list.csv"
+    filename = mdyn.dump_dir+title_base+"_risk_index_time_list.csv"
     df_risk_ind.to_csv (filename, index = False, header=True)
 
     title = title_base+"_risk_time_with_lim_"+str(ipar.risk_lim)
