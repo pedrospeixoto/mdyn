@@ -412,27 +412,31 @@ def model(day_state, mat, ipar, network):
 
     elif ipar.model == 2: #2 parameter model
 
+        #Local infections
         pop_inf = np.divide(network.reg_pop - day_state, network.reg_pop)  #(N-I)/N
-        pop_inf = pop_inf.clip(min=0) #Make positive
-        #print("(N-I)/N :     avg, max, min :", np.average(pop_inf), np.max(pop_inf), np.min(pop_inf))
-
-        #local_inf = day_state + ipar.infec_rate * np.multiply(day_state, pop_inf) #I+rI(N-I)/N 
-        local_inf = day_state + ipar.infec_rate * day_state*pop_inf #I+rI #
+        pop_inf = pop_inf.clip(min=0) #Make positive, just in case
+        #print("(N-I)/N :     avg, max, min :", np.average(pop_inf), np.max(pop_inf), np.min(pop_inf)) 
+        local_inf = day_state + ipar.infec_rate * day_state*pop_inf #I+rI(N-I)/N 
         #print("I+rI(N-I)/N : avg, max, min :", np.average(local_inf), np.max(local_inf), np.min(local_inf))
 
-        #out_inf = np.divide(np.matmul(mat, day_state), network.reg_pop) #AI/N
+        #Outgoing infected
         move_mat = np.copy(mat)
         zero = np.zeros([mat.shape[0]])
-        np.fill_diagonal(move_mat, zero) 
+        np.fill_diagonal(move_mat, zero) #Zero diagonal of move matriz
         out_inf = np.matmul(move_mat, day_state) #AI
         #print("AI/N :        avg, max, min :", np.average(out_inf), np.max(out_inf), np.min(out_inf))
 
+        #Incoming infected
         #in_inf = np.divide(np.matmul(mat.transpose(), day_state), network.reg_pop) #AtI/N
-        in_inf = np.matmul(move_mat.transpose(), day_state) #AtI
+        #in_inf = np.matmul(move_mat.transpose(), day_state) #AtI - wrong!
+        in_inf = move_mat.sum(axis=0)*day_state #
         #print("AtI/N :       avg, max, min :", np.average(in_inf), np.max(in_inf), np.min(in_inf))
 
-        day_state = local_inf + ipar.spread_rate*(out_inf) # - in_inf)
+        #Newly infected
+        day_state = local_inf + ipar.spread_rate*(out_inf -  in_inf)
         day_state = day_state.clip(min=0) #Make positive
+
+        #Check non source infected people
         #print("I+rI(N-I)/N + s(AI/N-AtI/N): avg,max,min :",np.average(day_state), np.max(day_state), np.min(day_state))
         tmp_state = np.copy(day_state)
         tmp_state[np.argmax(tmp_state)] = 0.0
