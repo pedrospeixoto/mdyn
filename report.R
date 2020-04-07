@@ -1,11 +1,18 @@
 #Build plots for report
 
-
+library(ggplot2)
+library(rgdal)
+library(tidyverse)
+library(dplyr)
+require(stringi)
+library(plyr)
+library(rgeos)
+library(geosphere)
 
 titles <- theme(strip.text = element_text(size = 12), axis.text = element_text(size = 12,color = "black"), 
                 axis.title = element_text(size = 14), legend.text = element_text(size = 14),
-                legend.title = element_text(size = 14), panel.grid.major = element_blank(),
-                panel.grid.minor = element_blank(), panel.border = element_blank(),
+                legend.title = element_text(size = 14),
+                panel.border = element_blank(),
                 panel.background = element_rect(fill="white",size=0.5, linetype="solid",color = "black"),
                 legend.background = element_rect(fill="white",size=0.5, linetype="solid",color = "black"),
                 legend.position="bottom",legend.spacing.x = unit(0.5, 'cm'))
@@ -59,19 +66,19 @@ p
 dev.off()
 
 #Plot relation lambda x transition probabilities
-dados <- data.frame(x = c(0,1))
-f <- function(x){
-  (x < 0.25)*3 + (x >= 0.25)*(3/0.75)*(1 - x)
-}
-
-p <- ggplot(dados,aes(x = x)) + themes + titles + stat_function(fun = f) + 
-  scale_x_continuous(breaks = c(0,0.25,1),labels = c("0",expression(hat(p)[ii]^{M}),"1")) +
-  xlab(expression(hat(p)[ii]^{n})) + ylab(expression(lambda~"(i,t)")) +
-  scale_y_continuous(breaks = c(0,3),labels = c("0",expression(lambda)),limits = c(0,3.5)) +
-  geom_segment(aes(x = 0.25,xend = 0.25,y = 0,yend = 3),linetype = "dashed")
-pdf(file = "relation_lambda.pdf",width = 10,height = (2/3)*10)
-p
-dev.off()
+# dados <- data.frame(x = c(0,1))
+# f <- function(x){
+#   (x < 0.25)*3 + (x >= 0.25)*(3/0.75)*(1 - x)
+# }
+# 
+# p <- ggplot(dados,aes(x = x)) + themes + titles + stat_function(fun = f) + 
+#   scale_x_continuous(breaks = c(0,0.25,1),labels = c("0",expression(hat(p)[ii]^{M}),"1")) +
+#   xlab(expression(hat(p)[ii]^{n})) + ylab(expression(lambda~"(i,t)")) +
+#   scale_y_continuous(breaks = c(0,3),labels = c("0",expression(lambda)),limits = c(0,3.5)) +
+#   geom_segment(aes(x = 0.25,xend = 0.25,y = 0,yend = 3),linetype = "dashed")
+# pdf(file = "relation_lambda.pdf",width = 10,height = (2/3)*10)
+# p
+# dev.off()
 
 #######Population Dynamics#####
 
@@ -157,11 +164,237 @@ tab[["rio"]] <- tab[["rio"]][,colnames(tab[["rio"]]) %in% c(names(w)[2:16],"day"
 tab[["rio"]] <- tab[["rio"]] %>% gather("City","Rank",-day,-year,-city,-month)
 View(tab[["rio"]])
 
-library(autoAnalise)
-a <- auto_resumo(x = factor(paste(tab[["rio"]]$City,"-",tab[["rio"]]$year)),y = tab[["rio"]]$Rank,excel = T,
-                 arquivo = "rank_rj.xlsx")
-a <- auto_resumo(x = factor(paste(tab[["sao_paulo"]]$City,"-",tab[["sao_paulo"]]$year)),y = tab[["sao_paulo"]]$Rank,excel = T,
-                 arquivo = "rank_sp.xlsx")
+#####Statistical Analysis of Model Simulations#####
+
+setwd("~/mobilidade/mdyn/output")
+
+name <- list(SP = "SÃO PAULO_SP-Municipios",RJ = "RIO DE JANEIRO_RJ-Municipios")
+shape_rj <- readOGR(dsn = "~/GDrive/github/mdyn/maps/rj_municipios/33MUE250GC_SIR.shp",stringsAsFactors = F)
+shape_sp <- readOGR(dsn = "~/GDrive/github/mdyn/maps/sp_municipios/35MUE250GC_SIR_mdyn.shp",stringsAsFactors = F)
+n_mat <- list(SP = c(shape_sp$NM_MUNICIP,"MINAS GERAIS","RIO DE JANEIRO","PARANÁ","MATO GROSSO DO SUL"),
+              RJ = c(shape_rj$NM_MUNICIP,"MINAS GERAIS","ESPIRITO SANTO","SÃO PAULO"))
+tab <- list(SP = data.frame(),RJ = data.frame())
 
 
+for(city in c("SP","RJ"))
+  for(s in c("001","005","01","02","04","05","06","08","10","12","14","16","18","20","25","30")){
+    f <- paste("~/GDrive/github/mdyn/output/Model_time/Model_",name[[city]],"_2020-03-01_2020-03-30_r04_s",s,"_risk_index_time_list.csv",sep = "")
+    tmp <- read.csv(f,header = T)
+    n <- tmp$Region
+    tmp$Region <- NULL
+    tmp$Index <- NULL
+    tmp <- data.frame(t(as.matrix(tmp)))
+    colnames(tmp) <- n
+    tmp$s <- s
+    if(nrow(tab[[city]]) == 0)
+      tab[[city]] <- tmp
+    else
+      tab[[city]] <- rbind.data.frame(tab[[city]],tmp)
+  }
+write.csv(file = "rank_model_sp.csv",x = tab[["SP"]])
+write.csv(file = "rank_model_rj.csv",x = tab[["RJ"]])
+
+# tab <- list()
+# tab[["SP"]] <- read.csv("rank_model_sp.csv",sep = ",",header = F)
+# tab[["RJ"]] <- read.csv("rank_model_rj.csv",sep = ",",header = F)
+# tab[["SP"]]$V1 <- NULL
+# tab[["RJ"]]$V1 <- NULL
+# n_mat <- list(SP = as.vector(as.matrix(tab[["SP"]])[1,]),
+#               RJ = as.vector(as.matrix(tab[["RJ"]])[1,]))
+# tab[["SP"]] <- read.csv("rank_model_sp.csv",sep = ",")
+# tab[["RJ"]] <- read.csv("rank_model_rj.csv",sep = ",")
+# tab[["SP"]]$X <- NULL
+# tab[["RJ"]]$X <- NULL
+# colnames(tab[["SP"]]) <- n_mat[["SP"]]
+# colnames(tab[["RJ"]]) <- n_mat[["RJ"]]
+
+tab[["SP"]]$s <- factor(c("0.001","0.005","0.1","0.2","0.4","0.5","0.6","0.8","1.0",
+                   "1.2","1.4","1.6","1.8","2.0","2.5","3.0"))
+tab[["RJ"]]$s <- factor(c("0.001","0.005","0.1","0.2","0.4","0.5","0.6","0.8","1.0",
+                   "1.2","1.4","1.6","1.8","2.0","2.5","3.0"))
+shape_rj <- readOGR(dsn = "~/GDrive/github/mdyn/maps/rj_municipios/33MUE250GC_SIR.shp",stringsAsFactors = F)
+shape_sp <- readOGR(dsn = "~/GDrive/github/mdyn/maps/sp_municipios/35MUE250GC_SIR_mdyn.shp",stringsAsFactors = F)
+
+rank <- list()
+rank[["SP"]] <- tab[["SP"]]
+rank[["RJ"]] <- tab[["RJ"]]
+ 
+for(c in c("SP","RJ"))
+  for(i in 1:nrow(rank[[c]])){
+    rank[[c]][i,-ncol(rank[[c]])] <- dense_rank(as.numeric(as.character(rank[[c]][i,-ncol(rank[[c]])])))
+    rank[[c]][i,is.na(rank[[c]][i,])] <- max(rank[[c]][i,-ncol(rank[[c]])],na.rm = T) + 1
+  }
+rank[["SP"]]$State <- "SP"
+rank[["RJ"]]$State <- "RJ"
+ 
+rank_invert <- list()
+rank_invert[["SP"]] <- rank[["SP"]] %>% gather("City","Rank",-s,-State)
+rank_invert[["SP"]]$City[rank_invert[["SP"]]$City == "RIO DE JANEIRO"] <- "RIO DE JANEIRO (S)"
+rank_invert[["RJ"]] <- rank[["RJ"]] %>% gather("City","Rank",-s,-State)
+rank_invert[["RJ"]]$City[rank_invert[["RJ"]]$City == "SÃO PAULO"] <- "SÃO PAULO (S)"
+rank_invert <- rbind.data.frame(rank_invert[["SP"]],rank_invert[["RJ"]])
+rank_invert$key <- paste(rank_invert$s,rank_invert$State,rank_invert$City)
+
+tab_invert <- list()
+tab[["SP"]]$State <- "SP"
+tab[["RJ"]]$State <- "RJ"
+tab_invert[["SP"]] <- tab[["SP"]] %>% gather("City","Time",-s,-State)
+tab_invert[["SP"]]$City[tab_invert[["SP"]]$City == "RIO DE JANEIRO"] <- "RIO DE JANEIRO (S)"
+tab_invert[["RJ"]] <- tab[["RJ"]] %>% gather("City","Time",-s,-State)
+tab_invert[["RJ"]]$City[tab_invert[["RJ"]]$City == "SÃO PAULO"] <- "SÃO PAULO (S)"
+tab_invert <- rbind.data.frame(tab_invert[["SP"]],tab_invert[["RJ"]])
+tab_invert$key <- paste(tab_invert$s,tab_invert$State,tab_invert$City)
+tab_invert[,c(1,2,3)] <- NULL
+
+data <- merge(tab_invert,rank_invert)
+data$key <- NULL
+
+#SP
+data_SP <- data[,-1] %>% spread(key = "s",value = "Rank") %>% filter(State == "SP")
+set.seed(1)
+c_SP_menor <- kmeans(data_SP[,c(3:10)],centers = 3)
+rowMeans(c_SP_menor$centers)
+data_SP$Grupo_menor <- factor(c_SP_menor$cluster)
+data_SP$Grupo_menor <- mapvalues(data_SP$Grupo_menor,from = c("1","2","3"),to = c("Medium Risk",
+                                                                                  "Low Risk","High Risk"))
+
+set.seed(1)
+c_SP_maior <- kmeans(data_SP[,c(11:18)],centers = 3)
+rowMeans(c_SP_maior$centers)
+data_SP$Grupo_maior <- factor(c_SP_maior$cluster)
+data_SP$Grupo_maior <- mapvalues(data_SP$Grupo_maior,from = c("1","2","3"),to = c("Medium Risk",
+                                                                                  "Low Risk","High Risk"))
+table(data_SP$Grupo_menor,data_SP$Grupo_maior) #49 cidades
+
+set.seed(1)
+c_SP <- kmeans(data_SP[,c(3:18)],centers = 3)
+rowMeans(c_SP$centers)
+data_SP$Grupo <- factor(c_SP$cluster)
+data_SP$Grupo <- mapvalues(data_SP$Grupo,from = c("1","2","3"),to = c("Medium Risk","Low Risk","High Risk"))
+data_SP$Grupo <- factor(data_SP$Grupo,c("Low Risk","Medium Risk","High Risk"))
+
+#Map
+f <- fortify(shape_sp,region = "NM_MUNICIP")
+f <- merge(f,data_SP[,c(2,21)],by.x = "id",by.y = "City")
+map_SP <- ggplot() + theme_bw() + ylab("Latitude") + xlab("Longitude") +
+  geom_polygon(data = f,aes(long, lat, group = group,fill = Grupo), color = "black") +
+  scale_fill_manual("Risk",values = c("darkolivegreen2","orange","red")) + titles
+pdf(file = "map_risk_SP.pdf",width = 10,height = (2/3)*10)
+map_SP
+dev.off()
+
+#Plot
+population <- read.csv("~/GDrive/github/mdyn/maps/population/population_sp.csv",sep = ";")
+population$municipio <- toupper(population$municipio)
+dist <- read.csv("~/GDrive/github/mdyn/tabulatedData/dist_SP.csv",sep = ";")
+dist$cidade <- toupper(dist$cidade)
+data_tmp <- merge(data,population,by.x = "City",by.y = "municipio")
+data_tmp <- merge(data_tmp,dist,by.x = "City",by.y = "cidade",all.x = T)
+cases <- read.csv("~/GDrive/github/mdyn/tabulatedData/covid19_06ABR.csv")
+cases <- cases %>% filter(state == "SP" & date == "2020-04-06")
+cases$city <- toupper(cases$city)
+cases <- cases[,c(3,5)]
+data_tmp <- merge(data_tmp,cases,by.x = "City",by.y = "city",all.x = T)
+cases$city[!(cases$city %in% data_tmp$City)]
+unique(data_tmp$City[!is.na(data_tmp$confirmed)]) 
+summary(data_tmp)
+
+tmp <- data_tmp %>% filter(populacao_estimada > 100000) %>% droplevels()
+tmp$City <- factor(tmp$City,unique(tmp$City)[order(tapply(tmp$Rank,tmp$City,mean))])
+
+tmp <- merge(tmp,data_SP[,c(2,21)])
+tmp$km <- as.numeric(as.character(tmp$km))
+tmp <- tmp %>% filter(!(City %in% c("MINAS GERAIS","ESPIRITO SANTO")))
+
+p <- ggplot(tmp,aes(x = City,y = Rank,colour = Grupo)) + 
+  geom_point(aes(y = max(tmp$Rank,na.rm = T)-Rank)) + #facet_grid("State",scales = "free_x") +
+  geom_smooth(data = unique(tmp[c(1,7,9)]),se = F,aes(x = City,y = (km/max(tmp$km,na.rm = T)) * max(tmp$Rank,na.rm = T),
+                                                      colour = Grupo,group = 1),color = "gray") +
+  geom_point(data = unique(tmp[c(1,7,9)]),aes(x = City,y = (km/max(tmp$km,na.rm = T)) * max(tmp$Rank,na.rm = T),colour = Grupo),pch = 2) + 
+  themes + titles + theme(axis.text.x = element_text(angle = 90, hjust = 1),panel.grid.major = element_blank(),
+                          panel.grid.minor = element_blank()) + 
+  scale_y_continuous(sec.axis = sec_axis(~.*(max(tmp$km,na.rm = T)/max(tmp$Rank,na.rm = T)), 
+                                         name = "Distance to capital city (km)"),breaks = c(0,10,20,27),
+                     labels = c("27","20","10","0")) +
+  scale_colour_manual("Risk",values = c("orange","red")) 
+pdf(file = "plot_risk_SP.pdf",width = 10,height = (2/3)*10)
+p
+dev.off()
+write.csv(x = data_SP,file = "rank_risk_sp.csv",)
+
+#RJ
+data_RJ <- data[,-1] %>% spread(key = "s",value = "Rank") %>% filter(State == "RJ")
+set.seed(1)
+c_RJ_menor <- kmeans(data_RJ[,c(3:10)],centers = 3)
+rowMeans(c_RJ_menor$centers)
+data_RJ$Grupo_menor <- factor(c_RJ_menor$cluster)
+data_RJ$Grupo_menor <- mapvalues(data_RJ$Grupo_menor,from = c("1","2","3"),to = c("Medium Risk",
+                                                                                  "Low Risk","High Risk"))
+
+set.seed(1)
+c_RJ_maior <- kmeans(data_RJ[,c(11:18)],centers = 3)
+rowMeans(c_RJ_maior$centers)
+data_RJ$Grupo_maior <- factor(c_RJ_maior$cluster)
+data_RJ$Grupo_maior <- mapvalues(data_RJ$Grupo_maior,from = c("1","2","3"),to = c("Medium Risk",
+                                                                                  "Low Risk","High Risk"))
+table(data_RJ$Grupo_menor,data_RJ$Grupo_maior) #29 cidades
+
+set.seed(1)
+c_RJ <- kmeans(data_RJ[,c(3:18)],centers = 3)
+rowMeans(c_RJ$centers)
+data_RJ$Grupo <- factor(c_RJ$cluster)
+data_RJ$Grupo <- mapvalues(data_RJ$Grupo,from = c("1","2","3"),to = c("Medium Risk","Low Risk","High Risk"))
+data_RJ$Grupo <- factor(data_RJ$Grupo,c("Low Risk","Medium Risk","High Risk"))
+
+#Map
+f <- fortify(shape_rj,region = "NM_MUNICIP")
+f <- merge(f,data_RJ[,c(2,21)],by.x = "id",by.y = "City")
+map_RJ <- ggplot() + theme_bw() + ylab("Latitude") + xlab("Longitude") +
+  geom_polygon(data = f,aes(long, lat, group = group,fill = Grupo), color = "black") +
+  scale_fill_manual("Risk",values = c("darkolivegreen2","orange","red")) + titles
+pdf(file = "map_risk_RJ.pdf",width = 10,height = (2/3)*10)
+map_RJ
+dev.off()
+
+#Plot
+population <- read.csv("~/GDrive/github/mdyn/maps/population/population_rj.csv",sep = ";")
+population$municipio <- toupper(population$municipio)
+shape_rj$dist <- NA
+for(i in 1:nrow(shape_rj))
+  shape_rj$dist[i] <- distHaversine(p1 = gCentroid(shape_rj[i,]),
+                                    p2 = gCentroid(shape_rj[shape_rj$NM_MUNICIP == "RIO DE JANEIRO",]))/1000
+dist <- data.frame("cidade" = shape_rj$NM_MUNICIP,"km" = shape_rj$dist)
+data_tmp <- merge(data,population,by.x = "City",by.y = "municipio")
+data_tmp <- merge(data_tmp,dist,by.x = "City",by.y = "cidade",all.x = T)
+cases <- read.csv("~/GDrive/github/mdyn/tabulatedData/covid19_06ABR.csv")
+cases <- cases %>% filter(state == "RJ" & date == "2020-04-06")
+cases$city <- toupper(cases$city)
+cases <- cases[-44,c(3,5)]
+data_tmp <- merge(data_tmp,cases,by.x = "City",by.y = "city",all.x = T)
+cases$city[!(cases$city %in% data_tmp$City)]
+unique(data_tmp$City[!is.na(data_tmp$confirmed)]) 
+summary(data_tmp)
+
+tmp <- data_tmp %>% filter(populacao_estimada > 75000) %>% droplevels()
+tmp$City <- factor(tmp$City,unique(tmp$City)[order(tapply(tmp$Rank,tmp$City,mean))])
+
+tmp <- merge(tmp,data_RJ[,c(2,21)])
+tmp$km <- as.numeric(as.character(tmp$km))
+tmp <- tmp %>% filter(!(City %in% c("MINAS GERAIS","ESPIRITO SANTO")))
+
+p <- ggplot(tmp,aes(x = City,y = Rank,colour = Grupo)) + 
+  geom_point(aes(y = max(tmp$Rank,na.rm = T)-Rank)) + #facet_grid("State",scales = "free_x") +
+  geom_smooth(data = unique(tmp[c(1,7,9)]),se = F,aes(x = City,y = (km/max(tmp$km,na.rm = T)) * max(tmp$Rank,na.rm = T),
+                                                      colour = Grupo,group = 1),color = "gray") +
+  geom_point(data = unique(tmp[c(1,7,9)]),aes(x = City,y = (km/max(tmp$km,na.rm = T)) * max(tmp$Rank,na.rm = T),colour = Grupo),pch = 2) + 
+  themes + titles + theme(axis.text.x = element_text(angle = 90, hjust = 1),panel.grid.major = element_blank(),
+                          panel.grid.minor = element_blank()) + 
+  scale_y_continuous(sec.axis = sec_axis(~.*(max(tmp$km,na.rm = T)/max(tmp$Rank,na.rm = T)), 
+                                         name = "Distance to capital city (km)"),breaks = c(0,5,10,15,20),
+                     labels = c("20","15","10","5","0")) +
+  scale_colour_manual("Risk",values = c("orange","red")) 
+pdf(file = "plot_risk_RJ.pdf",width = 10,height = (2/3)*10)
+p
+dev.off()
+write.csv(x = data_RJ,file = "rank_risk_rj.csv",)
 
