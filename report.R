@@ -317,7 +317,7 @@ p <- ggplot(tmp,aes(x = City,y = Rank,colour = Grupo)) +
                                          name = "Distance to capital city (km)"),breaks = c(0,10,20,27),
                      labels = c("27","20","10","0")) +
   scale_colour_manual("Risk",values = c("orange","red")) 
-pdf(file = "plot_risk_SP.pdf",width = 10,height = (2/3)*10)
+pdf(file = "plot_risk_SP.pdf",width = 15,height = 10)
 p
 dev.off()
 write.csv(x = data_SP,file = "rank_risk_sp.csv",)
