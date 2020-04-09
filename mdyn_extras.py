@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import math
 import pyarrow.orc as orc
+import pyarrow.parquet as pq
 
 import time
 from datetime import datetime
@@ -132,6 +133,61 @@ def read_orc2df(local_dir, name_base, load):
                 df_tmp = pd.DataFrame(data.to_pandas())
             except:
                 print(" File not in orc format: ", filename, ". Ignoring.")
+                continue
+            
+            #Save in main data_frame
+            if i == 0:
+                df_local = pd.DataFrame(data.to_pandas())
+            else:
+                df_tmp = pd.DataFrame(data.to_pandas())
+            
+            df_local = pd.concat([df_local, df_tmp], ignore_index=True )
+
+        print(" Saving dataframe for future use as data.csv and data.pkl")
+        df_local.to_csv (local_dir+"data.csv", header=True) #Don't forget to add '.csv' at the end of the path
+        df_local.to_pickle (local_dir+"data.pkl") 
+    
+    return df_local
+
+def read_pq2df(local_dir, name_base, load):
+
+    #Ensure we have the "/"
+    if local_dir[-1]!="/":
+        local_dir = local_dir+"/"
+
+    print("Loading data from ", local_dir )
+
+    if not os.path.exists(local_dir):
+        print( " Could not reach directory, stopping here.")
+        sys.exit(0)
+    
+    loaded = False
+    pklfiles = list_files_pkl(local_dir)
+    #Do we have a pickle file and want to load it?
+    if load:
+        for f in pklfiles:
+            print("Found a pickle file: ", f, ". ", end="")
+            if name_base in f:
+                df_local = pd.read_pickle(local_dir+f)
+                print("Loading data.")
+                loaded = True
+            else:
+                print("But this pickle file does not match base name")
+
+    if not loaded:
+        for i, filename in enumerate(os.listdir(local_dir)):
+
+            #Get data and convert to df pandas
+            try:
+                print(" Reading: ",filename)
+                pq_file = pq.ParquetFile(local_dir+filename)
+                print(pq_file.metadata)
+                data = pq_file.read()
+                print(data)
+                df_tmp = pd.DataFrame(data.to_pandas())
+                print(df_tmp)
+            except:
+                print(" File not in parquet format: ", filename, ". Ignoring.")
                 continue
             
             #Save in main data_frame
