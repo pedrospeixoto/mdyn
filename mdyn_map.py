@@ -52,14 +52,19 @@ class Map:
         #    lat_0=-22,lon_0=-48.3)
 
         #Config map
-        map.drawcoastlines()
+        
+
+        map.drawcoastlines(color='k',linestyle='-', linewidth=0.2)
         map.drawcountries(color='k',linestyle='-', linewidth=0.8)
+        #map.fillcontinents(lake_color='white',zorder=1)
+        #map.drawcoastlines(zorder=1,color='white',linewidth=0)
         #map.fillcontinents(color = 'coral')
+        #map.drawmapboundary(fill_color='aqua')
+        #map.fillcontinents(lake_color='aqua')
         map.drawmapboundary()
-        map.drawstates(color='k',linestyle='--', linewidth=0.6)
+        map.drawstates(color='k',linestyle='--', linewidth=0.4)
         map.drawparallels(np.arange(-50,0,1), labels=[False,True,True,False])
         map.drawmeridians(np.arange(-180,180,1), labels=[False,False,True,False])
-        
         map.ax = ax
         self.dom = network
         
@@ -212,6 +217,7 @@ class Map:
 
         #2d color plot of data
         cmap = "hot_r" 
+
         if "Diag" in title:
             plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.1, vmax=1.0, cmap=cmap, snap=True) #, norm=norm)  
             label = "Probability"
