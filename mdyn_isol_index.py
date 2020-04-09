@@ -59,12 +59,12 @@ def isol_index(network, ipar):
             map.map_lat_lon_z_data(lat, lon, mat, title, filename)
 
 
-def org_data(dflocal, network, dir):
+def org_data(dflocal, network, data_dir):
         #Organize data into nice dataframe
 
         n=len(dflocal)
         
-        pklfile = dir+network.domain+"_"+network.subdomains+"_data_proc.pkl"
+        pklfile = data_dir+network.domain+"_"+network.subdomains+"_data_proc.pkl"
         
         if not os.path.exists(pklfile):
             #Convert lat lon from dict to numpy array
@@ -90,7 +90,7 @@ def org_data(dflocal, network, dir):
             dflocal['IsoIndex'] = dflocal['fixed_users']/dflocal['total_users']
 
 
-            filename = dir+network.domain+"_"+network.subdomains+"_data_proc.pkl"
+            filename = data_dir+network.domain+"_"+network.subdomains+"_data_proc.pkl"
             print("Saving pre-processed data-file for future use:", filename)
             dflocal.to_pickle (filename) 
 
