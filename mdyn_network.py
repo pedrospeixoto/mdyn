@@ -110,7 +110,7 @@ class Network:
 
                 # add names of neighbors as NEIGHBORS value
                 df.at[index, "NEIGHBORS"] = ",".join(neighbors)
-
+            print(df)
             #Save modified shape file for future use
             print("Done. Saving domain shape structure for future use")
             df.to_file(self.domain_shape_file_mdyn)
