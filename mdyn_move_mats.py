@@ -324,7 +324,7 @@ def simulate_model(mdyn, network, ipar):
     ntime = mdyn.days+ipar.num_simul_days
     data_evol = np.zeros((network.nregions, ntime))
     title_base = "Model_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
-    title_base = title_base + "_r"+str(ipar.infec_rate).replace(".","") \
+    title_base = title_base + "\n_r"+str(ipar.infec_rate).replace(".","") \
         +"_s"+str(ipar.spread_rate).replace(".","") 
         #+"_s"+str(int(ipar.spread_rate))
     #simulate scenario

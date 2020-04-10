@@ -25,7 +25,7 @@ class Map:
     def __init__(self, network): 
 
         #Init the figure
-        fig, ax = plt.subplots( figsize=(10, 5))
+        fig, ax = plt.subplots( figsize=(7, 5))
         
         lat0=0.5*(network.maxlats+network.minlats)
         lon0=0.5*(network.maxlons+network.minlons)
@@ -52,7 +52,6 @@ class Map:
         #    lat_0=-22,lon_0=-48.3)
 
         #Config map
-        
 
         map.drawcoastlines(color='k',linestyle='-', linewidth=0.2)
         map.drawcountries(color='k',linestyle='-', linewidth=0.8)
@@ -213,7 +212,8 @@ class Map:
         data[data<0]=np.nan
 
         title = title.replace("_", " ")
-        plt.title(title, y=1.08)
+        filename = filename.replace("\n", "")
+        plt.title(title, y=1.08, size="10")
 
         #2d color plot of data
         cmap = "hot_r" 
@@ -240,7 +240,7 @@ class Map:
 
         cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=25, fraction=0.1, pad=0.01, \
             spacing='proportional')
-        cbar.set_label(label,size=12)
+        #cbar.set_label(label,size=12)
         if "index" in title:
             cbar.set_ticks([0, 0.5, 1.0])
             cbar.ax.set_xticklabels([ 'Low', 'Medium', 'High']) 
