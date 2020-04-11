@@ -395,14 +395,12 @@ def simulate_model(mdyn, network, ipar):
 
     title = title_base+"_risk_time_with_lim_"+str(ipar.risk_lim)
     filename = mdyn.dump_dir+title_base+"_risk_lim_"+str(ipar.risk_lim)+".jpg"
-    filename = filename.replace("\n", "")
     print(" Plotting risk time ", filename)
     map=Map(network)
     map.map_move_by_reg(risk_time, network.regions, network, title, filename)
 
     title = title_base+"_risk_index"
     filename = mdyn.dump_dir+title_base+"_risk_index.jpg"
-    filename = filename.replace("\n", "")
     print(" Plotting risk index ", filename)
     map=Map(network)
     map.map_move_by_reg(risk_index, network.regions, network, title, filename)
