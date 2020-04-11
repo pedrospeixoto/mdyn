@@ -87,7 +87,7 @@ class Network:
 
         #Get map shapes files
         self.domain_shape_file = self.domain_shape+".shp"
-        self.domain_shape_file_mdyn = self.domain_shape+"mdyn.shp"
+        self.domain_shape_file_mdyn = self.domain_shape+"mdyn_dom.shp"
 
         #Load if exists and load flag set
         if os.path.exists(self.domain_shape_file_mdyn) and self.load:
@@ -121,7 +121,7 @@ class Network:
 
         #Get map subdomains shapes files
         self.subdomains_shape_file = self.subdomains_shape+".shp"
-        self.subdomains_shape_file_mdyn = self.subdomains_shape+"mdyn.shp"
+        self.subdomains_shape_file_mdyn = self.subdomains_shape+"mdyn_subdom.shp"
 
         #Get map subdomains shapes
         if os.path.exists(self.subdomains_shape_file_mdyn) and self.load:
@@ -145,8 +145,8 @@ class Network:
             print("Done. Saving subdomains shape structure for future use")
             df.to_file(self.subdomains_shape_file_mdyn)
 
-        #print(df)
-        print(df.head)
+        print(df)
+        #print(df.head)
 
         #Indexes columns
         idx = np.arange(len(df))
@@ -158,9 +158,26 @@ class Network:
 
     def create_regions(self):
 
+        #Filter subdomains based on domain, if possible (reduces processing)
+        dom_gran_tmp = self.domain_gran
+        dom_gran_tmp=dom_gran_tmp.replace("NM_", "")
+
+        filt_name = ""
+        for lab in self.df_subdomains.columns.values:
+            if dom_gran_tmp in lab:
+                filt_name = lab
+
+        if len(filt_name) > 0:
+            print("Filtering subdomain based on domain:", filt_name, self.domain)
+            self.df_subdomains = self.df_subdomains[self.df_subdomains[filt_name]==self.domain]
+            #Re-Indexes columns
+            idx = np.arange(len(self.df_subdomains))
+            self.df_subdomains["idx"]=idx.astype(int)
+            self.df_subdomains = self.df_subdomains.set_index("idx")
+            print(self.df_subdomains)
+
         #inner regions (subdomains)
         #--------------------------
-
         self.regions_in = self.df_subdomains[self.subdomains_gran].to_dict()
         filt = [self.subdomains_gran, "latc", "lonc", "idx"]
         self.regions_in_latlon = self.df_subdomains.filter(filt).set_index(self.subdomains_gran).T.to_dict('list')
@@ -187,10 +204,25 @@ class Network:
         for xy in domain_limit_coords:
             x.append(xy[0])
             y.append(xy[1])
-        self.minlons = round_down(min(x), 1)- 1.1
-        self.maxlons = round_up(max(x), 1)  + 1.1
-        self.minlats = round_down(min(y), 1)- 1.1
-        self.maxlats = round_up(max(y), 1)  + 1.1
+        minx = min(x)
+        maxx = max(x)
+        miny = min(y)
+        maxy = max(y)
+        #Create buffer on sides depending on size of domain
+        if maxx-minx > 6.0:
+            self.minlons = round_down(minx, 1)- 1.1
+            self.maxlons = round_up(maxx, 1)  + 1.1
+        else:
+            self.minlons = round_down(minx, 1)- 0.5
+            self.maxlons = round_up(maxx, 1)  + 0.5
+
+        if maxy-miny > 6:
+            self.minlats = round_down(miny, 1)- 1.1
+            self.maxlats = round_up(maxy, 1)  + 1.1
+        else:
+            self.minlats = round_down(miny, 1)- 0.5
+            self.maxlats = round_up(maxy, 1)  + 0.5
+
         self.minlons = np.round(self.minlons, 1)
         self.maxlons = np.round(self.maxlons, 1)
         self.minlats = np.round(self.minlats, 1)
@@ -242,9 +274,9 @@ class Network:
         #self.nregions = self.nregions + 1
 
         print("  Defined the following regions for the network:")
-        if self.nregions > 25:
-            print("  First 10 regions: ", dict(list(self.regions.items())[0:10]))
-            print("  Last 10 regions:", dict(list(self.regions.items())[self.nregions-10:self.nregions]))
+        if self.nregions > 50:
+            print("  First regions: ", dict(list(self.regions.items())[0:20]))
+            print("  Last regions:", dict(list(self.regions.items())[self.nregions-20:self.nregions]))
         else:
             print(self.regions)
 
@@ -400,7 +432,7 @@ class Network:
             lon=daydata.df['lng'+s].values
             lat=daydata.df['lat'+s].values
 
-            #Remova data that is outside of the box
+            #Remove data that is outside of the box
             lon=np.where((lon>self.maxlons)|(lon<self.minlons), np.nan, lon)
             lat=np.where((lat>self.maxlats)|(lat<self.minlats), np.nan, lat)
 

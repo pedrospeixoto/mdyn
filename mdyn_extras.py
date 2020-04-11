@@ -143,9 +143,9 @@ def read_orc2df(local_dir, name_base, load):
             
             df_local = pd.concat([df_local, df_tmp], ignore_index=True )
 
-        print(" Saving dataframe for future use as data.csv and data.pkl")
-        df_local.to_csv (local_dir+"data.csv", header=True) #Don't forget to add '.csv' at the end of the path
-        df_local.to_pickle (local_dir+"data.pkl") 
+        print(" Saving dataframe for future use as xxx_data.csv and xxx_data.pkl")
+        df_local.to_csv (local_dir+name_base+"data.csv", header=True) #Don't forget to add '.csv' at the end of the path
+        df_local.to_pickle (local_dir+name_base+"data.pkl") 
     
     return df_local
 
@@ -168,11 +168,14 @@ def read_pq2df(local_dir, name_base, load):
         for f in pklfiles:
             print("Found a pickle file: ", f, ". ", end="")
             if name_base in f:
-                df_local = pd.read_pickle(local_dir+f)
-                print("Loading data.")
-                loaded = True
+                if "proc." not in f: 
+                    df_local = pd.read_pickle(local_dir+f)
+                    print("Loading data.")
+                    loaded = True
+                else:
+                    print("But this pickle file is a processed data file.")
             else:
-                print("But this pickle file does not match base name")
+                print("But this pickle file does not match base name.")
 
     if not loaded:
         for i, filename in enumerate(os.listdir(local_dir)):
@@ -183,9 +186,9 @@ def read_pq2df(local_dir, name_base, load):
                 pq_file = pq.ParquetFile(local_dir+filename)
                 print(pq_file.metadata)
                 data = pq_file.read()
-                print(data)
+                #print(data)
                 df_tmp = pd.DataFrame(data.to_pandas())
-                print(df_tmp)
+                print(list(df_tmp))
             except:
                 print(" File not in parquet format: ", filename, ". Ignoring.")
                 continue
@@ -196,11 +199,14 @@ def read_pq2df(local_dir, name_base, load):
             else:
                 df_tmp = pd.DataFrame(data.to_pandas())
             
-            df_local = pd.concat([df_local, df_tmp], ignore_index=True )
+            try:
+                df_local = pd.concat([df_local, df_tmp], ignore_index=True )
+            except:
+                df_local = df_tmp
 
-        print(" Saving dataframe for future use as data.csv and data.pkl")
-        df_local.to_csv (local_dir+"data.csv", header=True) #Don't forget to add '.csv' at the end of the path
-        df_local.to_pickle (local_dir+"data.pkl") 
+        print(" Saving dataframe for future use as xxx_data.csv and xxx_data.pkl")
+        df_local.to_csv (local_dir+name_base+"_data.csv", header=True) #Don't forget to add '.csv' at the end of the path
+        df_local.to_pickle (local_dir+name_base+"_data.pkl") 
     
     return df_local
 

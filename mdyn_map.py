@@ -67,6 +67,12 @@ class Map:
         map.ax = ax
         self.dom = network
         
+        #Plot domain  map
+        #print(network.domain_geometry)
+        x, y = network.domain_geometry.exterior.coords.xy
+        x, y = map(x, y)
+        map.plot(x, y, marker=None, color='b')
+        
         # convert the bin mesh to map coordinates:
         self.x_bins_c, self.y_bins_c = map(network.lon_bins_c_2d, network.lat_bins_c_2d) # will be plotted using pcolormesh
         self.x_bins_ext, self.y_bins_ext = map(network.lon_bins_ext_2d, network.lat_bins_ext_2d) # will be plotted using pcolormesh
@@ -253,13 +259,63 @@ class Map:
         #filename = filename+".jpg"
         plt.savefig(filename, dpi=300)   
 
+
+    def map_reg_var(self, regvec, regs, network, title, filename):
+        #print(network.regions)
+
+        #print("REG1:", reg1, len(reg1))
+        #print("movve:", movevec, len(movevec), len(reg1))
+        print("  Plotting: ", filename)
+        data=network.region_grid
+        data=data.astype(float)
+        #mex.matprint(data)
+
+        #print(regvec)
+        for ir1 in regs:
+            try:
+                data[data==ir1]=regvec[ir1]
+            except:
+                data[data==ir1]=np.nan
+
+        data[data<0]=np.nan
+
+        title = title.replace("_", " ")
+        filename = filename.replace("\n", "")
+        plt.title(title, y=1.08, size="10")
+
+        #2d color plot of data
+        cmap = "hot_r" 
+
+        if "Index" in title:
+            
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.0, vmax=1.0, cmap=cmap , snap=True) #, norm=norm)  
+            label = ""
+        else:
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1.0, cmap=cmap, snap=True) #, norm=norm)  
+            label = ""
+        
+        cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=25, fraction=0.1, pad=0.01, \
+            spacing='proportional')
+        #cbar.set_label(label,size=12)
+        if "index" in title:
+            cbar.set_ticks([0, 0.5, 1.0])
+            cbar.ax.set_xticklabels([ 'Low', 'Medium', 'High']) 
+
+
+        #plt.tight_layout()
+        plt.tight_layout() #pad=0.4, w_pad=0.5, h_pad=1.0)
+        
+        #filename = dir+"/map_data_"+title+".eps"
+        filename = filename+".jpg"
+        plt.savefig(filename, dpi=300)   
+
     def map_lat_lon_z_data(self, lats, lons, z, title, filename):
         
         x, y = np.meshgrid(lons, lats)
         x, y = self.map(x, y)
         
         plt.title(title, y=1.08)
-        print("  Plotting: ", title)
+        print("  Plotting: ", filename)
         #2d color plot of data
         cmap = "hot_r" 
         if "IsoIndex" in title:
