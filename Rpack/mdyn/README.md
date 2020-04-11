@@ -15,7 +15,7 @@ To install from Github:
 ```{r}
 library(devtools)
 
-install_github("")
+install_github("dmarcondes/mdyn")
 ```
 
 
