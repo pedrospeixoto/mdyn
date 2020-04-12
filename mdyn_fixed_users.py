@@ -38,7 +38,21 @@ class fixed_users():
 
         vars = ['left_home', 'active_users_in_month', 'MoveIndex']
         #vars = ['MoveIndex']
+        df['date'] = pd.to_datetime(df['day'])
+        start_date = '01-02-2020'
+        mask = df['date'] >  start_date
+        df_local = df.loc[mask]
+        table_users = df_local.pivot_table(values=['active_users_in_month'], index=['date'],\
+                                columns=['reg'], aggfunc=np.sum, fill_value=0, dropna=False)
+        table_move = df_local.pivot_table(values=['left_home'], index=['day'],\
+                                columns=['reg'], aggfunc=np.sum, fill_value=0, dropna=False)
+        table_index = table_move['left_home']/table_users['active_users_in_month']
         
+        print(table_index)
+        
+        table_index.plot()
+        plt.show()
+        sys.exit()
         ipar.date_ini_obj = datetime.strptime(ipar.date_ini, '%Y-%m-%d')
         ipar.date_end_obj = datetime.strptime(ipar.date_end, '%Y-%m-%d')
         ipar.days = (ipar.date_end_obj - ipar.date_ini_obj).days + 1
@@ -61,8 +75,8 @@ class fixed_users():
                                 columns=[], aggfunc=np.average, fill_value=0, dropna=False)
                 #print(table.describe())
                 map = Map(network)  
-                title = var+"_by_reg_"+day_str+"_"+mex.weekdays[dow]
-                filename = ipar.dump_dir+var+"_by_reg_"+day_str
+                title = base_name+"_"+var+"_by_reg_"+day_str+"_"+mex.weekdays[dow]
+                filename = ipar.dump_dir+base_name+"_"+var+"_by_reg_"+day_str
                 map.map_reg_var(table[var], network.regions, network, title, filename)
 
             for var in vars:
@@ -70,8 +84,8 @@ class fixed_users():
                                 columns=['lon'], aggfunc=np.average, fill_value=0, dropna=False)
                 
                 map = Map(network)  
-                title = var+"_"+day_str+"_"+mex.weekdays[dow]
-                filename = ipar.dump_dir+var+"_"+day_str
+                title = base_name+"_"+var+"_"+day_str+"_"+mex.weekdays[dow]
+                filename = ipar.dump_dir+base_name+"_"+var+"_"+day_str
                 lon = np.array(table.columns)
                 lat = np.array(table.index)
                 mat = table.as_matrix(columns=None)

@@ -132,7 +132,7 @@ class Map:
         cmap = colors.ListedColormap(cols, N=(network.nregions+2))
         #boundaries = reg 
         #norm = colors.BoundaryNorm(boundaries, len(cols), clip=True)
-        print(network.regions)
+        
         #2d color plot of data
         plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, cmap=cmap, snap=True) #, norm=norm)  
             #cmap="hot_r", norm=colors.LogNorm(), snap=True)
@@ -141,7 +141,7 @@ class Map:
         bounds = np.linspace(0, network.nregions, network.nregions+1)
         reg = list(network.regions_in_latlon.values())
         
-        if len(reg)<15:
+        if len(reg)<15 and len(reg)>1:
             cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=25, fraction=0.1, pad=0.01, boundaries=bounds, \
                 spacing='proportional', ticks=bounds)
             cbar.set_label(title,size=12)
