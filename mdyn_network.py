@@ -365,8 +365,14 @@ class Network:
 
             dist_tmp = distance(lonv, latv, lon_tmp, lat_tmp)
 
-            k = 10 # k nearest neighbours
-            inearreg = np.argpartition(dist_tmp, k) #[0:k]
+            if self.nreg_in > 10 :
+                k = 10 # k nearest neighbours
+                inearreg = np.argpartition(dist_tmp, k) #[0:k]
+            elif self.nreg_in == 1 :
+                return 0
+            else:
+                k = 2 # k nearest neighbours
+                inearreg = np.argpartition(dist_tmp, k) #[0:k]
 
             #Use geometry to check if point in subregion
             for i in inearreg:

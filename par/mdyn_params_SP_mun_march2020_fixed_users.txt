@@ -8,9 +8,9 @@ domain_gran = "NM_MUNICIP"
 domain_shape = "maps/sp_municipios/35MUE250GC_SIR"
 
 #Subdomain definitions
-subdomains = "Sub_dist"
-subdomains_gran = "ID"
-subdomains_shape = "maps/sp_subdistritos/shape_sp_subdistritos_municipio"
+subdomains = "SÃO PAULO"
+subdomains_gran = "NM_MUNICIP"
+subdomains_shape = "maps/sp_municipios/35MUE250GC_SIR"
 
 #Population
 domain_pop = "maps/population/population_ufebrasil.csv"

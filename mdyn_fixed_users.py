@@ -36,14 +36,15 @@ class fixed_users():
         self.df = df
         print(df)
 
-        #vars = ['left_home', 'active_users_in_month', 'MoveIndex']
-        vars = ['MoveIndex']
+        vars = ['left_home', 'active_users_in_month', 'MoveIndex']
+        #vars = ['MoveIndex']
         
         ipar.date_ini_obj = datetime.strptime(ipar.date_ini, '%Y-%m-%d')
         ipar.date_end_obj = datetime.strptime(ipar.date_end, '%Y-%m-%d')
         ipar.days = (ipar.date_end_obj - ipar.date_ini_obj).days + 1
-        
-        for i, day in enumerate(mex.daterange(ipar.date_ini_obj, ipar.date_end_obj+timedelta(days=1))):
+
+        dates = mex.daterange(ipar.date_ini_obj, ipar.date_end_obj+timedelta(days=1))
+        for i, day in enumerate(dates):
             #Filter data frame per day
             day_str=day.strftime("%Y-%m-%d")
             dow = day.weekday()
@@ -52,7 +53,11 @@ class fixed_users():
             df_local = df[day_filter]
 
             for var in vars:
-                table = df_local.pivot_table(values=var, index=['reg'],\
+                if "Index" not in var:
+                    table = df_local.pivot_table(values=var, index=['reg'],\
+                                columns=[], aggfunc=np.sum, fill_value=0, dropna=False)
+                else:
+                    table = df_local.pivot_table(values=var, index=['reg'],\
                                 columns=[], aggfunc=np.average, fill_value=0, dropna=False)
                 #print(table.describe())
                 map = Map(network)  
