@@ -132,7 +132,7 @@ class Map:
         cmap = colors.ListedColormap(cols, N=(network.nregions+2))
         #boundaries = reg 
         #norm = colors.BoundaryNorm(boundaries, len(cols), clip=True)
-        
+        print(network.regions)
         #2d color plot of data
         plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, cmap=cmap, snap=True) #, norm=norm)  
             #cmap="hot_r", norm=colors.LogNorm(), snap=True)
@@ -149,7 +149,6 @@ class Map:
             cbar.set_ticklabels(range(network.nregions+2))
         
             #Add labels 
-            
             for lat, lon, i in reg:
                 #print(lon, lat, i)
                 xpt, ypt = self.map([lon], [lat])
