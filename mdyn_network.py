@@ -39,6 +39,7 @@ class Network:
         print("-----------------------------------")
 
         domain = ipar.domain
+        domain_abrv = ipar.domain_abrv
         domain_gran = ipar.domain_gran
         domain_shape = ipar.domain_shape
         domain_pop = ipar.domain_pop
@@ -52,6 +53,7 @@ class Network:
         load = ipar.load_network
 
         self.domain = domain
+        self.domain_abrv = domain_abrv
         self.domain_gran= domain_gran
         self.domain_shape = domain_shape
         self.domain_pop = domain_pop
@@ -77,11 +79,11 @@ class Network:
         self.build_grid_network()
 
         #Load regions' populations
-        try:
-            self.load_pop()
-        except:
-            print("Warning: No population data!!!")
-            pass
+        #try:
+        self.load_pop()
+        #except:
+        #    print("Warning: No population data!!!")
+        #    pass
 
     def load_domain(self):
 
@@ -601,21 +603,31 @@ class Network:
         #Population - inner regions
         filename = self.subdomains_pop # "maps/population/population_sp_mun.csv"
         subdomains_pop_labels = self.subdomains_pop_labels # ["municipio", "populacao_estimada"]
+        dom_label = subdomains_pop_labels[0]
+        subdom_label = subdomains_pop_labels[1]
+        pop_label = subdomains_pop_labels[2]
 
-        df_pop = pd.read_csv(filename, sep = ";")
-        df_pop[subdomains_pop_labels[0]]=df_pop[subdomains_pop_labels[0]].str.upper()
+        df_pop = pd.read_csv(filename)
+        #Filter to domain region
+        df_pop=df_pop[df_pop[dom_label]==self.domain_abrv]
+        if len(df_pop) < 1:
+            print("Could not filter domain in population")
+            print(df_pop)
+            sys.exit(1)
+
+        #Put to upper case
+        df_pop[subdom_label]=df_pop[subdom_label].str.upper()
 
         self.reg_pop = np.zeros([self.nregions])
 
         for reg in range(self.nreg_in):
             region = self.regions.get(reg)
             try:
-                pop = df_pop.loc[df_pop[subdomains_pop_labels[0]] == region, subdomains_pop_labels[1]].values[0]
+                pop = df_pop.loc[df_pop[subdom_label] == region, pop_label].values[0]
             except:
                 print("Cant find this region's population:", region )
                 sys.exit(1)
             self.reg_pop[reg] = pop
-
 
         #Population - outer regions
         filename = self.domain_pop # "maps/population/population_sp_mun.csv"
