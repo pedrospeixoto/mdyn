@@ -1,0 +1,61 @@
+#----------------------
+# Net work definition
+#---------------------
+
+#Main domain definition
+domain = "SÃO PAULO" #SP or RJ
+domain_gran = "NM_ESTADO"
+domain_shape = "maps/UFEBRASIL/UFEBRASIL"
+
+#Subdomain definitions
+subdomains = "SP-Municipios"
+subdomains_gran = "NM_MUNICIP"
+subdomains_shape = "maps/sp_municipios/35MUE250GC_SIR"
+
+#Population
+domain_pop = "maps/population/population_ufebrasil.csv"
+domain_pop_labels = ["Estado", "Populacao"]
+subdomains_pop = "maps/population/population_sp_mun.csv"
+subdomains_pop_labels = ["municipio", "populacao_estimada"]
+
+#Network granularity
+latlon_gran = 0.01 #granularity of lat long spacing
+
+#Network pre-computation flag
+load_domain = True #Load precomp structures
+
+
+#-----------------------------
+# Mobile Data Set Definition
+#-----------------------------
+
+#Initialize mobile data and load data to dataframe
+data_dir = "data/visit_journey_sao_paulo_2020/"
+date_ini = "2020-03-01"
+date_end = "2020-03-30"
+load_data = True
+
+#Number of main sources for plots
+num_source = 1
+
+
+
+#-----------------------------
+# Simulation configuration
+#------------------------------
+
+#Initial condition for simulation (file with num of cases per region)
+data_ini_by_reg = { 268 : 1.0 }
+
+#Number of simulation days
+num_simul_days = 30
+
+#Type of model 
+# 0: simple mat iteration
+# 1: only infected - see diego's doc
+# 2: two parameter model
+model = 2
+infec_rate = 0.4  #infection rate per day
+spread_rate = 0.05 #Spatial spread rate
+
+risk_lim = 1.0 #Infected people to consider risk limit
