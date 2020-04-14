@@ -25,14 +25,22 @@ class Map:
     def __init__(self, network): 
 
         #Init the figure
-        fig, ax = plt.subplots( figsize=(7, 5))
+        
         
         lat0=0.5*(network.maxlats+network.minlats)
         lon0=0.5*(network.maxlons+network.minlons)
-        width=1.1e6
-        height=7.2e5
-        width = (network.maxlons-network.minlons)*0.9e5
-        height = (network.maxlats-network.minlats)*0.8e5
+        #width=1.1e6
+        #height=7.2e5
+        #in meters
+        # 1 deg aprox 110km, so 10e5
+        factor = 1.0e5
+        width = (network.maxlons-network.minlons)*factor
+        height = (network.maxlats-network.minlats)*factor
+
+        fwidth = width/factor
+        fheight = height/factor
+        fig, ax = plt.subplots( figsize=(fwidth, fheight))
+
         #Define map projection
         #map = Basemap(projection='merc', resolution='h',
         #    llcrnrlon=dom.minlons-1, llcrnrlat=dom.minlats-1,
@@ -53,7 +61,7 @@ class Map:
 
         #Config map
 
-        map.drawcoastlines(color='k',linestyle='-', linewidth=0.2)
+        #map.drawcoastlines(color='k',linestyle='-', linewidth=0.2)
         map.drawcountries(color='k',linestyle='-', linewidth=0.8)
         #map.fillcontinents(lake_color='white',zorder=1)
         #map.drawcoastlines(zorder=1,color='white',linewidth=0)
@@ -69,9 +77,18 @@ class Map:
         
         #Plot domain  map
         #print(network.domain_geometry)
-        x, y = network.domain_geometry.exterior.coords.xy
-        x, y = map(x, y)
-        map.plot(x, y, marker=None, color='b')
+        poly = network.domain_geometry
+        if poly.geom_type == 'MultiPolygon':
+            # do multipolygon things.
+            for poly_local in list(poly):
+                x, y = poly_local.exterior.coords.xy
+                x, y = map(x, y)
+                map.plot(x, y, marker=None, color='k',linestyle='-', linewidth=0.8)
+        elif poly.geom_type == 'Polygon':
+        # do polygon things.          
+            x, y = poly.exterior.coords.xy
+            x, y = map(x, y)
+            map.plot(x, y, marker=None, color='k',linestyle='-', linewidth=0.8 )
         
         # convert the bin mesh to map coordinates:
         self.x_bins_c, self.y_bins_c = map(network.lon_bins_c_2d, network.lat_bins_c_2d) # will be plotted using pcolormesh
