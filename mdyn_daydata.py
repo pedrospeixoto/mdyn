@@ -83,8 +83,8 @@ class DayData:
                 'time1', 'lng1','lat1', 
                 'time2', 'lng2','lat2']
         elif data_format == "Parquet":
-            self.col_labels=[ 'lat0', 'lng0', 'timestamp0',
-                'lat1', 'lng1', 'timestamp1','state1', 'date1']
+            self.col_labels=[ 'lat0', 'lng0', 'time0',
+                'lat1', 'lng1', 'time1','state1', 'date1']
         
         df_local = pd.DataFrame(columns=self.col_labels) 
         
@@ -176,7 +176,7 @@ class DayData:
             #This kind of data has only 2 events, which were pre-processed to columns
             dfout = dflocal
             dfout = dfout.rename(columns={"timestamp0": "time0", "timestamp1": "time1"})
-
+            #dfout.drop(columns=['timestamp0', 'timestamp1'])
         return dfout
     
     def calc_basic_day_diagnostics(self):
@@ -190,17 +190,22 @@ class DayData:
             time0=pd.to_datetime(self.df['time0'])
             time1=pd.to_datetime(self.df['time1'])
             dt=(time1-time0).astype('timedelta64[h]') 
-    
+            #print(time0, time1)
             self.df['dt1']=dt
-
+            #print(dt)
+            #print(self.df)
             #Filer dt larger than 24h
+            nold = len(self.df)
             print("WARNING: Filtering dt < 24hours")
-            timefilter = self.df['dt1'] <= 24
-            self.df = self.df[timefilter] 
+            timefilter1 = self.df['dt1'] <= 24 
+            timefilter2 = self.df['dt1'] > 0
+            #timefilter = self.df['dt1'] == 0.0
+            #self.df = self.df[timefilter1 & timefilter2] 
+            #self.df = self.df[timefilter] 
             self.n = len(self.df)
+            print("WARNING: Filtered data: previous: ", nold, " now: ", self.n, " lost: ", nold-self.n)
             
             load = self.load
-
             if False:
                 #Distances
                 print("Calculating distances...")
@@ -209,7 +214,7 @@ class DayData:
                     self.df['lng1'].values, self.df['lat1'].values)
 
             filename = self.local_dir+"day_"+self.day+"_proc_data.csv"
-            if not os.path.exists(filename):
+            if True: #not os.path.exists(filename):
                 #Distances
                 print("Calculating distances...")
                 self.df['dist1']=distance(
@@ -222,6 +227,10 @@ class DayData:
                 print("Loading distances...", end="")
                 self.df['dist1'] = pd.read_csv(filename, usecols = ['dist1'])
                 print("..done.")
+            #print(self.df)
+            #distfilter = self.df['dist1'] == 0.0
+            #self.df = self.df[timefilter1 & timefilter2] 
+            #self.df = self.df[distfilter] 
 
             #Data density - takes time
             for i in tqdm.tqdm(range(3)):
@@ -277,7 +286,7 @@ class DayData:
                 ax[1].ticklabel_format(axis="y", style="sci", scilimits=(0,0))
 
                 plt.savefig(filename, dpi=300)
-            
+            #sys.exit()
 
     def calc_vel_day_diagnostics(self):
 
