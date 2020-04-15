@@ -31,9 +31,10 @@ load_domain = True #Load precomp structures
 #-----------------------------
 
 #Initialize mobile data and load data to dataframe
-data_dir = "data/2020_04_14/"
+data_format = "Parquet" #"ORC"
+data_dir = "data/2020_04_14_proc/state0=Acre/"
 date_ini = "2020-03-01"
-date_end = "2020-03-02"
+date_end = "2020-03-01"
 load_data = True
 
 #Number of main sources for plots
@@ -46,7 +47,8 @@ num_source = 1
 #------------------------------
 
 #Initial condition for simulation (file with num of cases per region)
-data_ini_by_reg = { 268 : 1.0 }
+#Rio Branco
+data_ini_by_reg = { 7 : 1.0 }
 
 #Number of simulation days
 num_simul_days = 30
