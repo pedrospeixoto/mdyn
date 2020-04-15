@@ -35,5 +35,7 @@ data_dir = sys.argv[1]
 
 #Load data
 base_name = "data"
+#df = mex.read_pq2df_filter(data_dir, base_name, "01-03-2020", True)
+
 df = mex.read_pq2df(data_dir, base_name, True)
 
