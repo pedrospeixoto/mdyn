@@ -69,7 +69,7 @@ class Map:
         #map.drawmapboundary(fill_color='aqua')
         #map.fillcontinents(lake_color='aqua')
         map.drawmapboundary()
-        map.drawstates(color='k',linestyle='--', linewidth=0.4)
+        map.drawstates(color='k',linestyle='--', linewidth=0.2)
         map.drawparallels(np.arange(-50,0,1), labels=[False,True,True,False])
         map.drawmeridians(np.arange(-180,180,1), labels=[False,False,True,False])
         map.ax = ax
