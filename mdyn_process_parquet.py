@@ -42,9 +42,9 @@ if not os.path.exists(data_dir):
     print( " Could not reach directory, stopping here.")
     sys.exit(0)
 
-
+print()
 for i, filename in enumerate(os.listdir(data_dir)):
-
+    print(" Processing : ", filename )
     #fsize = os.stat(data_dir+filename).st_size
     #if fsize > 10e7:
     #    print("Big file!", data_dir+filename, fsize)
