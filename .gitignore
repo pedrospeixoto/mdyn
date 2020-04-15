@@ -2,4 +2,9 @@
 .Rhistory
 .RData
 .Ruserdata
-maps/br_municipios/*shp
+maps/*.pdf
+maps/*.jpg
+maps/*.npy
+maps/*.csv
+maps/**/*dom.*
+maps/**/*mdyn.*
