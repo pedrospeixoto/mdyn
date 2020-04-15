@@ -20,7 +20,7 @@ subdomains_pop = "maps/population/population_mun_br_2019.csv"
 subdomains_pop_labels = ["UF", "MUNICIPIO", "POP2019"]
 
 #Network granularity
-latlon_gran = 0.1 #granularity of lat long spacing
+latlon_gran = 0.01 #granularity of lat long spacing
 
 #Network pre-computation flag
 load_domain = True #Load precomp structures
@@ -34,7 +34,7 @@ load_domain = True #Load precomp structures
 data_format = "Parquet" #"ORC"
 data_dir = "data/2020_04_14_proc/state0=Acre/"
 date_ini = "2020-03-01"
-date_end = "2020-03-01"
+date_end = "2020-04-14"
 load_data = True
 
 #Number of main sources for plots
@@ -59,6 +59,6 @@ num_simul_days = 30
 # 2: two parameter model
 model = 2
 infec_rate = 0.4  #infection rate per day
-spread_rate = 0.05 #Spatial spread rate
+spread_rate = 1.0 #Spatial spread rate
 
 risk_lim = 1.0 #Infected people to consider risk limit
