@@ -200,8 +200,8 @@ class DayData:
             timefilter1 = self.df['dt1'] <= 24 
             timefilter2 = self.df['dt1'] > 0
             #timefilter = self.df['dt1'] == 0.0
-            #self.df = self.df[timefilter1 & timefilter2] 
-            self.df = self.df[timefilter] 
+            self.df = self.df[timefilter1 & timefilter2] 
+            #self.df = self.df[timefilter] 
             self.n = len(self.df)
             print("WARNING: Filtered data: previous: ", nold, " now: ", self.n, " lost: ", nold-self.n)
             
