@@ -8,3 +8,8 @@ maps/*.npy
 maps/*.csv
 maps/**/*dom.*
 maps/**/*mdyn.*
+dump/*
+output/*
+__pycache__/
+*.swp
+
