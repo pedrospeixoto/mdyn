@@ -147,7 +147,7 @@ class Network:
             print("Done. Saving subdomains shape structure for future use")
             df.to_file(self.subdomains_shape_file_mdyn)
 
-        print(df)
+        #print(df)
         #print(df.head)
 
         #Indexes columns
@@ -625,6 +625,7 @@ class Network:
             try:
                 pop = df_pop.loc[df_pop[subdom_label] == region, pop_label].values[0]
             except:
+                print(df_pop)
                 print("Cant find this region's population:", region )
                 sys.exit(1)
             self.reg_pop[reg] = pop

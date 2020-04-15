@@ -31,10 +31,12 @@ class MobileDynamics:
 
     def __init__(self, ipar): 
         data_dir = ipar.data_dir
+        data_format = ipar.data_format
         date_ini = ipar.date_ini
         date_end = ipar.date_end
         dump_dir = ipar.dump_dir
         load = ipar.load_data
+        
 
         print("")
         print("Mobile Dynamics Data Analysis")
@@ -65,6 +67,7 @@ class MobileDynamics:
         print("Number of days to analyse:", self.days)
 
         self.load = load
+        self.data_format = data_format
         self.dump_dir = dump_dir
         
         if not os.path.exists(self.dump_dir):
@@ -83,7 +86,7 @@ class MobileDynamics:
             #Load data for this day
             day_str=day.strftime("%Y-%m-%d")
 
-            day_data = DayData(day_str, self.data_dir, network, load=self.load)
+            day_data = DayData(day_str, self.data_dir, self.data_format, network, load=self.load)
 
             day_data.calc_basic_day_diagnostics() 
             
