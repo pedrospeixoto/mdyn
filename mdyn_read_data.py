@@ -13,13 +13,6 @@ from datetime import datetime
 from datetime import date
 from datetime import timedelta
 
-from mpl_toolkits.basemap import Basemap
-import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
-import matplotlib.colors as colors
-import matplotlib.cm as cm
-import matplotlib.dates as mdates
-
 import geopy.distance
 
 import tqdm as tqdm

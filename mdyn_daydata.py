@@ -4,6 +4,7 @@
 import sys
 import os
 import pyarrow.orc as orc
+import pyarrow.parquet as pq
 import numpy as np
 import pandas as pd
 import math
@@ -36,10 +37,12 @@ import gc
 class DayData:
     
     #Class for data per day
-    def __init__(self, day, data_dir, network, load = False):
+    def __init__(self, day, data_dir, data_format, network, load = False):
         self.load = load
-        self.read_day_data(day, data_dir)
-        self.dom = network
+        self.data_format = data_format
+        self.read_day_data(day, data_dir, data_format)
+        self.net = network
+        
         
         #if not load:
         #    self.clean_data()
@@ -52,13 +55,21 @@ class DayData:
         self.df=pd.DataFrame()
         print("Cleaning original data ", mem1, mem_usage(self.df))
 
-    def read_day_data(self, day, data_dir):
+    def read_day_data(self, day, data_dir, data_format):
         # Input:
         # day is a date in format Y-m-d
         # datadir is the main directory that contains the data
+        #Format depends on the type of data to be read
 
         self.day = day
-        local_dir = data_dir+"dt="+day+"/"
+        if data_format == "ORC":
+            local_dir = data_dir+"dt="+day+"/"
+        elif data_format == "Parquet":
+            local_dir = data_dir+"date0="+day+"/"
+        else:
+            print("Please hard code the data format style, don't know this one.", data_format)
+            sys.exit()
+
         self.local_dir = local_dir
         self.day_obj = datetime.strptime(self.day, '%Y-%m-%d')
         self.day_weekday = self.day_obj.weekday() # Monday is 0 and Sunday is 6.
@@ -67,10 +78,14 @@ class DayData:
         print()
         print("Loading data for day:", day, " from ", local_dir )
 
-        self.col_labels=[ 'time0', 'lng0', 'lat0', 
-            'time1', 'lng1','lat1', 
-            'time2', 'lng2','lat2']
-
+        if data_format == "ORC":
+            self.col_labels=[ 'time0', 'lng0', 'lat0', 
+                'time1', 'lng1','lat1', 
+                'time2', 'lng2','lat2']
+        elif data_format == "Parquet":
+            self.col_labels=[ 'lat0', 'lng0', 'timestamp0',
+                'lat1', 'lng1', 'timestamp1','state1', 'date1']
+        
         df_local = pd.DataFrame(columns=self.col_labels) 
         
         if not os.path.exists(local_dir):
@@ -89,9 +104,10 @@ class DayData:
         #Do we have a pickle file and want to load it?
         if self.load:
             for f in pklfiles:
-                print("Found a pickle file: ", f, ". Loading data.")
-                df_local = pd.read_pickle(local_dir+f)
-                loaded = True
+                if "data.pkl" in f:
+                    print("Found a pickle file with raw data: ", f, ". Loading data.")
+                    df_local = pd.read_pickle(local_dir+f)
+                    loaded = True
 
         if not loaded:
             for filename in os.listdir(local_dir):
@@ -99,17 +115,22 @@ class DayData:
                 #Get data and convert to df pandas
                 try:
                     print(" Reading: ",filename)
-                    orc_file = orc.ORCFile(local_dir+filename)
-                    data = orc_file.read()
+                    if data_format == "ORC":
+                        orc_file = orc.ORCFile(local_dir+filename)
+                        data = orc_file.read()
+                    elif data_format == "Parquet":
+                        pq_file = pq.ParquetFile(local_dir+filename)
+                        #print(pq_file.schema)
+                        data = pq_file.read()
                 except:
-                    print(" File not in orc format: ", filename, ". Ignoring.")
+                    print("   File not in orc/parquet format: ", filename, ". Ignoring.")
                     continue
 
                 #Organize data and save in main data_frame
                 df_tmp = pd.DataFrame(data.to_pandas())
                 df_tmp = self.org_day_data(df_tmp)
                 df_local = pd.concat([df_local, df_tmp], ignore_index=True )
-            
+                
             print(" Saving dataframe for future use as data.pkl")
             #df_local.to_csv (local_dir+"data.csv", header=True) #Don't forget to add '.csv' at the end of the path
             df_local.to_pickle (local_dir+"data.pkl") 
@@ -120,36 +141,41 @@ class DayData:
         return self
 
     def org_day_data(self, dflocal):
-        #Organize data into nice dataframe
+        #Organize data into nice dataframe with standard column names
 
         n=len(dflocal)
         
         labels=list(self.col_labels)
         dfout = pd.DataFrame(index=np.arange(0, n), columns=labels, dtype='float')
         
-        #Data has always 3 events
-        for idx, d0, d1, d2 in dflocal.itertuples():
-            try:
-                dfout.at[idx, 'time0']=timestamp2datetime(d0['timestamp'])
-                dfout.at[idx, 'lng0']=d0['location']['lng']
-                dfout.at[idx, 'lat0']=d0['location']['lat']
-            except:
-                pass
+        if self.data_format == "ORC":
+            #Data has always 3 events
+            for idx, d0, d1, d2 in dflocal.itertuples():
+                try:
+                    dfout.at[idx, 'time0']=timestamp2datetime(d0['timestamp'])
+                    dfout.at[idx, 'lng0']=d0['location']['lng']
+                    dfout.at[idx, 'lat0']=d0['location']['lat']
+                except:
+                    pass
 
-            try:
-                dfout.at[idx, 'time1']=timestamp2datetime(d1['timestamp'])
-                dfout.at[idx, 'lng1']=d1['location']['lng']
-                dfout.at[idx, 'lat1']=d1['location']['lat']
-            except:
-                pass
-            
-            try:
-                dfout.at[idx, 'time2']=timestamp2datetime(d2['timestamp'])
-                dfout.at[idx, 'lng2']=d2['location']['lng']
-                dfout.at[idx, 'lat2']=d2['location']['lat']
-            except:
-                pass
+                try:
+                    dfout.at[idx, 'time1']=timestamp2datetime(d1['timestamp'])
+                    dfout.at[idx, 'lng1']=d1['location']['lng']
+                    dfout.at[idx, 'lat1']=d1['location']['lat']
+                except:
+                    pass
+                
+                try:
+                    dfout.at[idx, 'time2']=timestamp2datetime(d2['timestamp'])
+                    dfout.at[idx, 'lng2']=d2['location']['lng']
+                    dfout.at[idx, 'lat2']=d2['location']['lat']
+                except:
+                    pass
         
+        elif self.data_format == "Parquet":
+            #This kind of data has only 2 events, which were pre-processed to columns
+            dfout = dflocal
+            dfout = dfout.rename(columns={"timestamp0": "time0", "timestamp1": "time1"})
 
         return dfout
     
@@ -193,9 +219,9 @@ class DayData:
                 print(" Saving full dataframe for future use as proc_data.csv")
                 self.df.to_csv(filename, header=True) #Don't forget to add '.csv' at the end of the path
             else:
-                print("Loading distances...")
+                print("Loading distances...", end="")
                 self.df['dist1'] = pd.read_csv(filename, usecols = ['dist1'])
-
+                print("..done.")
 
             #Data density - takes time
             for i in tqdm.tqdm(range(3)):
@@ -204,7 +230,7 @@ class DayData:
                 filename = self.local_dir+title+".jpg"
                 if not os.path.exists(filename):
                     try: 
-                        map = Map(self.dom)
+                        map = Map(self.net)
                         map.map_density_data(self.df['lng'+s].values, self.df['lat'+s].values, \
                             title, filename)
                     except:
@@ -215,7 +241,7 @@ class DayData:
             filename = self.local_dir+title+".jpg"
             if not os.path.exists(filename):
                     print("Ploting density")
-                    map = Map(self.dom)
+                    map = Map(self.net)
                     lons = np.concatenate((self.df['lng0'].values, self.df['lng1'].values))
                     lats = np.concatenate((self.df['lat0'].values, self.df['lat1'].values))
                     map.map_density_data(lons, lats, \
@@ -316,20 +342,20 @@ class DayData:
                 #print(self.lat_bins)
                 #print(self.lon_bins)
 
-                dyn=[[None]*(self.dom.nlon+2) for _ in range(self.dom.nlat+2)] #np.empty([self.nlat+1,self.nlon+1])
+                dyn=[[None]*(self.net.nlon+2) for _ in range(self.net.nlat+2)] #np.empty([self.nlat+1,self.nlon+1])
                 self.dist_bins = [0, 15, 30, 50, 100, 300, 500, 1000, np.inf]
                 self.vel_bins = [0, 1, 10, 20, 30, 50, 100, 300, 500, 1000, np.inf]
                 self.angle_bins = np.arange(8) #quadrants
                 print("Calculating windroses:")
             
-                for j, lon in enumerate(tqdm.tqdm(self.dom.lon_bins_ext)):
-                    for i, lat in enumerate(self.dom.lat_bins_ext):
+                for j, lon in enumerate(tqdm.tqdm(self.net.lon_bins_ext)):
+                    for i, lat in enumerate(self.net.lat_bins_ext):
                         #get distribution for this lat lon
                         #print(lon, lat)
                         filter1=self.df['lng0']>lon
-                        filter2=self.df['lng0']<(lon + self.dom.dlon)
+                        filter2=self.df['lng0']<(lon + self.net.dlon)
                         filter3=self.df['lat0']>lat
-                        filter4=self.df['lat0']<(lat+self.dom.dlat)
+                        filter4=self.df['lat0']<(lat+self.net.dlat)
                         local_df = self.df[filter1 & filter2 & filter3 & filter4] 
 
                         freq=np.zeros( (int(len(self.angle_bins)), 

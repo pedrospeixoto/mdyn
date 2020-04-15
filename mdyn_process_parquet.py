@@ -105,5 +105,5 @@ for i, filename in enumerate(os.listdir(data_dir)):
     #Write to files
     print("Writting new parquet files.")
     parquetDF.write.partitionBy("state0", "date0").mode("append").parquet(out_dir)
-    print("Writting new csv files.")
-    parquetDF.write.partitionBy("state0", "date0").mode("append").csv(out_dir)
+    #print("Writting new csv files.")
+    #parquetDF.write.partitionBy("state0", "date0").mode("append").csv(out_dir)

@@ -16,6 +16,7 @@ from mdyn_map import Map
 import mdyn_extras as mex
 import mdyn_move_mats as mmat 
 import mdyn_isol_index as isol
+import mdyn_fixed_users as fx
 
 #Input parameters
 #-----------------------------
@@ -60,3 +61,6 @@ for s in s_list:
 if run_opt == 30:
     isol.isol_index(network, ipar)
 
+
+if run_opt == 31:
+    fx.fixed_users(network, ipar)
