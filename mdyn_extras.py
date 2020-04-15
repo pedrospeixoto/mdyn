@@ -11,6 +11,9 @@ import math
 import pyarrow.orc as orc
 import pyarrow.parquet as pq
 
+from pyspark.sql import SQLContext
+from pyspark.sql import SparkSession
+
 import time
 from datetime import datetime
 from datetime import date
@@ -210,6 +213,9 @@ def read_pq2df(local_dir, name_base, load):
     
     return df_local
 
+
+
+
 def del_df(df):
         
         del [df]
@@ -294,6 +300,66 @@ def matprint(mat, fmt="g"):
         for i, y in enumerate(x):
             print(("{:"+str(col_maxes[i])+fmt+"}").format(y), end="  ")
         print("")
+
+state_name2abrv = {
+   "Acre": "AC",
+   "Alagoas": "AL",
+   "Amapá": "AP",
+   "Amazonas": "AM",
+   "Bahia": "BA",
+   "Ceará": "CE",
+   "Distrito Federal": "DF",
+   "Espírito Santo": "ES",
+   "Goiás": "GO",
+   "Maranhão": "MA",
+   "Mato Grosso": "MT",
+   "Mato Grosso do Sul": "MS",
+   "Minas Gerais": "MG",
+   "Pará": "PA",
+   "Paraíba": "PB",
+   "Paraná": "PR",
+   "Pernambuco": "PE",
+   "Piauí": "PI",
+   "Rio de Janeiro": "RJ",
+   "Rio Grande do Norte": "RN",
+   "Rio Grande do Sul": "RS",
+   "Rondônia": "RO",
+   "Roraima": "RR",
+   "Santa Catarina": "SC",
+   "São Paulo": "SP",
+   "Sergipe": "SE",
+   "Tocantins": "TO"
+}
+
+state_abrv2name = {
+    'AC': 'Acre',
+    'AL': 'Alagoas',
+    'AP': 'Amapá',
+    'AM': 'Amazonas',
+    'BA': 'Bahia',
+    'CE': 'Ceará',
+    'DF': 'Distrito Federal',
+    'ES': 'Espírito Santo',
+    'GO': 'Goiás',
+    'MA': 'Maranhão',
+    'MT': 'Mato Grosso',
+    'MS': 'Mato Grosso do Sul',
+    'MG': 'Minas Gerais',
+    'PA': 'Pará',
+    'PB': 'Paraíba',
+    'PR': 'Paraná',
+    'PE': 'Pernambuco',
+    'PI': 'Piauí',
+    'RJ': 'Rio de Janeiro',
+    'RN': 'Rio Grande do Norte',
+    'RS': 'Rio Grande do Sul',
+    'RO': 'Rondônia',
+    'RR': 'Roraima',
+    'SC': 'Santa Catarina',
+    'SP': 'São Paulo',
+    'SE': 'Sergipe',
+    'TO': 'Tocantins'
+}
 
 #Ploting helpers
 markers = [ 'o', 'v', '^', '<', '>', 's', 'p', '*', 'h', 'H', '+', 'x', 'D', '.', ',', 'o', 'v', '^', '<', '>', '1', '2', '3', '4', '8', 's', 'p', '*', 'h', 'H', '+', 'x', 'D']
