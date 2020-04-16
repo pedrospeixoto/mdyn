@@ -394,13 +394,5 @@ class DayData:
                             print(i, j, lon, lat)
                             print( dyn[i][j])
                 #print(dyn)
-
-    def calc_time_day(self):
-            #Under cosntruction ###
-            #Create new variables with period of day
-            #Add to dataframe
-            print()
-            print("Calculating/filtering periods of day for day "+self.day, " weekday: ", self.day_weekday)
-            print(" No filter done! Movements are of all time scales! " )
-        
+    
             

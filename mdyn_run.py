@@ -51,6 +51,9 @@ if run_opt == 20:
 if run_opt == 21:
     mmat.simulate_model(mdyn, network, ipar)
 
+if run_opt == 22:
+    mmat.simulate_seir_model(mdyn, network, ipar)
+
 if run_opt == 30:
     isol.isol_index(network, ipar)
 

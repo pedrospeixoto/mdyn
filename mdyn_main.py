@@ -4,6 +4,7 @@
 
 import sys
 import os
+from pathlib import Path
 
 
 import numpy as np
@@ -93,9 +94,6 @@ class MobileDynamics:
             #Get useful info from this day (velocities)
             #day_data.calc_vel_day_diagnostics()
 
-            #To be defined - to set proper periods of day
-            #day_data.calc_time_day()
-
             #Update dataframe with network info
             network.add_reg_to_daydf(day_data)           
 
@@ -153,14 +151,22 @@ class MobileDynamics:
         for day in daterange(self.date_ini_obj, self.date_end_obj+timedelta(days=1)):
             self.days_all.append(day)
             self.dates_dirs.append(self.data_dir+"dt="+day.strftime("%Y-%m-%d")+"/")
-            local_dir = self.data_dir+"dt="+day.strftime("%Y-%m-%d")+"/"
+
+            sday=day.strftime("%Y-%m-%d")
+            if self.data_format == "ORC":
+                local_dir = self.data_dir+"dt="+sday+"/"
+            elif self.data_format == "Parquet":
+                local_dir = self.data_dir+"date0="+sday+"/"
+            
             try:
                 self.movemats.append(np.genfromtxt(local_dir+name+'.csv'))
                 self.movemats_norm.append(np.genfromtxt(local_dir+name+'_norm.csv'))
                 self.movemats_reg0.append(np.genfromtxt(local_dir+name+'_reg0.csv').astype(int))
                 self.movemats_reg1.append(np.genfromtxt(local_dir+name+'_reg1.csv').astype(int))
+                
                 #reg_names = np.load(local_dir+name+'_reg_names.npy')
-                with open(local_dir+name+'_reg_names.txt') as f:
+                filename = local_dir+name+"_reg_names.txt"
+                with open(filename) as f:
                     reg_names = f.read().splitlines()            
                 self.movemats_reg_names.append(reg_names)
                 print("Loaded matrix for :", day )
