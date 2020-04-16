@@ -12,4 +12,6 @@ dump/*
 output/*
 __pycache__/
 *.swp
+.vscode/
+
 
