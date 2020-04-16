@@ -69,7 +69,7 @@ class Map:
         #map.drawmapboundary(fill_color='aqua')
         #map.fillcontinents(lake_color='aqua')
         map.drawmapboundary()
-        map.drawstates(color='k',linestyle='--', linewidth=0.2)
+        #map.drawstates(color='k',linestyle='--', linewidth=0.2)
         map.drawparallels(np.arange(-50,0,1), labels=[False,True,True,False])
         map.drawmeridians(np.arange(-180,180,1), labels=[False,False,True,False])
         map.ax = ax
@@ -303,9 +303,11 @@ class Map:
         cmap = "hot_r" 
 
         if "Index" in title:
-            
             plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.0, vmax=1.0, cmap=cmap , snap=True) #, norm=norm)  
             label = ""
+        elif "SEIR" in title:
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data,  vmin=0.01, cmap=cmap, norm=colors.LogNorm(), snap=True)
+            label=""
         else:
             plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1.0, cmap=cmap, snap=True) #, norm=norm)  
             label = ""
@@ -322,7 +324,8 @@ class Map:
         plt.tight_layout() #pad=0.4, w_pad=0.5, h_pad=1.0)
         
         #filename = dir+"/map_data_"+title+".eps"
-        filename = filename+".jpg"
+        if filename[-4:] != ".jpg":
+            filename = filename+".jpg"
         plt.savefig(filename, dpi=300)   
 
     def map_lat_lon_z_data(self, lats, lons, z, title, filename):

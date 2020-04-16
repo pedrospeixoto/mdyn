@@ -463,3 +463,160 @@ def model(day_state, mat, ipar, network):
         print("Non source: avg,max,min :",np.average(tmp_state), np.max(tmp_state), np.min(tmp_state))
 
     return day_state
+
+
+def simulate_seir_model(mdyn, network, ipar):
+
+    #Analyse movement matrices
+    mdyn.collect_move_mat(network)
+
+    #Calculate forecasted movemats as averages of previous data
+    movemat_avg, movemat_std, movemat_avg_diag = calc_move_mat_avg_dow(mdyn, network, ipar)
+
+    #Initial condition
+    Iini = np.zeros([network.nregions])
+    for key in ipar.data_ini_by_reg:
+        Iini[key] = ipar.data_ini_by_reg[key]
+    I = np.copy(Iini)
+    
+    Eini = np.zeros([network.nregions])
+    E = np.zeros([network.nregions])
+    E=I+1
+
+    Sini = np.zeros([network.nregions])
+    S = np.zeros([network.nregions])
+    S=E/2.0
+
+    Rini = np.zeros([network.nregions])
+    R = np.zeros([network.nregions])
+    R=I+10
+
+    day_state = [S, E, I, R] 
+    labels = ["S", "E", "I", "R"]
+
+    ntime = mdyn.days+ipar.num_simul_days
+    data_evol = [np.zeros((network.nregions, ntime))]*4
+
+    #Add network
+    title_base = "Model_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
+    #Add parameters
+    title_base = title_base + "\n_r"+str(ipar.infec_rate).replace(".","") \
+        +"_s"+str(ipar.spread_rate).replace(".","") 
+        #+"_s"+str(int(ipar.spread_rate))
+    
+    #simulate scenario
+    drange = mex.daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=ipar.num_simul_days))
+    for i, day in enumerate(drange):
+        print()
+        print("Iterating day: ", day)
+        indx = '{:02d}'.format(i)
+        title = title_base+"_day_"+day.strftime("%Y-%m-%d")
+        basename = mdyn.dump_dir+title_base.replace("\n", "")+"_day_"+indx
+        map_seir_state(day_state, network, title, basename, labels)
+
+        #Save day state
+        for k, state in enumerate(day_state):
+            data_evol[k][:,i] = state
+
+        if day in mdyn.days_all: 
+            mat = mdyn.movemats_adj_norm[i]
+        else:
+            #Use matrix with dow average
+            dow = day.weekday()
+            mat = movemat_avg[dow]
+            
+        day_state = model_seir(day_state, mat, ipar, network)
+        
+
+    filename = mdyn.dump_dir+title_base+"data_evol.csv"
+    filename = filename.replace("\n", "")
+    np.savetxt(filename, data_evol, delimiter=",")
+    filename = mdyn.dump_dir+title_base+"data_evol.npy"
+    filename = filename.replace("\n", "")
+    np.save(filename, data_evol)
+
+    risk_time = mex.risk_time(data_evol[2], ipar.risk_lim)
+    risk_time = risk_time.astype(float)
+    ones = np.ones(len(risk_time))
+    risk_index = ones-(risk_time/np.max(risk_time))
+    risk_index[risk_time<0]=np.nan
+    risk_time[risk_time<0]=np.nan
+    risk_time[risk_time<1]=1.0    
+    
+    filename = mdyn.dump_dir+title_base+"_risk_index.npy"
+    filename = filename.replace("\n", "")
+    np.save(filename, risk_index)
+    filename = mdyn.dump_dir+title_base+"_risk_index.csv"
+    filename = filename.replace("\n", "")
+    np.savetxt(filename, risk_index, delimiter=",")
+
+    risk_ind_fmt = {"Region": list(network.regions.values()) , "Index": risk_index, "Time": risk_time}
+    df_risk_ind = pd.DataFrame(risk_ind_fmt)
+    df_risk_ind = df_risk_ind.sort_values(["Index"], ascending = (False))
+    print(df_risk_ind)
+
+    filename = mdyn.dump_dir+title_base+"_risk_index_time_list.csv"
+    filename = filename.replace("\n", "")
+    df_risk_ind.to_csv (filename, index = False, header=True)
+
+    title = title_base+"_risk_time_with_lim_"+str(ipar.risk_lim)
+    filename = mdyn.dump_dir+title_base+"_risk_lim_"+str(ipar.risk_lim)+".jpg"
+    print(" Plotting risk time ", filename)
+    map=Map(network)
+    map.map_move_by_reg(risk_time, network.regions, network, title, filename)
+
+    title = title_base+"_risk_index"
+    filename = mdyn.dump_dir+title_base+"_risk_index.jpg"
+    print(" Plotting risk index ", filename)
+    map=Map(network)
+    map.map_move_by_reg(risk_index, network.regions, network, title, filename)
+
+
+def model_seir(day_state, mat, ipar, network):
+
+    S = day_state[0]
+    E = day_state[1]
+    I = day_state[2]
+    R = day_state[3]
+
+    #Local infections
+    pop_inf = np.divide(network.reg_pop - I, network.reg_pop)  #(N-I)/N
+    pop_inf = pop_inf.clip(min=0) #Make positive, just in case
+    #print("(N-I)/N :     avg, max, min :", np.average(pop_inf), np.max(pop_inf), np.min(pop_inf)) 
+    local_inf = I + ipar.infec_rate * I*pop_inf #I+rI(N-I)/N 
+    #print("I+rI(N-I)/N : avg, max, min :", np.average(local_inf), np.max(local_inf), np.min(local_inf))
+
+    #Outgoing infected
+    move_mat = np.copy(mat)
+    zero = np.zeros([mat.shape[0]])
+    np.fill_diagonal(move_mat, zero) #Zero diagonal of move matriz
+    out_inf = np.matmul(move_mat, I) #AI
+    #print("AI/N :        avg, max, min :", np.average(out_inf), np.max(out_inf), np.min(out_inf))
+
+    #Incoming infected    
+    in_inf = move_mat.sum(axis=0)*I #
+    #print("AtI/N :       avg, max, min :", np.average(in_inf), np.max(in_inf), np.min(in_inf))
+
+    #Newly infected
+    I = local_inf + ipar.spread_rate*(out_inf -  in_inf)
+    I = I.clip(min=0) #Make positive
+
+    #Check non source infected people
+    #print("I+rI(N-I)/N + s(AI/N-AtI/N): avg,max,min :",np.average(day_state), np.max(day_state), np.min(day_state))
+    tmp_state = np.copy(I)
+    tmp_state[np.argmax(I)] = 0.0
+    print("Non source: avg,max,min :",np.average(I), np.max(I), np.min(I))
+
+    day_state = [S, E, I, R]
+
+    return day_state
+
+def map_seir_state(day_state, network, title, basename, labels):
+
+    for state, lab in zip(day_state, labels):
+        filename = basename+"_SEIR-"+lab+".jpg"
+        if not os.path.exists(filename):
+            #print("Creating plot for", filename)
+            map=Map(network)
+            map.map_reg_var(state, network.regions, network, title+" SEIR: "+lab, filename)
+    
