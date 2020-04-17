@@ -1,0 +1,2 @@
+find data/visit_journey_sao_paulo_2020/dt\=2020-03-* -name 'move*.csv' -type f  -exec cp --parents \{\} data_pone_paper/. \;
+
