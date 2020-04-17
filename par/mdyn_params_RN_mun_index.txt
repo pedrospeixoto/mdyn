@@ -3,15 +3,15 @@
 #---------------------
 
 #Main domain definition
-domain = "CEARÁ" #SP or RJ
-domain_abrv = "CE"
+domain = "RIO GRANDE DO NORTE" #SP or RJ
+domain_abrv = "RN"
 domain_gran = "NM_ESTADO"
 domain_shape = "maps/UFEBRASIL/UFEBRASIL"
 
 #Subdomain definitions
 subdomains = "Municipios"
 subdomains_gran = "NM_MUNICIP"
-subdomains_shape = "maps/ce_municipios/23MUE250GC_SIR"
+subdomains_shape = "maps/rn_municipios/24MUE250GC_SIR"
 
 #Population
 domain_pop = "maps/population/population_ufebrasil.csv"
