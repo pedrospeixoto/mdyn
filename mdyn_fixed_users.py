@@ -102,7 +102,7 @@ class fixed_users_by_date():
 
         df_all = pd.concat(self.dfs)
         outfile = self.dump_dir+network.domain+"_"+network.subdomains+"_"+ \
-            self.date_ini+" "+self.date_end+"_iso_index.csv"
+            self.date_ini+"_"+self.date_end+"_iso_index.csv"
         df_all.to_csv(outfile) 
         print(df_all)
 
