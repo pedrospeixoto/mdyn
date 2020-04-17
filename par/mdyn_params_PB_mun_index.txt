@@ -4,7 +4,7 @@
 
 #Main domain definition
 domain = "PARAÍBA" #SP or RJ
-domain_abrv = "pb"
+domain_abrv = "PB"
 domain_gran = "NM_ESTADO"
 domain_shape = "maps/UFEBRASIL/UFEBRASIL"
 
