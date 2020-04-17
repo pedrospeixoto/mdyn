@@ -1,0 +1,10 @@
+rsync -ah --progress triples_br/part-0001* triples_br_split/part1/.
+rsync -ah --progress triples_br/part-0002* triples_br_split/part2/.
+rsync -ah --progress triples_br/part-0003* triples_br_split/part3/.
+rsync -ah --progress triples_br/part-0004* triples_br_split/part4/.
+rsync -ah --progress triples_br/part-0005* triples_br_split/part5/.
+rsync -ah --progress triples_br/part-0006* triples_br_split/part6/.
+rsync -ah --progress triples_br/part-0007* triples_br_split/part7/.
+rsync -ah --progress triples_br/part-0008* triples_br_split/part8/.
+rsync -ah --progress triples_br/part-0009* triples_br_split/part9/.
+rsync -ah --progress triples_br/part-0000* triples_br_split/part0/.
