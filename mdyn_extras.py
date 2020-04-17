@@ -185,15 +185,15 @@ def read_pq2df(local_dir, name_base, load):
 
             #Get data and convert to df pandas
             try:
-                print(" Reading: ",filename)
+                #print(" Reading: ",filename)
                 pq_file = pq.ParquetFile(local_dir+filename)
-                print(pq_file.metadata)
+                #print(pq_file.metadata)
                 data = pq_file.read()
                 #print(data)
                 df_tmp = pd.DataFrame(data.to_pandas())
-                print(list(df_tmp))
+                #print(list(df_tmp))
             except:
-                print(" File not in parquet format: ", filename, ". Ignoring.")
+                #print(" File not in parquet format: ", filename, ". Ignoring.")
                 continue
             
             #Save in main data_frame
@@ -207,7 +207,7 @@ def read_pq2df(local_dir, name_base, load):
             except:
                 df_local = df_tmp
 
-        print(" Saving dataframe for future use as xxx_data.csv and xxx_data.pkl")
+        print(" Saving dataframe for future use as:", local_dir+name_base+"_data." , " .csv and .pkl")
         df_local.to_csv (local_dir+name_base+"_data.csv", header=True) #Don't forget to add '.csv' at the end of the path
         df_local.to_pickle (local_dir+name_base+"_data.pkl") 
     

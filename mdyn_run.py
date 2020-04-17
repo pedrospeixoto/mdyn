@@ -59,5 +59,5 @@ if run_opt == 30:
     isol.isol_index(network, ipar)
 
 if run_opt == 31:
-    fx.fixed_users(network, ipar)
+    fx.fixed_users_by_date(network, ipar)
     
