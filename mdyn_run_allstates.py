@@ -70,18 +70,12 @@ for index, row in df.iterrows():
     if run_opt == 2:
         mmat.analyse_move_mats_dow(mdyn, network, ipar)
 
-    s_list = [0.001, 0.01, 0.05, 0.1, 0.2, 0.4, 0.5, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.5, 3.0]
-    for s in s_list:
-        ipar.spread_rate = s
-        print()
-        print("---------------")
-        print("TESTING S=", s)
-        print("---------------")
-        if run_opt == 20:
-            mmat.simulate_move_mats(mdyn, network, ipar)
 
-        if run_opt == 21:
-            mmat.simulate_model(mdyn, network, ipar)
+    if run_opt == 20:
+        mmat.simulate_move_mats(mdyn, network, ipar)
+
+    if run_opt == 21:
+        mmat.simulate_model(mdyn, network, ipar)
 
     if run_opt == 30:
         isol.isol_index(network, ipar)
