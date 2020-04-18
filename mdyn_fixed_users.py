@@ -116,7 +116,7 @@ class fixed_users_by_date():
             pklfile = data_dir+network.domain+"_"+network.subdomains+"_data_proc.pkl"
             csvfile = data_dir+network.domain+"_"+network.subdomains+"_data_proc.csv"
 
-            if not os.path.exists(pklfile):
+            if True: #not os.path.exists(pklfile):
                 #Convert lat lon from dict to numpy array
                 lat = dflocal['lat0']
                 lon = dflocal['lng0']
@@ -149,6 +149,7 @@ class fixed_users_by_date():
                 
                 dflocal['reg_name']=dflocal['reg']
                 dflocal['reg_name']=dflocal['reg_name'].map(network.regions).fillna(dflocal['reg_name'])
+                dflocal.to_csv(csvfile+"raw.csv") 
                 
                 dflocal = dflocal.groupby('reg_name', as_index=False).agg({'lat':'mean', 'lon':'mean',
                     'reg':'mean', 'left_home':'sum', 'active_users_in_month':'sum'})
@@ -156,9 +157,11 @@ class fixed_users_by_date():
                 dflocal['move'] = dflocal['left_home']/dflocal['active_users_in_month']
                 dflocal['iso'] = 1.0 - dflocal['move']
                 print(dflocal)
+
                 print("Saving pre-processed data-file for future use:", pklfile, csvfile)
                 dflocal.to_pickle(pklfile) 
                 dflocal.to_csv(csvfile) 
+                
             else:
                 dflocal = pd.read_pickle(pklfile)
                 print("Loading pre-processed data-file:", pklfile)
