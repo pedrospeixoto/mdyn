@@ -66,6 +66,8 @@ class Network:
         self.latlon_gran = latlon_gran
         self.load = load
 
+        print(self.domain, self.subdomains)
+        
         #Load main domain
         self.df_domain = self.load_domain()
 
