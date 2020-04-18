@@ -116,7 +116,7 @@ class fixed_users_by_date():
             pklfile = data_dir+network.domain+"_"+network.subdomains+"_data_proc.pkl"
             csvfile = data_dir+network.domain+"_"+network.subdomains+"_data_proc.csv"
 
-            if True: #not os.path.exists(pklfile):
+            if not os.path.exists(pklfile):
                 #Convert lat lon from dict to numpy array
                 lat = dflocal['lat0']
                 lon = dflocal['lng0']
