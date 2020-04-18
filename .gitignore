@@ -2,10 +2,10 @@
 .Rhistory
 .RData
 .Ruserdata
-maps/*.pdf
-maps/*.jpg
-maps/*.npy
-maps/*.csv
+maps/reg*.pdf
+maps/reg*.jpg
+maps/reg*.npy
+maps/reg*.csv
 maps/**/*dom.*
 maps/**/*mdyn.*
 dump/*
