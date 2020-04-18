@@ -40,7 +40,7 @@ for index, row in df.iterrows():
     ipar.domain_abrv = row['abrv']
 
     #Subdomain definitions
-    ipar.subdomains_shape = "maps/ac_municipios/12MUE250GC_SIR" #"maps/"+row['shape']
+    ipar.subdomains_shape = "maps/"+row['shape']
     
     print()
     print("---------------------------")
