@@ -93,7 +93,7 @@ class fixed_users_by_date():
                 df = mex.read_pq2df(local_dir, "original", True)
                 df = self.org_data(df, network, local_dir)
                 df['day']=sday
-                print(df)
+                #print(df)
                 self.dfs.append(df)
             else:
                 print("Invalid file format")
