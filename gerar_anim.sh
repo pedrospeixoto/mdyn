@@ -12,7 +12,8 @@ do
     
     #name of state
     name=${d##*/}
-    
+
+    base=`pwd`
     echo $name    
     cd $d
 
@@ -39,10 +40,14 @@ do
 
 	#Convert to png with counter
 	outname=$name"-"$count.png
-	convert "$im" "$outname"
+	convert "$im" "$outname" || { echo 'Nao consegui converter imagens ' $outname ; exit 1; }
 	echo $outname
     done
     #Create video
     ffmpeg -framerate 1 -i $name"-%03d".png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p $name.mp4
-    rm -rf *.png
+    rm -rf *.png { echo 'Nao consegui gerar o video ' $name ; exit 1; }
+
+    cd "${base}"
+    echo `pwd`
+
 done
