@@ -3,9 +3,14 @@ Mobile dynamics
 
 Scripts to analyse mobile data and model population dynamics
 
+Main developers:
+- Pedro Peixoto (ppeixoto@usp.br)
+- Diego Marcondes (dmarcondes@ime.usp.br)
+
 Requires:
 - Python
 - Anaconda/conda enviroment manager
+- R
 
 Installation:
 - After donwloading or cloning the repository
