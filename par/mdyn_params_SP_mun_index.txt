@@ -32,7 +32,7 @@ load_domain = True #Load precomp structures
 
 #Initialize mobile data and load data to dataframe
 data_format = "Parquet" #"ORC"
-data_dir = "data/2020_04_14_fixed_users/"
+data_dir = "data/2020_04_14/fixed_users_proc/"
 date_ini = "2019-06-01"
 date_end = "2020-04-14"
 load_data = True
