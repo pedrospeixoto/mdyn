@@ -3,7 +3,7 @@
 echo "Processando Relatorios"
 echo "----------------------"
 
-work="workspace"
+work="Workspace"
 fig_dir="Figuras"
 relat_dir="Relatorios"
 main_relat_dir="Relatórios"
@@ -21,7 +21,7 @@ do
     name=${dir##*/}
     echo $name $dir
 
-    cd $dir
+    cd "${dir}"
     
     base=`pwd`
     site=$base"/site.txt"
@@ -29,7 +29,7 @@ do
     echo "" > "${site}"
 
     #entrar no diretorio de relatorios
-    cd $relat_dir
+    cd "${relat_dir}"
 
     path1=$name/$relat_dir
 
@@ -54,7 +54,7 @@ do
         length=${#label}
         if [ ${#label} -ge 4 ]; then
             label=`echo $label | sed -r 's/-/ /g'`
-            echo $label
+            #echo $label
             echo $html_s1$path1/${relat}"\""$html_s2 $label $html_s3 >> "${site}"
         fi
     done
@@ -62,25 +62,31 @@ do
 
     #sai do diretorio de relatorios
     cd ..
-    ls
     #municipios sem dados
     csvfile=$name"_cidades_sem_relatorio.csv"
-    #cat $csvfile
     OLDIFS=$IFS
     IFS=','
     echo "" >> "${site}"
     echo $texto >> "${site}"
     echo "<ul>" >> "${site}"
+    
     #[ ! -f $csvfile ] && { echo "$csvfile file not found"; exit 99; }
+    #cat "${csvfile}"
+    iconv -f iso8859-1//TRANSLIT -t utf-8 < $csvfile > csvfile.tmp
+    csvfile2="csvfile.tmp"
     while read id mun
     do
         if [ "$mun" != "\""problemas"\"" ]; then
             mun_s=`echo $mun | sed -r 's/"//g'`
             echo "<li>" "$mun_s" "</li>" >> "${site}"
         fi
-    done <  "${csvfile}"
+    done <  "${csvfile2}"
     IFS=$OLDIFS
+    rm $csvfile2
     echo "</ul>" >> "${site}"
-
-    exit 1
+    echo $base
+    cd "${base}"
+    cd ..
+    cd ..
+    echo `pwd`
 done

@@ -21,7 +21,7 @@ do
     echo `pwd`
 
     #Limpar
-    rf -rf "${fig_dir}" #$bkp/.
+    #rm -rf "${fig_dir}" #$bkp/.
     rm -f *.fls
     rm -f *.tex #$bkp/.
     rm -f *.aux

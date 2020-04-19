@@ -45,7 +45,7 @@ do
     done
     #Create video
     ffmpeg -framerate 1 -i $name"-%03d".png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p $name.mp4
-    rm -rf *.png { echo 'Nao consegui gerar o video ' $name ; exit 1; }
+    rm -rf *.png || { echo 'Nao consegui gerar o video ' $name ; exit 1; }
 
     cd "${base}"
     echo `pwd`
