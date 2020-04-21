@@ -20,8 +20,8 @@ from datetime import datetime
 from datetime import date
 from datetime import timedelta
 
-from mdyn_map import Map
-import mdyn_extras as mex
+from mdynpy.mdyn_map import Map
+import mdynpy.mdyn_extras as mex
 
 def isol_index(network, ipar):
     

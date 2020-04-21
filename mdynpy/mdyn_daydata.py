@@ -26,8 +26,8 @@ from windrose import WindroseAxes
 
 import tqdm as tqdm
 
-from mdyn_map import Map
-from mdyn_extras import distance, distance_lat, distance_lon, daterange, timestamp2datetime, list_files_pkl, del_df, mem_usage
+from mdynpy.mdyn_map import Map
+from mdynpy.mdyn_extras import distance, distance_lat, distance_lon, daterange, timestamp2datetime, list_files_pkl, del_df, mem_usage
 
 #Garbage collection
 import gc
