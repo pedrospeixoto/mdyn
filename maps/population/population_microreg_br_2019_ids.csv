@@ -1,0 +1,559 @@
+microgeo,microreg,pop2019
+001,Araripina,333854
+001,Aripuanã,230960
+001,Baixo Pantanal,109842
+001,Baixo Parnaíba Piauiense,306824
+001,Barra de São Francisco,55047
+001,Barreiras,342084
+001,Bico do Papagaio,215893
+001,Boa Vista,444920
+001,Brasília,8739
+001,Catolé do Rocha,123105
+001,Cruzeiro do Sul,157132
+001,Itaperuna,71436
+001,Jales,171779
+001,Litoral de Camocim e Acaraú,389324
+001,Litoral Ocidental Maranhense,180302
+001,Mossoró,379953
+001,Óbidos,209139
+001,Oiapoque,38387
+001,Paranavaí,521360
+001,Porto Velho,676286
+001,Rio Negro,117676
+001,Santa Rosa,170981
+001,São Miguel do Araguaia,70537
+001,São Miguel do Oeste,609448
+001,Sergipana do Sertão do São Francisco,173135
+001,Serrana do Sertão Alagoano,100012
+001,Unaí,164252
+002,Aglomeração Urbana de São Luís,1432529
+002,Alagoana do Sertão do São Francisco,80481
+002,Alta Floresta,143631
+002,Amapá,31544
+002,Aquidauana,137750
+002,Araguaína,319685
+002,Cajazeiras,173498
+002,Carira,74788
+002,Chapada do Apodi,75360
+002,Chapecó,3552516
+002,Cotegipe,118963
+002,Fernandópolis,111202
+002,Guajará-Mirim,84771
+002,Ibiapaba,320838
+002,Japurá,20979
+002,Litoral Piauiense,117254
+002,Nordeste de Roraima,52593
+002,Nova Venécia,152424
+002,Paracatu,236461
+002,Rio Vermelho,77355
+002,Salgueiro,172795
+002,Santarém,528467
+002,Santo Antônio de Pádua,152680
+002,Tarauacá,85664
+002,Três Passos,227119
+002,Umuarama,264003
+003,Almeirim,75244
+003,Alto Solimões,251867
+003,Alto Taquari,234794
+003,Aragarças,97747
+003,Ariquemes,206332
+003,Campos dos Goytacazes,260026
+003,Caracaraí,51729
+003,Cianorte,116416
+003,Colatina,112381
+003,Colíder,125617
+003,Coreaú,59772
+003,Frederico Westphalen,158883
+003,Januária,291500
+003,Macapá,687827
+003,Médio Oeste,41188
+003,Miracema do Tocantins,149165
+003,Nossa Senhora das Dores,67779
+003,Pajeú,321600
+003,Rosário,178491
+003,Santa Maria da Vitória,182440
+003,Santana do Ipanema,285305
+003,Sena Madureira,61847
+003,Sousa,189553
+003,Teresina,966916
+003,Votuporanga,302850
+003,Xanxerê,297736
+004,Agreste de Itabaiana,163746
+004,Batalha,249348
+004,Campo Grande,833165
+004,Campo Maior,204266
+004,Erechim,269271
+004,Goioerê,122813
+004,Janaúba,257882
+004,Ji-Paraná,294493
+004,Joaçaba,617348
+004,Juazeiro,492105
+004,Juruá,152530
+004,Lençóis Maranhenses,197301
+004,Macaé,74687
+004,Mazagão,87973
+004,Meruoca,26771
+004,Montanha,69601
+004,Parecis,113202
+004,Patos,134611
+004,Porangatu,242351
+004,Portel,153746
+004,Rio Branco,505863
+004,Rio Formoso,127871
+004,São José do Rio Preto,2063700
+004,Sertão do Moxotó,233991
+004,Sudeste de Roraima,56519
+004,Vale do Açu,154407
+005,Alvorada D'Oeste,69746
+005,Arinos,96955
+005,Baixada Maranhense,595087
+005,Brasiléia,71429
+005,Campo Mourão,130795
+005,Cassilândia,258644
+005,Catanduva,341598
+005,Chapada dos Veadeiros,64144
+005,Concórdia,409104
+005,Furos de Breves,232284
+005,Gurupi,150776
+005,Médio Parnaíba Piauiense,130516
+005,Palmeira dos Índios,316086
+005,Paulo Afonso,181421
+005,Petrolina,583269
+005,Piancó,595141
+005,Salinas,219575
+005,Sananduva,117025
+005,São Mateus,77784
+005,Serra de São Miguel,66914
+005,Sobral,414924
+005,Tefé,89430
+005,Tobias Barreto,116403
+005,Três Rios,81479
+006,Agreste de Lagarto,124213
+006,Alto Teles Pires,283817
+006,Arapiraca,2470770
+006,Arari,178169
+006,Astorga,400685
+006,Auriflama,49822
+006,Barra,182458
+006,Cacoal,236722
+006,Canoinhas,265362
+006,Cantagalo-Cordeiro,56141
+006,Ceres,280288
+006,Cerro Largo,52309
+006,Coari,181118
+006,Ipu,140328
+006,Itaparica,148561
+006,Itapecuru Mirim,236106
+006,Itaporanga,85863
+006,Linhares,240406
+006,Paranaíba,49109
+006,Pau dos Ferros,117812
+006,Pirapora,209564
+006,Porto Nacional,404882
+006,Valença do Piauí,106786
+007,Afonso Cláudio,260570
+007,Alto Parnaíba Piauiense,46738
+007,Anápolis,272580
+007,Belém,2363360
+007,Bom Jesus da Lapa,180315
+007,Gurupi,240134
+007,Jalapão,80184
+007,Manaus,2468200
+007,Montes Claros,644783
+007,Nhandeara,72503
+007,Nova Friburgo,57158
+007,Porecatu,121769
+007,Propriá,494032
+007,Santa Quitéria,74023
+007,Santo Ângelo,195922
+007,São Bento do Sul,145508
+007,Serra do Teixeira,158089
+007,Sinop,177030
+007,Traipu,39799
+007,Três Lagoas,153745
+007,Umarizal,66892
+007,Vale do Ipanema,198978
+007,Vilhena,161798
+008,Bertolínia,39396
+008,Castanhal,343919
+008,Colorado do Oeste,47077
+008,Cotinguiba,52157
+008,Dianópolis,124410
+008,Floraí,78328
+008,Grão Mogol,59866
+008,Ijuí,133866
+008,Iporá,129478
+008,Itapipoca,228728
+008,Joinville,250131
+008,Macau,59555
+008,Nova Andradina,200794
+008,Novo Horizonte,87478
+008,Paranatinga,88539
+008,Pindaré,679587
+008,Rio Preto da Eva,69626
+008,Santa Maria Madalena,46122
+008,Santa Teresa,214369
+008,Senhor do Bonfim,302022
+008,Seridó Ocidental Paraibano,41092
+008,Serrana dos Quilombos,251429
+008,Vale do Ipojuca,968644
+009,Alto Capibaribe,319304
+009,Angicos,52550
+009,Anicuns,158332
+009,Bacia de São João,213483
+009,Baixo Curu,116242
+009,Barretos,61277
+009,Bocaiúva,54379
+009,Bodoquena,554673
+009,Carazinho,91741
+009,Curitibanos,148679
+009,Floriano,76193
+009,Imperatriz,573080
+009,Irecê,394894
+009,Itacoatiara,180099
+009,Japaratuba,59609
+009,Maringá,572748
+009,Mata Alagoana,426436
+009,Norte Araguaia,195539
+009,Salgado,271823
+009,Seridó Oriental Paraibano,79134
+009,Vitória,101680
+010,Alto Médio Gurguéia,98890
+010,Apucarana,107181
+010,Baixo Cotinguiba,100189
+010,Bragantina,424088
+010,Campos de Lages,343149
+010,Canarana,2311385
+010,Cariri Ocidental,128265
+010,Diamantina,84446
+010,Dourados,500838
+010,Goiânia,8701287
+010,Guarapari,2378813
+010,Jacobina,338225
+010,Lagos,131617
+010,Litoral Norte Alagoano,88842
+010,Médio Capibaribe,260135
+010,Médio Mearim,424583
+010,Parintins,280875
+010,Passo Fundo,131602
+010,São Joaquim da Barra,234560
+010,Serra de Santana,63299
+010,Uruburetama,110621
+011,Alegre,187414
+011,Alto Mearim e Grajaú,336315
+011,Aracaju,299539
+011,Boca do Acre,53734
+011,Cametá,498315
+011,Capelinha,211630
+011,Cariri Oriental,72458
+011,Cruz Alta,86462
+011,Garanhuns,470577
+011,Iguatemi,475048
+011,Itaberaba,254393
+011,Ituverava,297585
+011,Londrina,94392
+011,Maceió,302425
+011,Médio Araguaia,95361
+011,Médio Curu,92156
+011,Rio do Sul,447318
+011,São Raimundo Nonato,126383
+011,Seridó Ocidental,105299
+011,Vale do Paraíba Fluminense,167234
+011,Vão do Paranã,260078
+012,Alto Guaporé,87477
+012,Araçuaí,166824
+012,Barra do Piraí,65632
+012,Blumenau,418311
+012,Boquim,166338
+012,Brejo Pernambucano,230489
+012,Cachoeiro de Itapemirim,456469
+012,Canindé,133417
+012,Chapadas do Extremo Sul Piauiense,58405
+012,Curimataú Ocidental,113030
+012,Entorno de Brasília,1466471
+012,Faxinal,39846
+012,Feira de Santana,1068539
+012,Franca,427758
+012,Não-Me-Toque,55666
+012,Presidente Dutra,199535
+012,Purus,78854
+012,São Miguel dos Campos,230640
+012,Seridó Oriental,124144
+012,Tomé-Açu,340789
+013,Baía da Ilha Grande,402895
+013,Baixa Verde,67980
+013,Baixo Parnaíba Maranhense,150303
+013,Baturité,197767
+013,Curimataú Oriental,83781
+013,Estância,135532
+013,Guamá,483723
+013,Itajaí,337554
+013,Itapemirim,72979
+013,Ivaiporã,93715
+013,Jaboticabal,396118
+013,Jeremoabo,97224
+013,Madeira,199609
+013,Mata Setentrional Pernambucana,549661
+013,Pedra Azul,86290
+013,Penedo,176781
+013,Picos,193504
+013,Soledade,156387
+013,Sudoeste de Goiás,560930
+013,Tangará da Serra,191556
+014,Almenara,286022
+014,Assaí,51361
+014,Borborema Potiguar,143150
+014,Chapadinha,245228
+014,Chorozinho,68392
+014,Esperança,59997
+014,Euclides da Cunha,302581
+014,Guaporé,149892
+014,Itaituba,221135
+014,Ituporanga,172381
+014,Jauru,225725
+014,Pio IX,54128
+014,Ribeirão Preto,1192971
+014,Vale do Rio dos Bois,189070
+014,Vassouras,204979
+014,Vitória de Santo Antão,231668
+015,Agreste Potiguar,251528
+015,Altamira,309141
+015,Alto Médio Canindé,537002
+015,Alto Paraguai,78726
+015,Batatais,82698
+015,Brejo Paraibano,166093
+015,Cascavel,145883
+015,Codó,278462
+015,Cornélio Procópio,957115
+015,Mata Meridional Pernambucana,975675
+015,Meia Ponte,464513
+015,Ribeira do Pombal,333876
+015,Serrana,54218
+015,Teófilo Otoni,279854
+015,Tijucas,521317
+015,Vacaria,200790
+016,Andradina,172346
+016,Caxias do Sul,149959
+016,Coelho Neto,573220
+016,Florianópolis,480751
+016,Fortaleza,3668971
+016,Guarabira,175020
+016,Itamaracá,190452
+016,Jacarezinho,68104
+016,Litoral Nordeste,91925
+016,Macacu-Caceribu,66562
+016,Nanuque,242116
+016,Pires do Rio,111849
+016,Rosário Oeste,99644
+016,Serrinha,439299
+016,Tucuruí,384726
+017,Alagoinhas,327094
+017,Araçatuba,114220
+017,Campina Grande,534144
+017,Catalão,293464
+017,Caxias,445103
+017,Cuiabá,185866
+017,Ibaiti,62682
+017,Itaguaí,93268
+017,Ituiutaba,191195
+017,Macaíba,328190
+017,Pacajus,139540
+017,Paragominas,349321
+017,Recife,3413540
+017,Santiago,133142
+017,Tabuleiro,104995
+018,Alto Pantanal,135450
+018,Birigui,304013
+018,Chapadas do Alto Itapecuru,221411
+018,Entre Rios,124858
+018,Itabaiana,111566
+018,Natal,1174174
+018,Quirinópolis,118930
+018,Rio de Janeiro,7477584
+018,Santa Maria,369553
+018,São Félix do Xingu,217674
+018,Sertão de Cratéus,249284
+018,Suape,303252
+018,Tubarão,694988
+018,Uberlândia,901627
+018,Wenceslau Braz,103683
+019,Catu,229682
+019,Criciúma,257208
+019,Fernando de Noronha,3061
+019,Lins,176778
+019,Litoral Sul,142533
+019,Parauapebas,324525
+019,Patrocínio,229820
+019,Porto Franco,120372
+019,Primavera do Leste,106060
+019,Restinga Seca,352770
+019,Sertão de Quixeramobim,288042
+019,Telêmaco Borba,173355
+019,Umbuzeiro,46182
+020,Araranguá,235579
+020,Bauru,380873
+020,Gerais de Balsas,159377
+020,Jaguariaíva,58391
+020,Litoral Norte,159189
+020,Marabá,333871
+020,Patos de Minas,271258
+020,Santa Cruz do Sul,342332
+020,Santo Antônio de Jesus,572784
+020,Sertão de Inhamuns,152136
+020,Tesouro,277653
+021,Chapadas das Mangabeiras,72320
+021,Frutal,530798
+021,Jaú,586473
+021,Lajeado-Estrela,254842
+021,Ponta Grossa,403588
+021,Redenção,196972
+021,Rondonópolis,106208
+021,Salvador,3798807
+021,Sapé,140071
+021,Sertão de Senador Pompeu,224884
+022,Alto Araguaia,110051
+022,Avaré,122750
+022,Boquira,193787
+022,Cachoeira do Sul,78480
+022,Conceição do Araguaia,162434
+022,João Pessoa,1057912
+022,Litoral de Aracati,118788
+022,Toledo,366452
+022,Uberaba,417436
+023,Araxá,218789
+023,Baixo Jaguaribe,332877
+023,Botucatu,273997
+023,Cascavel,128001
+023,Litoral Sul,75581
+023,Montenegro,1012350
+023,Seabra,260825
+024,Araraquara,479329
+024,Foz do Iguaçu,153161
+024,Gramado-Canela,189572
+024,Jequié,514082
+024,Médio Jaguaribe,64245
+024,Três Marias,219661
+025,Capanema,79615
+025,Curvelo,166739
+025,Livramento do Brumado,101803
+025,São Carlos,384527
+025,São Jerônimo,157824
+025,Serra do Pereiro,44221
+026,Bom Despacho,144660
+026,Francisco Beltrão,212528
+026,Guanambi,394309
+026,Iguatu,233678
+026,Porto Alegre,997110
+026,Rio Claro,317666
+027,Brumado,227808
+027,Limeira,792711
+027,Osório,368013
+027,Pato Branco,81736
+027,Sete Lagoas,1023260
+027,Várzea Alegre,100198
+028,Camaquã,73945
+028,Conceição do Mato Dentro,88201
+028,Lavras da Mangabeira,57992
+028,Piracicaba,709768
+028,Pitanga,60032
+028,Vitória da Conquista,643604
+029,Campanha Ocidental,253752
+029,Chapada do Araripe,100042
+029,Guarapuava,182631
+029,Itapetinga,198234
+029,Pará de Minas,137571
+029,Pirassununga,670247
+030,Belo Horizonte,2370353
+030,Campanha Central,181116
+030,Caririaçu,58845
+030,Palmas,111263
+030,São João da Boa Vista,423209
+030,Valença,285265
+031,Barro,95296
+031,Campanha Meridional,49555
+031,Ilhéus-Itabuna,988370
+031,Itabira,554153
+031,Mogi Mirim,398587
+031,Prudentópolis,94562
+032,Campinas,1694642
+032,Cariri,577939
+032,Irati,49629
+032,Itaguara,168079
+032,Porto Seguro,800913
+032,Serras de Sudeste,61411
+033,Amparo,156102
+033,Brejo Santo,105914
+033,Ouro Preto,190682
+033,Pelotas,159105
+033,União da Vitória,102045
+034,Conselheiro Lafaiete,312891
+034,Dracena,126198
+034,Jaguarão,94914
+034,São Mateus do Sul,67139
+035,Adamantina,143175
+035,Cerro Azul,42095
+035,Guanhães,185671
+035,Litoral Lagunar,274953
+036,Lapa,23572
+036,Peçanha,109464
+036,Presidente Prudente,682368
+037,Curitiba,790149
+037,Governador Valadares,459652
+037,Tupã,104046
+038,Mantena,73274
+038,Marília,462193
+038,Paranaguá,233424
+039,Assis,290621
+039,Ipatinga,616481
+039,Rio Negro,96292
+040,Caratinga,197942
+040,Ourinhos,322884
+041,Aimorés,246751
+041,Itapeva,307176
+042,Itapetininga,247885
+042,Piuí,99372
+043,Divinópolis,583921
+043,Tatuí,244648
+044,Capão Bonito,132308
+044,Formiga,181599
+045,Campo Belo,102282
+045,Piedade,204149
+046,Oliveira,185625
+046,Sorocaba,1460779
+047,Jundiaí,693677
+047,Passos,450882
+048,Bragança Paulista,292788
+048,São Sebastião do Paraíso,647586
+049,Alfenas,196349
+049,Campos do Jordão,28013
+050,São José dos Campos,1543306
+050,Varginha,2194915
+051,Guaratinguetá,470338
+051,Poços de Caldas,459258
+052,Bananal,77115
+052,Pouso Alegre,1091711
+053,Paraibuna/Paraitinga,72466
+053,Santa Rita do Sapucaí,190742
+054,Caraguatatuba,259960
+054,São Lourenço,556204
+055,Andrelândia,327571
+055,Registro,388572
+056,Itajubá,239397
+056,Itanhaém,255569
+057,Lavras,187683
+057,Osasco,1310904
+058,Franco da Rocha,454397
+058,São João Del Rei,200096
+059,Barbacena,416218
+059,Guarulhos,1447917
+060,Itapecerica da Serra,939857
+060,Ponte Nova,618218
+061,Manhuaçu,341647
+061,São Paulo,15041894
+062,Mogi das Cruzes,1506747
+062,Viçosa,362242
+063,Muriaé,306768
+063,Santos,1583138
+064,Ubá,306987
+065,Juiz de Fora,958354
+066,Cataguases,191891

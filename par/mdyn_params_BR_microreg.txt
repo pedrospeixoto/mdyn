@@ -1,0 +1,57 @@
+#Main domain definition
+domain = "Brasil" #SP or RJ
+domain_abrv = "BRA"
+domain_gran = "locname"
+domain_shape = "maps/brazil/Brazil_Boundary"
+
+#Subdomain definitions
+subdomains = "microreg"
+subdomains_gran = "NM_MICRO"
+subdomains_shape = "maps/br_microrregioes/BRMIE250GC_SIR"
+
+#Population
+domain_pop = "maps/population/population_br_2019.csv"
+domain_pop_labels = ["Estado", "pop2019"]
+subdomains_pop = "maps/population/population_microreg_br_2019.csv"
+subdomains_pop_labels = ["pais","microreg","pop2019"]
+
+#Network granularity
+latlon_gran = 1.0 #granularity of lat long spacing
+
+#Network pre-computation flag
+load_domain = True #Load precomp structures
+
+#-----------------------------
+# Mobile Data Set Definition
+#-----------------------------
+
+#Initialize mobile data and load data to dataframe
+data_format = "Parquet" #"ORC"
+data_dir = "data/2020_04_14/triples_br_proc/state0=São Paulo/"
+date_ini = "2020-03-01"
+date_end = "2020-03-02"
+load_data = True
+
+#Number of main sources for plots
+num_source = 1
+
+#-----------------------------
+# Simulation configuration
+#------------------------------
+
+#Initial condition for simulation (file with num of cases per region)
+#São Paulo
+data_ini_by_reg = { 268 : 1.0 }
+
+#Number of simulation days
+num_simul_days = 30
+
+#Type of model 
+# 0: simple mat iteration
+# 1: only infected - see diego's doc
+# 2: two parameter model
+model = 2
+infec_rate = 0.4  #infection rate per day
+spread_rate = 1.0 #Spatial spread rate
+
+risk_lim = 1.0 #Infected people to consider risk limit

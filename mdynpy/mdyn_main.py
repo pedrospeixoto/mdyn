@@ -21,9 +21,9 @@ import calendar
 
 import imp
 
-from mdyn_daydata import DayData
-from mdyn_network import Network
-from mdyn_extras import daterange
+from mdynpy.mdyn_daydata import DayData
+from mdynpy.mdyn_network import Network
+from mdynpy.mdyn_extras import daterange
 
 import matplotlib.pyplot as plt
 from matplotlib import animation

@@ -17,9 +17,9 @@ import tqdm as tqdm
 
 import sys
 
-import mdyn_network 
-from mdyn_extras import matprint
-import mdyn_extras as mex 
+import mdynpy.mdyn_network 
+from mdynpy.mdyn_extras import matprint
+import mdynpy.mdyn_extras as mex 
 
 class Map:
     def __init__(self, network): 

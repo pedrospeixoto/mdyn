@@ -24,9 +24,9 @@ from shapely.geometry import Point, Polygon
 
 import tqdm
 
-from mdyn_daydata import DayData
-from mdyn_map import Map
-from mdyn_extras import distance, distance_lat, distance_lon, daterange, matprint, round_down, round_up
+from mdynpy.mdyn_daydata import DayData
+from mdynpy.mdyn_map import Map
+from mdynpy.mdyn_extras import distance, distance_lat, distance_lon, daterange, matprint, round_down, round_up
 
 
 class Network:
@@ -81,11 +81,11 @@ class Network:
         self.build_grid_network()
 
         #Load regions' populations
-        #try:
-        self.load_pop()
-        #except:
-        #    print("Warning: No population data!!!")
-        #    pass
+        try:
+            self.load_pop()
+        except:
+            print("Warning: No population data!!!")
+            pass
 
     def load_domain(self):
 
@@ -102,7 +102,7 @@ class Network:
         else: #Build map structure with neighbours
             df = gpd.read_file(self.domain_shape_file)
             print("  Creating basic domain shape file...", end = '')
-
+            
             df["NEIGHBORS"] = None  # add NEIGHBORS column
             for index, reg in df.iterrows():
                 # get 'not disjoint' countries
@@ -189,16 +189,17 @@ class Network:
 
         #Outer regions (domain)
         #-------------------------
-
         df_domain_local = self.df_domain[self.df_domain[self.domain_gran] == self.domain]
         self.domain_geometry=df_domain_local.geometry.values[0]
+        
         self.domain_neib = df_domain_local.NEIGHBORS.values[0]
-        self.domain_neib = self.domain_neib.split(',')
-        self.df_domain_nb=self.df_domain[self.df_domain[self.domain_gran].isin(self.domain_neib)]
-        #print(self.df_domain_nb)
-        self.df_domain_nb["idx"] = range(self.nreg_in, self.nreg_in+len(self.df_domain_nb), 1)
-        self.df_domain_nb=self.df_domain_nb.set_index("idx")
-        #print(self.df_domain_nb)
+        if self.domain_neib is not None:
+            self.domain_neib = self.domain_neib.split(',')
+            self.df_domain_nb=self.df_domain[self.df_domain[self.domain_gran].isin(self.domain_neib)]
+            #print(self.df_domain_nb)
+            self.df_domain_nb["idx"] = range(self.nreg_in, self.nreg_in+len(self.df_domain_nb), 1)
+            self.df_domain_nb=self.df_domain_nb.set_index("idx")
+            #print(self.df_domain_nb)
         domain_limit_coords=list(self.domain_geometry.envelope.exterior.coords)
 
 
@@ -261,9 +262,13 @@ class Network:
         print("   nLat:", self.nlat)
 
         #Regions out are out of main domain
-        regions_out = self.df_domain_nb[self.domain_gran].to_dict()
-        reg_out = list(regions_out.values())
-        self.nreg_out = len(reg_out)
+        if self.domain_neib is not None:
+            regions_out = self.df_domain_nb[self.domain_gran].to_dict()
+            reg_out = list(regions_out.values())
+            self.nreg_out = len(reg_out)
+        else:
+            reg_out = []
+            self.nreg_out = 0
 
         #Align indexing of out regions with in regions
         self.regions_out = {self.nreg_in+key:reg for key, reg in enumerate(reg_out)}
@@ -391,15 +396,14 @@ class Network:
 
         else:
             #check if in neighbour states
-
-            for index, nb in self.df_domain_nb.iterrows():
-
-                #nb_name=nb[self.domain_gran]
-                innbreg=p.within(nb.geometry)
-                #if debug:
-                #    print(index, nb, innbreg)
-                if innbreg:
-                    ireg = index #self.regions_out.get(index, -1)
+            if self.domain_neib is not None:
+                for index, nb in self.df_domain_nb.iterrows():
+                    #nb_name=nb[self.domain_gran]
+                    innbreg=p.within(nb.geometry)
+                    #if debug:
+                    #    print(index, nb, innbreg)
+                    if innbreg:
+                        ireg = index #self.regions_out.get(index, -1)
         #if debug:
         #    print(p)
         #    sys.exit(1)

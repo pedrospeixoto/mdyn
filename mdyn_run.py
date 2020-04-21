@@ -10,14 +10,14 @@ warnings.filterwarnings("ignore")
 import numpy as np
 import statistics
 
-from pysrc.mdyn_network import Network
-from pysrc.mdyn_main import MobileDynamics
-from pysrc.mdyn_map import Map
-import pysrc.mdyn_extras as mex
-import pysrc.mdyn_move_mats as mmat 
-import pysrc.mdyn_isol_index as isol
-import pysrc.mdyn_fixed_users as fx
-import pysrc.mdyn_seir as seir
+from mdynpy.mdyn_network import Network
+from mdynpy.mdyn_main import MobileDynamics
+from mdynpy.mdyn_map import Map
+import mdynpy.mdyn_extras as mex
+import mdynpy.mdyn_move_mats as mmat 
+import mdynpy.mdyn_isol_index as isol
+import mdynpy.mdyn_fixed_users as fx
+import mdynpy.mdyn_seir as seir
 
 #Input parameters
 #-----------------------------
