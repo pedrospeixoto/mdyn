@@ -21,12 +21,15 @@ import geopandas as gpd
 
 from shapely.geometry import Point, Polygon
 
+import concurrent.futures
 
 import tqdm
 
 from mdynpy.mdyn_daydata import DayData
 from mdynpy.mdyn_map import Map
 from mdynpy.mdyn_extras import distance, distance_lat, distance_lon, daterange, matprint, round_down, round_up
+
+# Parallelization
 
 
 class Network:
@@ -66,6 +69,8 @@ class Network:
         self.latlon_gran = latlon_gran
         self.load = load
 
+        self.parallelize = True
+
         print(self.domain, self.subdomains)
         
         #Load main domain
@@ -86,6 +91,7 @@ class Network:
         #except:
         #    print("Warning: No population data!!!")
         #    pass
+
 
 
     def load_domain(self):
@@ -320,15 +326,20 @@ class Network:
             self.region_grid = np.full((self.nlat+1, self.nlon+1), -1, dtype=int)
 
 
-            def process_domains_by_regions(df_domains):
+            def process_domains_by_regions(df_domains, par_outer=False, par_inner=False):
 
                 verbose = 0
 
+                # Convert to dict for nice and direct access
                 conv = {}
                 for index, reg in df_domains.iterrows():
                     conv[index] = reg
 
-                for index in tqdm.tqdm(conv.keys()):
+                # Store the keys, since these are also the indices used for coloring
+                conv_keys = list(conv.keys())
+
+                def par_exec(i):
+                    index = conv_keys[i]
                     reg = conv[index]
 
                     if verbose > 0:
@@ -376,11 +387,10 @@ class Network:
                         print(" + new lat idx min/max: "+str(mini)+", "+str(maxi))
                         print(" + new lon idx min/max: "+str(minj)+", "+str(maxj))
 
-                    #if reg['geometry'].contains(Point(-46.5, -23.5)):
-                    #    sys.exit(1)
-                    # Iterate over bounding rectangle
-                    c = 0
-                    for i in range(mini, maxi+1):
+                    #
+                    # Iterate over longitude
+                    #
+                    def par_exec_inner(i):
                         lat = self.lat_bins_c[i]
                         for j in range(minj, maxj+1):
                             # Skip region if it's already processed
@@ -391,13 +401,38 @@ class Network:
                             p = Point(lon, lat)
                             if reg['geometry'].contains(p):
                                 self.region_grid[i,j] = index
-                                c+= 1
+
+                    iter_range = range(mini, maxi+1)
+                    from tqdm import tqdm
+                    if par_inner and self.parallelize:
+                        # Setup a thread pool for concurrent execution
+                        with concurrent.futures.ThreadPoolExecutor() as executor:
+                            # Conversion to list required for status bar
+                            list(tqdm(executor.map(par_exec_inner, iter_range), total=len(iter_range)))
+
+                    else:
+                        # No progress bar if inner hasn't enough workload
+                        #for index in tqdm(iter_range):
+                        for i in iter_range:
+                            par_exec_inner(i)
 
                     if verbose > 0:
                         print(" + points_found: "+str(c))
                         print("")
 
-                
+
+                from tqdm import tqdm
+                if par_outer and self.parallelize:
+                    # Setup a thread pool for concurrent execution
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        # Conversion to list required for status bar
+                        list(tqdm(executor.map(par_exec, range(len(conv))), total=len(conv)))
+
+                else:
+                    for i in tqdm(range(len(conv))):
+                        par_exec(i)
+
+
                 fill_rate = np.count_nonzero(self.region_grid+1.0) / self.region_grid.size
                 print("Fill rate with preprocessing: "+str(fill_rate))
 
@@ -444,23 +479,32 @@ class Network:
                 # Pimped version
                 #
 
+                def task(i):
+                    print(i)
+
+                print("*"*80)
+                print(" + len subdomains: "+str(len(self.df_subdomains,)))
+                print(" + len domain neighbors: "+str(len(self.df_domain_nb,)))
                 print("*"*80)
                 print("Processing subdomains")
                 print("*"*80)
-                process_domains_by_regions(self.df_subdomains)
+                process_domains_by_regions(self.df_subdomains, par_outer=True)
 
 
                 print("*"*80)
                 print("Processing domain neighbors")
                 print("*"*80)
-                process_domains_by_regions(self.df_domain_nb)
+                process_domains_by_regions(self.df_domain_nb, par_inner=True)
 
                 print("*"*80)
                 print("Processing boundary data (e.g. close to coastline) with potentially missing points")
                 print("*"*80)
-                #Grid is based on cell centers
-                for i, lat in enumerate(tqdm.tqdm(self.lat_bins_c)):
-                    for j, lon in enumerate(tqdm.tqdm(self.lon_bins_c)):
+
+                def par_exec_orig(i):
+                    lat = self.lat_bins_c[i]
+
+                    #for j, lon in enumerate(tqdm(self.lon_bins_c)):
+                    for j, lon in enumerate(self.lon_bins_c):
 
                         # If we already associated this to a region, directly continue with the loop
                         if self.region_grid[i,j] != -1:
@@ -509,6 +553,20 @@ class Network:
 
                         if neighbor_search:
                             process_domains_by_pixel(i, j, lat, lon)
+
+                iter_range = range(len(self.lat_bins_c))
+
+                from tqdm import tqdm
+                if self.parallelize:
+                    # Setup a thread pool for concurrent execution
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        # Conversion to list required for status bar
+                        list(tqdm(executor.map(par_exec_orig, iter_range), total=len(iter_range)))
+
+                else:
+                    # No progress bar if inner hasn't enough workload
+                    for index in tqdm(iter_range):
+                        par_exec_orig(index)
 
 
             #Save this region grid for furute use, as it takes time to build
