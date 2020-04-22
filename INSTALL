@@ -1,0 +1,13 @@
+
+1) Download and setup Anaconda
+
+2) Open new shell to activate Anaconda environment
+
+3) Crease conda environment
+$ conda create --name mdyn --file <this file>
+
+4) Activate conda environment
+$ conda activate mdyn
+
+5) Install missing pip packages
+$ pip install geopy tqdm windrose pyspark
