@@ -486,21 +486,24 @@ class Network:
                 #Grid is based on cell centers
 
                 # Run for each latitude
-                def par_exec(i):
+                def par_exec(idx):
+
+                    i = idx // len(self.lon_bins_c)
+                    j = idx % len(self.lon_bins_c)
+
                     lat = self.lat_bins_c[i]
+                    lon = self.lon_bins_c[j]
 
-                    # Iterate over longitudes
-                    for j, lon in enumerate(tqdm(self.lon_bins_c)):
-                        process_domains_by_pixel(i, j, lat, lon)
+                    process_domains_by_pixel(i, j, lat, lon)
 
-                iter_range = range(len(self.lat_bins_c))
+                iter_range = range(len(self.lat_bins_c)*len(self.lon_bins_c))
 
                 from tqdm import tqdm
                 if self.parallelize:
                     # Setup a thread pool for concurrent execution
                     with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
                         # Conversion to list required for status bar
-                        list(tqdm(executor.map(par_exec_orig, iter_range), total=len(iter_range)))
+                        list(tqdm(executor.map(par_exec, iter_range), total=len(iter_range)))
 
                 else:
                     # No progress bar if inner hasn't enough workload
@@ -537,61 +540,64 @@ class Network:
                 print("Processing boundary data (e.g. close to coastline) with potentially missing points")
                 print("*"*80)
 
-                def par_exec_orig(i):
+                def par_exec_orig(idx):
+                    i = idx // len(self.lon_bins_c)
+                    j = idx % len(self.lon_bins_c)
+
                     lat = self.lat_bins_c[i]
+                    lon = self.lon_bins_c[j]
 
-                    #for j, lon in enumerate(tqdm(self.lon_bins_c)):
-                    for j, lon in enumerate(self.lon_bins_c):
 
-                        # If we already associated this to a region, directly continue with the loop
-                        if self.region_grid[i,j] != -1:
-                            continue
+                    # If we already associated this to a region, directly continue with the loop
+                    if self.region_grid[i,j] != -1:
+                        return
 
-                        #
-                        # Next, we check whether there's a neighboring pixel and if not, we skip a search algorithm on this cell
-                        #
-                        # Note, that this might ignore areas in the middle of nowhere, but this should be fine for high resolution models
-                        #
-                        neighbor_search = False
+                    #
+                    # Next, we check whether there's a neighboring pixel and if not, we skip a search algorithm on this cell
+                    #
+                    # Note, that this might ignore areas in the middle of nowhere, but this should be fine for high resolution models
+                    #
+                    neighbor_search = False
 
-                        # i-1
-                        if i >= 1:
-                            if self.region_grid[i-1,j] != -1:
+                    # i-1
+                    if i >= 1:
+                        if self.region_grid[i-1,j] != -1:
+                            neighbor_search = True
+
+                        if j >= 1:
+                            if self.region_grid[i-1,j-1] != -1:
+                                neighbor_search = True
+                        if j < len(self.lon_bins_c)-1:
+                            if self.region_grid[i-1,j+1] != -1:
                                 neighbor_search = True
 
-                            if j >= 1:
-                                if self.region_grid[i-1,j-1] != -1:
-                                    neighbor_search = True
-                            if j < len(self.lon_bins_c)-1:
-                                if self.region_grid[i-1,j+1] != -1:
-                                    neighbor_search = True
-
-                        # i
-                        if 1:
-                            if j >= 1:
-                                if self.region_grid[i,j-1] != -1:
-                                    neighbor_search = True
-                            if j < len(self.lon_bins_c)-1:
-                                if self.region_grid[i,j+1] != -1:
-                                    neighbor_search = True
-
-                        # i+1
-                        if i < len(self.lat_bins_c)-1:
-                            if self.region_grid[i+1,j] != -1:
+                    # i
+                    if 1:
+                        if j >= 1:
+                            if self.region_grid[i,j-1] != -1:
+                                neighbor_search = True
+                        if j < len(self.lon_bins_c)-1:
+                            if self.region_grid[i,j+1] != -1:
                                 neighbor_search = True
 
-                            if j >= 1:
-                                if self.region_grid[i+1,j-1] != -1:
-                                    neighbor_search = True
-                            if j < len(self.lon_bins_c)-1:
-                                if self.region_grid[i+1,j+1] != -1:
-                                    neighbor_search = True
+                    # i+1
+                    if i < len(self.lat_bins_c)-1:
+                        if self.region_grid[i+1,j] != -1:
+                            neighbor_search = True
+
+                        if j >= 1:
+                            if self.region_grid[i+1,j-1] != -1:
+                                neighbor_search = True
+                        if j < len(self.lon_bins_c)-1:
+                            if self.region_grid[i+1,j+1] != -1:
+                                neighbor_search = True
 
 
-                        if neighbor_search:
-                            process_domains_by_pixel(i, j, lat, lon)
+                    if neighbor_search:
+                        process_domains_by_pixel(i, j, lat, lon)
 
-                iter_range = range(len(self.lat_bins_c))
+
+                iter_range = range(len(self.lat_bins_c)*len(self.lon_bins_c))
 
                 from tqdm import tqdm
                 if self.parallelize:
