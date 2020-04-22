@@ -10,4 +10,4 @@ $ conda create --name mdyn --file <this file>
 $ conda activate mdyn
 
 5) Install missing pip packages
-$ pip install geopy tqdm windrose pyspark
+$ pip install geopy tqdm windrose pyspark pyarrow
