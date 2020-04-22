@@ -84,6 +84,12 @@ class Network:
                     print("Disabling parallelized version")
 
         print(self.domain, self.subdomains)
+
+        self.network_alg = 0
+        if 'NETWORK_ALG' in os.environ:
+            self.network_alg = int(os.environ['NETWORK_ALG'])
+            print("Network algorithm: "+str(self.network_alg))
+
         
         #Load main domain
         self.df_domain = self.load_domain()
@@ -473,17 +479,35 @@ class Network:
                     self.region_grid[i,j] = ireg
 
 
-            if 0:
+            if self.network_alg == 0:
                 #
                 # Original method (from Pedro)
                 #
                 #Grid is based on cell centers
-                from tqdm import tqdm
-                for i, lat in enumerate(tqdm(self.lat_bins_c)):
+
+                # Run for each latitude
+                def par_exec(i):
+                    lat = self.lat_bins_c[i]
+
+                    # Iterate over longitudes
                     for j, lon in enumerate(tqdm(self.lon_bins_c)):
                         process_domains_by_pixel(i, j, lat, lon)
 
-            else:
+                iter_range = range(len(self.lat_bins_c))
+
+                from tqdm import tqdm
+                if self.parallelize:
+                    # Setup a thread pool for concurrent execution
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                        # Conversion to list required for status bar
+                        list(tqdm(executor.map(par_exec_orig, iter_range), total=len(iter_range)))
+
+                else:
+                    # No progress bar if inner hasn't enough workload
+                    for index in tqdm(iter_range):
+                        par_exec(index)
+
+            elif self.network_alg == 1:
                 #
                 # Pimped version
                 #
@@ -581,6 +605,8 @@ class Network:
                     for index in tqdm(iter_range):
                         par_exec_orig(index)
 
+            else:
+                raise Exception("This network algorithm is not implemented")
 
             #Save this region grid for furute use, as it takes time to build
             np.savetxt(self.gridname+".csv", self.region_grid, fmt='%i')
