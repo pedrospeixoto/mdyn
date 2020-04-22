@@ -87,6 +87,7 @@ class Network:
         #    print("Warning: No population data!!!")
         #    pass
 
+
     def load_domain(self):
 
         #Get map shapes files
@@ -102,7 +103,7 @@ class Network:
         else: #Build map structure with neighbours
             df = gpd.read_file(self.domain_shape_file)
             print("  Creating basic domain shape file...", end = '')
-            
+
             df["NEIGHBORS"] = None  # add NEIGHBORS column
             for index, reg in df.iterrows():
                 # get 'not disjoint' countries
@@ -120,6 +121,7 @@ class Network:
             df.to_file(self.domain_shape_file_mdyn)
 
         return df
+
 
     def load_subdomains(self):
 
@@ -256,7 +258,7 @@ class Network:
         self.lon_bins_ext_2d, self.lat_bins_ext_2d = np.meshgrid(self.lon_bins_ext, self.lat_bins_ext)
 
         #Region grid is composed of data points, cell centres
-        self.region_grid = np.zeros((self.nlat+1, self.nlon+1)).astype(int)
+        self.region_grid = np.zeros((self.nlat+1, self.nlon+1), dtype=int)
 
         print("   nLon:", self.nlon)
         print("   nLat:", self.nlat)
@@ -290,10 +292,15 @@ class Network:
             print(self.regions)
 
 
+
     #Build regions grid
     def build_grid_network(self):
 
         print("Building grid network...")
+
+        # First, create the output directory
+        if not os.path.exists('maps/grids'):
+            os.mkdir('maps/grids')
 
         self.gridname = 'maps/grids/regions_'+self.domain+"_"+\
             self.subdomains+\
@@ -306,49 +313,219 @@ class Network:
         if os.path.exists(self.gridname+".npy") and self.load:
             self.region_grid=np.load(self.gridname+".npy")
             print("Regions loaded from file "+self.gridname)
-        else:
-            #Grid is based on cell centers
-            for i, lat in enumerate(tqdm.tqdm(self.lat_bins_c)):
-                for j, lon in enumerate(tqdm.tqdm(self.lon_bins_c)):
-                    #print(lat, lon)
-                    reg0 = self.get_closest_region(lat, lon) #This is the center of cell
-                    if reg0 != -1:
-                        self.region_grid[i,j]=reg0
-                    else:
-                        #Check if part of the cell is in a region, otherwise it is ocean
-                        reg1 = self.get_closest_region(lat-self.dlat, lon-self.dlon)
-                        if reg1 != -1:
-                            ireg=reg1
-                        else:
-                            reg2 = self.get_closest_region(lat+self.dlat, lon-self.dlon)
-                            if reg2 != -1:
-                                ireg=reg2
-                            else:
-                                reg3 = self.get_closest_region(lat-self.dlat, lon+self.dlon)
-                                if reg3 != -1:
-                                    ireg=reg3
-                                else:
-                                    reg4 = self.get_closest_region(lat+self.dlat, lon+self.dlon)
-                                    if reg4 != -1:
-                                        ireg=reg4
-                                    else:
-                                        ireg = -1
 
-                        self.region_grid[i,j] = ireg
+        else:
+
+            # Initialize with -1
+            self.region_grid = np.full((self.nlat+1, self.nlon+1), -1, dtype=int)
+
+
+            def process_domains_by_regions(df_domains):
+
+                verbose = 0
+
+                conv = {}
+                for index, reg in df_domains.iterrows():
+                    conv[index] = reg
+
+                for index in tqdm.tqdm(conv.keys()):
+                    reg = conv[index]
+
+                    if verbose > 0:
+                        if 'NM_ESTADO' in reg:
+                            print("Processing NM_ESTADO region "+str(index)+": "+reg['NM_ESTADO'])
+                        elif 'NM_MUNICIP' in reg:
+                            print("Processing NM_MUNICIP region "+str(index)+": "+reg['NM_MUNICIP'])
+                        elif 'NM_MICRO' in reg:
+                            print("Processing NM_MICRO region "+str(index)+": "+reg['NM_MICRO'])
+                        else:
+                            print(reg)
+                            print("Processing region "+str(index)+": [unknown type]")
+
+
+                        print(" + boundaries (min_lon, min_lat, max_lon, max_lat): "+str(reg['geometry'].bounds))
+
+                    # Find bounding rectangle
+                    minx, miny, maxx, maxy = reg['geometry'].bounds
+
+                    # lats
+                    mini = int(np.floor((miny-self.lat_bins_c[0])/self.dlat))
+                    maxi = int(np.ceil((maxy-self.lat_bins_c[0])/self.dlat))
+
+                    # lons
+                    minj = int(np.floor((minx-self.lon_bins_c[0])/self.dlon))
+                    maxj = int(np.ceil((maxx-self.lon_bins_c[0])/self.dlon))
+
+                    if verbose > 0:
+                        print(" + domain res (lat,lon): "+str(len(self.lat_bins_c))+", "+str(len(self.lon_bins_c)))
+                        print(" + lat idx min/max: "+str(mini)+", "+str(maxi))
+                        print(" + lon idx min/max: "+str(minj)+", "+str(maxj))
+
+                    mini -= 1;
+                    maxi += 1;
+                    minj -= 1;
+                    maxj += 1;
+
+                    mini = max(mini, 0)
+                    minj = max(minj, 0)
+
+                    maxi = min(maxi, len(self.lat_bins_c)-1)
+                    maxj = min(maxj, len(self.lon_bins_c)-1)
+
+                    if verbose > 0:
+                        print(" + new lat idx min/max: "+str(mini)+", "+str(maxi))
+                        print(" + new lon idx min/max: "+str(minj)+", "+str(maxj))
+
+                    #if reg['geometry'].contains(Point(-46.5, -23.5)):
+                    #    sys.exit(1)
+                    # Iterate over bounding rectangle
+                    c = 0
+                    for i in range(mini, maxi+1):
+                        lat = self.lat_bins_c[i]
+                        for j in range(minj, maxj+1):
+                            # Skip region if it's already processed
+                            if self.region_grid[i,j] != -1.0:
+                                continue
+
+                            lon = self.lon_bins_c[j]
+                            p = Point(lon, lat)
+                            if reg['geometry'].contains(p):
+                                self.region_grid[i,j] = index
+                                c+= 1
+
+                    if verbose > 0:
+                        print(" + points_found: "+str(c))
+                        print("")
+
+                
+                fill_rate = np.count_nonzero(self.region_grid+1.0) / self.region_grid.size
+                print("Fill rate with preprocessing: "+str(fill_rate))
+
+
+            def process_domains_by_pixel(i, j, lat, lon):
+                #print(lat, lon)
+                reg0 = self.get_closest_region(lat, lon) #This is the center of cell
+                if reg0 != -1:
+                    self.region_grid[i,j]=reg0
+                else:
+                    #Check if part of the cell is in a region, otherwise it is ocean
+                    reg1 = self.get_closest_region(lat-self.dlat, lon-self.dlon)
+                    if reg1 != -1:
+                        ireg=reg1
+                    else:
+                        reg2 = self.get_closest_region(lat+self.dlat, lon-self.dlon)
+                        if reg2 != -1:
+                            ireg=reg2
+                        else:
+                            reg3 = self.get_closest_region(lat-self.dlat, lon+self.dlon)
+                            if reg3 != -1:
+                                ireg=reg3
+                            else:
+                                reg4 = self.get_closest_region(lat+self.dlat, lon+self.dlon)
+                                if reg4 != -1:
+                                    ireg=reg4
+                                else:
+                                    ireg = -1
+
+                    self.region_grid[i,j] = ireg
+
+
+            if 0:
+                #
+                # Original method
+                #
+                #Grid is based on cell centers
+                for i, lat in enumerate(tqdm.tqdm(self.lat_bins_c)):
+                    for j, lon in enumerate(tqdm.tqdm(self.lon_bins_c)):
+                        process_domains_by_pixel(i, j, lat, lon)
+
+            else:
+                #
+                # Pimped version
+                #
+
+                print("*"*80)
+                print("Processing subdomains")
+                print("*"*80)
+                process_domains_by_regions(self.df_subdomains)
+
+
+                print("*"*80)
+                print("Processing domain neighbors")
+                print("*"*80)
+                process_domains_by_regions(self.df_domain_nb)
+
+                print("*"*80)
+                print("Processing boundary data (e.g. close to coastline) with potentially missing points")
+                print("*"*80)
+                #Grid is based on cell centers
+                for i, lat in enumerate(tqdm.tqdm(self.lat_bins_c)):
+                    for j, lon in enumerate(tqdm.tqdm(self.lon_bins_c)):
+
+                        # If we already associated this to a region, directly continue with the loop
+                        if self.region_grid[i,j] != -1:
+                            continue
+
+                        #
+                        # Next, we check whether there's a neighboring pixel and if not, we skip a search algorithm on this cell
+                        #
+                        # Note, that this might ignore areas in the middle of nowhere, but this should be fine for high resolution models
+                        #
+                        neighbor_search = False
+
+                        # i-1
+                        if i >= 1:
+                            if self.region_grid[i-1,j] != -1:
+                                neighbor_search = True
+
+                            if j >= 1:
+                                if self.region_grid[i-1,j-1] != -1:
+                                    neighbor_search = True
+                            if j < len(self.lon_bins_c)-1:
+                                if self.region_grid[i-1,j+1] != -1:
+                                    neighbor_search = True
+
+                        # i
+                        if 1:
+                            if j >= 1:
+                                if self.region_grid[i,j-1] != -1:
+                                    neighbor_search = True
+                            if j < len(self.lon_bins_c)-1:
+                                if self.region_grid[i,j+1] != -1:
+                                    neighbor_search = True
+
+                        # i+1
+                        if i < len(self.lat_bins_c)-1:
+                            if self.region_grid[i+1,j] != -1:
+                                neighbor_search = True
+
+                            if j >= 1:
+                                if self.region_grid[i+1,j-1] != -1:
+                                    neighbor_search = True
+                            if j < len(self.lon_bins_c)-1:
+                                if self.region_grid[i+1,j+1] != -1:
+                                    neighbor_search = True
+
+
+                        if neighbor_search:
+                            process_domains_by_pixel(i, j, lat, lon)
+
 
             #Save this region grid for furute use, as it takes time to build
-            np.savetxt(self.gridname+".csv", self.region_grid)
+            np.savetxt(self.gridname+".csv", self.region_grid, fmt='%i')
             np.save(self.gridname, self.region_grid)
             print("Regions saved in file "+self.gridname)
-            
+
             #Map the regions
-            print( "Plotting regions")
+            jpgfilename = self.gridname+".jpg"
+            print("Plotting regions to file "+jpgfilename)
             map = Map(self)
             map.map_reg_data(self, self.gridname )
 
 
-        if not os.path.exists(self.gridname+".jpg"):
-            print( "Plotting regions")
+        jpgfilename = self.gridname+".jpg"
+        if not os.path.exists(jpgfilename):
+            print("Plotting regions to file "+jpgfilename)
             #Map the regions
             map = Map(self)
             map.map_reg_data(self, self.gridname )
