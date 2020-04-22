@@ -70,6 +70,7 @@ class Network:
         self.load = load
 
         self.parallelize = True
+        self.max_workers = os.cpu_count()
 
         print(self.domain, self.subdomains)
         
@@ -406,7 +407,7 @@ class Network:
                     from tqdm import tqdm
                     if par_inner and self.parallelize:
                         # Setup a thread pool for concurrent execution
-                        with concurrent.futures.ThreadPoolExecutor() as executor:
+                        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
                             # Conversion to list required for status bar
                             list(tqdm(executor.map(par_exec_inner, iter_range), total=len(iter_range)))
 
@@ -424,7 +425,7 @@ class Network:
                 from tqdm import tqdm
                 if par_outer and self.parallelize:
                     # Setup a thread pool for concurrent execution
-                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
                         # Conversion to list required for status bar
                         list(tqdm(executor.map(par_exec, range(len(conv))), total=len(conv)))
 
@@ -467,11 +468,12 @@ class Network:
 
             if 0:
                 #
-                # Original method
+                # Original method (from Pedro)
                 #
                 #Grid is based on cell centers
-                for i, lat in enumerate(tqdm.tqdm(self.lat_bins_c)):
-                    for j, lon in enumerate(tqdm.tqdm(self.lon_bins_c)):
+                from tqdm import tqdm
+                for i, lat in enumerate(tqdm(self.lat_bins_c)):
+                    for j, lon in enumerate(tqdm(self.lon_bins_c)):
                         process_domains_by_pixel(i, j, lat, lon)
 
             else:
@@ -484,17 +486,21 @@ class Network:
 
                 print("*"*80)
                 print(" + len subdomains: "+str(len(self.df_subdomains,)))
-                print(" + len domain neighbors: "+str(len(self.df_domain_nb,)))
+
+                if self.domain_neib is not None:
+                    print(" + len domain neighbors: "+str(len(self.df_domain_nb)))
+
                 print("*"*80)
                 print("Processing subdomains")
                 print("*"*80)
                 process_domains_by_regions(self.df_subdomains, par_outer=True)
 
 
-                print("*"*80)
-                print("Processing domain neighbors")
-                print("*"*80)
-                process_domains_by_regions(self.df_domain_nb, par_inner=True)
+                if self.domain_neib is not None:
+                    print("*"*80)
+                    print("Processing domain neighbors")
+                    print("*"*80)
+                    process_domains_by_regions(self.df_domain_nb, par_inner=True)
 
                 print("*"*80)
                 print("Processing boundary data (e.g. close to coastline) with potentially missing points")
@@ -559,7 +565,7 @@ class Network:
                 from tqdm import tqdm
                 if self.parallelize:
                     # Setup a thread pool for concurrent execution
-                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
                         # Conversion to list required for status bar
                         list(tqdm(executor.map(par_exec_orig, iter_range), total=len(iter_range)))
 
