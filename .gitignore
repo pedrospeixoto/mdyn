@@ -2,6 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+maps/grids/
 maps/reg*.pdf
 maps/reg*.jpg
 maps/reg*.npy
