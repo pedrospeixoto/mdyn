@@ -16,7 +16,7 @@ subdomains_pop = "maps/population/population_microreg_br_fixed_lagoas2019.csv"
 subdomains_pop_labels = ["pais","id","pop2019"]
 
 #Network granularity
-latlon_gran = 1.0 #granularity of lat long spacing
+latlon_gran = 0.01 #granularity of lat long spacing
 
 #Network pre-computation flag
 load_domain = True #Load precomp structures
