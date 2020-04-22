@@ -71,25 +71,24 @@ class Network:
 
         self.parallelize = True
 
-        if self.parallelize:
-            self.max_workers = os.cpu_count()
+        self.max_workers = os.cpu_count()
 
-            if 'MAX_WORKERS' in os.environ:
-                self.max_workers = int(os.environ['MAX_WORKERS'])
-                print("Number of workers for parallelization: "+str(self.max_workers))
+        if 'MAX_WORKERS' in os.environ:
+            self.max_workers = int(os.environ['MAX_WORKERS'])
+            print("Number of workers for parallelization: "+str(self.max_workers))
 
-                if self.max_workers <= 0:
-                    self.max_workers = None
-                    self.parallelize = False
-                    print("Disabling parallelized version")
+            if self.max_workers <= 0:
+                self.max_workers = None
+                self.parallelize = False
+                print("Disabling parallelized version")
 
-        print(self.domain, self.subdomains)
 
         self.network_alg = 0
         if 'NETWORK_ALG' in os.environ:
             self.network_alg = int(os.environ['NETWORK_ALG'])
             print("Network algorithm: "+str(self.network_alg))
 
+        print(self.domain, self.subdomains)
         
         #Load main domain
         self.df_domain = self.load_domain()
