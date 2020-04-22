@@ -16,7 +16,7 @@ subdomains_pop = "maps/population/population_mun_br_2019.csv"
 subdomains_pop_labels = ["UF", "MUNICIPIO", "POP2019"]
 
 #Network granularity
-latlon_gran = 0.1 #granularity of lat long spacing
+latlon_gran = 0.01 #granularity of lat long spacing
 
 #Network pre-computation flag
 load_domain = True #Load precomp structures
@@ -27,9 +27,9 @@ load_domain = True #Load precomp structures
 
 #Initialize mobile data and load data to dataframe
 data_format = "Parquet" #"ORC"
-data_dir = "data/2020_04_14/triples_br_proc/state0=São Paulo/"
-date_ini = "2020-03-01"
-date_end = "2020-03-02"
+data_dir = "data/triples_br_2020_04_17_proc/SP"
+date_ini = "2019-03-01"
+date_end = "2019-03-02"
 load_data = True
 
 #Number of main sources for plots
