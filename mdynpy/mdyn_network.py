@@ -70,7 +70,18 @@ class Network:
         self.load = load
 
         self.parallelize = True
-        self.max_workers = os.cpu_count()
+
+        if self.parallelize:
+            self.max_workers = os.cpu_count()
+
+            if 'MAX_WORKERS' in os.environ:
+                self.max_workers = int(os.environ['MAX_WORKERS'])
+                print("Number of workers for parallelization: "+str(self.max_workers))
+
+                if self.max_workers <= 0:
+                    self.max_workers = None
+                    self.parallelize = False
+                    print("Disabling parallelized version")
 
         print(self.domain, self.subdomains)
         
@@ -416,10 +427,6 @@ class Network:
                         #for index in tqdm(iter_range):
                         for i in iter_range:
                             par_exec_inner(i)
-
-                    if verbose > 0:
-                        print(" + points_found: "+str(c))
-                        print("")
 
 
                 from tqdm import tqdm
