@@ -7,6 +7,8 @@ Main developers:
 - Pedro Peixoto (ppeixoto@usp.br)
 - Diego Marcondes (dmarcondes@ime.usp.br)
 
+DISCLAIMER: This study is under constant change, therefore algorithms and data have frequently changing and being improved. Please contact the authors before using any information available here.
+
 Requires:
 - Python
 - Anaconda/conda enviroment manager
