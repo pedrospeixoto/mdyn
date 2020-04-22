@@ -295,7 +295,7 @@ class Network:
 
         print("Building grid network...")
 
-        self.gridname = 'maps/regions_'+self.domain+"_"+\
+        self.gridname = 'maps/grids/regions_'+self.domain+"_"+\
             self.subdomains+\
             "_lats"+str(self.minlats)+"_"+str(self.maxlats)+\
             "_lons"+str(self.minlons)+"_"+str(self.maxlons)+\
