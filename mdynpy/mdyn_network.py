@@ -81,11 +81,11 @@ class Network:
         self.build_grid_network()
 
         #Load regions' populations
-        try:
-            self.load_pop()
-        except:
-            print("Warning: No population data!!!")
-            pass
+        #try:
+        self.load_pop()
+        #except:
+        #    print("Warning: No population data!!!")
+        #    pass
 
     def load_domain(self):
 
@@ -622,7 +622,10 @@ class Network:
             sys.exit(1)
 
         #Put to upper case
+        df_pop[subdom_label]=df_pop[subdom_label].astype(str)
         df_pop[subdom_label]=df_pop[subdom_label].str.upper()
+        
+        
 
         self.reg_pop = np.zeros([self.nregions])
 
@@ -633,6 +636,7 @@ class Network:
             except:
                 print(df_pop)
                 print("Cant find this region's population:", region )
+                #pop = 0
                 sys.exit(1)
             self.reg_pop[reg] = pop
 
@@ -641,6 +645,7 @@ class Network:
         domain_pop_labels = self.domain_pop_labels # ["municipio", "populacao_estimada"]
 
         df_pop = pd.read_csv(filename, sep = ";")
+        
         df_pop[domain_pop_labels[0]]=df_pop[domain_pop_labels[0]].str.upper()
         for reg in range(self.nreg_out):
             i=self.nreg_in+reg
