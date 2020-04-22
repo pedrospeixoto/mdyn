@@ -6,14 +6,14 @@ domain_shape = "maps/brazil/Brazil_Boundary"
 
 #Subdomain definitions
 subdomains = "microreg"
-subdomains_gran = "NM_MICRO"
+subdomains_gran = "CD_GEOCMI"
 subdomains_shape = "maps/br_microrregioes/BRMIE250GC_SIR"
 
 #Population
 domain_pop = "maps/population/population_br_2019.csv"
 domain_pop_labels = ["Estado", "pop2019"]
-subdomains_pop = "maps/population/population_microreg_br_2019.csv"
-subdomains_pop_labels = ["pais","microreg","pop2019"]
+subdomains_pop = "maps/population/population_microreg_br_fixed_lagoas2019.csv"
+subdomains_pop_labels = ["pais","id","pop2019"]
 
 #Network granularity
 latlon_gran = 1.0 #granularity of lat long spacing

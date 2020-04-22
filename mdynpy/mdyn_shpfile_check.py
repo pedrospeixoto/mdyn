@@ -7,4 +7,5 @@ df = gpd.read_file(sys.argv[1])
 #    print(df)
 print(df.columns)
 print(df.head())
+print(df[df['CD_GEOCMI']=='43777'])
 
