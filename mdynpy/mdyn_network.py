@@ -309,7 +309,7 @@ class Network:
         else:
             #Grid is based on cell centers
             for i, lat in enumerate(tqdm.tqdm(self.lat_bins_c)):
-                for j, lon in enumerate(self.lon_bins_c):
+                for j, lon in enumerate(tqdm.tqdm(self.lon_bins_c)):
                     #print(lat, lon)
                     reg0 = self.get_closest_region(lat, lon) #This is the center of cell
                     if reg0 != -1:
@@ -374,7 +374,10 @@ class Network:
 
             dist_tmp = distance(lonv, latv, lon_tmp, lat_tmp)
 
-            if self.nreg_in > 10 :
+            if self.nreg_in > 100 :
+                k = 20 # k nearest neighbours
+                inearreg = np.argpartition(dist_tmp, k) #[0:k]
+            elif self.nreg_in > 10 :
                 k = 10 # k nearest neighbours
                 inearreg = np.argpartition(dist_tmp, k) #[0:k]
             elif self.nreg_in == 1 :
@@ -384,7 +387,7 @@ class Network:
                 inearreg = np.argpartition(dist_tmp, k) #[0:k]
 
             #Use geometry to check if point in subregion
-            for i in inearreg:
+            for i in inearreg[0:k]:
 
                 subreg_geometry = self.df_subdomains.loc[i, "geometry"]
                 in_region=p.within(subreg_geometry)
