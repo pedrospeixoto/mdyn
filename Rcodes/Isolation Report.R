@@ -10,12 +10,12 @@ setwd("~/GDrive/PESQUISA/Mobilidade Urbana/Covid-19/Relatórios de Isolamento/")
 
 #libraries
 library(ggplot2)
-library(autoAnalise)
 library(tidyverse)
 library(lubridate)
 library(data.table)
 library(DescTools)
 library(rgdal)
+library(readxl)
 source("./Códigos/utils.R")
 options(encoding = "Latin1")
 rc <- colorRampPalette(colors = c("red", "green"), space = "Lab")(180)
@@ -71,6 +71,7 @@ for(s in estados){
   file <- paste("./Dados/",toupper(dic_estados[s]),"_Municipios_2019-06-01_2020-04-14_iso_index.xlsx",sep = "")
   dados <- data.frame(read_xlsx(file)) 
   dados$iso <- 1 - dados$left_home/dados$active_users_in_month
+  saveRDS(object = dados,file = paste("./Dados/original_",s,".rds",sep = ""))
   dados <- dados %>% select("reg_name","iso","day")
   dados$day <- ymd(dados$day)
   dados$weekday <- weekdays(dados$day)
