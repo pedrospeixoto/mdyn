@@ -261,15 +261,19 @@ class Network:
         self.minlats = np.round(self.minlats, 1)
         self.maxlats = np.round(self.maxlats, 1)
 
-        print("  Domain Box: ")
-        print( "   Lon:", self.minlons, self.maxlons)
-        print( "   Lat:", self.minlats, self.maxlats)
-
         #Latlon spacing
         self.dlon = self.latlon_gran
         self.dlat = self.latlon_gran
-        self.nlon = int((self.maxlons - (self.minlons))/self.dlon)
-        self.nlat = int((self.maxlats - (self.minlats))/self.dlat)
+
+        # Number of cells within this region
+        self.nlon = int(round((self.maxlons - (self.minlons))/self.dlon))
+        self.nlat = int(round((self.maxlats - (self.minlats))/self.dlat))
+
+        print("Domain Box:")
+        print(" + lon (min/max): ", self.minlons, self.maxlons)
+        print(" + lat (min/max): ", self.minlats, self.maxlats)
+        print(" + dlon / dlat: ", self.dlon, self.dlat)
+        print(" + nlon / nlat: ", self.nlon, self.nlat)
 
         #These are the datapoints
         self.lon_bins_c = np.linspace(self.minlons, self.maxlons, self.nlon+1, endpoint=True)
@@ -278,6 +282,7 @@ class Network:
         #These are bins for datagrid (larger than datagrid) - Extended grid
         self.lon_bins_ext = np.linspace(self.minlons-self.dlon/2, self.maxlons+self.dlon/2, self.nlon+2, endpoint=True)
         self.lat_bins_ext = np.linspace(self.minlats-self.dlat/2, self.maxlats+self.dlat/2, self.nlat+2, endpoint=True)
+
 
         #2d grids
         self.lon_bins_c_2d, self.lat_bins_c_2d = np.meshgrid(self.lon_bins_c, self.lat_bins_c)
