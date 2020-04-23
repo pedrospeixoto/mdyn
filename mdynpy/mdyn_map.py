@@ -184,7 +184,7 @@ class Map:
         print(filename)
         #filename = dir+"/map_data_"+title+".eps"
         filename = filename+".jpg"
-        plt.savefig(filename) #, dpi=300)
+        plt.savefig(filename, dpi=300)
         
 
     def map_movemat_by_reg(self, mat, ireg0, reg1, network, title, filename):
