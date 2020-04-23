@@ -15,7 +15,6 @@ from datetime import timedelta
 
 import matplotlib.pyplot as plt
 
-
 import geopy.distance
 import geopandas as gpd
 
@@ -28,8 +27,7 @@ import tqdm
 from mdynpy.mdyn_daydata import DayData
 from mdynpy.mdyn_map import Map
 from mdynpy.mdyn_extras import distance, distance_lat, distance_lon, daterange, matprint, round_down, round_up
-
-# Parallelization
+from mdynpy.parhelper import parhelper
 
 
 class Network:
@@ -348,6 +346,9 @@ class Network:
             self.region_grid = np.full((self.nlat+1, self.nlon+1), -1, dtype=int)
 
 
+            #
+            # Region-by-Region processing
+            #
             def process_domains_by_regions(df_domains, par_outer=False, par_inner=False):
 
                 verbose = 0
@@ -424,27 +425,20 @@ class Network:
                             if reg['geometry'].contains(p):
                                 self.region_grid[i,j] = index
 
-                    iter_range = range(mini, maxi+1)
-                    from tqdm import tqdm
                     if par_inner and self.parallelize:
-                        # Setup a thread pool for concurrent execution
-                        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                            # Conversion to list required for status bar
-                            list(tqdm(executor.map(par_exec_inner, iter_range), total=len(iter_range)))
+                        f = lambda id: par_exec_inner(id + mini)
+                        parhelper(maxi+1-mini, f, use_tqdm=False)
 
                     else:
-                        # No progress bar if inner hasn't enough workload
+                        # No progress bar since inner hasn't enough workload
                         #for index in tqdm(iter_range):
-                        for i in iter_range:
+                        for i in range(mini, maxi+1):
                             par_exec_inner(i)
 
 
                 from tqdm import tqdm
                 if par_outer and self.parallelize:
-                    # Setup a thread pool for concurrent execution
-                    with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                        # Conversion to list required for status bar
-                        list(tqdm(executor.map(par_exec, range(len(conv))), total=len(conv)))
+                    parhelper(len(conv), par_exec, use_tqdm=True)
 
                 else:
                     for i in tqdm(range(len(conv))):
@@ -500,17 +494,14 @@ class Network:
 
                     process_domains_by_pixel(i, j, lat, lon)
 
-                iter_range = range(len(self.lat_bins_c)*len(self.lon_bins_c))
 
                 from tqdm import tqdm
                 if self.parallelize:
-                    # Setup a thread pool for concurrent execution
-                    with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                        # Conversion to list required for status bar
-                        result = list(tqdm(executor.map(par_exec, iter_range), total=len(iter_range)))
+                    parhelper(len(self.lat_bins_c)*len(self.lon_bins_c), par_exec, use_tqdm=True)
 
                 else:
                     # No progress bar if inner hasn't enough workload
+                    iter_range = range(len(self.lat_bins_c)*len(self.lon_bins_c))
                     for index in tqdm(iter_range):
                         par_exec(index)
 
@@ -607,8 +598,7 @@ class Network:
                 if self.parallelize:
                     # Setup a thread pool for concurrent execution
                     with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                        # Conversion to list required for status bar
-                        list(tqdm(executor.map(par_exec_orig, iter_range), total=len(iter_range)))
+                        parhelper(len(self.lat_bins_c)*len(self.lon_bins_c), par_exec_orig, use_tqdm=True)
 
                 else:
                     # No progress bar if inner hasn't enough workload
