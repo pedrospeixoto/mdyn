@@ -334,7 +334,7 @@ class Network:
             self.subdomains+\
             "_lats"+str(self.minlats)+"_"+str(self.maxlats)+\
             "_lons"+str(self.minlons)+"_"+str(self.maxlons)+\
-            "_dlat"+str(self.dlat)+"_dlon"+str(self.dlon)+"_alg"+str(self.network_alg)
+            "_dlat"+str(self.dlat)+"_dlon"+str(self.dlon) #+"_alg"+str(self.network_alg)
 
         print(self.gridname)
         #check if network pre built
@@ -342,8 +342,12 @@ class Network:
             self.region_grid=np.load(self.gridname+".npy")
             print("Regions loaded from file "+self.gridname)
 
+        elif os.path.exists(self.gridname+"_alg"+str(self.network_alg)+".npy") and self.load:
+            self.region_grid=np.load(self.gridname+".npy")
+            self.gridname = self.gridname+"_alg"+str(self.network_alg)
+            print("Regions loaded from file "+self.gridname)
         else:
-
+            self.gridname = self.gridname+"_alg"+str(self.network_alg)
             # Initialize with -1
             self.region_grid = np.full((self.nlat+1, self.nlon+1), -1, dtype=int)
 
