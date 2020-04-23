@@ -330,13 +330,13 @@ class Network:
         if not os.path.exists('maps/grids'):
             os.mkdir('maps/grids')
 
-        self.gridname = 'maps/grids/regions_'+self.domain+"_"+\
+        self.gridname = 'maps/grids/regions_'+self.domain_abrv+"_"+\
             self.subdomains+\
             "_lats"+str(self.minlats)+"_"+str(self.maxlats)+\
             "_lons"+str(self.minlons)+"_"+str(self.maxlons)+\
             "_dlat"+str(self.dlat)+"_dlon"+str(self.dlon) #+"_alg"+str(self.network_alg)
 
-        print(self.gridname)
+        print(self.gridname,os.path.exists(self.gridname+".npy"), self.load )
         #check if network pre built
         if os.path.exists(self.gridname+".npy") and self.load:
             self.region_grid=np.load(self.gridname+".npy")
