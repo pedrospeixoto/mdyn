@@ -203,7 +203,7 @@ mapa <- leaflet() %>%
                             sep = ""),options = popupOptions(opacity = 0,closeButton = FALSE),
               opacity = 0.5,fillOpacity = 0.5,label = paste(tmp$NM_MUNICIP,'-',tmp$UF)) %>%
   addLegend(position = "bottomright",colors = rc5,labels = levels(tmp$indice_pre),
-            title = paste("Variação em relação\nao padrão Pré-pandemia\nno dia",end_quar))
+            title = paste("Variação em relação \n ao padrão Pré-pandemia \n no dia ",day(end_quar),"/",month(end_quar),"2020",sep = ""))
   
   #addPolygons(data = tmp,weight = 1,fillColor = mypal(tmp$indice_pre),color = "grey",
   #            popup = paste('Cidade:',tmp$NM_MUNICIP,'-',tmp$UF),options = popupOptions(opacity = 0,closeButton = FALSE),
