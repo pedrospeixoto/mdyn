@@ -7,17 +7,34 @@
 
 #wd
 setwd("~/mdyn")
-
-#libraries
 library(ggplot2)
+library(htmlwidgets)
 library(tidyverse)
 library(lubridate)
+library(grid)
 library(data.table)
 library(DescTools)
+library(plyr)
 library(rgdal)
+library(ggthemes)
+library(raster)
+library(rgeos)
+library(mapview)
+library(sf)
+library(svMisc)
+library(leaflet.extras)
+library(leaflet.providers)
+library(htmltools)
+library(leafletCN)
+library(leaflet)
 source("./Rcodes/utils.R")
 #options(encoding = "Latin1")
-#rc <- colorRampPalette(colors = c("red", "green"), space = "Lab")(180)
+rc5 <- colorRampPalette(colors = c("red","darkgoldenrod1","green"), space = "Lab")(5)
+rc3 <- colorRampPalette(colors = c("red","darkgoldenrod1","green"), space = "Lab")(3)
+get_png <- function(filename) {
+  grid::rasterGrob(image = png::readPNG(filename))
+}
+logo <- get_png("./logos/logos_juntos.png")
 
 titles <- theme(strip.text = element_text(size = 12), 
                 axis.text = element_text(size = 12,color = "black"), axis.title = element_text(size = 14), 
@@ -65,6 +82,7 @@ dic_pronome <- list('AC' = 'do','AL' = 'de','AP' = 'do','AM' = 'do','BA' = 'da',
 estados <- names(dic_estados)
 dir_data <- "/home/pedrosp/mdyn/dump/mdyn_params_mun_index/"
 posfix_data <- "_Municipios_2019-06-01_2020-04-14_iso_index.csv"
+city_names <- read.csv("./maps/population/population_mun_br_2019_namesfixed.csv")
 
 #Organizando os dados de cada estado
 for(s in estados){
@@ -74,7 +92,7 @@ for(s in estados){
   file <- paste(dir_data,toupper(dic_estados[s]),posfix_data,sep = "")
   dados <- data.frame(read.csv(file)) 
   dados$iso <- 1 - dados$left_home/dados$active_users_in_month
-  saveRDS(object = dados,file = paste("./dataR/original_",s,".rds",sep = ""))
+  saveRDS(object = dados,file = paste("./dataR/original_",acento(s),".rds",sep = ""))
   dados <- dados %>% select("reg_name","iso","day")
   dados$day <- ymd(dados$day)
   dados$weekday <- weekdays(dados$day)
@@ -120,120 +138,82 @@ for(s in estados){
   rm(padrao_pan,padrao_pre,dados)
 }
 
-#Relatório por estado
+#Mapa leflet
+dadosBR <- data.frame()
 for(s in estados){
-  cat("Estado: ")
-  cat(s)
+  cat(paste("Estado:",s))
   cat("\n")
-  
-  #Lendo os dados
-  cat("Lendo os dados...")
-  dados <- readRDS(file = paste("./Dados/",s,".rds",sep = ""))
-  shp <- readOGR(paste("./Dados/maps/",tolower(s),"_municipios/",dic_shp[[s]],".shp",
-                             sep = ""),verbose = F)
-  shp <- fortify(shp,region = "NM_MUNICIP")
-  cat(" OK!\n")
-  
-  #Gerando mapas de isolamento diários
-  cat("Criando mapas...")
-  mapas <- lapply(X = as.list(dias_quar),FUN = gerar_mapas(dados = dados,shp = shp,s = s))
-  names(mapas) <- dias_quar
-  tab <- lapply(X = mapas,FUN = function(x) x$tab)
-  tabela <- rbindlist(l = tab)
-  dir.create(path = paste("./Workspace/",s,sep = ""))
-  write.csv(x = tabela,file = paste("./Workspace/",s,"/",s,".csv",sep = ""),row.names = F,
-            fileEncoding = "UTF-8")
-  cat("Ok!\n")
-  
-  #Gerando relatório
-  cat("Gerando relatório...")
-  
-  dir.create(path = paste("./Workspace/",s,"/Relatorios",sep = ""))
-  sink(paste("./Workspace/",s,"/Relatorios/",s,"_Relatório sobre isolamento durante a pandemia.tex",sep = ""),split = F)
-  #Cabeçalho
-  cat("\\documentclass[12pt,a4paper]{article}
-  \\usepackage{marginnote}
-  \\usepackage{wallpaper}
-  \\usepackage{lastpage}
-  \\usepackage[left=1.3cm,right=2.0cm,top=1.8cm,bottom=5.0cm,marginparwidth=3.4cm]{geometry}
-  \\usepackage{amsmath}
-  \\usepackage{amssymb}
-  \\usepackage{float}
-  \\usepackage{xcolor}
-  \\usepackage{fancyhdr}
-  \\usepackage[brazil]{babel}
-  \\usepackage[latin1]{inputenc}
-  \\usepackage[T1]{fontenc}
-  \\usepackage{graphicx}
-  \\usepackage{pstricks}
-  \\usepackage{subfigure}
-  \\usepackage{caption}
-  \\captionsetup{justification=centering,labelfont=bf}
-  \\usepackage{textcomp}
-  \\setlength{\\headheight}{80pt}
-  \\pagestyle{fancy}\\fancyhf{}
-  \\renewcommand{\\headrulewidth}{0pt}
-  \\setlength{\\parindent}{1cm}
-  \\newcommand{\\tab}{\\hspace*{2em}}
-  \\newcommand\\BackgroundStructure{
-  \\setlength{\\unitlength}{1mm}
-  \\setlength\\fboxsep{0mm}
-  \\setlength\\fboxrule{0.5mm}
-  \\put(10, 20pr){\fcolorbox{black}{gray!5}{\\framebox(155,247){}}}
-  \\put(165, 20){\\fcolorbox{black}{gray!10}{\\framebox(37,247){}}}
-  \\put(10, 262){\\fcolorbox{black}{white!10}{\framebox(192, 25){}}}
-  \\put(175, 263){\\includegraphics[height=23mm,keepaspectratio]{}} 
-  }
-  \\fancyhead[L]{\\begin{tabular}{l r | l r}
-  \\multicolumn{4}{c}{\\textbf{Relat\\'orio T\\'ecnico: \\'Indice de Isolamento Social - Pandemia da COVID-19}} \\\\
-  \\multicolumn{4}{l}{P. Peixoto$^{1}$; D. Marcondes$^{1}$; C. Peixoto$^{1}$; S. Oliva$^{1}$; L. Queiroz$^{2}$, R. Gouveia$^{2}$, A. Delgado$^{2}$} \\\\")
-  cat(paste("\\multicolumn{4}{l}{1. Instituto de Matemática e Estatística - USP; 2. In Loco} \\\\ \n"))
-  cat(paste("\\multicolumn{4}{l}{\\textbf{Estado:}",dic_estados[s],"} \\\\ \n"))
-  cat("\\end{tabular}}\n
-  \\begin{document}\n")
-
-  #Introdução
-  cat("\\section{Índice de Isolamento Social durante a pandemia da COVID-19}\n")
-  
-  cat(paste("\nNeste relatório técnico apresentamos um Indice de Isolamento Social calculado diariamente durante a pandemia da COVID-19 para cada cidade do Estado",dic_pronome[s],dic_estados[s],"a partir de dados agregados de geolocalização de celulares."))
-  cat(" Os dados foram fornecidos de forma anonimizada pela empresa In Loco (www.inloco.com.br), que desenvolve   \\textit{software development kits} (SDK) para aplicativos de celular. O conjunto de dados contém, para cada dia da pandemia, o número de usuários dos aplicativos com o sistema da empresa na cidade que visitaram uma localidade longe de sua residência. Esses dados são uma medida de isolamento, pois um alto número de usuários se movimentando para longe de suas residências é um indicativo de alta mobilidade de pessoas na cidade. Da mesma forma, um baixo número de usuários se movimentando para longe de suas residências é um indicativo de baixa mobilidade de pessoas na cidade, o que é uma evidência de eficácia de medidas de isolamento social.\n\n O índice desenvolvido nesse relatório é um número entre zero e um. Um índice igual a zero indica que o nível de mobilidade dos usuários está dentro do padrão para um dia comum, isto é, antes da pandemia da COVID-19. Já quanto mais próximo de um estiver o índice, mais abaixo do padrão está a mobilidade na cidade, o que é uma evidência de que há mais pessoas em isolamento. Assim, uma alta ao longo do tempo nesse índice representa um aumento no isolamento social dentro da cidade, enquanto que uma queda nesse índice representa uma diminuição no isolamento social na cidade. Mais informações sobre como esse índice é calculado são apresentadas no Apêndice.
-\n\n")
-  
-  cat("\nO objetivo desse índice é subsidiar a tomada de decisões a nível estadual e municipal sobre políticas de isolamento durante a pandemia da COVID-19.\n")
-  cat("\n\\textbf{IMPORTANTE:} Todas as decisões devem ser baseadas em informações de várias fontes, sendo esta apenas mais uma que busca auxiliar administradores públicos e privados nesse momento de crise. Ressaltamos que o valor do índice não representa a proporção de pessoas em isolamento social, mas trata-se de uma medida da intensidade do isolamento, podendo ser utilizado para determinar se esse isolamento aumentou ou diminuiu ao longo do tempo. Além disso, esse índice representa o isolamento de apenas uma amostra da população, e não de todos os seus habitantes.\n")
-
-  cat("\n")
-  cat(paste("\\section{Índice de Isolamento Social entre os dias",format.Date(ini_quar,"%d/%m/%Y"),"e",format.Date(end_quar,"%d/%m/%Y"),"}"))
-  cat("\n")
-
-  cat(paste("Abaixo apresentamos mapas com os índices calculados para os dias ",format.Date(ini_quar,"%d/%m/%Y")," a ", format.Date(end_quar,"%d/%m/%Y")," para as cidades do Estado ",dic_pronome[s]," ",dic_estados[s],".",sep = ""))
-cat(" Quanto mais verde a cor da cidade, maior é o seu índice de isolamento, e quanto mais vermelha, menor é o seu Indice de Isolamento Social. Cidades para as quais o índice não está disponível são pintadas de branco. O valor do índice para cada cidade em cada dia está disponível em uma planilha disponibilizada em conjunto com esse relatório. Disponibilizamos também um vídeo em que essa sequência de gráficos é apresentada em uma animação.\n")
-  
-  dir.create(path = paste("./Workspace/",s,"/Figuras",sep = ""))
-  for(d in as.character(dias_quar)){
-    #Salvar gráfico
-    if(!file.exists(paste("./Workspace/",s,"/Figuras/",s,"_",gsub(pattern = "-",replacement = "_",d),".pdf",sep = ""))){
-      pdf(file = paste("./Workspace/",s,"/Figuras/",s,"_",gsub(pattern = "-",replacement = "_",d),".pdf",sep = ""),width = 10,height = 7)
-      print(mapas[[d]]$p)
-      dev.off()
-    }
-    cat("\n")
-    cat("\\begin{figure}[H]
-    \\centering\n")
-    cat(paste("\\includegraphics[width = \\linewidth]{","./Figuras/",s,"_",gsub(pattern = "-",replacement = "_",d),".pdf",sep = ""),
-                   "}\n",sep = "")
-    cat("\\end{figure}")
-    cat("\n")
-  }
-
-  #Apendice
-  cat("\\input{apendice.tex}")
-  cat("\\end{document}")
-  sink()
-  cat("Ok!\n")
+  dados <- readRDS(file = paste("./dataR/",s,".rds",sep = ""))
+  dados$UF <- s
+  if(nrow(dadosBR) == 0)
+    dadosBR <- dados
+  else
+    dadosBR <- rbind.data.frame(dadosBR,dados)
 }
+dadosBR <- dadosBR %>% filter(day == max(dadosBR$day))
+dadosBR <- dadosBR %>% filter(UF == "AL")
+shp <- readOGR("./maps/br_municipios/BRMUE250GC_SIR.shp",verbose = F)
+city_names$MUNICIPIO <- toupper(city_names$MUNICIPIO)
+shp <- merge(x = shp,y = city_names,by.x = "NM_MUNICIP",by.y = "MUNICIPIO")
+#shp$key <- paste(shp$NM_MUNICIP,shp$UF)
+#dadosBR$key <- paste(dadosBR$reg_name,dadosBR$UF)
+tmp <- merge(shp,dadosBR,by.x = "NM_MUNICIP",by.y = "reg_name",all.x = F,all.y = F)
 
-#Para cada cidade
+tag.map.title <- tags$style(HTML("
+  .leaflet-control.map-title { 
+    transform: translate(-50%,20%);
+    position: fixed !important;
+    left: 50%;
+    text-align: center;
+    padding-left: 10px; 
+    padding-right: 10px; 
+    background: rgba(255,255,255,0.75);
+    font-weight: bold;
+    font-size: 28px;
+  }
+"))
+
+title <- tags$div(
+  tag.map.title, HTML("Isolamento Social Comparativo IME - USP")
+)  
+
+ime <- tags$div(
+  HTML('<a href="https://www.ime.usp.br/"> <img border="0" alt="ImageTitle" src="./logos/IME_simplificado.jpg" width="60" height="100"> </a>')
+)  
+usp <- tags$div(
+  HTML('<a href="https://www.usp.br/"> <img border="0" alt="ImageTitle" src="./logos/logo_USP.jpeg" width="60" height="35"> </a>')
+) 
+fapesp <- tags$div(
+  HTML('<a href="http://www.fapesp.br/en/"> <img border="0" alt="ImageTitle" src="./logos/FAPESP.png" width="60" height="35"> </a>')
+) 
+
+mypal <- colorFactor(palette = rc5, domain = tmp$indice_pre)
+
+mapa <- leaflet() %>% 
+  addProviderTiles(providers$CartoDB.Positron,options = providerTileOptions(minZoom = 4)) %>% 
+  addEasyButton(easyButton(
+    icon="fa-crosshairs", title="Locate Me",
+    onClick=JS("function(btn, map){ map.locate({setView: true}); }"))) %>%
+  addControl(title, position = "topleft", className="map-title") %>%
+  addControl(ime, position = "bottomleft") %>%
+  addControl(usp, position = "bottomleft") %>%
+  addControl(fapesp, position = "bottomleft") %>%
+  addPolygons(data = tmp,weight = 1,fillColor = mypal(tmp$indice_pre),color = "grey",
+              popup = paste('<img title="Teste" src = ./plots/isol_',tmp$NM_MUNICIP,'_',tmp$UF,
+                            '.png width="750" height="500"/>',
+                            sep = ""),options = popupOptions(opacity = 0,closeButton = FALSE),
+              opacity = 0.5,fillOpacity = 0.5,label = paste(tmp$NM_MUNICIP,'-',tmp$UF))
+  
+  #addPolygons(data = tmp,weight = 1,fillColor = mypal(tmp$indice_pre),color = "grey",
+  #            popup = paste('Cidade:',tmp$NM_MUNICIP,'-',tmp$UF),options = popupOptions(opacity = 0,closeButton = FALSE),
+  #            opacity = 0,fillOpacity = 0)
+
+  addLegend(position = "bottomright", pal = mypal, values = 100*tmp$iso,na.label = "S/D",
+            title = "Isolamento (%)",opacity = 0.8)    
+mapa
+saveWidget(mapa, file="mapa_BR.html")
+
+#Gráfico por cidade
 for(s in estados){
   cat("Estado: ")
   cat(s)
@@ -241,116 +221,98 @@ for(s in estados){
   
   #Lendo os dados
   cat("Lendo os dados...")
-  dados <- readRDS(file = paste("./Dados/",s,".rds",sep = ""))
+  dados <- readRDS(file = paste("./dataR/",s,".rds",sep = ""))
   cat(" OK!\n")
-  problemas <- vector()
+  dados$indice_weekN <- as.numeric(as.character(mapvalues(dados$indice_week,levels(dados$indice_week),c(0.5,1,1.5))))
+  dados$indice_panN <- as.numeric(as.character(mapvalues(dados$indice_pan,levels(dados$indice_pan),c(1.5,2,2.5)+0.25)))
+  dados$indice_preN <- as.numeric(as.character(mapvalues(dados$indice_pre,levels(dados$indice_pre),c(2.5,2.5+0.375,2.5+2*0.375,2.5+3*0.375,2.5+4*0.375)+0.5)))
   
-  cat("Construindo relatórios para as cidades...")
+  cat("Construindo gráficos para as cidades...")
   for(c in unique(dados$reg_name)){
     tmp <- dados %>% filter(day %in% dias_quar & reg_name == c)
-    if(nrow(na.omit(tmp)) != nrow(tmp))
-      problemas <- c(problemas,c)
-    else{
-      cat(c)
-      cat("\n")
-      tmp$day <- dmy(format.Date(tmp$day,"%d/%m/%Y"))
-      p <- ggplot(tmp,aes(x = day,y = indice)) + themes + titles + geom_line(colour = "salmon") + geom_point(colour = "salmon") +
-        xlab("Dia") + ylab("Índice de Isolamento Social") +
-        scale_x_date(date_breaks = "1 week") +
-        ggtitle(paste("Índice de Isolamento Social\n",c,"-",s,"\n","De ",format.Date(ini_quar,"%d/%m/%Y")," a ",format.Date(end_quar,"%d/%m/%Y"),"\nPara mais informações acesse www.ime.usp.br/~pedrosp/covid19/",
-                      sep = "")) +
-        theme(plot.title = element_text(face = "bold"),
-              axis.title = element_text(face = "bold",size = 20))
-      
-      #Relatório
-      sink(paste("./Workspace/",s,"/Relatorios/",s,"_",acento(c),"_Relatório sobre isolamento durante a pandemia.tex",sep = ""),split = F)
-      #Cabeçalho
-      cat("\\documentclass[12pt,a4paper]{article}
-  \\usepackage{marginnote}
-  \\usepackage{wallpaper}
-  \\usepackage{lastpage}
-  \\usepackage[left=1.3cm,right=2.0cm,top=1.8cm,bottom=5.0cm,marginparwidth=3.4cm]{geometry}
-  \\usepackage{amsmath}
-  \\usepackage{amssymb}
-  \\usepackage{float}
-  \\usepackage{xcolor}
-  \\usepackage{fancyhdr}
-  \\usepackage[brazil]{babel}
-  \\usepackage[latin1]{inputenc}
-  \\usepackage[T1]{fontenc}
-  \\usepackage{graphicx}
-  \\usepackage{pstricks}
-  \\usepackage{subfigure}
-  \\usepackage{caption}
-  \\captionsetup{justification=centering,labelfont=bf}
-  \\usepackage{textcomp}
-  \\setlength{\\headheight}{80pt}
-  \\pagestyle{fancy}\\fancyhf{}
-  \\renewcommand{\\headrulewidth}{0pt}
-  \\setlength{\\parindent}{1cm}
-  \\newcommand{\\tab}{\\hspace*{2em}}
-  \\newcommand\\BackgroundStructure{
-  \\setlength{\\unitlength}{1mm}
-  \\setlength\\fboxsep{0mm}
-  \\setlength\\fboxrule{0.5mm}
-  \\put(10, 20pr){\fcolorbox{black}{gray!5}{\\framebox(155,247){}}}
-  \\put(165, 20){\\fcolorbox{black}{gray!10}{\\framebox(37,247){}}}
-  \\put(10, 262){\\fcolorbox{black}{white!10}{\framebox(192, 25){}}}
-  \\put(175, 263){\\includegraphics[height=23mm,keepaspectratio]{}} 
-  }
-  \\fancyhead[L]{\\begin{tabular}{l r | l r}
-  \\multicolumn{4}{c}{\\textbf{Relat\\'orio T\\'ecnico: \\'Indice de Isolamento Social - Pandemia da COVID-19}} \\\\
-  \\multicolumn{4}{l}{P. Peixoto$^{1}$; D. Marcondes$^{1}$; C. Peixoto$^{1}$; S. Oliva$^{1}$; L. Queiroz$^{2}$, R. Gouveia$^{2}$, A. Delgado$^{2}$} \\\\")
-      cat(paste("\\multicolumn{4}{l}{1. Instituto de Matemática e Estatística - USP; 2. In Loco} \\\\ "))
-      cat(paste("\\multicolumn{4}{l}{\\textbf{Cidade:}",c," - ",toupper(dic_estados[s]),"} \\\\ \n"))
-      cat("\\end{tabular}}\n
-  \\begin{document}\n")
-      
-    #Introdução
-    cat("\\section{Índice de Isolamento Social durante a pandemia da COVID-19}\n")
-    cat(paste("Neste relatório técnico apresentamos um Índice de Isolamento Social calculado diariamente durante a pandemia da COVID-19 para Cidade de",c,"-",s,"a partir de dados agregados de geolocalização de celulares."))
-    cat(" Os dados foram fornecidos de forma anonimizada pela empresa In Loco (www.inloco.com.br), que desenvolve   \\textit{software development kits} (SDK) para aplicativos de celular. O conjunto de dados contém, para cada dia da pandemia, o número de usuários dos aplicativos com o sistema da empresa na cidade que visitaram uma localidade longe de sua residência. Esses dados são uma medida de isolamento, pois um alto número de usuários se movimentando para longe de suas residências é um indicativo de alta mobilidade de pessoas na cidade. Da mesma forma, um baixo número de usuários se movimentando para longe de suas residências é um indicativo de baixa mobilidade de pessoas na cidade, o que é uma evidência de eficácia de medidas de isolamento social.\n\n O índice desenvolvido nesse relatório é um número entre zero e um. Um índice igual a zero indica que o nível de mobilidade dos usuários está dentro do padrão para um dia comum, isto é, antes da pandemia da COVID-19. Já quanto mais próximo de um estiver o índice, mais abaixo do padrão está a mobilidade na cidade, o que é uma evidência de que há mais pessoas em isolamento. Assim, uma alta ao longo do tempo nesse índice representa um aumento no isolamento social dentro da cidade, enquanto que uma queda nesse índice representa uma diminuição no isolamento social na cidade. Mais informações sobre como esse índice é calculado são apresentadas no Apêndice.
-\n\n")
+    tmp$y <- NA
+    tmp$day <- as.numeric(tmp$day)
     
-    cat("\nO objetivo desse índice é subsidiar a tomada de decisões a nível estadual e municipal sobre políticas de isolamento durante a pandemia da COVID-19.\n")
-    cat("\n\\textbf{IMPORTANTE:} Todas as decisões devem ser baseadas em informações de várias fontes, sendo esta apenas mais uma que busca auxiliar administradores públicos e privados nesse momento de crise. Ressaltamos que o valor do índice não representa a proporção de pessoas em isolamento social, mas trata-se de uma medida da intensidade do isolamento, podendo ser utilizado para determinar se esse isolamento aumentou ou diminuiu ao longo do tempo. Além disso, esse índice representa o isolamento de apenas uma amostra da população, e não de todos os seus habitantes.\n")
-      cat("\n")
-      cat(paste("\\section{Índice de Isolamento Social entre os dias",format.Date(ini_quar,"%d/%m/%Y"),"e",format.Date(end_quar,"%d/%m/%Y"),"}"))
-      cat("\n")
+    p <- ggplot(tmp,aes(x = day,y = y)) + theme_solarized(light = FALSE) +
+      geom_hline(yintercept = c(1.625,2.875)) +
+      xlab("Data") + ylab("") + 
+      scale_x_continuous(breaks = as.numeric(seq.Date(from = ymd(ini_quar),to = ymd(end_quar),by = 3)),
+                    labels = paste(day(seq.Date(from = ymd(ini_quar),to = ymd(end_quar),by = 3)),"/0",
+                                  month(seq.Date(from = ymd(ini_quar),to = ymd(end_quar),by = 3)),sep = "")) +
+      theme(legend.title = element_text(face = "bold"),legend.position = "none") + 
+      theme(plot.title = element_text(face = "bold",size = 20,color = "white"),
+            axis.text.x = element_text(size = 15,color = "white"),
+            axis.text.y = element_text(size = 20,color = "white"),
+            legend.box.margin = unit(x=c(0,0,0,0),units="mm"),
+            legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
+            panel.grid.minor.y = element_blank(), 
+            axis.title = element_text(color = "white",size = 20)) +
+      scale_y_continuous(breaks = c(1,2.25,3),labels = c("Semana anterior","Pandemia\n(A partir de 16/03/2020)","Pré-pandemia\n(Julho/19-Fevereiro/20)"),
+                         limits = c(0.45,4.6)) +
+      ggtitle(paste("Isolamento Social Comparativo IME - USP\n",c," - ",s,sep = "")) +
+      geom_segment(aes(x = as.numeric(ymd("2020-02-27")),y = 1,xend = as.numeric(ymd("2020-02-27")),yend = 0.5),color = rc3[1]) +
+      annotate(geom = "text",label = "Queda",x = as.numeric(ymd("2020-02-27")),y = 0.45,color = rc3[1],size = 5) +
+      geom_segment(aes(x = as.numeric(ymd("2020-02-27")),y = 1,xend = as.numeric(ymd("2020-02-27")),yend = 1.5),color = rc3[3]) +
+      annotate(geom = "text",label = "Alta",x = as.numeric(ymd("2020-02-27")),y = 1.55,color = rc3[3],size = 5) +
+      geom_segment(aes(x = as.numeric(ymd("2020-02-27")),y = 1,xend = as.numeric(ymd("2020-02-27")),yend = 1),color = rc3[2]) +
+      annotate(geom = "text",label = "Estável",x = as.numeric(ymd("2020-02-27"))-1.5,y = 1.05,color = rc3[2],size = 5) +
       
-      cat(paste("Abaixo apresentamos o índice calculado para os dias ",format.Date(ini_quar,"%d/%m/%Y")," a ",format.Date(end_quar,"%d/%m/%Y")," para a Cidade de ",c," - ",s,".",sep = ""))
-      cat(" Quanto mais alto o valor do índice, maior é o nível de isolamento na cidade no dia.")
+      geom_segment(aes(x = as.numeric(ymd("2020-02-27")),y = 2.25,xend = as.numeric(ymd("2020-02-27")),yend = 1.75),color = rc3[1]) +
+      annotate(geom = "text",label = "Abaixo Padrão",x = as.numeric(ymd("2020-02-27")),y = 1.7,color = rc3[1],size = 5) +
+      geom_segment(aes(x = as.numeric(ymd("2020-02-27")),y = 2.25,xend = as.numeric(ymd("2020-02-27")),yend = 2.75),color = rc3[3]) +
+      annotate(geom = "text",label = "Acima Padrão",x = as.numeric(ymd("2020-02-27")),y = 2.8,color = rc3[3],size = 5) +
+      geom_segment(aes(x = as.numeric(ymd("2020-02-27")),y = 2.25,xend = as.numeric(ymd("2020-02-27")),yend = 2.25),color = rc3[2]) +
+      annotate(geom = "text",label = "Padrão",x = as.numeric(ymd("2020-02-27"))-1.5,y = 2.3,color = rc3[2],size = 5) +
       
-      cat("\n")
-      cat("\n")
-      pdf(file = paste("./Workspace/",s,"/Figuras/",s,"_",gsub(pattern = " ",replacement = "",acento(c)),".pdf",sep = ""),width = 10,height = 7)
-      print(p)
-      dev.off()
-      cat("\n")
-      cat("\\begin{figure}[H]
-    \\centering\n")
-      cat(paste("\\includegraphics[width = \\linewidth]{","./Figuras/",s,"_",gsub(pattern = " ",replacement = "",acento(c)),".pdf",sep = ""),
-          "}\n",sep = "")
-      cat("\\end{figure}")
-      cat("\n")
+      scale_color_manual(values=c("Abaixo do padrão" = rc3[1],"Dentro do padrão" = rc3[2],"Acima do padrão" = rc3[3], "Padrão" = rc5[1],"Leve" = rc5[2],"Moderado" = rc5[3],"Alto" = rc5[4],"Intenso" = rc5[5],"Queda" = rc3[1],"Estável" = rc3[2],"Alta" = rc3[3])) +
       
-      #Tabela
-      tmp <- tmp %>% select(day,indice)
-      names(tmp) <- c("Dia","Índice de Isolamento Social")
-      tmp$Dia <- format.Date(tmp$Dia,"%d/%m/%Y")
-      cat("\n")
-      print(xtable(x = tmp,align = c("c","c","c")),table.placement = "H",include.rownames = F,caption.placement = "top")
-      cat("\n")
-      
-      #Apendice
-      cat("\\input{apendice.tex}")
-      cat("\\end{document}")
-      sink()
-      cat("Ok!\n")
+      geom_segment(aes(x = as.numeric(ymd("2020-02-27")),y = 3,xend = as.numeric(ymd("2020-02-27")),yend = 3),
+                   color = rc5[1]) +
+      annotate(geom = "text",label = levels(tmp$indice_pre)[1],x = as.numeric(ymd("2020-02-27"))-1.5,y = 3.05,
+               color = rc5[1],size = 5) +
+      geom_segment(aes(x = as.numeric(ymd("2020-02-27")),y = 3,xend = as.numeric(ymd("2020-02-27")),yend = 3.375),
+                   color = rc5[2]) +
+      annotate(geom = "text",label = levels(tmp$indice_pre)[2],x = as.numeric(ymd("2020-02-27"))-1.5,y = 3.375,
+               color = rc5[2],size = 5) +
+      geom_segment(aes(x = as.numeric(ymd("2020-02-27")),y = 3.375,xend = as.numeric(ymd("2020-02-27")),yend = 3.75),
+                   color = rc5[3]) +
+      annotate(geom = "text",label = levels(tmp$indice_pre)[3],x = as.numeric(ymd("2020-02-27"))-2,y = 3.75,
+               color = rc5[3],size = 5) +
+      geom_segment(aes(x = as.numeric(ymd("2020-02-27")),y = 3.75,xend = as.numeric(ymd("2020-02-27")),yend = 4.125),
+                   color = rc5[4]) +
+      annotate(geom = "text",label = levels(tmp$indice_pre)[4],x = as.numeric(ymd("2020-02-27"))-1.5,y = 4.125,
+               color = rc5[4],size = 5) +
+      geom_segment(aes(x = as.numeric(ymd("2020-02-27")),y = 4.125,xend = as.numeric(ymd("2020-02-27")),yend = 4.5),
+                   color = rc5[5]) +
+      annotate(geom = "text",label = levels(tmp$indice_pre)[5],x = as.numeric(ymd("2020-02-27"))-1.5,y = 4.5,
+               color = rc5[5],size = 5) +
+      geom_point(aes(x = day,y = indice_preN,color = indice_pre)) +
+      geom_point(aes(x = day,y = indice_panN,color = indice_pan)) +
+      geom_point(aes(x = day,y = indice_weekN,color = indice_week)) +
+      scale_fill_manual(values=c("Abaixo do padrão" = rc3[1],"Dentro do padrão" = rc3[2],"Acima do padrão" = rc3[3], "Padrão" = rc5[1],"Leve" = rc5[2],"Moderado" = rc5[3],"Alto" = rc5[4],"Intenso" = rc5[5],"Queda" = rc3[1],"Estável" = rc3[2],"Alta" = rc3[3])) + 
+      annotation_custom(logo, xmin = 18303, xmax = 18311, ymin = 3.5, ymax = 5) +
+      annotation_custom(textGrob("Desenvolvido por Diego Marcondes.",gp=gpar(col="white")), xmin = 18300, xmax = 18315, ymin = 0, ymax = 0) +
+      coord_cartesian(clip = "off") +
+      theme(plot.margin = unit(c(1, 1, 1, 1), "lines")) +
+      theme(axis.text.y=element_text(hjust=0.5,vjust=0.2))
+    
+    if(sum(!is.na(tmp$indice_preN)) != 0){
+      spline_pre <- data.frame(spline(x = tmp$day,y = tmp$indice_preN))
+      p <- p + geom_line(data = spline_pre,aes(x = x,y = y),color = "grey",alpha = 1)
     }
+    if(sum(!is.na(tmp$indice_panN)) != 0){
+      spline_pre <- data.frame(spline(x = tmp$day,y = tmp$indice_panN))
+      p <- p + geom_line(data = spline_pre,aes(x = x,y = y),color = "grey",alpha = 1)
+    }
+    if(sum(!is.na(tmp$indice_weekN)) != 0){
+      spline_pre <- data.frame(spline(x = tmp$day,y = tmp$indice_weekN))
+      p <- p + geom_line(data = spline_pre,aes(x = x,y = y),color = "grey",alpha = 1)
+    }
+    
+    pdf(file = paste("./plots/isol_",acento(c),"_",s,".pdf",sep = ""),width = 15,height = 10)
+    print(p)
+    dev.off()
   }
-  write.csv(x = cbind(problemas),file = paste("./Workspace/",s,"/",s,"_cidades_sem_relatorio.csv",sep = ""))
 }
 
-#latexmk -interaction=nonstopmode -pdf
 
