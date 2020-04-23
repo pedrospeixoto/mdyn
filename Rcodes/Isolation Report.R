@@ -25,7 +25,6 @@ library(svMisc)
 library(leaflet.extras)
 library(leaflet.providers)
 library(htmltools)
-library(leafletCN)
 library(leaflet)
 source("./Rcodes/utils.R")
 #options(encoding = "Latin1")
@@ -34,7 +33,7 @@ rc3 <- colorRampPalette(colors = c("red","darkgoldenrod1","green"), space = "Lab
 get_png <- function(filename) {
   grid::rasterGrob(image = png::readPNG(filename))
 }
-logo <- get_png("./logos/logos_juntos.png")
+logo <- get_png("./logos/IME_simplificado.png")
 
 titles <- theme(strip.text = element_text(size = 12), 
                 axis.text = element_text(size = 12,color = "black"), axis.title = element_text(size = 14), 
@@ -82,7 +81,7 @@ dic_pronome <- list('AC' = 'do','AL' = 'de','AP' = 'do','AM' = 'do','BA' = 'da',
 estados <- names(dic_estados)
 dir_data <- "/home/pedrosp/mdyn/dump/mdyn_params_mun_index/"
 posfix_data <- "_Municipios_2019-06-01_2020-04-14_iso_index.csv"
-city_names <- read.csv("./maps/population/population_mun_br_2019_namesfixed.csv")
+#city_names <- read.csv("./maps/population/population_mun_br_2019_namesfixed.csv")
 
 #Organizando os dados de cada estado
 for(s in estados){
@@ -93,7 +92,7 @@ for(s in estados){
   dados <- data.frame(read.csv(file)) 
   dados$iso <- 1 - dados$left_home/dados$active_users_in_month
   saveRDS(object = dados,file = paste("./dataR/original_",acento(s),".rds",sep = ""))
-  dados <- dados %>% select("reg_name","iso","day")
+  dados <- dados %>% dplyr::select("reg_name","iso","day")
   dados$day <- ymd(dados$day)
   dados$weekday <- weekdays(dados$day)
   dados$key <- paste(dados$reg_name,dados$weekday)
@@ -103,7 +102,7 @@ for(s in estados){
   padrao_pre <- data.table(dados %>% filter(day %in% dias_padrao))
   padrao_pre <- padrao_pre[,mean_pre := mean_trim(iso),by = key]    
   padrao_pre <- data.frame(padrao_pre[,sd_pre := sd_trim(iso),by = key])  
-  padrao_pre <- padrao_pre %>% select("key","mean_pre","sd_pre") %>% unique()
+  padrao_pre <- padrao_pre %>% dplyr::select("key","mean_pre","sd_pre") %>% unique()
   
   #Calcular padrao durante pandemia
   padrao_pan <- data.table(dados %>% filter(day %in% dias_quar))
@@ -114,7 +113,7 @@ for(s in estados){
   padrao_pan$sd_pan[!(padrao_pan$day %in% dias_padrao_pan)] <- NA
   padrao_pan$last_week[!(padrao_pan$day %in% dias_padrao_pan)] <- NA
   padrao_pan$key <- paste(padrao_pan$reg_name,padrao_pan$day)
-  padrao_pan <- padrao_pan %>% select("key","mean_pan","sd_pan","last_week") %>% unique()
+  padrao_pan <- padrao_pan %>% dplyr::select("key","mean_pan","sd_pan","last_week") %>% unique()
   
   #Dias de quarentena
   dados <- dados %>% filter(day %in% dias_quar)
@@ -151,13 +150,12 @@ for(s in estados){
     dadosBR <- rbind.data.frame(dadosBR,dados)
 }
 dadosBR <- dadosBR %>% filter(day == max(dadosBR$day))
-dadosBR <- dadosBR %>% filter(UF == "AL")
-shp <- readOGR("./maps/br_municipios/BRMUE250GC_SIR.shp",verbose = F)
-city_names$MUNICIPIO <- toupper(city_names$MUNICIPIO)
-shp <- merge(x = shp,y = city_names,by.x = "NM_MUNICIP",by.y = "MUNICIPIO")
-#shp$key <- paste(shp$NM_MUNICIP,shp$UF)
-#dadosBR$key <- paste(dadosBR$reg_name,dadosBR$UF)
-tmp <- merge(shp,dadosBR,by.x = "NM_MUNICIP",by.y = "reg_name",all.x = F,all.y = F)
+shp <- readOGR("./maps/br_municipios/br_mun_with_uf.shp",verbose = F)
+shp$Nome_UF <- factor(shp$Nome_UF)
+shp$UF <- mapvalues(x = shp$Nome_UF,from = unlist(dic_estados),to = names(dic_estados))
+shp$key <- paste(shp$NM_MUNICIP,shp$UF)
+dadosBR$key <- paste(dadosBR$reg_name,dadosBR$UF)
+tmp <- merge(shp,dadosBR,by = "key")
 
 tag.map.title <- tags$style(HTML("
   .leaflet-control.map-title { 
@@ -191,6 +189,7 @@ mypal <- colorFactor(palette = rc5, domain = tmp$indice_pre)
 
 mapa <- leaflet() %>% 
   addProviderTiles(providers$CartoDB.Positron,options = providerTileOptions(minZoom = 4)) %>% 
+  addTiles(urlTemplate = "", attribution = "©IME - USP. Design: Diego Marcondes.") %>%
   addEasyButton(easyButton(
     icon="fa-crosshairs", title="Locate Me",
     onClick=JS("function(btn, map){ map.locate({setView: true}); }"))) %>%
@@ -202,14 +201,15 @@ mapa <- leaflet() %>%
               popup = paste('<img title="Teste" src = ./plots/isol_',tmp$NM_MUNICIP,'_',tmp$UF,
                             '.png width="750" height="500"/>',
                             sep = ""),options = popupOptions(opacity = 0,closeButton = FALSE),
-              opacity = 0.5,fillOpacity = 0.5,label = paste(tmp$NM_MUNICIP,'-',tmp$UF))
+              opacity = 0.5,fillOpacity = 0.5,label = paste(tmp$NM_MUNICIP,'-',tmp$UF)) %>%
+  addLegend(position = "bottomright",colors = rc5,labels = levels(tmp$indice_pre),
+            title = paste("Variação em relação\nao padrão Pré-pandemia\nno dia",end_quar))
   
   #addPolygons(data = tmp,weight = 1,fillColor = mypal(tmp$indice_pre),color = "grey",
   #            popup = paste('Cidade:',tmp$NM_MUNICIP,'-',tmp$UF),options = popupOptions(opacity = 0,closeButton = FALSE),
   #            opacity = 0,fillOpacity = 0)
 
-  addLegend(position = "bottomright", pal = mypal, values = 100*tmp$iso,na.label = "S/D",
-            title = "Isolamento (%)",opacity = 0.8)    
+     
 mapa
 saveWidget(mapa, file="mapa_BR.html")
 
@@ -247,7 +247,7 @@ for(s in estados){
             legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
             panel.grid.minor.y = element_blank(), 
             axis.title = element_text(color = "white",size = 20)) +
-      scale_y_continuous(breaks = c(1,2.25,3),labels = c("Semana anterior","Pandemia\n(A partir de 16/03/2020)","Pré-pandemia\n(Julho/19-Fevereiro/20)"),
+      scale_y_continuous(breaks = c(1,2.25,3),labels = c("Variação em relação à\nSemana anterior","Variação em relação ao\npadrão durante a Pandemia\n(A partir de 16/03/2020)","Variação em relação\nao padrão Pré-pandemia\n(Julho/19-Fevereiro/20)"),
                          limits = c(0.45,4.6)) +
       ggtitle(paste("Isolamento Social Comparativo IME - USP\n",c," - ",s,sep = "")) +
       geom_segment(aes(x = as.numeric(ymd("2020-02-27")),y = 1,xend = as.numeric(ymd("2020-02-27")),yend = 0.5),color = rc3[1]) +
@@ -290,10 +290,10 @@ for(s in estados){
       geom_point(aes(x = day,y = indice_panN,color = indice_pan)) +
       geom_point(aes(x = day,y = indice_weekN,color = indice_week)) +
       scale_fill_manual(values=c("Abaixo do padrão" = rc3[1],"Dentro do padrão" = rc3[2],"Acima do padrão" = rc3[3], "Padrão" = rc5[1],"Leve" = rc5[2],"Moderado" = rc5[3],"Alto" = rc5[4],"Intenso" = rc5[5],"Queda" = rc3[1],"Estável" = rc3[2],"Alta" = rc3[3])) + 
-      annotation_custom(logo, xmin = 18303, xmax = 18311, ymin = 3.5, ymax = 5) +
-      annotation_custom(textGrob("Desenvolvido por Diego Marcondes.",gp=gpar(col="white")), xmin = 18300, xmax = 18315, ymin = 0, ymax = 0) +
+     annotation_custom(logo, xmin = 18302, xmax = 18308, ymin = 4, ymax = 5) +
+     annotation_custom(textGrob("©IME - USP. Design: Diego Marcondes.",gp=gpar(col="white")), xmin = 18294, xmax = 18315, ymin = 0, ymax = 0) +
       coord_cartesian(clip = "off") +
-      theme(plot.margin = unit(c(1, 1, 1, 1), "lines")) +
+      theme(plot.margin = unit(c(1, 1, 1, 0), "lines")) +
       theme(axis.text.y=element_text(hjust=0.5,vjust=0.2))
     
     if(sum(!is.na(tmp$indice_preN)) != 0){
