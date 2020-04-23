@@ -336,7 +336,7 @@ class Network:
             "_lons"+str(self.minlons)+"_"+str(self.maxlons)+\
             "_dlat"+str(self.dlat)+"_dlon"+str(self.dlon) #+"_alg"+str(self.network_alg)
 
-        print(self.gridname,os.path.exists(self.gridname+".npy"), self.load )
+        print(self.gridname,os.path.exists(self.gridname+".npy"), self.load, self.network_alg )
         #check if network pre built
         if os.path.exists(self.gridname+".npy") and self.load:
             self.region_grid=np.load(self.gridname+".npy")
