@@ -75,18 +75,23 @@ class Network:
 
         if 'MAX_WORKERS' in os.environ:
             self.max_workers = int(os.environ['MAX_WORKERS'])
-            print("Number of workers for parallelization: "+str(self.max_workers))
 
             if self.max_workers <= 0:
                 self.max_workers = None
                 self.parallelize = False
-                print("Disabling parallelized version")
 
+        print("Parallization: "+str(self.parallelize))
+        print("Number of workers for parallelization: "+str(self.max_workers))
 
         self.network_alg = 0
         if 'NETWORK_ALG' in os.environ:
             self.network_alg = int(os.environ['NETWORK_ALG'])
-            print("Network algorithm: "+str(self.network_alg))
+        print("Network algorithm: "+str(self.network_alg))
+
+        self.safety_halo = 1
+        if 'SAFETY_HALO' in os.environ:
+            self.safety_halo = int(os.environ['SAFETY_HALO'])
+        print("Safety halo: "+str(self.safety_halo))
 
         print(self.domain, self.subdomains)
         
@@ -389,10 +394,10 @@ class Network:
                         print(" + lat idx min/max: "+str(mini)+", "+str(maxi))
                         print(" + lon idx min/max: "+str(minj)+", "+str(maxj))
 
-                    mini -= 1;
-                    maxi += 1;
-                    minj -= 1;
-                    maxj += 1;
+                    mini -= self.safety_halo;
+                    maxi += self.safety_halo;
+                    minj -= self.safety_halo;
+                    maxj += self.safety_halo;
 
                     mini = max(mini, 0)
                     minj = max(minj, 0)
@@ -502,7 +507,7 @@ class Network:
                     # Setup a thread pool for concurrent execution
                     with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
                         # Conversion to list required for status bar
-                        list(tqdm(executor.map(par_exec, iter_range), total=len(iter_range)))
+                        result = list(tqdm(executor.map(par_exec, iter_range), total=len(iter_range)))
 
                 else:
                     # No progress bar if inner hasn't enough workload
