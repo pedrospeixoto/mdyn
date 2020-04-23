@@ -329,7 +329,7 @@ class Network:
             self.subdomains+\
             "_lats"+str(self.minlats)+"_"+str(self.maxlats)+\
             "_lons"+str(self.minlons)+"_"+str(self.maxlons)+\
-            "_dlat"+str(self.dlat)+"_dlon"+str(self.dlon)
+            "_dlat"+str(self.dlat)+"_dlon"+str(self.dlon)+"_alg"+str(self.network_alg)
 
         print(self.gridname)
         #check if network pre built
