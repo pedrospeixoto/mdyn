@@ -6,7 +6,7 @@
 ###########################################
 
 #wd
-setwd("~/GDrive/PESQUISA/Mobilidade Urbana/Covid-19/Relatórios de Isolamento/")
+setwd("~/mdyn")
 
 #libraries
 library(ggplot2)
@@ -15,13 +15,13 @@ library(lubridate)
 library(data.table)
 library(DescTools)
 library(rgdal)
-library(readxl)
-source("./Códigos/utils.R")
-options(encoding = "Latin1")
-rc <- colorRampPalette(colors = c("red", "green"), space = "Lab")(180)
+source("./Rcodes/utils.R")
+#options(encoding = "Latin1")
+#rc <- colorRampPalette(colors = c("red", "green"), space = "Lab")(180)
 
-titles <- theme(strip.text = element_text(size = 12), axis.text = element_text(size = 12,
-                                                                               color = "black"), axis.title = element_text(size = 14), legend.text = element_text(size = 14),
+titles <- theme(strip.text = element_text(size = 12), 
+                axis.text = element_text(size = 12,color = "black"), axis.title = element_text(size = 14), 
+                legend.text = element_text(size = 14),
                 legend.title = element_text(size = 14), panel.grid.major = element_blank(),
                 panel.grid.minor = element_blank(), panel.border = element_blank(),
                 panel.background = element_rect(fill="white",size=0.5, linetype="solid",color = "black"),
@@ -33,6 +33,7 @@ themes <- list(theme_linedraw())
 ini_quar <- "2020-03-01"
 end_quar <- "2020-04-13"
 dias_quar <- seq.Date(from = ymd(ini_quar),to = ymd(end_quar),by = 1)
+dias_padrao_pan <- seq.Date(from = ymd("2020-03-29"),to = ymd(end_quar),by = 1)
 
 ini_padrao <- "2019-06-01"
 end_padrao <- "2020-02-29"
@@ -62,41 +63,61 @@ dic_pronome <- list('AC' = 'do','AL' = 'de','AP' = 'do','AM' = 'do','BA' = 'da',
                     'RJ' = 'do','RN' = 'do','RS' = 'do','RO' = 'de','RR' = 'de','SC' = 'de',
                     'SP' = 'de','SE' = 'de','TO' = 'do')
 estados <- names(dic_estados)
+dir_data <- "/home/pedrosp/mdyn/dump/mdyn_params_mun_index/"
+posfix_data <- "_Municipios_2019-06-01_2020-04-14_iso_index.csv"
 
 #Organizando os dados de cada estado
 for(s in estados){
   cat("Estado: ")
   cat(s)
   cat("\n")
-  file <- paste("./Dados/",toupper(dic_estados[s]),"_Municipios_2019-06-01_2020-04-14_iso_index.xlsx",sep = "")
-  dados <- data.frame(read_xlsx(file)) 
+  file <- paste(dir_data,toupper(dic_estados[s]),posfix_data,sep = "")
+  dados <- data.frame(read.csv(file)) 
   dados$iso <- 1 - dados$left_home/dados$active_users_in_month
-  saveRDS(object = dados,file = paste("./Dados/original_",s,".rds",sep = ""))
+  saveRDS(object = dados,file = paste("./dataR/original_",s,".rds",sep = ""))
   dados <- dados %>% select("reg_name","iso","day")
   dados$day <- ymd(dados$day)
   dados$weekday <- weekdays(dados$day)
   dados$key <- paste(dados$reg_name,dados$weekday)
-  dados <- dados %>% filter(reg_name != "-1.0")
+  dados <- dados %>% filter(reg_name != "-1")
   
-  #Calcular padrão
-  padrao <- data.table(dados %>% filter(day %in% dias_padrao))
-  padrao <- padrao[,mean_iso := mean_trim(iso),by = key]    
-  padrao <- data.frame(padrao[,sd_iso := sd_trim(iso),by = key])  
-  padrao <- padrao %>% select("key","mean_iso","sd_iso") %>% unique()
+  #Calcular padrão pre-pandemia
+  padrao_pre <- data.table(dados %>% filter(day %in% dias_padrao))
+  padrao_pre <- padrao_pre[,mean_pre := mean_trim(iso),by = key]    
+  padrao_pre <- data.frame(padrao_pre[,sd_pre := sd_trim(iso),by = key])  
+  padrao_pre <- padrao_pre %>% select("key","mean_pre","sd_pre") %>% unique()
+  
+  #Calcular padrao durante pandemia
+  padrao_pan <- data.table(dados %>% filter(day %in% dias_quar))
+  padrao_pan <- padrao_pan[,mean_pan := mean_pan(iso,day),by = key]    
+  padrao_pan <- padrao_pan[,sd_pan := sd_pan(iso,day),by = key]
+  padrao_pan <- data.frame(padrao_pan[,last_week := last_pan(iso,day),by = key])
+  padrao_pan$mean_pan[!(padrao_pan$day %in% dias_padrao_pan)] <- NA
+  padrao_pan$sd_pan[!(padrao_pan$day %in% dias_padrao_pan)] <- NA
+  padrao_pan$last_week[!(padrao_pan$day %in% dias_padrao_pan)] <- NA
+  padrao_pan$key <- paste(padrao_pan$reg_name,padrao_pan$day)
+  padrao_pan <- padrao_pan %>% select("key","mean_pan","sd_pan","last_week") %>% unique()
   
   #Dias de quarentena
   dados <- dados %>% filter(day %in% dias_quar)
   
   #Juntando e calculando indice
-  dados <- merge(dados,padrao)
+  dados <- merge(dados,padrao_pre)
+  dados$key <- paste(dados$reg_name,dados$day)
+  dados <- merge(dados,padrao_pan)
+  dados$weekday <- factor(dados$weekday)
   dados$key <- NULL
-  dados$indice <- indice(dados$iso,dados$mean_iso,dados$sd_iso)
+  
+  #Calculando Indices
+  dados$indice_pre <- indice_pre(dados$iso,dados$mean_pre,dados$sd_pre)
+  dados$indice_pan <- indice_pan(dados$iso,dados$mean_pan,dados$sd_pan)
+  dados$indice_week <- indice_week(dados$iso,dados$last_week,dados$sd_pan)
   
   #Salvando
-  saveRDS(object = dados,file = paste("./Dados/",s,".rds",sep = ""))
+  saveRDS(object = dados,file = paste("./dataR/",s,".rds",sep = ""))
   
   #Apagando
-  rm(padrao,dados)
+  rm(padrao_pan,padrao_pre,dados)
 }
 
 #Relatório por estado
