@@ -283,6 +283,11 @@ class Network:
         self.lon_bins_ext = np.linspace(self.minlons-self.dlon/2, self.maxlons+self.dlon/2, self.nlon+2, endpoint=True)
         self.lat_bins_ext = np.linspace(self.minlats-self.dlat/2, self.maxlats+self.dlat/2, self.nlat+2, endpoint=True)
 
+        print(" + lon_bins_c", self.lon_bins_c.shape, ": ", str(self.lon_bins_c[:5]), "...", str(self.lon_bins_c[-5:]))
+        print(" + lat_bins_c", self.lat_bins_c.shape, ": ", str(self.lat_bins_c[:5]), "...", str(self.lat_bins_c[-5:]))
+        print(" + lon_bins_ext", self.lon_bins_ext.shape, ": ", str(self.lon_bins_ext[:5]), "...", str(self.lon_bins_ext[-5:]))
+        print(" + lat_bins_ext", self.lat_bins_ext.shape, ": ", str(self.lat_bins_ext[:5]), "...", str(self.lat_bins_ext[-5:]))
+
 
         #2d grids
         self.lon_bins_c_2d, self.lat_bins_c_2d = np.meshgrid(self.lon_bins_c, self.lat_bins_c)
@@ -290,9 +295,6 @@ class Network:
 
         #Region grid is composed of data points, cell centres
         self.region_grid = np.zeros((self.nlat+1, self.nlon+1), dtype=int)
-
-        print("   nLon:", self.nlon)
-        print("   nLat:", self.nlat)
 
         #Regions out are out of main domain
         if self.domain_neib is not None:
