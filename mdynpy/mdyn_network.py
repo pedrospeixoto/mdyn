@@ -13,9 +13,6 @@ from datetime import datetime
 from datetime import date
 from datetime import timedelta
 
-import matplotlib.pyplot as plt
-
-
 import geopy.distance
 import geopandas as gpd
 
@@ -23,13 +20,10 @@ from shapely.geometry import Point, Polygon
 
 import concurrent.futures
 
-import tqdm
-
 from mdynpy.mdyn_daydata import DayData
 from mdynpy.mdyn_map import Map
 from mdynpy.mdyn_extras import distance, distance_lat, distance_lon, daterange, matprint, round_down, round_up
-
-# Parallelization
+from mdynpy.parhelper import parhelper
 
 
 class Network:
@@ -245,33 +239,37 @@ class Network:
         maxy = max(y)
         #Create buffer on sides depending on size of domain
         if maxx-minx > 6.0:
-            self.minlons = round_down(minx, 1)- 1.1
-            self.maxlons = round_up(maxx, 1)  + 1.1
+            self.minlons = round_down(minx, 1) - 1.1
+            self.maxlons = round_up(maxx, 1) + 1.1
         else:
-            self.minlons = round_down(minx, 1)- 0.5
-            self.maxlons = round_up(maxx, 1)  + 0.5
+            self.minlons = round_down(minx, 1) - 0.5
+            self.maxlons = round_up(maxx, 1) + 0.5
 
         if maxy-miny > 6:
-            self.minlats = round_down(miny, 1)- 1.1
-            self.maxlats = round_up(maxy, 1)  + 1.1
+            self.minlats = round_down(miny, 1) - 1.1
+            self.maxlats = round_up(maxy, 1) + 1.1
         else:
             self.minlats = round_down(miny, 1)- 0.5
-            self.maxlats = round_up(maxy, 1)  + 0.5
+            self.maxlats = round_up(maxy, 1) + 0.5
 
         self.minlons = np.round(self.minlons, 1)
         self.maxlons = np.round(self.maxlons, 1)
         self.minlats = np.round(self.minlats, 1)
         self.maxlats = np.round(self.maxlats, 1)
 
-        print("  Domain Box: ")
-        print( "   Lon:", self.minlons, self.maxlons)
-        print( "   Lat:", self.minlats, self.maxlats)
-
         #Latlon spacing
         self.dlon = self.latlon_gran
         self.dlat = self.latlon_gran
-        self.nlon = int((self.maxlons - (self.minlons))/self.dlon)
-        self.nlat = int((self.maxlats - (self.minlats))/self.dlat)
+
+        # Number of cells within this region
+        self.nlon = int(round((self.maxlons - (self.minlons))/self.dlon))
+        self.nlat = int(round((self.maxlats - (self.minlats))/self.dlat))
+
+        print("Domain Box:")
+        print(" + lon (min/max): ", self.minlons, self.maxlons)
+        print(" + lat (min/max): ", self.minlats, self.maxlats)
+        print(" + dlon / dlat: ", self.dlon, self.dlat)
+        print(" + nlon / nlat: ", self.nlon, self.nlat)
 
         #These are the datapoints
         self.lon_bins_c = np.linspace(self.minlons, self.maxlons, self.nlon+1, endpoint=True)
@@ -281,15 +279,18 @@ class Network:
         self.lon_bins_ext = np.linspace(self.minlons-self.dlon/2, self.maxlons+self.dlon/2, self.nlon+2, endpoint=True)
         self.lat_bins_ext = np.linspace(self.minlats-self.dlat/2, self.maxlats+self.dlat/2, self.nlat+2, endpoint=True)
 
+        print(" + lon_bins_c", self.lon_bins_c.shape, ": ", str(self.lon_bins_c[:5]), "...", str(self.lon_bins_c[-5:]))
+        print(" + lat_bins_c", self.lat_bins_c.shape, ": ", str(self.lat_bins_c[:5]), "...", str(self.lat_bins_c[-5:]))
+        print(" + lon_bins_ext", self.lon_bins_ext.shape, ": ", str(self.lon_bins_ext[:5]), "...", str(self.lon_bins_ext[-5:]))
+        print(" + lat_bins_ext", self.lat_bins_ext.shape, ": ", str(self.lat_bins_ext[:5]), "...", str(self.lat_bins_ext[-5:]))
+
+
         #2d grids
         self.lon_bins_c_2d, self.lat_bins_c_2d = np.meshgrid(self.lon_bins_c, self.lat_bins_c)
         self.lon_bins_ext_2d, self.lat_bins_ext_2d = np.meshgrid(self.lon_bins_ext, self.lat_bins_ext)
 
         #Region grid is composed of data points, cell centres
         self.region_grid = np.zeros((self.nlat+1, self.nlon+1), dtype=int)
-
-        print("   nLon:", self.nlon)
-        print("   nLat:", self.nlat)
 
         #Regions out are out of main domain
         if self.domain_neib is not None:
@@ -348,150 +349,43 @@ class Network:
             print("Regions loaded from file "+self.gridname)
         else:
             self.gridname = self.gridname+"_alg"+str(self.network_alg)
+
             # Initialize with -1
             self.region_grid = np.full((self.nlat+1, self.nlon+1), -1, dtype=int)
 
 
-            def process_domains_by_regions(df_domains, par_outer=False, par_inner=False):
-
-                verbose = 0
-
-                # Convert to dict for nice and direct access
-                conv = {}
-                for index, reg in df_domains.iterrows():
-                    conv[index] = reg
-
-                # Store the keys, since these are also the indices used for coloring
-                conv_keys = list(conv.keys())
-
-                def par_exec(i):
-                    index = conv_keys[i]
-                    reg = conv[index]
-
-                    if verbose > 0:
-                        if 'NM_ESTADO' in reg:
-                            print("Processing NM_ESTADO region "+str(index)+": "+reg['NM_ESTADO'])
-                        elif 'NM_MUNICIP' in reg:
-                            print("Processing NM_MUNICIP region "+str(index)+": "+reg['NM_MUNICIP'])
-                        elif 'NM_MICRO' in reg:
-                            print("Processing NM_MICRO region "+str(index)+": "+reg['NM_MICRO'])
-                        else:
-                            print(reg)
-                            print("Processing region "+str(index)+": [unknown type]")
-
-
-                        print(" + boundaries (min_lon, min_lat, max_lon, max_lat): "+str(reg['geometry'].bounds))
-
-                    # Find bounding rectangle
-                    minx, miny, maxx, maxy = reg['geometry'].bounds
-
-                    # lats
-                    mini = int(np.floor((miny-self.lat_bins_c[0])/self.dlat))
-                    maxi = int(np.ceil((maxy-self.lat_bins_c[0])/self.dlat))
-
-                    # lons
-                    minj = int(np.floor((minx-self.lon_bins_c[0])/self.dlon))
-                    maxj = int(np.ceil((maxx-self.lon_bins_c[0])/self.dlon))
-
-                    if verbose > 0:
-                        print(" + domain res (lat,lon): "+str(len(self.lat_bins_c))+", "+str(len(self.lon_bins_c)))
-                        print(" + lat idx min/max: "+str(mini)+", "+str(maxi))
-                        print(" + lon idx min/max: "+str(minj)+", "+str(maxj))
-
-                    mini -= self.safety_halo;
-                    maxi += self.safety_halo;
-                    minj -= self.safety_halo;
-                    maxj += self.safety_halo;
-
-                    mini = max(mini, 0)
-                    minj = max(minj, 0)
-
-                    maxi = min(maxi, len(self.lat_bins_c)-1)
-                    maxj = min(maxj, len(self.lon_bins_c)-1)
-
-                    if verbose > 0:
-                        print(" + new lat idx min/max: "+str(mini)+", "+str(maxi))
-                        print(" + new lon idx min/max: "+str(minj)+", "+str(maxj))
-
-                    #
-                    # Iterate over longitude
-                    #
-                    def par_exec_inner(i):
-                        lat = self.lat_bins_c[i]
-                        for j in range(minj, maxj+1):
-                            # Skip region if it's already processed
-                            if self.region_grid[i,j] != -1.0:
-                                continue
-
-                            lon = self.lon_bins_c[j]
-                            p = Point(lon, lat)
-                            if reg['geometry'].contains(p):
-                                self.region_grid[i,j] = index
-
-                    iter_range = range(mini, maxi+1)
-                    from tqdm import tqdm
-                    if par_inner and self.parallelize:
-                        # Setup a thread pool for concurrent execution
-                        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                            # Conversion to list required for status bar
-                            list(tqdm(executor.map(par_exec_inner, iter_range), total=len(iter_range)))
-
-                    else:
-                        # No progress bar if inner hasn't enough workload
-                        #for index in tqdm(iter_range):
-                        for i in iter_range:
-                            par_exec_inner(i)
-
-
-                from tqdm import tqdm
-                if par_outer and self.parallelize:
-                    # Setup a thread pool for concurrent execution
-                    with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                        # Conversion to list required for status bar
-                        list(tqdm(executor.map(par_exec, range(len(conv))), total=len(conv)))
-
-                else:
-                    for i in tqdm(range(len(conv))):
-                        par_exec(i)
-
-
-                fill_rate = np.count_nonzero(self.region_grid+1.0) / self.region_grid.size
-                print("Fill rate with preprocessing: "+str(fill_rate))
-
-
-            def process_domains_by_pixel(i, j, lat, lon):
-                #print(lat, lon)
-                reg0 = self.get_closest_region(lat, lon) #This is the center of cell
-                if reg0 != -1:
-                    self.region_grid[i,j]=reg0
-                else:
-                    #Check if part of the cell is in a region, otherwise it is ocean
-                    reg1 = self.get_closest_region(lat-self.dlat, lon-self.dlon)
-                    if reg1 != -1:
-                        ireg=reg1
-                    else:
-                        reg2 = self.get_closest_region(lat+self.dlat, lon-self.dlon)
-                        if reg2 != -1:
-                            ireg=reg2
-                        else:
-                            reg3 = self.get_closest_region(lat-self.dlat, lon+self.dlon)
-                            if reg3 != -1:
-                                ireg=reg3
-                            else:
-                                reg4 = self.get_closest_region(lat+self.dlat, lon+self.dlon)
-                                if reg4 != -1:
-                                    ireg=reg4
-                                else:
-                                    ireg = -1
-
-                    self.region_grid[i,j] = ireg
-
-
             if self.network_alg == 0:
+
                 #
                 # Original method (from Pedro)
                 #
-                #Grid is based on cell centers
+
+                def process_domains_by_pixel(i, j, lat, lon):
+                    #print(lat, lon)
+                    reg0 = self.get_closest_region(lat, lon) #This is the center of cell
+                    if reg0 != -1:
+                        self.region_grid[i,j]=reg0
+                    else:
+                        #Check if part of the cell is in a region, otherwise it is ocean
+                        reg1 = self.get_closest_region(lat-self.dlat, lon-self.dlon)
+                        if reg1 != -1:
+                            ireg=reg1
+                        else:
+                            reg2 = self.get_closest_region(lat+self.dlat, lon-self.dlon)
+                            if reg2 != -1:
+                                ireg=reg2
+                            else:
+                                reg3 = self.get_closest_region(lat-self.dlat, lon+self.dlon)
+                                if reg3 != -1:
+                                    ireg=reg3
+                                else:
+                                    reg4 = self.get_closest_region(lat+self.dlat, lon+self.dlon)
+                                    if reg4 != -1:
+                                        ireg=reg4
+                                    else:
+                                        ireg = -1
+
+                        self.region_grid[i,j] = ireg
 
                 # Run for each latitude
                 def par_exec(idx):
@@ -504,21 +398,165 @@ class Network:
 
                     process_domains_by_pixel(i, j, lat, lon)
 
-                iter_range = range(len(self.lat_bins_c)*len(self.lon_bins_c))
 
                 from tqdm import tqdm
                 if self.parallelize:
-                    # Setup a thread pool for concurrent execution
-                    with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                        # Conversion to list required for status bar
-                        result = list(tqdm(executor.map(par_exec, iter_range), total=len(iter_range)))
+                    parhelper(len(self.lat_bins_c)*len(self.lon_bins_c), par_exec, max_workers=self.max_workers, use_tqdm=True)
 
                 else:
                     # No progress bar if inner hasn't enough workload
+                    iter_range = range(len(self.lat_bins_c)*len(self.lon_bins_c))
                     for index in tqdm(iter_range):
                         par_exec(index)
 
             elif self.network_alg == 1:
+
+                #
+                # Initialize with -1
+                # Setup 2nd grid which is used in case that the cell centers didn't reveal a corresponding region
+                #
+                self.region_grid_2nd = np.full((self.nlat+1, self.nlon+1), -1, dtype=int)
+
+                # Cache the distance of each lat/lon center point to the region for other passes
+
+                #
+                # Region-by-Region processing
+                #
+                def process_domains_by_regions(df_domains, par_outer=False, par_inner=False, region_dist_cache=None, center_offset=(0, 0)):
+
+                    verbose = 0
+
+                    # Convert to dict for nice and direct access
+                    conv = {}
+                    for index, reg in df_domains.iterrows():
+                        conv[index] = reg
+
+                    # Store the keys, since these are also the indices used for coloring
+                    conv_keys = list(conv.keys())
+
+                    def par_exec(i_region):
+                        index = conv_keys[i_region]
+                        reg = conv[index]
+
+                        if verbose > 0:
+                            if 'NM_ESTADO' in reg:
+                                print("Processing NM_ESTADO region "+str(index)+": "+reg['NM_ESTADO'])
+                            elif 'NM_MUNICIP' in reg:
+                                print("Processing NM_MUNICIP region "+str(index)+": "+reg['NM_MUNICIP'])
+                            elif 'NM_MICRO' in reg:
+                                print("Processing NM_MICRO region "+str(index)+": "+reg['NM_MICRO'])
+                            else:
+                                print(reg)
+                                print("Processing region "+str(index)+": [unknown type]")
+
+
+                            print(" + boundaries (min_lon, min_lat, max_lon, max_lat): "+str(reg['geometry'].bounds))
+
+                        # Find bounding rectangle
+                        minx, miny, maxx, maxy = reg['geometry'].bounds
+
+                        # lats
+                        mini = int(np.floor((miny-self.lat_bins_c[0])/self.dlat))
+                        maxi = int(np.ceil((maxy-self.lat_bins_c[0])/self.dlat))
+
+                        # lons
+                        minj = int(np.floor((minx-self.lon_bins_c[0])/self.dlon))
+                        maxj = int(np.ceil((maxx-self.lon_bins_c[0])/self.dlon))
+
+                        if verbose > 0:
+                            print(" + domain res (lat,lon): "+str(len(self.lat_bins_c))+", "+str(len(self.lon_bins_c)))
+                            print(" + lat idx min/max: "+str(mini)+", "+str(maxi))
+                            print(" + lon idx min/max: "+str(minj)+", "+str(maxj))
+
+                        mini -= self.safety_halo;
+                        maxi += self.safety_halo;
+                        minj -= self.safety_halo;
+                        maxj += self.safety_halo;
+
+                        mini = max(mini, 0)
+                        minj = max(minj, 0)
+
+                        maxi = min(maxi, len(self.lat_bins_c)-1)
+                        maxj = min(maxj, len(self.lon_bins_c)-1)
+
+                        if verbose > 0:
+                            print(" + new lat idx min/max: "+str(mini)+", "+str(maxi))
+                            print(" + new lon idx min/max: "+str(minj)+", "+str(maxj))
+
+                        if region_dist_cache != None:
+                            if i_region not in region_dist_cache:
+                                region_dist_cache[i_region] = np.full((maxi+1-mini, maxj+1-minj), np.inf)
+
+                        #
+                        # Iterate over longitude
+                        #
+                        def par_exec_inner(i):
+                            ci = i-mini
+                            lat = self.lat_bins_c[i]
+
+                            for j in range(minj, maxj+1):
+                                cj = j-minj
+
+                                # Skip region if it's already processed
+                                if self.region_grid[i,j] != -1.0:
+                                    continue
+
+                                # Check for cached distance
+                                if region_dist_cache != None:
+                                    dist = region_dist_cache[i_region][ci,cj]
+                                    if not np.isinf(dist):
+                                        if dist > np.max(np.abs(center_offset))*2.0:
+                                            continue
+
+
+                                #
+                                # Check for center, left, right, bottom and top points
+                                #
+
+                                lon = self.lon_bins_c[j]
+                                p = Point(lon+center_offset[0], lat+center_offset[1])
+
+                                if reg['geometry'].contains(p):
+                                    # Set region index
+                                    self.region_grid[i,j] = index
+
+                                    # Set distance to 0
+                                    if region_dist_cache != None:
+                                        region_dist_cache[i_region][ci,cj] = 0
+                                    continue
+
+                                if region_dist_cache != None:
+                                    # Update distance
+                                    # WARNING: Distance computation is about 9x more expansive than geometry check
+                                    dist = p.distance(reg['geometry'])
+                                    region_dist_cache[i_region][ci,cj] = dist
+
+
+                        if par_inner and self.parallelize:
+                            f = lambda id: par_exec_inner(id + mini)
+                            parhelper(maxi+1-mini, f, max_workers=self.max_workers, use_tqdm=False)
+
+                        else:
+                            # No progress bar since inner hasn't enough workload
+                            #for index in tqdm(iter_range):
+                            for i in range(mini, maxi+1):
+                                par_exec_inner(i)
+
+
+                    from tqdm import tqdm
+                    if par_outer and self.parallelize:
+                        parhelper(len(conv), par_exec, max_workers=self.max_workers, use_tqdm=True)
+
+                    else:
+                        for i in tqdm(range(len(conv))):
+                            par_exec(i)
+
+
+                    fill_rate = np.count_nonzero(self.region_grid+1.0) / self.region_grid.size
+                    print("Fill rate with preprocessing: "+str(fill_rate))
+
+
+
                 #
                 # Pimped version
                 #
@@ -532,92 +570,76 @@ class Network:
                 if self.domain_neib is not None:
                     print(" + len domain neighbors: "+str(len(self.df_domain_nb)))
 
+
+                almost_one = 1.0-1e-10
+                dhlon = 0.5*self.dlon*almost_one
+                dhlat = 0.5*self.dlat*almost_one
+                dlon = self.dlon*almost_one
+                dlat = self.dlat*almost_one
+
+                cell_offsets = [
+                    # Center of cell
+                    (0, 0),
+
+                    # Edges of cell
+                    (-dhlon, 0),
+                    (+dhlon, 0),
+                    (0, -dhlat),
+                    (0, +dhlat),
+
+                    # Corners of cell
+                    (-dhlon, -dhlat),
+                    (+dhlon, -dhlat),
+                    (+dhlon, +dhlat),
+                    (-dhlon, +dhlat),
+
+                    # Go even further to adjacent cells
+                    (-dlon, 0),
+                    (+dlon, 0),
+                    (0, -dlat),
+                    (0, +dlat),
+
+                    (-dlon, -dlat),
+                    (+dlon, -dlat),
+                    (+dlon, +dlat),
+                    (-dlon, +dlat),
+                ]
+
+
+                region_dist_cache = {}
+                region_dist_cache_nb = {}
+
+                i = 0
+
                 print("*"*80)
-                print("Processing subdomains")
+                print("Processing subdomains (first pass)")
                 print("*"*80)
-                process_domains_by_regions(self.df_subdomains, par_outer=True)
+                process_domains_by_regions(self.df_subdomains, par_outer=True, region_dist_cache=region_dist_cache, center_offset=cell_offsets[i])
+
+                print("*"*80)
+                print("Processing domain neighbors (first pass)")
+                print("*"*80)
+                process_domains_by_regions(self.df_domain_nb, par_inner=True, region_dist_cache=region_dist_cache_nb, center_offset=cell_offsets[i])
+
+
+                print("*"*80)
+                print("Processing subdomains (other passes)")
+                print("*"*80)
+                for i in range(len(cell_offsets[1:])):
+                    print("PASS ", i, " of ", len(cell_offsets), " using cell offset ", cell_offsets[i])
+                    process_domains_by_regions(self.df_subdomains, par_outer=True, region_dist_cache=region_dist_cache, center_offset=cell_offsets[i])
 
 
                 if self.domain_neib is not None:
                     print("*"*80)
-                    print("Processing domain neighbors")
+                    print("Processing domain neighbors (other passes)")
                     print("*"*80)
-                    process_domains_by_regions(self.df_domain_nb, par_inner=True)
 
-                print("*"*80)
-                print("Processing boundary data (e.g. close to coastline) with potentially missing points")
-                print("*"*80)
-
-                def par_exec_orig(idx):
-                    i = idx // len(self.lon_bins_c)
-                    j = idx % len(self.lon_bins_c)
-
-                    lat = self.lat_bins_c[i]
-                    lon = self.lon_bins_c[j]
+                    for i in range(len(cell_offsets[1:])):
+                        print("PASS ", i, " of ", len(cell_offsets))
+                        process_domains_by_regions(self.df_domain_nb, par_inner=True, region_dist_cache=region_dist_cache_nb, center_offset=cell_offsets[i])
 
 
-                    # If we already associated this to a region, directly continue with the loop
-                    if self.region_grid[i,j] != -1:
-                        return
-
-                    #
-                    # Next, we check whether there's a neighboring pixel and if not, we skip a search algorithm on this cell
-                    #
-                    # Note, that this might ignore areas in the middle of nowhere, but this should be fine for high resolution models
-                    #
-                    neighbor_search = False
-
-                    # i-1
-                    if i >= 1:
-                        if self.region_grid[i-1,j] != -1:
-                            neighbor_search = True
-
-                        if j >= 1:
-                            if self.region_grid[i-1,j-1] != -1:
-                                neighbor_search = True
-                        if j < len(self.lon_bins_c)-1:
-                            if self.region_grid[i-1,j+1] != -1:
-                                neighbor_search = True
-
-                    # i
-                    if 1:
-                        if j >= 1:
-                            if self.region_grid[i,j-1] != -1:
-                                neighbor_search = True
-                        if j < len(self.lon_bins_c)-1:
-                            if self.region_grid[i,j+1] != -1:
-                                neighbor_search = True
-
-                    # i+1
-                    if i < len(self.lat_bins_c)-1:
-                        if self.region_grid[i+1,j] != -1:
-                            neighbor_search = True
-
-                        if j >= 1:
-                            if self.region_grid[i+1,j-1] != -1:
-                                neighbor_search = True
-                        if j < len(self.lon_bins_c)-1:
-                            if self.region_grid[i+1,j+1] != -1:
-                                neighbor_search = True
-
-
-                    if neighbor_search:
-                        process_domains_by_pixel(i, j, lat, lon)
-
-
-                iter_range = range(len(self.lat_bins_c)*len(self.lon_bins_c))
-
-                from tqdm import tqdm
-                if self.parallelize:
-                    # Setup a thread pool for concurrent execution
-                    with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                        # Conversion to list required for status bar
-                        list(tqdm(executor.map(par_exec_orig, iter_range), total=len(iter_range)))
-
-                else:
-                    # No progress bar if inner hasn't enough workload
-                    for index in tqdm(iter_range):
-                        par_exec_orig(index)
 
             else:
                 raise Exception("This network algorithm is not implemented")
@@ -627,19 +649,14 @@ class Network:
             np.save(self.gridname, self.region_grid)
             print("Regions saved in file "+self.gridname)
 
-            #Map the regions
+
             jpgfilename = self.gridname+".jpg"
-            print("Plotting regions to file "+jpgfilename)
-            map = Map(self)
-            map.map_reg_data(self, self.gridname )
+            if not os.path.exists(jpgfilename):
+                print("Plotting regions to file "+jpgfilename)
+                #Map the regions
+                map = Map(self, linewidth=0.5)
+                map.map_reg_data(self, self.gridname )
 
-
-        jpgfilename = self.gridname+".jpg"
-        if not os.path.exists(jpgfilename):
-            print("Plotting regions to file "+jpgfilename)
-            #Map the regions
-            map = Map(self)
-            map.map_reg_data(self, self.gridname )
 
     def get_closest_region(self, lat, lon):
 

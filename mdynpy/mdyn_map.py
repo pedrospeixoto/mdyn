@@ -22,7 +22,7 @@ from mdynpy.mdyn_extras import matprint
 import mdynpy.mdyn_extras as mex 
 
 class Map:
-    def __init__(self, network): 
+    def __init__(self, network, linewidth=0.8): 
 
         #Init the figure
         
@@ -62,7 +62,7 @@ class Map:
         #Config map
 
         #map.drawcoastlines(color='k',linestyle='-', linewidth=0.2)
-        map.drawcountries(color='k',linestyle='-', linewidth=0.8)
+        map.drawcountries(color='k',linestyle='-', linewidth=linewidth)
         #map.fillcontinents(lake_color='white',zorder=1)
         #map.drawcoastlines(zorder=1,color='white',linewidth=0)
         #map.fillcontinents(color = 'coral')
@@ -83,12 +83,12 @@ class Map:
             for poly_local in list(poly):
                 x, y = poly_local.exterior.coords.xy
                 x, y = map(x, y)
-                map.plot(x, y, marker=None, color='k',linestyle='-', linewidth=0.8)
+                map.plot(x, y, marker=None, color='k',linestyle='-', linewidth=linewidth)
         elif poly.geom_type == 'Polygon':
         # do polygon things.          
             x, y = poly.exterior.coords.xy
             x, y = map(x, y)
-            map.plot(x, y, marker=None, color='k',linestyle='-', linewidth=0.8 )
+            map.plot(x, y, marker=None, color='k',linestyle='-', linewidth=linewidth)
         
         # convert the bin mesh to map coordinates:
         self.x_bins_c, self.y_bins_c = map(network.lon_bins_c_2d, network.lat_bins_c_2d) # will be plotted using pcolormesh
@@ -97,6 +97,8 @@ class Map:
         #Save fig basic config
         self.map = map
         self.fig = fig
+
+        self.dpi = 600
 
 
     def map_density_data(self, lng, lat, title, filename):
@@ -127,7 +129,10 @@ class Map:
         #Save density plot to folder "dir"
         #filename = dir+"/map_data_"+title.strip()+".eps"
         filename = dir+"/map_data_"+title.strip()+".jpg"
-        plt.savefig(filename, dpi=300)
+
+        dpi = int(max(self.dpi, self.dpi*np.max(data.shape)/1000))
+        print("Using ", dpi, " dpi")
+        plt.savefig(filename, dpi=dpi)
 
     def map_reg_data(self, network, title):
         
@@ -181,10 +186,12 @@ class Map:
         plt.tight_layout()
         
         filename=title
-        print(filename)
         #filename = dir+"/map_data_"+title+".eps"
         filename = filename+".jpg"
-        plt.savefig(filename, dpi=300)
+        print("File: ", filename)
+        dpi = int(max(self.dpi, self.dpi*np.max(data.shape)/1000))
+        print("Using ", dpi, " dpi")
+        plt.savefig(filename, dpi=600)
         
 
     def map_movemat_by_reg(self, mat, ireg0, reg1, network, title, filename):
