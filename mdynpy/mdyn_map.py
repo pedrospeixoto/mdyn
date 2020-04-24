@@ -98,7 +98,8 @@ class Map:
         self.map = map
         self.fig = fig
 
-        self.dpi = 600
+        self.dpi = 300
+        self.max_dpi = 1200
 
 
     def map_density_data(self, lng, lat, title, filename):
@@ -130,7 +131,7 @@ class Map:
         #filename = dir+"/map_data_"+title.strip()+".eps"
         filename = dir+"/map_data_"+title.strip()+".jpg"
 
-        dpi = int(max(self.dpi, self.dpi*np.max(data.shape)/1000))
+        dpi = min(self.max_dpi, int(max(self.dpi, self.dpi*np.max(data.shape)/1000)))
         print("Using ", dpi, " dpi")
         plt.savefig(filename, dpi=dpi)
 
@@ -189,7 +190,7 @@ class Map:
         #filename = dir+"/map_data_"+title+".eps"
         filename = filename+".jpg"
         print("File: ", filename)
-        dpi = int(max(self.dpi, self.dpi*np.max(data.shape)/1000))
+        dpi = min(self.max_dpi, int(max(self.dpi, self.dpi*np.max(data.shape)/1000)))
         print("Using ", dpi, " dpi")
         plt.savefig(filename, dpi=600)
         
