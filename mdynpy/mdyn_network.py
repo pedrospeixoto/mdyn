@@ -432,9 +432,26 @@ class Network:
                                 continue
 
                             lon = self.lon_bins_c[j]
-                            p = Point(lon, lat)
-                            if reg['geometry'].contains(p):
+                            almost_one = 1.0-1e-10
+
+                            #
+                            # Check for center, left, right, bottom and top points
+                            #
+                            if reg['geometry'].contains(Point(lon, lat)):
                                 self.region_grid[i,j] = index
+                                continue
+                            elif reg['geometry'].contains(Point(lon+0.5*self.dlon*almost_one, lat)):
+                                self.region_grid[i,j] = index
+                                continue
+                            elif reg['geometry'].contains(Point(lon-0.5*self.dlon*almost_one, lat)):
+                                self.region_grid[i,j] = index
+                                continue
+                            elif reg['geometry'].contains(Point(lon, lat-0.5*self.dlon*almost_one)):
+                                self.region_grid[i,j] = index
+                                continue
+                            elif reg['geometry'].contains(Point(lon, lat+0.5*self.dlon*almost_one)):
+                                self.region_grid[i,j] = index
+                                continue
 
                     if par_inner and self.parallelize:
                         f = lambda id: par_exec_inner(id + mini)
@@ -541,80 +558,6 @@ class Network:
                     print("Processing domain neighbors")
                     print("*"*80)
                     process_domains_by_regions(self.df_domain_nb, par_inner=True)
-
-                print("*"*80)
-                print("Processing boundary data (e.g. close to coastline) with potentially missing points")
-                print("*"*80)
-
-                def par_exec_orig(idx):
-                    i = idx // len(self.lon_bins_c)
-                    j = idx % len(self.lon_bins_c)
-
-                    lat = self.lat_bins_c[i]
-                    lon = self.lon_bins_c[j]
-
-
-                    # If we already associated this to a region, directly continue with the loop
-                    if self.region_grid[i,j] != -1:
-                        return
-
-                    #
-                    # Next, we check whether there's a neighboring pixel and if not, we skip a search algorithm on this cell
-                    #
-                    # Note, that this might ignore areas in the middle of nowhere, but this should be fine for high resolution models
-                    #
-                    neighbor_search = False
-
-                    # i-1
-                    if i >= 1:
-                        if self.region_grid[i-1,j] != -1:
-                            neighbor_search = True
-
-                        if j >= 1:
-                            if self.region_grid[i-1,j-1] != -1:
-                                neighbor_search = True
-                        if j < len(self.lon_bins_c)-1:
-                            if self.region_grid[i-1,j+1] != -1:
-                                neighbor_search = True
-
-                    # i
-                    if 1:
-                        if j >= 1:
-                            if self.region_grid[i,j-1] != -1:
-                                neighbor_search = True
-                        if j < len(self.lon_bins_c)-1:
-                            if self.region_grid[i,j+1] != -1:
-                                neighbor_search = True
-
-                    # i+1
-                    if i < len(self.lat_bins_c)-1:
-                        if self.region_grid[i+1,j] != -1:
-                            neighbor_search = True
-
-                        if j >= 1:
-                            if self.region_grid[i+1,j-1] != -1:
-                                neighbor_search = True
-                        if j < len(self.lon_bins_c)-1:
-                            if self.region_grid[i+1,j+1] != -1:
-                                neighbor_search = True
-
-
-                    if neighbor_search:
-                        process_domains_by_pixel(i, j, lat, lon)
-
-
-                iter_range = range(len(self.lat_bins_c)*len(self.lon_bins_c))
-
-                from tqdm import tqdm
-                if self.parallelize:
-                    # Setup a thread pool for concurrent execution
-                    with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                        parhelper(len(self.lat_bins_c)*len(self.lon_bins_c), par_exec_orig, use_tqdm=True)
-
-                else:
-                    # No progress bar if inner hasn't enough workload
-                    for index in tqdm(iter_range):
-                        par_exec_orig(index)
 
             else:
                 raise Exception("This network algorithm is not implemented")
