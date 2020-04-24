@@ -355,6 +355,11 @@ class Network:
 
 
             if self.network_alg == 0:
+
+                #
+                # Original method (from Pedro)
+                #
+
                 def process_domains_by_pixel(i, j, lat, lon):
                     #print(lat, lon)
                     reg0 = self.get_closest_region(lat, lon) #This is the center of cell
@@ -382,12 +387,6 @@ class Network:
 
                         self.region_grid[i,j] = ireg
 
-
-                #
-                # Original method (from Pedro)
-                #
-                #Grid is based on cell centers
-
                 # Run for each latitude
                 def par_exec(idx):
 
@@ -402,7 +401,7 @@ class Network:
 
                 from tqdm import tqdm
                 if self.parallelize:
-                    parhelper(len(self.lat_bins_c)*len(self.lon_bins_c), par_exec, use_tqdm=True)
+                    parhelper(len(self.lat_bins_c)*len(self.lon_bins_c), par_exec, max_workers=self.max_workers, use_tqdm=True)
 
                 else:
                     # No progress bar if inner hasn't enough workload
@@ -417,6 +416,9 @@ class Network:
                 # Setup 2nd grid which is used in case that the cell centers didn't reveal a corresponding region
                 #
                 self.region_grid_2nd = np.full((self.nlat+1, self.nlon+1), -1, dtype=int)
+
+                # Cache the distance of each lat/lon center point to the region for other passes
+                self.region_dist_cache = {}
 
                 #
                 # Region-by-Region processing
@@ -433,8 +435,8 @@ class Network:
                     # Store the keys, since these are also the indices used for coloring
                     conv_keys = list(conv.keys())
 
-                    def par_exec(i):
-                        index = conv_keys[i]
+                    def par_exec(i_region):
+                        index = conv_keys[i_region]
                         reg = conv[index]
 
                         if verbose > 0:
@@ -482,34 +484,54 @@ class Network:
                             print(" + new lat idx min/max: "+str(mini)+", "+str(maxi))
                             print(" + new lon idx min/max: "+str(minj)+", "+str(maxj))
 
+                        if i_region not in self.region_dist_cache:
+                            self.region_dist_cache[i_region] = np.full((maxi+1-mini, maxj+1-minj), np.inf)
+
                         #
                         # Iterate over longitude
                         #
                         def par_exec_inner(i):
+                            ci = i-mini
                             lat = self.lat_bins_c[i]
 
                             for j in range(minj, maxj+1):
+                                cj = j-minj
 
                                 # Skip region if it's already processed
                                 if self.region_grid[i,j] != -1.0:
                                     continue
 
-                                lon = self.lon_bins_c[j]
-                                almost_one = 1.0-1e-10
+                                # Check for cached distance
+                                dist = self.region_dist_cache[i_region][ci,cj]
+                                if not np.isinf(dist):
+                                    if dist > np.max(np.abs(center_offset))*2.0:
+                                        continue
+
 
                                 #
                                 # Check for center, left, right, bottom and top points
                                 #
 
+                                lon = self.lon_bins_c[j]
                                 p = Point(lon+center_offset[0], lat+center_offset[1])
 
                                 if reg['geometry'].contains(p):
+                                    # Set region index
                                     self.region_grid[i,j] = index
+
+                                    # Set distance to 0
+                                    self.region_dist_cache[i_region][ci,cj] = 0
                                     continue
+
+                                # Update distance
+                                # WARNING: Distance computation is about 9x more expansive than geometry check
+                                dist = p.distance(reg['geometry'])
+                                self.region_dist_cache[i_region][ci,cj] = dist
+
 
                         if par_inner and self.parallelize:
                             f = lambda id: par_exec_inner(id + mini)
-                            parhelper(maxi+1-mini, f, use_tqdm=False)
+                            parhelper(maxi+1-mini, f, max_workers=self.max_workers, use_tqdm=False)
 
                         else:
                             # No progress bar since inner hasn't enough workload
@@ -520,7 +542,7 @@ class Network:
 
                     from tqdm import tqdm
                     if par_outer and self.parallelize:
-                        parhelper(len(conv), par_exec, use_tqdm=True)
+                        parhelper(len(conv), par_exec, max_workers=self.max_workers, use_tqdm=True)
 
                     else:
                         for i in tqdm(range(len(conv))):
@@ -549,8 +571,8 @@ class Network:
                 almost_one = 1.0-1e-10
                 dhlon = 0.5*self.dlon*almost_one
                 dhlat = 0.5*self.dlat*almost_one
-                dlon = self.dlon
-                dlat = self.dlat
+                dlon = self.dlon*almost_one
+                dlat = self.dlat*almost_one
 
                 cell_offsets = [
                     # Center of cell
@@ -585,9 +607,13 @@ class Network:
                 print("Processing subdomains")
                 print("*"*80)
 
+
                 for i in range(len(cell_offsets)):
                     print("PASS ", i, " of ", len(cell_offsets), " using cell offset ", cell_offsets[i])
                     process_domains_by_regions(self.df_subdomains, par_outer=True, center_offset=cell_offsets[i])
+
+                # Remove cache!
+                self.region_dist_cache = {}
 
 
 
@@ -596,9 +622,14 @@ class Network:
                     print("Processing domain neighbors")
                     print("*"*80)
 
+                    # Empty cache
+                    self.region_dist_cache = {}
+
                     for i in range(len(cell_offsets)):
                         print("PASS ", i, " of ", len(cell_offsets))
                         process_domains_by_regions(self.df_domain_nb, par_outer=True, center_offset=cell_offsets[i])
+
+                    self.region_dist_cache = {}
 
             else:
                 raise Exception("This network algorithm is not implemented")
