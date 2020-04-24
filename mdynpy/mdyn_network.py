@@ -552,15 +552,15 @@ class Network:
                 dlon = self.dlon
                 dlat = self.dlat
 
-                points = [
+                cell_offsets = [
                     # Center of cell
                     (0, 0),
 
                     # Edges of cell
-                    (-dhlon, -dhlat),
-                    (+dhlon, -dhlat),
-                    (+dhlon, +dhlat),
-                    (-dhlon, +dhlat),
+                    (-dhlon, 0),
+                    (+dhlon, 0),
+                    (0, -dhlat),
+                    (0, +dhlat),
 
                     # Corners of cell
                     (-dhlon, -dhlat),
@@ -569,11 +569,10 @@ class Network:
                     (-dhlon, +dhlat),
 
                     # Go even further to adjacent cells
-
-                    (-dlon, -dlat),
-                    (+dlon, -dlat),
-                    (+dlon, +dlat),
-                    (-dlon, +dlat),
+                    (-dlon, 0),
+                    (+dlon, 0),
+                    (0, -dlat),
+                    (0, +dlat),
 
                     (-dlon, -dlat),
                     (+dlon, -dlat),
@@ -586,11 +585,9 @@ class Network:
                 print("Processing subdomains")
                 print("*"*80)
 
-                from tqdm import tqdm
-                #for i in tqdm(range(len(points))):
-                for i in range(len(points)):
-                    print("PASS ", i, " of ", len(points))
-                    process_domains_by_regions(self.df_subdomains, par_outer=True, center_offset=points[i])
+                for i in range(len(cell_offsets)):
+                    print("PASS ", i, " of ", len(cell_offsets), " using cell offset ", cell_offsets[i])
+                    process_domains_by_regions(self.df_subdomains, par_outer=True, center_offset=cell_offsets[i])
 
 
 
@@ -599,11 +596,9 @@ class Network:
                     print("Processing domain neighbors")
                     print("*"*80)
 
-                    from tqdm import tqdm
-                    #for i in tqdm(range(len(points))):
-                    for i in range(len(points)):
-                        print("PASS ", i, " of ", len(points))
-                        process_domains_by_regions(self.df_domain_nb, par_outer=True, center_offset=points[i])
+                    for i in range(len(cell_offsets)):
+                        print("PASS ", i, " of ", len(cell_offsets))
+                        process_domains_by_regions(self.df_domain_nb, par_outer=True, center_offset=cell_offsets[i])
 
             else:
                 raise Exception("This network algorithm is not implemented")
