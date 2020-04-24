@@ -16,7 +16,7 @@ subdomains_pop = "maps/population/population_mun_br_2019.csv"
 subdomains_pop_labels = ["UF", "MUNICIPIO", "POP2019"]
 
 #Network granularity
-latlon_gran = 0.05 #granularity of lat long spacing
+latlon_gran = 0.1 #granularity of lat long spacing
 
 #Network pre-computation flag
 load_domain = True #Load precomp structures
