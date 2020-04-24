@@ -343,8 +343,8 @@ class Network:
             print("Regions loaded from file "+self.gridname)
 
         elif os.path.exists(self.gridname+"_alg"+str(self.network_alg)+".npy") and self.load:
-            self.region_grid=np.load(self.gridname+".npy")
             self.gridname = self.gridname+"_alg"+str(self.network_alg)
+            self.region_grid=np.load(self.gridname+".npy")
             print("Regions loaded from file "+self.gridname)
         else:
             self.gridname = self.gridname+"_alg"+str(self.network_alg)
