@@ -627,7 +627,7 @@ class Network:
 
                     for i in range(len(cell_offsets)):
                         print("PASS ", i, " of ", len(cell_offsets))
-                        process_domains_by_regions(self.df_domain_nb, par_outer=True, center_offset=cell_offsets[i])
+                        process_domains_by_regions(self.df_domain_nb, par_inner=True, center_offset=cell_offsets[i])
 
                     self.region_dist_cache = {}
 
@@ -639,12 +639,14 @@ class Network:
             np.save(self.gridname, self.region_grid)
             print("Regions saved in file "+self.gridname)
 
-        jpgfilename = self.gridname+".jpg"
-        if not os.path.exists(jpgfilename):
-            print("Plotting regions to file "+jpgfilename)
-            #Map the regions
-            map = Map(self, linewidth=0.5)
-            map.map_reg_data(self, self.gridname )
+
+            jpgfilename = self.gridname+".jpg"
+            if not os.path.exists(jpgfilename):
+                print("Plotting regions to file "+jpgfilename)
+                #Map the regions
+                map = Map(self, linewidth=0.5)
+                map.map_reg_data(self, self.gridname )
+
 
     def get_closest_region(self, lat, lon):
 
