@@ -185,11 +185,17 @@ fapesp <- tags$div(
   HTML('<a href="http://www.fapesp.br/en/"> <img border="0" alt="ImageTitle" src="./logos/FAPESP.png" width="60" height="35"> </a>')
 ) 
 
+voltar <- tags$div(
+  HTML('<a href="https://www.ime.usp.br/~pedrosp/covid19/"> <img border="0" alt="ImageTitle" src="./logos/voltar.png" width="60" height="35"> </a>')
+) 
+
 mypal <- colorFactor(palette = rc5, domain = tmp$indice_pre)
-for(s in estado){
-  tmpS <- tmp %>% filter(UF == s)
+for(s in estados){
+  cat(paste("Estado:",s))
+  cat("\n")
+  tmpS <- tmp[tmp$UF.x == s,]
   mapa <- leaflet() %>% 
-    addProviderTiles(providers$CartoDB.Positron,options = providerTileOptions(minZoom = 4)) %>% 
+    addProviderTiles(providers$CartoDB.Positron,options = providerTileOptions(minZoom = 6)) %>% 
    addTiles(urlTemplate = "", attribution = "©IME - USP. Design: Diego Marcondes.") %>%
     addEasyButton(easyButton(
       icon="fa-crosshairs", title="Locate Me",
@@ -198,16 +204,17 @@ for(s in estado){
     addControl(ime, position = "bottomleft") %>%
     addControl(usp, position = "bottomleft") %>%
     addControl(fapesp, position = "bottomleft") %>%
+    addControl(voltar, position = "topleft") %>%
     addPolygons(data = tmpS,weight = 1,fillColor = mypal(tmpS$indice_pre),color = "grey",
                 popup = paste('<img src = ./plots/isol_',acento(gsub(pattern = " ",replacement = "",
-                                                                            x = tmpS$NM_MUNICIP)),'_',tmpS$UF,
+                                                                            x = tmpS$NM_MUNICIP)),'_',tmpS$UF.x,
                               '.png width="750" height="500"/>',
                               sep = ""),options = popupOptions(opacity = 0,closeButton = FALSE),
                 opacity = 0.5,fillOpacity = 0.5,label = paste(tmpS$NM_MUNICIP,'-',tmpS$UF)) %>%
     addLegend(position = "bottomright",colors = rc5,labels = levels(tmpS$indice_pre),
-            title = paste("Variação em relação <br> ao padrão Pré-pandemia <br> no dia ",day(end_quar),"/",month(end_quar),
+            title = paste("Variação do Isolamento Social em relação <br> ao padrão Pré-pandemia <br> no dia ",day(end_quar),"/",month(end_quar),
                           "/2020",sep = ""))
-  saveWidget(mapa, file = paste("./html/mapa_",s,".html",sep = ""))
+  saveWidget(mapa, file = paste("mapa_",s,".html",sep = ""))
 }
            
 
