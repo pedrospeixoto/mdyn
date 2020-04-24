@@ -191,6 +191,10 @@ voltar <- tags$div(
   HTML('<a href="https://www.ime.usp.br/~pedrosp/covid19/#iso_index"> <img border="0" alt="ImageTitle" src="./logos/voltar.png" width="60" height="35"> </a>')
 ) 
 
+obs <- tags$div(
+  HTML('<a href="https://www.ime.usp.br/~pedrosp/covid19/#iso_index"> <img border="0" alt="ImageTitle" src="./logos/Obs.png" width="500" height="50"> </a>')
+) 
+
 mypal <- colorFactor(palette = rc5, domain = tmp$indice_pre)
 for(s in estados){
   cat(paste("Estado:",s))
@@ -207,6 +211,7 @@ for(s in estados){
     addControl(usp, position = "bottomleft") %>%
     addControl(fapesp, position = "bottomleft") %>%
     addControl(voltar, position = "topleft") %>%
+    addControl(obs, position = "bottomright") %>%
     addPolygons(data = tmpS,fillColor = mypal(tmpS$indice_pre),
                 popup = paste('<img src = ./plots/isol_',acento(gsub(pattern = " ",replacement = "",
                                                                             x = tmpS$NM_MUNICIP)),'_',tmpS$UF.x,
