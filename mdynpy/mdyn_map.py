@@ -194,7 +194,7 @@ class Map:
         print("File: ", filename)
         dpi = min(self.max_dpi, int(max(self.dpi, self.dpi*np.max(data.shape)/1000)))
         print("Using ", dpi, " dpi")
-        plt.savefig(filename, dpi=dpi)
+        plt.savefig(filename, dpi=dpi, transparent=False)
         
 
     def map_movemat_by_reg(self, mat, ireg0, reg1, network, title, filename):
