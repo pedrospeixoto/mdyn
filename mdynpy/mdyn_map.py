@@ -98,8 +98,8 @@ class Map:
         self.map = map
         self.fig = fig
 
-        self.dpi = 300
-        self.max_dpi = 1200
+        self.dpi = 200
+        self.max_dpi = 300
 
 
     def map_density_data(self, lng, lat, title, filename):
@@ -129,13 +129,13 @@ class Map:
     
         #Save density plot to folder "dir"
         #filename = dir+"/map_data_"+title.strip()+".eps"
-        filename = dir+"/map_data_"+title.strip()+".jpg"
+        filename = dir+"/map_data_"+title.strip()+".png"
 
         dpi = min(self.max_dpi, int(max(self.dpi, self.dpi*np.max(data.shape)/1000)))
         print("Using ", dpi, " dpi")
         plt.savefig(filename, dpi=dpi)
 
-    def map_reg_data(self, network, title):
+    def map_reg_data(self, network, title, filename=None):
         
         data=network.region_grid
         data=data.astype(float)
@@ -186,13 +186,15 @@ class Map:
         #Save density plot to folder "dir"
         plt.tight_layout()
         
-        filename=title
-        #filename = dir+"/map_data_"+title+".eps"
-        filename = filename+".jpg"
+        if filename == None:
+            filename = title
+            #filename = dir+"/map_data_"+title+".eps"
+            filename = filename+".jpg"
+
         print("File: ", filename)
         dpi = min(self.max_dpi, int(max(self.dpi, self.dpi*np.max(data.shape)/1000)))
         print("Using ", dpi, " dpi")
-        plt.savefig(filename, dpi=600)
+        plt.savefig(filename, dpi=dpi)
         
 
     def map_movemat_by_reg(self, mat, ireg0, reg1, network, title, filename):
