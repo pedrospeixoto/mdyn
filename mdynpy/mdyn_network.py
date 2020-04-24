@@ -616,10 +616,11 @@ class Network:
                 print("*"*80)
                 process_domains_by_regions(self.df_subdomains, par_outer=True, region_dist_cache=region_dist_cache, center_offset=cell_offsets[i])
 
-                print("*"*80)
-                print("Processing domain neighbors (first pass)")
-                print("*"*80)
-                process_domains_by_regions(self.df_domain_nb, par_inner=True, region_dist_cache=region_dist_cache_nb, center_offset=cell_offsets[i])
+                if self.domain_neib is not None:
+                    print("*"*80)
+                    print("Processing domain neighbors (first pass)")
+                    print("*"*80)
+                    process_domains_by_regions(self.df_domain_nb, par_inner=True, region_dist_cache=region_dist_cache_nb, center_offset=cell_offsets[i])
 
 
                 print("*"*80)
