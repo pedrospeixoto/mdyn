@@ -786,8 +786,21 @@ class Network:
         print("Generating transition matrices...", end="")
 
         df=day.df
+        print(df)
+        #df['origin']=df['reg0']
+        df['destiny']=np.where(df['movedin24h'], df['reg1'], df['reg0'])
+
+        print(len(df))
+        if False: #filter dt < 24h        
+            df = df[df['movedin24h']==1] 
+        print(len(df))
+
+        #df_tmp=df[df['movedin24h']==0]
+        #df_tmp=df_tmp[df_tmp['mov_reg']==True]
+        #print(df_tmp[['reg0', 'reg1', 'movedin24h', 'origin', 'destiny']])
+
         #df.to_csv("tmp.csv", header=True)
-        table = df.pivot_table(values='dt1', index=['reg1'],\
+        table = df.pivot_table(values='dt1', index=['destiny'],\
                      columns=['reg0'], aggfunc=np.count_nonzero, fill_value=0, dropna=False)
 
         #print(table.columns)
@@ -907,6 +920,14 @@ class Network:
         if self.nregions<10:
             print("Normalized transition matrix (transition probability)")
             matprint(mat_normed)
+
+
+        #check consistency
+        mat_tmp=np.copy(mat_normed)
+        for i in  range(n):
+            mat_tmp[i,i] = 0.0
+        moving = mat_tmp.sum(axis=1)
+        print(moving)
 
         if self.nregions > 10:
             print("..done")

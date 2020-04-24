@@ -195,15 +195,19 @@ class DayData:
             #print(dt)
             #print(self.df)
             #Filer dt larger than 24h
-            nold = len(self.df)
-            print("WARNING: Filtering dt < 24hours")
-            timefilter1 = self.df['dt1'] <= 24 
-            timefilter2 = self.df['dt1'] > 0
+            #nold = len(self.df)
+            #print("WARNING: Filtering dt < 24hours")
+            self.df['movedin24h']=0
+            self.df['movedin24h']=np.where((self.df['dt1'] <= 24) & (self.df['dt1'] > 0) , 1, 0)
+            countmove = np.sum(self.df['movedin24h'].values)
+            print("  Movement: ",  countmove,"  out of ", self.n, "people moved in the 24h (",100* countmove/self.n, "%)" )
+            #timefilter1 = self.df['dt1'] <= 24 
+            #timefilter2 = self.df['dt1'] > 0
             #timefilter = self.df['dt1'] == 0.0
-            self.df = self.df[timefilter1 & timefilter2] 
+            #self.df = self.df[timefilter1 & timefilter2] 
             #self.df = self.df[timefilter] 
-            self.n = len(self.df)
-            print("WARNING: Filtered data: previous: ", nold, " now: ", self.n, " lost: ", nold-self.n)
+            #self.n = len(self.df)
+            #print("WARNING: Filtered data: previous: ", nold, " now: ", self.n, " lost: ", nold-self.n)
             
             load = self.load
             if False:
@@ -214,7 +218,7 @@ class DayData:
                     self.df['lng1'].values, self.df['lat1'].values)
 
             filename = self.local_dir+"day_"+self.day+"_proc_data.csv"
-            if True: #not os.path.exists(filename):
+            if not os.path.exists(filename):
                 #Distances
                 print("Calculating distances...")
                 self.df['dist1']=distance(
@@ -224,7 +228,7 @@ class DayData:
                 print(" Saving full dataframe for future use as proc_data.csv")
                 self.df.to_csv(filename, header=True) #Don't forget to add '.csv' at the end of the path
             else:
-                print("Loading distances...", end="")
+                print("  Loading distances...", end="")
                 self.df['dist1'] = pd.read_csv(filename, usecols = ['dist1'])
                 print("..done.")
             #print(self.df)
