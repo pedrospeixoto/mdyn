@@ -149,13 +149,15 @@ for(s in estados){
   else
     dadosBR <- rbind.data.frame(dadosBR,dados)
 }
-dadosBR <- dadosBR %>% filter(day == max(dadosBR$day))
+dadosBR$key <- paste(dadosBR$reg_name,dadosBR$UF)
+excluir <- tapply(X = dadosBR$indice_pre,INDEX = dadosBR$key,FUN = function(x) sum(is.na(x)) == 0)
+excluir <- names(excluir)[excluir == 1]
+dadosBR <- dadosBR %>% filter(day == max(dadosBR$day) & key %in% excluir)
 shp <- readOGR("./maps/br_municipios/br_mun_with_uf.shp",verbose = F)
 shp$Nome_UF <- factor(shp$Nome_UF)
 shp$UF <- mapvalues(x = shp$Nome_UF,from = unlist(dic_estados),to = names(dic_estados))
 shp$key <- paste(shp$NM_MUNICIP,shp$UF)
-dadosBR$key <- paste(dadosBR$reg_name,dadosBR$UF)
-tmp <- merge(shp,dadosBR,by = "key")
+tmp <- merge(shp,dadosBR,by = "key",all.x = F,all.y = F)
 
 tag.map.title <- tags$style(HTML("
   .leaflet-control.map-title { 
@@ -186,7 +188,7 @@ fapesp <- tags$div(
 ) 
 
 voltar <- tags$div(
-  HTML('<a href="https://www.ime.usp.br/~pedrosp/covid19/"> <img border="0" alt="ImageTitle" src="./logos/voltar.png" width="60" height="35"> </a>')
+  HTML('<a href="https://www.ime.usp.br/~pedrosp/covid19/#iso_index"> <img border="0" alt="ImageTitle" src="./logos/voltar.png" width="60" height="35"> </a>')
 ) 
 
 mypal <- colorFactor(palette = rc5, domain = tmp$indice_pre)
@@ -205,15 +207,15 @@ for(s in estados){
     addControl(usp, position = "bottomleft") %>%
     addControl(fapesp, position = "bottomleft") %>%
     addControl(voltar, position = "topleft") %>%
-    addPolygons(data = tmpS,weight = 1,fillColor = mypal(tmpS$indice_pre),color = "grey",
+    addPolygons(data = tmpS,fillColor = mypal(tmpS$indice_pre),
                 popup = paste('<img src = ./plots/isol_',acento(gsub(pattern = " ",replacement = "",
                                                                             x = tmpS$NM_MUNICIP)),'_',tmpS$UF.x,
                               '.png width="750" height="500"/>',
                               sep = ""),options = popupOptions(opacity = 0,closeButton = FALSE),
-                opacity = 0.5,fillOpacity = 0.5,label = paste(tmpS$NM_MUNICIP,'-',tmpS$UF)) %>%
-    addLegend(position = "bottomright",colors = rc5,labels = levels(tmpS$indice_pre),
-            title = paste("Variação do Isolamento Social em relação <br> ao padrão Pré-pandemia <br> no dia ",day(end_quar),"/",month(end_quar),
-                          "/2020",sep = ""))
+                opacity = 1,fillOpacity = 0.5,label = paste(tmpS$NM_MUNICIP,'-',tmpS$UF.x)) %>%
+    addPolylines(data = shp[shp$UF == s,], color = "black", opacity = 1, weight = 1) %>%
+    addLegend(position = "bottomright",colors = rc5,labels = levels(tmpS$indice_pre),na.label = "Sem dados",
+            title = paste("Variação do Isolamento Social em relação <br> ao padrão Pré-pandemia em ",day(end_quar),"/",month(end_quar),"/2020",sep = ""))
   saveWidget(mapa, file = paste("mapa_",s,".html",sep = ""))
 }
            
