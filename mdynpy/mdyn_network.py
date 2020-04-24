@@ -926,7 +926,9 @@ class Network:
         mat_tmp=np.copy(mat_normed)
         for i in  range(n):
             mat_tmp[i,i] = 0.0
-        moving = mat_tmp.sum(axis=1)
+        #matprint(mat_tmp)
+        moving = mat_tmp.max(axis=0)
+        
         print(moving)
 
         if self.nregions > 10:
