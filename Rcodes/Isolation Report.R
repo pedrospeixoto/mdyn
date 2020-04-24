@@ -126,9 +126,9 @@ for(s in estados){
   dados$key <- NULL
   
   #Calculando Indices
-  dados$indice_pre <- indice_pre(dados$iso,dados$mean_pre,dados$sd_pre)
-  dados$indice_pan <- indice_pan(dados$iso,dados$mean_pan,dados$sd_pan)
-  dados$indice_week <- indice_week(dados$iso,dados$last_week,dados$sd_pan)
+  dados$indice_pre <- indice_pre(iso = dados$iso,media = dados$mean_pre,desvio = dados$sd_pre)
+  dados$indice_pan <- indice_pan(iso = dados$iso,media = dados$mean_pan,desvio = dados$sd_pan)
+  dados$indice_week <- indice_week(iso = dados$iso,last = dados$last_week,desvio = dados$sd_pan)
   
   #Salvando
   saveRDS(object = dados,file = paste("./dataR/",s,".rds",sep = ""))
@@ -186,32 +186,30 @@ fapesp <- tags$div(
 ) 
 
 mypal <- colorFactor(palette = rc5, domain = tmp$indice_pre)
-
-mapa <- leaflet() %>% 
-  addProviderTiles(providers$CartoDB.Positron,options = providerTileOptions(minZoom = 4)) %>% 
-  addTiles(urlTemplate = "", attribution = "©IME - USP. Design: Diego Marcondes.") %>%
-  addEasyButton(easyButton(
-    icon="fa-crosshairs", title="Locate Me",
-    onClick=JS("function(btn, map){ map.locate({setView: true}); }"))) %>%
-  addControl(title, position = "topleft", className="map-title") %>%
-  addControl(ime, position = "bottomleft") %>%
-  addControl(usp, position = "bottomleft") %>%
-  addControl(fapesp, position = "bottomleft") %>%
-  addPolygons(data = tmp,weight = 1,fillColor = mypal(tmp$indice_pre),color = "grey",
-              popup = paste('<img title="Teste" src = ./plots/isol_',tmp$NM_MUNICIP,'_',tmp$UF,
-                            '.png width="750" height="500"/>',
-                            sep = ""),options = popupOptions(opacity = 0,closeButton = FALSE),
-              opacity = 0.5,fillOpacity = 0.5,label = paste(tmp$NM_MUNICIP,'-',tmp$UF)) %>%
-  addLegend(position = "bottomright",colors = rc5,labels = levels(tmp$indice_pre),
-            title = paste("Variação em relação \n ao padrão Pré-pandemia \n no dia ",day(end_quar),"/",month(end_quar),"2020",sep = ""))
-  
-  #addPolygons(data = tmp,weight = 1,fillColor = mypal(tmp$indice_pre),color = "grey",
-  #            popup = paste('Cidade:',tmp$NM_MUNICIP,'-',tmp$UF),options = popupOptions(opacity = 0,closeButton = FALSE),
-  #            opacity = 0,fillOpacity = 0)
-
-     
-mapa
-saveWidget(mapa, file="mapa_BR.html")
+for(s in estado){
+  tmpS <- tmp %>% filter(UF == s)
+  mapa <- leaflet() %>% 
+    addProviderTiles(providers$CartoDB.Positron,options = providerTileOptions(minZoom = 4)) %>% 
+   addTiles(urlTemplate = "", attribution = "©IME - USP. Design: Diego Marcondes.") %>%
+    addEasyButton(easyButton(
+      icon="fa-crosshairs", title="Locate Me",
+      onClick=JS("function(btn, map){ map.locate({setView: true}); }"))) %>%
+    addControl(title, position = "topleft", className="map-title") %>%
+    addControl(ime, position = "bottomleft") %>%
+    addControl(usp, position = "bottomleft") %>%
+    addControl(fapesp, position = "bottomleft") %>%
+    addPolygons(data = tmpS,weight = 1,fillColor = mypal(tmpS$indice_pre),color = "grey",
+                popup = paste('<img src = ./plots/isol_',acento(gsub(pattern = " ",replacement = "",
+                                                                            x = tmpS$NM_MUNICIP)),'_',tmpS$UF,
+                              '.png width="750" height="500"/>',
+                              sep = ""),options = popupOptions(opacity = 0,closeButton = FALSE),
+                opacity = 0.5,fillOpacity = 0.5,label = paste(tmpS$NM_MUNICIP,'-',tmpS$UF)) %>%
+    addLegend(position = "bottomright",colors = rc5,labels = levels(tmpS$indice_pre),
+            title = paste("Variação em relação <br> ao padrão Pré-pandemia <br> no dia ",day(end_quar),"/",month(end_quar),
+                          "/2020",sep = ""))
+  saveWidget(mapa, file = paste("./html/mapa_",s,".html",sep = ""))
+}
+           
 
 #Gráfico por cidade
 for(s in estados){
@@ -309,7 +307,7 @@ for(s in estados){
       p <- p + geom_line(data = spline_pre,aes(x = x,y = y),color = "grey",alpha = 1)
     }
     
-    pdf(file = paste("./plots/isol_",acento(c),"_",s,".pdf",sep = ""),width = 15,height = 10)
+    pdf(file = paste("./plots/isol_",acento(gsub(pattern = " ",replacement = "",x = c)),"_",s,".pdf",sep = ""),width = 15,height = 10)
     print(p)
     dev.off()
   }
