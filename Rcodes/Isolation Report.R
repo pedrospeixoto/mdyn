@@ -126,9 +126,9 @@ for(s in estados){
   dados$key <- NULL
   
   #Calculando Indices
-  dados$indice_pre <- indice_pre(dados$iso,dados$mean_pre,dados$sd_pre)
-  dados$indice_pan <- indice_pan(dados$iso,dados$mean_pan,dados$sd_pan)
-  dados$indice_week <- indice_week(dados$iso,dados$last_week,dados$sd_pan)
+  dados$indice_pre <- indice_pre(iso = dados$iso,media = dados$mean_pre,desvio = dados$sd_pre)
+  dados$indice_pan <- indice_pan(iso = dados$iso,media = dados$mean_pan,desvio = dados$sd_pan)
+  dados$indice_week <- indice_week(iso = dados$iso,last = dados$last_week,desvio = dados$sd_pan)
   
   #Salvando
   saveRDS(object = dados,file = paste("./dataR/",s,".rds",sep = ""))
@@ -149,13 +149,15 @@ for(s in estados){
   else
     dadosBR <- rbind.data.frame(dadosBR,dados)
 }
-dadosBR <- dadosBR %>% filter(day == max(dadosBR$day))
+dadosBR$key <- paste(dadosBR$reg_name,dadosBR$UF)
+excluir <- tapply(X = dadosBR$indice_pre,INDEX = dadosBR$key,FUN = function(x) sum(is.na(x)) == 0)
+excluir <- names(excluir)[excluir == 1]
+dadosBR <- dadosBR %>% filter(day == max(dadosBR$day) & key %in% excluir)
 shp <- readOGR("./maps/br_municipios/br_mun_with_uf.shp",verbose = F)
 shp$Nome_UF <- factor(shp$Nome_UF)
 shp$UF <- mapvalues(x = shp$Nome_UF,from = unlist(dic_estados),to = names(dic_estados))
 shp$key <- paste(shp$NM_MUNICIP,shp$UF)
-dadosBR$key <- paste(dadosBR$reg_name,dadosBR$UF)
-tmp <- merge(shp,dadosBR,by = "key")
+tmp <- merge(shp,dadosBR,by = "key",all.x = F,all.y = F)
 
 tag.map.title <- tags$style(HTML("
   .leaflet-control.map-title { 
@@ -185,33 +187,43 @@ fapesp <- tags$div(
   HTML('<a href="http://www.fapesp.br/en/"> <img border="0" alt="ImageTitle" src="./logos/FAPESP.png" width="60" height="35"> </a>')
 ) 
 
+voltar <- tags$div(
+  HTML('<a href="https://www.ime.usp.br/~pedrosp/covid19/#iso_index"> <img border="0" alt="ImageTitle" src="./logos/voltar.png" width="60" height="35"> </a>')
+) 
+
+obs <- tags$div(
+  HTML('<a href="https://www.ime.usp.br/~pedrosp/covid19/#iso_index"> <img border="0" alt="ImageTitle" src="./logos/Obs.png" width="500" height="50"> </a>')
+) 
+
 mypal <- colorFactor(palette = rc5, domain = tmp$indice_pre)
-
-mapa <- leaflet() %>% 
-  addProviderTiles(providers$CartoDB.Positron,options = providerTileOptions(minZoom = 4)) %>% 
-  addTiles(urlTemplate = "", attribution = "©IME - USP. Design: Diego Marcondes.") %>%
-  addEasyButton(easyButton(
-    icon="fa-crosshairs", title="Locate Me",
-    onClick=JS("function(btn, map){ map.locate({setView: true}); }"))) %>%
-  addControl(title, position = "topleft", className="map-title") %>%
-  addControl(ime, position = "bottomleft") %>%
-  addControl(usp, position = "bottomleft") %>%
-  addControl(fapesp, position = "bottomleft") %>%
-  addPolygons(data = tmp,weight = 1,fillColor = mypal(tmp$indice_pre),color = "grey",
-              popup = paste('<img title="Teste" src = ./plots/isol_',tmp$NM_MUNICIP,'_',tmp$UF,
-                            '.png width="750" height="500"/>',
-                            sep = ""),options = popupOptions(opacity = 0,closeButton = FALSE),
-              opacity = 0.5,fillOpacity = 0.5,label = paste(tmp$NM_MUNICIP,'-',tmp$UF)) %>%
-  addLegend(position = "bottomright",colors = rc5,labels = levels(tmp$indice_pre),
-            title = paste("Variação em relação \n ao padrão Pré-pandemia \n no dia ",day(end_quar),"/",month(end_quar),"2020",sep = ""))
-  
-  #addPolygons(data = tmp,weight = 1,fillColor = mypal(tmp$indice_pre),color = "grey",
-  #            popup = paste('Cidade:',tmp$NM_MUNICIP,'-',tmp$UF),options = popupOptions(opacity = 0,closeButton = FALSE),
-  #            opacity = 0,fillOpacity = 0)
-
-     
-mapa
-saveWidget(mapa, file="mapa_BR.html")
+for(s in estados){
+  cat(paste("Estado:",s))
+  cat("\n")
+  tmpS <- tmp[tmp$UF.x == s,]
+  mapa <- leaflet() %>% 
+    addProviderTiles(providers$CartoDB.Positron,options = providerTileOptions(minZoom = 6)) %>% 
+   addTiles(urlTemplate = "", attribution = "©IME - USP. Design: Diego Marcondes.") %>%
+    addEasyButton(easyButton(
+      icon="fa-crosshairs", title="Locate Me",
+      onClick=JS("function(btn, map){ map.locate({setView: true}); }"))) %>%
+    addControl(title, position = "topleft", className="map-title") %>%
+    addControl(ime, position = "bottomleft") %>%
+    addControl(usp, position = "bottomleft") %>%
+    addControl(fapesp, position = "bottomleft") %>%
+    addControl(voltar, position = "topleft") %>%
+    addControl(obs, position = "bottomright") %>%
+    addPolygons(data = tmpS,fillColor = mypal(tmpS$indice_pre),
+                popup = paste('<img src = ./plots/isol_',acento(gsub(pattern = " ",replacement = "",
+                                                                            x = tmpS$NM_MUNICIP)),'_',tmpS$UF.x,
+                              '.png width="750" height="500"/>',
+                              sep = ""),options = popupOptions(opacity = 0,closeButton = FALSE),
+                opacity = 1,fillOpacity = 0.5,label = paste(tmpS$NM_MUNICIP,'-',tmpS$UF.x)) %>%
+    addPolylines(data = shp[shp$UF == s,], color = "black", opacity = 1, weight = 1) %>%
+    addLegend(position = "bottomright",colors = rc5,labels = levels(tmpS$indice_pre),na.label = "Sem dados",
+            title = paste("Variação do Isolamento Social em relação <br> ao padrão Pré-pandemia em ",day(end_quar),"/",month(end_quar),"/2020",sep = ""))
+  saveWidget(mapa, file = paste("mapa_",s,".html",sep = ""))
+}
+           
 
 #Gráfico por cidade
 for(s in estados){
@@ -309,7 +321,7 @@ for(s in estados){
       p <- p + geom_line(data = spline_pre,aes(x = x,y = y),color = "grey",alpha = 1)
     }
     
-    pdf(file = paste("./plots/isol_",acento(c),"_",s,".pdf",sep = ""),width = 15,height = 10)
+    pdf(file = paste("./plots/isol_",acento(gsub(pattern = " ",replacement = "",x = c)),"_",s,".pdf",sep = ""),width = 15,height = 10)
     print(p)
     dev.off()
   }
