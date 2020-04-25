@@ -651,12 +651,12 @@ class Network:
             print("Regions saved in file "+self.gridname)
 
 
-        imgfilename = self.gridname+".jpg"
-        if not os.path.exists(imgfilename):
-            print("Plotting regions to file "+imgfilename)
-            #Map the regions
-            map = Map(self, linewidth=0.5)
-            map.map_reg_data(self, self.gridname, filename=imgfilename)
+            imgfilename = self.gridname+".jpg"
+            if not os.path.exists(imgfilename):
+                print("Plotting regions to file "+imgfilename)
+                #Map the regions
+                map = Map(self, linewidth=0.5)
+                map.map_reg_data(self, self.gridname, filename=imgfilename)
 
 
     def get_closest_region(self, lat, lon):
