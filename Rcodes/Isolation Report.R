@@ -127,6 +127,7 @@ for(s in estados){
   
   #Calculando Indices
   dados$indice_pre <- indice_pre(iso = dados$iso,media = dados$mean_pre,desvio = dados$sd_pre)
+  dados$indice_normal <- indice_normal(iso = dados$iso,media = dados$mean_pre,desvio = dados$sd_pre)
   dados$indice_pan <- indice_pan(iso = dados$iso,media = dados$mean_pan,desvio = dados$sd_pan)
   dados$indice_week <- indice_week(iso = dados$iso,last = dados$last_week,desvio = dados$sd_pan)
   
@@ -135,6 +136,33 @@ for(s in estados){
   
   #Apagando
   rm(padrao_pan,padrao_pre,dados)
+}
+
+#Graficos normalizados
+for(s in estados){
+  cat("Estado: ")
+  cat(s)
+  cat("\n")
+  
+  #Lendo os dados
+  cat("Lendo os dados...")
+  dados <- readRDS(file = paste("./dataR/",s,".rds",sep = ""))
+  cat(" OK!\n")
+
+  cat("Construindo gráficos para as cidades...")
+  for(c in unique(dados$reg_name)){
+    tmp <- dados %>% filter(day %in% dias_quar & reg_name == c)
+    tmp$y <- NA
+    tmp$day <- as.numeric(tmp$day)
+    p <- ggplot(tmp,aes(x = day,y = indice_normal,group = 1)) + themes + titles + geom_line() + geom_point() +
+      scale_x_continuous(breaks = as.numeric(seq.Date(ymd(ini_quar),ymd(end_quar),by = 3)),
+                                             labels = seq.Date(ymd(ini_quar),ymd(end_quar),by = 3)) +
+      geom_hline(yintercept = c(1,2,3,4,5,6)) + scale_y_continuous(breaks = c(1,2,3,4,5,6)) + 
+      ggtitle(paste("Isolamento Social Comparativo IME - USP\n",c," - ",s,sep = ""))
+    pdf(file = paste("./plots/Nisol_",acento(gsub(pattern = " ",replacement = "",x = c)),"_",s,".pdf",sep = ""),width = 15,height = 10)
+    print(p)
+    dev.off()   
+  }
 }
 
 #Mapa leflet
