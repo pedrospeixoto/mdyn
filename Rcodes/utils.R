@@ -23,6 +23,11 @@ indice_pre <- function(iso,media,desvio){
   return(a)
 }
 
+indice_normal <- function(iso,media,desvio){
+  ind <- (iso - media)/desvio
+  return(ind)
+}
+
 indice_pan <- function(iso,media,desvio){
   ind <- (iso - media)/desvio
   a <- cut(x = ind,breaks = c(-Inf,-1,1,Inf),labels = c("Abaixo do padrão","Dentro do padrão","Acima do padrão"),right = F)
