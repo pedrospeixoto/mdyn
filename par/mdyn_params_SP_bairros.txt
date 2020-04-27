@@ -1,5 +1,6 @@
 #Main domain definition
 domain = "SÃO PAULO" #SP or RJ
+domain_abrv="SP"
 domain_gran = "NM_ESTADO"
 domain_shape = "maps/UFEBRASIL/UFEBRASIL"
 

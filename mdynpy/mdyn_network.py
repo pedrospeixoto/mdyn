@@ -102,11 +102,11 @@ class Network:
         self.build_grid_network()
 
         #Load regions' populations
-        #try:
-        self.load_pop()
-        #except:
-        #    print("Warning: No population data!!!")
-        #    pass
+        try:
+            self.load_pop()
+        except:
+            print("Warning: No population data!!!")
+            pass
 
 
 

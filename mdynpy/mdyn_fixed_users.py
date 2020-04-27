@@ -95,10 +95,17 @@ class fixed_users_by_date():
                 df['day']=sday
                 #print(df)
                 self.dfs.append(df)
+                print(df)
             else:
                 print("Invalid file format")
 
             print()
+            #map = Map(network)  
+            #title = self.base_name+"_IsoIndex_by_reg_"+sday
+            #filename = self.dump_dir+self.base_name+"_IsoIndex_by_reg_"+sday
+            #print(network.regions) #Region order not matching data frame!!!!
+            #print(df['reg_name'])
+            #map.map_reg_var(df['iso'], network.regions, network, title, filename)
 
         df_all = pd.concat(self.dfs)
         outfile = self.dump_dir+network.domain+"_"+network.subdomains+"_"+ \
