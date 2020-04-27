@@ -17,9 +17,15 @@ indice <- function(iso,media,desvio){
 
 indice_pre <- function(iso,media,desvio){
   ind <- (iso - media)/desvio
-  a <- cut(x = ind,breaks = c(-Inf,1,1.5,2.5,3,Inf),labels = c("Padrão","Leve","Moderado","Alto","Intenso"),right = F)
-  a[media + 3*desvio > 1] <- NA
+  #a <- cut(x = ind,breaks = c(-Inf,1,1.5,2.5,3,Inf),labels = c("Padrão","Leve","Moderado","Alto","Intenso"),right = F)
+  a <- cut(x = ind,breaks = c(-Inf,1,2,3,4,Inf),labels = c("Padrão","Leve","Moderado","Alto","Intenso"),right = F)
+  a[media + 4*desvio > 1] <- NA
   return(a)
+}
+
+indice_normal <- function(iso,media,desvio){
+  ind <- (iso - media)/desvio
+  return(ind)
 }
 
 indice_pan <- function(iso,media,desvio){
