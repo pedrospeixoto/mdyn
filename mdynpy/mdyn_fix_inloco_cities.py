@@ -35,6 +35,7 @@ print(df)
 df_shp = gpd.read_file(shape_file)
 print(df_shp)
 
+
 #Check states names
 states=df['state_name'].unique()
 df['state_abrv'] = df['state_name'].map(mex.state_name2abrv)
@@ -89,12 +90,27 @@ for i, city in enumerate(city_prob):
     print(i, city, matches)
 
 df=df.rename(columns={"isolated": "iso", "dt": "day", "city_name":"reg_name"})
+df['reg_state'] = df.apply (lambda row: row.reg_name + "_"+row.state_abrv, axis=1)
+
+#df=df.groupby('reg_state', as_index=False).mean()
+df.drop_duplicates(['reg_state'], inplace=True) 
+print(df)
+
+#City with duplicated info issues
+if False:
+    dftmp=df[df['day']=="2020-04-26"]
+    dftmp=dftmp.groupby('reg_state').count() 
+    dftmp=dftmp[dftmp['iso']>1]
+    dup_cities = dftmp.index.values
+    print(dup_cities)
+    print(df[df['reg_state'].isin(dup_cities) ])
+    sys.exit()
 
 for state in states_abrv:
     print(state)
     df_tmp=df[df['state_abrv']==state]
     #df_tmp=df_tmp.drop(['state_name'], axis=1)
-    filename="inloco/"+state.upper()+"_Municipios_2020-02-01_2020-04-26_iso_index.csv"
+    filename="inloco/"+state.upper()+"_Municipios_2020-04-26_iso_index.csv"
     df_tmp.to_csv(filename)
     
 
