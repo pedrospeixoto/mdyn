@@ -92,9 +92,10 @@ for i, city in enumerate(city_prob):
 df=df.rename(columns={"isolated": "iso", "dt": "day", "city_name":"reg_name"})
 df['reg_state'] = df.apply (lambda row: row.reg_name + "_"+row.state_abrv, axis=1)
 
+#print(len(df))
 #df=df.groupby('reg_state', as_index=False).mean()
-df.drop_duplicates(['reg_state'], inplace=True) 
-print(df)
+#df.drop_duplicates(['reg_state'], keep=False, inplace=True)  #does not work!!!
+#print(len(df))
 
 #City with duplicated info issues
 if False:
@@ -109,6 +110,7 @@ if False:
 for state in states_abrv:
     print(state)
     df_tmp=df[df['state_abrv']==state]
+    print(len(df_tmp))
     #df_tmp=df_tmp.drop(['state_name'], axis=1)
     filename="inloco/"+state.upper()+"_Municipios_2020-04-26_iso_index.csv"
     df_tmp.to_csv(filename)
