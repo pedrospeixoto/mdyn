@@ -226,6 +226,7 @@ class DayData:
                     self.df['lng1'].values, self.df['lat1'].values)
 
                 print(" Saving full dataframe for future use as proc_data.csv")
+                print(self.df)
                 self.df.to_csv(filename, header=True) #Don't forget to add '.csv' at the end of the path
             else:
                 print("  Loading distances...", end="")
