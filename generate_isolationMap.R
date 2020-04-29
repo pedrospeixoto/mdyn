@@ -1,4 +1,4 @@
-dia <- "2020-04-26"
+dia <- "2020-04-27"
 library(ggplot2)
 library(htmlwidgets)
 library(tidyverse)
@@ -21,6 +21,8 @@ library(leaflet)
 library(grid)
 library(gridExtra)
 library(devtools)
-#install_github("dmarcondes/mdyn")
+library(foreach)
+library(doParallel)
+install_github("dmarcondes/mdyn")
 library(mdyn)
 isolation_map(dia)
