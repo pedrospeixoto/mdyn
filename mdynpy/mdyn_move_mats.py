@@ -252,17 +252,17 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
                 map.map_move_by_reg(move_vec, network.regions, network, title, filename)
 
         #Plot daily main sources - adjusted matrices
-        for j in sources:
-            title = title_base+"\nOrigin "+str(network.regions[j])
-            filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+"_adj_day_prob.jpg"
-            if not os.path.exists(filename):
-                print("Creating plot for ", filename)
-                move_vec = mdyn.movemats_adj_norm[i][:, j]
-                    
-                map=Map(network)
-                map.map_move_by_reg(move_vec, network.regions, network, title, filename)
+        if np.sum(network.reg_pop) > 0.0:
+            for j in sources:
+                title = title_base+"\nOrigin "+str(network.regions[j])
+                filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+"_adj_day_prob.jpg"
+                if not os.path.exists(filename):
+                    print("Creating plot for ", filename)
+                    move_vec = mdyn.movemats_adj_norm[i][:, j]
+                        
+                    map=Map(network)
+                    map.map_move_by_reg(move_vec, network.regions, network, title, filename)
             
-
         #mex.matprint(mdyn.movemats_norm[i])
 
     #Save 1st diagonal for future use, just as a refernce to get main sources
