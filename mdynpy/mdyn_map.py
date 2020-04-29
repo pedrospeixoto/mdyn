@@ -283,7 +283,7 @@ class Map:
         
         #filename = dir+"/map_data_"+title+".eps"
         #filename = filename+".jpg"
-        plt.savefig(filename, dpi=300)   
+        plt.savefig(filename, dpi=150)   
 
 
     def map_reg_var(self, regvec, regs, network, title, filename):
