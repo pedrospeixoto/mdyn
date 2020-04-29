@@ -77,7 +77,7 @@ class Network:
         print("Parallization: "+str(self.parallelize))
         print("Number of workers for parallelization: "+str(self.max_workers))
 
-        self.network_alg = 0
+        self.network_alg = 1
         if 'NETWORK_ALG' in os.environ:
             self.network_alg = int(os.environ['NETWORK_ALG'])
         print("Network algorithm: "+str(self.network_alg))
