@@ -102,9 +102,11 @@ class Network:
         self.build_grid_network()
 
         #Load regions' populations
+
         try:
             self.load_pop()
         except:
+            self.reg_pop = np.zeros([self.nregions])
             print("Warning: No population data!!!")
             pass
 
