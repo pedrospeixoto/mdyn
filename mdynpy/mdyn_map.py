@@ -46,7 +46,7 @@ class Map:
         #    llcrnrlon=dom.minlons-1, llcrnrlat=dom.minlats-1,
         #    urcrnrlon=dom.maxlons+1, urcrnrlat=dom.maxlats+1)
         map = Basemap(width=width,height=height,\
-            projection='gnom',lat_0=lat0,lon_0=lon0, resolution="f")
+            projection='gnom',lat_0=lat0,lon_0=lon0, resolution="h")
             #width=2E6, height=2E6, lat_0=lat0, lon_0=lon0,
         #map = Basemap(width=12000000,height=9000000,
         #    rsphere=(6378137.00,6356752.3142),\
@@ -97,7 +97,7 @@ class Map:
         #Save fig basic config
         self.map = map
         self.fig = fig
-
+        
         self.dpi = 200
         self.max_dpi = 300
 
@@ -232,7 +232,7 @@ class Map:
 
         #print("REG1:", reg1, len(reg1))
         #print("movve:", movevec, len(movevec), len(reg1))
-        print("h")
+        
         data=network.region_grid
         data=data.astype(float)
         #mex.matprint(data)
@@ -277,14 +277,14 @@ class Map:
             cbar.set_ticks([0, 0.5, 1.0])
             cbar.ax.set_xticklabels([ 'Low', 'Medium', 'High']) 
 
-        print("hi")
+        
         #plt.tight_layout()
         plt.tight_layout() #pad=0.4, w_pad=0.5, h_pad=1.0)
         
         #filename = dir+"/map_data_"+title+".eps"
         #filename = filename+".jpg"
         plt.savefig(filename, dpi=150)   
-        print("ho")
+        
 
     def map_reg_var(self, regvec, regs, network, title, filename):
         #print(network.regions)
