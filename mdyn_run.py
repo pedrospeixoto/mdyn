@@ -29,8 +29,6 @@ ipar, run_opt = mex.get_input(sys.argv)
 
 ipar.load_network = True
 
-
-
 #Initialize network
 #-----------------------------
 time_start = time.time()
