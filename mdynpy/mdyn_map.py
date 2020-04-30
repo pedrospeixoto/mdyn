@@ -232,7 +232,7 @@ class Map:
 
         #print("REG1:", reg1, len(reg1))
         #print("movve:", movevec, len(movevec), len(reg1))
-
+        print("h")
         data=network.region_grid
         data=data.astype(float)
         #mex.matprint(data)
@@ -277,14 +277,14 @@ class Map:
             cbar.set_ticks([0, 0.5, 1.0])
             cbar.ax.set_xticklabels([ 'Low', 'Medium', 'High']) 
 
-
+        print("hi")
         #plt.tight_layout()
         plt.tight_layout() #pad=0.4, w_pad=0.5, h_pad=1.0)
         
         #filename = dir+"/map_data_"+title+".eps"
         #filename = filename+".jpg"
         plt.savefig(filename, dpi=150)   
-
+        print("ho")
 
     def map_reg_var(self, regvec, regs, network, title, filename):
         #print(network.regions)
