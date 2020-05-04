@@ -194,10 +194,10 @@ class Network:
 
         filt_name = ""
         for lab in self.df_subdomains.columns.values:
-            print("Testing:", lab)
+            #print("Testing:", lab)
             if dom_gran_tmp in lab:
                 filt_name = lab
-                print("found it:", filt_name )
+                #print("found it:", filt_name )
 
         if len(filt_name) > 0:
             print("Filtering subdomain based on domain:", filt_name, self.domain)
