@@ -39,6 +39,20 @@ class Map:
 
         fwidth = width/factor
         fheight = height/factor
+        if fwidth > 25: #Brasil plot - very large!
+            print(fwidth, fheight)
+            fwidth = fwidth/5
+            fheight = fheight/5
+            width = width*1.1
+            height = height*1.1
+            print(fwidth, fheight)
+        if fwidth > 15: #Bug region plot, but not all brasil
+            print(fwidth, fheight)
+            fwidth = fwidth/3
+            fheight = fheight/3
+            width = width*1.05
+            height = height*1.05
+            print(fwidth, fheight)
         fig, ax = plt.subplots( figsize=(fwidth, fheight))
 
         #Define map projection
@@ -70,8 +84,12 @@ class Map:
         #map.fillcontinents(lake_color='aqua')
         map.drawmapboundary()
         #map.drawstates(color='k',linestyle='--', linewidth=0.2)
-        map.drawparallels(np.arange(-50,0,1), labels=[False,True,True,False])
-        map.drawmeridians(np.arange(-180,180,1), labels=[False,False,True,False])
+        if width/factor > 10: 
+            map.drawparallels(np.arange(-50,10,4), labels=[False,True,True,False])
+            map.drawmeridians(np.arange(-180,180,4), labels=[False,False,True,False])
+        else:
+            map.drawparallels(np.arange(-50,10,1), labels=[False,True,True,False])
+            map.drawmeridians(np.arange(-180,180,1), labels=[False,False,True,False])
         map.ax = ax
         self.dom = network
         
