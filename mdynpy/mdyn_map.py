@@ -40,19 +40,19 @@ class Map:
         fwidth = width/factor
         fheight = height/factor
         if fwidth > 25: #Brasil plot - very large!
-            print(fwidth, fheight)
+            #print(fwidth, fheight)
             fwidth = fwidth/5
             fheight = fheight/5
             width = width*1.1
             height = height*1.1
-            print(fwidth, fheight)
+            #print(fwidth, fheight)
         if fwidth > 15: #Bug region plot, but not all brasil
-            print(fwidth, fheight)
+            #print(fwidth, fheight)
             fwidth = fwidth/3
             fheight = fheight/3
             width = width*1.05
             height = height*1.05
-            print(fwidth, fheight)
+            #print(fwidth, fheight)
         fig, ax = plt.subplots( figsize=(fwidth, fheight))
 
         #Define map projection
