@@ -1,25 +1,30 @@
+#----------------------
+# Net work definition
+#---------------------
+
 #Main domain definition
-domain = "Brasil" #SP or RJ
-domain_abrv = "BRA"
-domain_gran = "locname"
-domain_shape = "maps/brazil/Brazil_Boundary"
+domain = "Nordeste" #SP or RJ
+domain_abrv = "NE"
+domain_gran = "regiao"
+domain_shape = "maps/regioes_2010/regioes_2010_label"
 
 #Subdomain definitions
-subdomains = "microreg"
-subdomains_gran = "CD_GEOCMI"
-subdomains_shape = "maps/br_microrregioes/BRMIE250GC_SIR"
+subdomains = "Municipios"
+subdomains_gran = "NM_MUNICIP"
+subdomains_shape = "maps/br_municipios/br_mun_with_uf_region"
 
 #Population
-domain_pop = "maps/population/population_br_2019.csv"
-domain_pop_labels = ["Estado", "pop2019"]
-subdomains_pop = "maps/population/population_microreg_br_fixed_lagoas2019.csv"
-subdomains_pop_labels = ["pais","id","pop2019"]
+domain_pop = "maps/population/population_ufebrasil.csv"
+domain_pop_labels = ["Estado", "Populacao"]
+subdomains_pop = "maps/population/population_mun_br_2019.csv"
+subdomains_pop_labels = ["UF", "MUNICIPIO", "POP2019"]
 
 #Network granularity
 latlon_gran = 0.01 #granularity of lat long spacing
 
 #Network pre-computation flag
 load_domain = True #Load precomp structures
+
 
 #-----------------------------
 # Mobile Data Set Definition
@@ -28,33 +33,22 @@ load_domain = True #Load precomp structures
 #Initialize mobile data and load data to dataframe
 data_format = "Parquet" #"ORC"
 data_dir = "data/triples_br_2020_04_17_date/all/"
-#data_dir = "data/triples_br_2020_04_17_date/"
 date_ini = "2020-03-01"
-date_end = "2020-04-15"
+date_end = "2020-04-14"
 load_data = True
 
 #Number of main sources for plots
-num_source = 2
+num_source = 1
+
+
 
 #-----------------------------
 # Simulation configuration
 #------------------------------
 
 #Initial condition for simulation (file with num of cases per region)
-#São Paulo
-#São Paulo	111	1
-#Porto Alegre	77	0.3
-#Belo Horizonte	108	0.3
-#Rio	92	0.5
-#Brasília	115	0.3
-
-data_ini_by_reg = {
-111 : 1,
-77 : 0.3,
-108 : 0.3,
-92 : 0.4,
-115 :0.3
-}
+#Fortaleza
+data_ini_by_reg = { 12 : 1.0 }
 
 #Number of simulation days
 num_simul_days = 30
@@ -65,6 +59,6 @@ num_simul_days = 30
 # 2: two parameter model
 model = 2
 infec_rate = 0.2  #infection rate per day
-spread_rate = 1.0 #Spatial spread rate
+spread_rate = 1.00 #Spatial spread rate
 
 risk_lim = 1.0 #Infected people to consider risk limit
