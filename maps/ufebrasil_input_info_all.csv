@@ -1,28 +1,28 @@
-state,domain,population,abrv,shape_dir,id,basename,shape
-Acre,ACRE,881935,AC,ac_municipios/,12,MUE250GC_SIR,ac_municipios/12MUE250GC_SIR
-Alagoas,ALAGOAS,3337357,AL,al_municipios/,27,MUE250GC_SIR,al_municipios/27MUE250GC_SIR
-Amapá,AMAPÁ,845731,AP,ap_municipios/,16,MUE250GC_SIR,ap_municipios/16MUE250GC_SIR
-Amazonas,AMAZONAS,4144597,AM,am_municipios/,13,MUE250GC_SIR,am_municipios/13MUE250GC_SIR
-Bahia,BAHIA,14873064,BA,ba_municipios/,29,MUE250GC_SIR,ba_municipios/29MUE250GC_SIR
-Ceará,CEARÁ,9132078,CE,ce_municipios/,23,MUE250GC_SIR,ce_municipios/23MUE250GC_SIR
-Distrito Federal,DISTRITO FEDERAL,3015268,DF,df_municipios/,53,MUE250GC_SIR,df_municipios/53MUE250GC_SIR
-Espirito Santo,ESPIRITO SANTO,4018650,ES,es_municipios/,32,MUE250GC_SIR,es_municipios/32MUE250GC_SIR
-Goiás,GOIÁS,7018354,GO,go_municipios/,52,MUE250GC_SIR,go_municipios/52MUE250GC_SIR
-Maranhão,MARANHÃO,7075181,MA,ma_municipios/,21,MUE250GC_SIR,ma_municipios/21MUE250GC_SIR
-Mato Grosso,MATO GROSSO,3484466,MT,mt_municipios/,51,MUE250GC_SIR,mt_municipios/51MUE250GC_SIR
-Mato Grosso do Sul,MATO GROSSO DO SUL,2778986,MS,ms_municipios/,50,MUE250GC_SIR,ms_municipios/50MUE250GC_SIR
-Minas Gerais,MINAS GERAIS,21168791,MG,mg_municipios/,31,MUE250GC_SIR,mg_municipios/31MUE250GC_SIR
-Pará,PARÁ,8602865,PA,pa_municipios/,15,MUE250GC_SIR,pa_municipios/15MUE250GC_SIR
-Paraíba,PARAÍBA,4018127,PB,pb_municipios/,25,MUE250GC_SIR,pb_municipios/25MUE250GC_SIR
-Paraná,PARANÁ,11433957,PR,pr_municipios/,41,MUE250GC_SIR,pr_municipios/41MUE250GC_SIR
-Pernambuco,PERNAMBUCO,9557071,PE,pe_municipios/,26,MUE250GC_SIR,pe_municipios/26MUE250GC_SIR
-Piauí,PIAUÍ,3273227,PI,pi_municipios/,22,MUE250GC_SIR,pi_municipios/22MUE250GC_SIR
-Rio de Janeiro,RIO DE JANEIRO,17264943,RJ,rj_municipios/,33,MUE250GC_SIR,rj_municipios/33MUE250GC_SIR
-Rio Grande do Norte,RIO GRANDE DO NORTE,3506853,RN,rn_municipios/,24,MUE250GC_SIR,rn_municipios/24MUE250GC_SIR
-Rio Grande do Sul,RIO GRANDE DO SUL,11377239,RS,rs_municipios/,43,MUE250GC_SIR,rs_municipios/43MUE250GC_SIR
-Rondônia,RONDÔNIA,1777225,RO,ro_municipios/,11,MUE250GC_SIR,ro_municipios/11MUE250GC_SIR
-Roraima,RORAIMA,605761,RO,rr_municipios/,14,MUE250GC_SIR,rr_municipios/14MUE250GC_SIR
-Santa Catarina,SANTA CATARINA,7164788,SC,sc_municipios/,42,MUE250GC_SIR,sc_municipios/42MUE250GC_SIR
-São Paulo,SÃO PAULO,45919049,SP,sp_municipios/,35,MUE250GC_SIR,sp_municipios/35MUE250GC_SIR
-Sergipe,SERGIPE,2298696,SE,se_municipios/,28,MUE250GC_SIR,se_municipios/28MUE250GC_SIR
-Tocantins,TOCANTINS,1572866,TO,to_municipios/,17,MUE250GC_SIR,to_municipios/17MUE250GC_SIR
+state,domain,population,abrv,shape_dir,id,basename,shape,regiao
+Acre,ACRE,881935,AC,ac_municipios/,12,MUE250GC_SIR,ac_municipios/12MUE250GC_SIR,Norte
+Alagoas,ALAGOAS,3337357,AL,al_municipios/,27,MUE250GC_SIR,al_municipios/27MUE250GC_SIR,Nordeste
+Amapá,AMAPÁ,845731,AP,ap_municipios/,16,MUE250GC_SIR,ap_municipios/16MUE250GC_SIR,Norte
+Amazonas,AMAZONAS,4144597,AM,am_municipios/,13,MUE250GC_SIR,am_municipios/13MUE250GC_SIR,Norte
+Bahia,BAHIA,14873064,BA,ba_municipios/,29,MUE250GC_SIR,ba_municipios/29MUE250GC_SIR,Nordeste
+Ceará,CEARÁ,9132078,CE,ce_municipios/,23,MUE250GC_SIR,ce_municipios/23MUE250GC_SIR,Nordeste
+Distrito Federal,DISTRITO FEDERAL,3015268,DF,df_municipios/,53,MUE250GC_SIR,df_municipios/53MUE250GC_SIR,Centro-Oeste
+Espirito Santo,ESPIRITO SANTO,4018650,ES,es_municipios/,32,MUE250GC_SIR,es_municipios/32MUE250GC_SIR,Sudeste
+Goiás,GOIÁS,7018354,GO,go_municipios/,52,MUE250GC_SIR,go_municipios/52MUE250GC_SIR,Centro-Oeste
+Maranhão,MARANHÃO,7075181,MA,ma_municipios/,21,MUE250GC_SIR,ma_municipios/21MUE250GC_SIR,Nordeste
+Mato Grosso,MATO GROSSO,3484466,MT,mt_municipios/,51,MUE250GC_SIR,mt_municipios/51MUE250GC_SIR,Centro-Oeste
+Mato Grosso do Sul,MATO GROSSO DO SUL,2778986,MS,ms_municipios/,50,MUE250GC_SIR,ms_municipios/50MUE250GC_SIR,Centro-Oeste
+Minas Gerais,MINAS GERAIS,21168791,MG,mg_municipios/,31,MUE250GC_SIR,mg_municipios/31MUE250GC_SIR,Sudeste
+Pará,PARÁ,8602865,PA,pa_municipios/,15,MUE250GC_SIR,pa_municipios/15MUE250GC_SIR,Norte
+Paraíba,PARAÍBA,4018127,PB,pb_municipios/,25,MUE250GC_SIR,pb_municipios/25MUE250GC_SIR,Nordeste
+Paraná,PARANÁ,11433957,PR,pr_municipios/,41,MUE250GC_SIR,pr_municipios/41MUE250GC_SIR,Sul
+Pernambuco,PERNAMBUCO,9557071,PE,pe_municipios/,26,MUE250GC_SIR,pe_municipios/26MUE250GC_SIR,Nordeste
+Piauí,PIAUÍ,3273227,PI,pi_municipios/,22,MUE250GC_SIR,pi_municipios/22MUE250GC_SIR,Nordeste
+Rio de Janeiro,RIO DE JANEIRO,17264943,RJ,rj_municipios/,33,MUE250GC_SIR,rj_municipios/33MUE250GC_SIR,Sudeste
+Rio Grande do Norte,RIO GRANDE DO NORTE,3506853,RN,rn_municipios/,24,MUE250GC_SIR,rn_municipios/24MUE250GC_SIR,Nordeste
+Rio Grande do Sul,RIO GRANDE DO SUL,11377239,RS,rs_municipios/,43,MUE250GC_SIR,rs_municipios/43MUE250GC_SIR,Sul
+Rondônia,RONDÔNIA,1777225,RO,ro_municipios/,11,MUE250GC_SIR,ro_municipios/11MUE250GC_SIR,Norte
+Roraima,RORAIMA,605761,RO,rr_municipios/,14,MUE250GC_SIR,rr_municipios/14MUE250GC_SIR,Norte
+Santa Catarina,SANTA CATARINA,7164788,SC,sc_municipios/,42,MUE250GC_SIR,sc_municipios/42MUE250GC_SIR,Sul
+São Paulo,SÃO PAULO,45919049,SP,sp_municipios/,35,MUE250GC_SIR,sp_municipios/35MUE250GC_SIR,Sudeste
+Sergipe,SERGIPE,2298696,SE,se_municipios/,28,MUE250GC_SIR,se_municipios/28MUE250GC_SIR,Nordeste
+Tocantins,TOCANTINS,1572866,TO,to_municipios/,17,MUE250GC_SIR,to_municipios/17MUE250GC_SIR,Norte
