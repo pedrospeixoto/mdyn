@@ -69,7 +69,43 @@ fix_municip_name = {
     "ITAETÊ" : 'ITAETÉ',
     "SAMAMBAIA" : "SAMBAÍBA",
     "ITAPOÃ" : "ITAPOÁ",
-    "IUIÚ": "IUIU"
+    "IUIÚ": "IUIU",
+    "POMPEIA" : 'POMPÉIA',
+    "DIAMANTINA‎" : 'DIAMANTINA',
+    "BOCAIUVA DO SUL" : 'BOCAIÚVA DO SUL',
+    "ERERÉ":  'ERERÊ',
+    "ALVORADA DO GURGUEIA" : 'ALVORADA DO GURGUÉIA',
+    "SÃO JOÃO DO CARU" : 'SÃO JOÃO DO CARÚ',
+    "SÃO MIGUEL DO PASSA-QUATRO" : 'SÃO MIGUEL DO PASSA QUATRO',
+    "REDENÇÃO DO GURGUEIA" : 'REDENÇÃO DO GURGUÉIA',
+    "MATUREIA" :  'MATURÉIA',
+    "LINDOIA" : 'LINDÓIA',
+    "TAUBATÉ‎" : "TAUBATÉ",
+    "MAJOR IZIDORO" : 'MAJOR ISIDORO',
+    "GALILEIA" : 'GALILÉIA',
+    "LAGEDO DO TABOCAL" : 'LAJEDO DO TABOCAL',
+    "OLHO-D'ÁGUA DO BORGES" : "OLHO D'ÁGUA DO BORGES",
+    "RUBINEIA" : 'RUBINÉIA',
+    "ITAPECURU-MIRIM" : 'ITAPECURU MIRIM',
+    "BORACEIA" : 'BORACÉIA',
+    "SANTA LUZIA DO ITANHI" : 'SANTA LUZIA DO ITANHY',
+    "LUIZ ANTÔNIO" : 'LUÍS ANTÔNIO',
+    "PASSA-E-FICA" :  'PASSA E FICA',
+    "CONCEIÇÃO DO LAGO AÇU" :  'CONCEIÇÃO DO LAGO-AÇU',
+    "ATÍLIO VIVÁCQUA" : 'ATÍLIO VIVACQUA',
+    "GRÃO-PARÁ" : 'GRÃO PARÁ',
+    "PATOS" : 'PATOS',
+    "COLÔNIA DO GURGUEIA" : 'COLÔNIA DO GURGUÉIA',
+    "SANTO ANTÔNIO DE LEVERGER" : 'SANTO ANTÔNIO DO LEVERGER',
+    "GRACCHO CARDOSO" : 'GRACHO CARDOSO',
+    "TAIUVA" : 'TAIÚVA',
+    "IPUIUNA" : 'IPUIÚNA',
+    "ELDORADO DOS CARAJÁS" : 'ELDORADO DO CARAJÁS',
+    "MUNHOZ DE MELLO" : 'MUNHOZ DE MELO',
+    "COITÉ DO NOIA" : 'COITÉ DO NÓIA',
+    "SÃO GONÇALO DO GURGUEIA" : 'SÃO GONÇALO DO GURGUÉIA',
+    "SÃO BENTO DO TRAIRI" : 'SÃO BENTO DO TRAIRÍ',
+    "SÃO CAETANO" : 'SÃO CAITANO'
    }
 
 df['city_name']=df['city_name'].str.upper()
@@ -112,7 +148,7 @@ for state in states_abrv:
     df_tmp=df[df['state_abrv']==state]
     print(len(df_tmp))
     #df_tmp=df_tmp.drop(['state_name'], axis=1)
-    filename="inloco/"+state.upper()+"_Municipios_2020-05-03_iso_index.csv"
+    filename="inloco/"+state.upper()+"_Municipios_2020-05-09_iso_index.csv"
     df_tmp.to_csv(filename)
     
 
