@@ -148,7 +148,7 @@ for state in states_abrv:
     df_tmp=df[df['state_abrv']==state]
     print(len(df_tmp))
     #df_tmp=df_tmp.drop(['state_name'], axis=1)
-    filename="inloco/"+state.upper()+"_Municipios_2020-05-09_iso_index.csv"
+    filename="inloco/"+state.upper()+"_Municipios_2020-05-14_iso_index.csv"
     df_tmp.to_csv(filename)
     
 

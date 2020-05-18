@@ -4,12 +4,15 @@
 
 import numpy as np
 
+import matplotlib as mpl
 from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.colors as colors
 import matplotlib.cm as cm
 from matplotlib.ticker import MaxNLocator
+
+import networkx as nx
 
 from itertools import product
 
@@ -25,8 +28,7 @@ class Map:
     def __init__(self, network, linewidth=0.8): 
 
         #Init the figure
-        
-        
+    
         lat0=0.5*(network.maxlats+network.minlats)
         lon0=0.5*(network.maxlons+network.minlons)
         #width=1.1e6
@@ -380,4 +382,71 @@ class Map:
         #filename = dir+"/map_data_"+title+".eps"
         filename = filename+".jpg"
         plt.savefig(filename, dpi=300)   
+        
+    def map_network(self, mat, reg0, title, filename):
+
+        network = self.dom
+        plt.title(title, y=1.08)
+        print("  Plotting: ", filename)
+
+        print("lets go!")
+        #print(network.regions_in_latlon)
+        n=len(network.regions_in_latlon)
+        
+        pos={}
+        # define position in basemap
+        for i, reg in enumerate(network.regions_in_latlon.values()):
+            x, y = self.map(reg[1], reg[0])
+            #print(i, reg[0], reg[1], x, y)
+            pos[i]=[x,y]
+        
+        #Only graph inner nodes
+        mattmp=mat[:n, :n]
+        np.fill_diagonal(mattmp, 0)
+
+        #Graph
+        G = nx.from_numpy_matrix(mattmp, create_using=nx.DiGraph)
+
+        #Nodes (Katz)
+        N = len(G)
+        print("Network len:", N)
+        node_sizes = [0.5 for i in range(N)]
+
+        #Edges
+        M = G.number_of_edges()
+        print("Network edges:", M)
+
+        edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
+        weights = np.array(weights)  
+
+        np.set_printoptions(threshold=sys.maxsize)
+        
+        #Set categories
+        limits = np.percentile(weights, [10, 70, 80, 90, 95, 99])
+        weights = np.digitize(weights, limits, right=True)/len(limits)
+        
+        #weights=np.where(weights>10, 1, 0)
+        maxw = max(weights) #
+        print(weights, maxw)
+        edge_colors = weights #[2+M*(i+2)/maxw for i in weights] #100*weights #range(2, M + 2)
+        edge_widths = 0.1+0.9*weights
+        edge_alphas = 0.3+weights*0.5
+    
+        nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, node_color='black', with_labels=True)
+        edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
+                                    arrowsize=5, edgelist=edges, edge_color=edge_colors,
+                                    edge_cmap=plt.cm.hot_r, width=edge_widths,
+                                    connectionstyle='arc3, rad=0.1')
+        
+        # set alpha value for each edge
+        for i in range(M):
+            edges[i].set_alpha(edge_alphas[i])
+
+        pc = mpl.collections.PatchCollection(edges, cmap=plt.cm.hot_r)
+        pc.set_array(edge_colors)
+        plt.colorbar(pc)
+
+        #ax = plt.gca()
+        #ax.set_axis_off()
+        plt.show()
         
