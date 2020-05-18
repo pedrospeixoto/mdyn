@@ -933,13 +933,14 @@ class Network:
         #matprint(mat_tmp)
         moving = mat_tmp.max(axis=0)
         
-        print(moving)
+        #print(moving)
 
         if self.nregions > 10:
             print("..done")
 
         return mat, mat_normed, reg0, reg1
 
+    
     def load_pop(self):
         print("Loading regions' populations....", end="")
         #Population - inner regions
