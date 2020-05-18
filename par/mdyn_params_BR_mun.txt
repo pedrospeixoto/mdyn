@@ -30,7 +30,7 @@ data_format = "Parquet" #"ORC"
 data_dir = "data/triples_br_2020_04_17_date/all/"
 #data_dir = "data/triples_br_2020_04_17_date/"
 date_ini = "2020-03-01"
-date_end = "2020-04-15"
+date_end = "2020-05-15"
 load_data = True
 
 #Number of main sources for plots
