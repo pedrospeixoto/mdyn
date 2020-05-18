@@ -13,6 +13,26 @@ from datetime import timedelta
 
 from mdynpy.mdyn_map import Map
 import mdynpy.mdyn_extras as mex
+import mdynpy.mdyn_socialdist as sd
+
+def map_move_mats(mdyn, network, ipar):
+    print()
+    print("Mapping move mats:")
+    #Analyse movement matrices
+    mdyn.collect_move_mat(network)
+    iso = sd.socialdist(ipar.isoind_file, network) 
+    #print(iso.df.columns)
+    #print("Regions:", network.regions)
+    
+    #Loop work with day data matrices and average them by day of the week
+    for i, day in enumerate(mdyn.days_all):
+        
+        print("Calculating on: ", i, day.strftime("%Y-%m-%d"))
+        print(iso.df['day'].unique(), day.strftime("%Y-%m-%d"))
+        df_iso=iso.df[iso.df['day']==day.strftime("%Y-%m-%d")]
+        mat = mdyn.movemats[i]
+        reg=network.regions
+        print(df_iso, mat)
 
 def analyse_move_mats(mdyn, network, ipar):
     print()
