@@ -27,8 +27,10 @@ import gc
 
 #Input parameters - dir name
 #-----------------------------
-filename = sys.argv[1]
-shape_file = sys.argv[2]
+filename = sys.argv[1] #File given by inloco with indices
+shape_file = sys.argv[2] #Shape file to match
+
+last_date = filename[-14:-4]
 
 df = pd.read_csv(filename)
 print(df)
@@ -46,6 +48,38 @@ print(states)
 print(len(states))
 print(states_abrv)
 print(len(states_abrv))
+
+#fix states:
+fix_states = { #[original, fixed]
+    "Timon": ["PI","MA"],
+    "Caxias": ["PI","MA"],
+    "Casa Nova": ["PE","BA"],
+    "Matões": ["PI","MA"],
+    "Pilão Arcado": ["PE","BA"],
+    "Arinos": ["GO","MG"],
+    "Sobradinho": ["PE","BA"],
+    "Natalândia": ["GO","MG"],
+    "Campo Alegre de Lourdes": ["PE","BA"],
+    "Bonfinópolis de Minas": ["GO","MG"],
+    "São João do Soter": ["PI","MA"],
+    "Buritis": ["GO","MG"],
+    "Buriti Bravo": ["PI","MA"],
+    "Curaçá":["PE","BA"],
+    "Unaí": ["GO","MG"],
+    "Cabeceira Grande": ["GO", "MG"],
+    "Uruana de Minas": ["GO", "MG"],
+    "Parnarama" : ["PI", "MA"],
+    "Sento Sé" : ["PE", "BA"],
+    "Remanso" : ["PE", "BA"],
+    "Juazeiro" : ["PE", "BA"]
+}
+
+#Check for state problems
+if False:
+    for city, states in zip(fix_states.keys(), fix_states.values()):
+        print(city, states)
+        prob_city = df.loc[(df['city_name'] == city) & (df['dt']=="2020-04-16")]
+        print(prob_city)
 
 #Check city names
 fix_municip_name = {
@@ -148,7 +182,8 @@ for state in states_abrv:
     df_tmp=df[df['state_abrv']==state]
     print(len(df_tmp))
     #df_tmp=df_tmp.drop(['state_name'], axis=1)
-    filename="inloco/"+state.upper()+"_Municipios_2020-05-14_iso_index.csv"
+    filename="inloco/"+state.upper()+"_Municipios_"+last_date+"_iso_index.csv"
+    print(filename)
     df_tmp.to_csv(filename)
     
 
