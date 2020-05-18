@@ -24,6 +24,7 @@ import imp
 from mdynpy.mdyn_daydata import DayData
 from mdynpy.mdyn_network import Network
 from mdynpy.mdyn_extras import daterange
+from mdynpy.mdyn_map import Map
 
 import matplotlib.pyplot as plt
 from matplotlib import animation
@@ -101,6 +102,11 @@ class MobileDynamics:
                 network.calc_transition_matrix(day_data)
 
             name = "move_mat_"+network.domain+"_"+network.subdomains
+            title= "Network "+network.domain+" "+network.subdomains
+            map=Map(network)
+            map.map_network(day_data.tmat, day_data.reg0, title, 
+                day_data.local_dir+name+"_network_map.jpg")
+
             np.savetxt( day_data.local_dir+name+".csv", day_data.tmat)
             np.savetxt( day_data.local_dir+name+"_norm.csv", day_data.tmat_norm)
             np.savetxt( day_data.local_dir+name+"_reg0.csv", day_data.reg0)

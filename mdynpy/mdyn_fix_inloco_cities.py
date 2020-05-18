@@ -27,8 +27,10 @@ import gc
 
 #Input parameters - dir name
 #-----------------------------
-filename = sys.argv[1]
-shape_file = sys.argv[2]
+filename = sys.argv[1] #File given by inloco with indices
+shape_file = sys.argv[2] #Shape file to match
+
+last_date = filename[-14:-4]
 
 df = pd.read_csv(filename)
 print(df)
@@ -46,6 +48,38 @@ print(states)
 print(len(states))
 print(states_abrv)
 print(len(states_abrv))
+
+#fix states:
+fix_states = { #[original, fixed]
+    "Timon": ["PI","MA"],
+    "Caxias": ["PI","MA"],
+    "Casa Nova": ["PE","BA"],
+    "Matões": ["PI","MA"],
+    "Pilão Arcado": ["PE","BA"],
+    "Arinos": ["GO","MG"],
+    "Sobradinho": ["PE","BA"],
+    "Natalândia": ["GO","MG"],
+    "Campo Alegre de Lourdes": ["PE","BA"],
+    "Bonfinópolis de Minas": ["GO","MG"],
+    "São João do Soter": ["PI","MA"],
+    "Buritis": ["GO","MG"],
+    "Buriti Bravo": ["PI","MA"],
+    "Curaçá":["PE","BA"],
+    "Unaí": ["GO","MG"],
+    "Cabeceira Grande": ["GO", "MG"],
+    "Uruana de Minas": ["GO", "MG"],
+    "Parnarama" : ["PI", "MA"],
+    "Sento Sé" : ["PE", "BA"],
+    "Remanso" : ["PE", "BA"],
+    "Juazeiro" : ["PE", "BA"]
+}
+
+#Check for state problems
+if False:
+    for city, states in zip(fix_states.keys(), fix_states.values()):
+        print(city, states)
+        prob_city = df.loc[(df['city_name'] == city) & (df['dt']=="2020-04-16")]
+        print(prob_city)
 
 #Check city names
 fix_municip_name = {
@@ -69,7 +103,43 @@ fix_municip_name = {
     "ITAETÊ" : 'ITAETÉ',
     "SAMAMBAIA" : "SAMBAÍBA",
     "ITAPOÃ" : "ITAPOÁ",
-    "IUIÚ": "IUIU"
+    "IUIÚ": "IUIU",
+    "POMPEIA" : 'POMPÉIA',
+    "DIAMANTINA‎" : 'DIAMANTINA',
+    "BOCAIUVA DO SUL" : 'BOCAIÚVA DO SUL',
+    "ERERÉ":  'ERERÊ',
+    "ALVORADA DO GURGUEIA" : 'ALVORADA DO GURGUÉIA',
+    "SÃO JOÃO DO CARU" : 'SÃO JOÃO DO CARÚ',
+    "SÃO MIGUEL DO PASSA-QUATRO" : 'SÃO MIGUEL DO PASSA QUATRO',
+    "REDENÇÃO DO GURGUEIA" : 'REDENÇÃO DO GURGUÉIA',
+    "MATUREIA" :  'MATURÉIA',
+    "LINDOIA" : 'LINDÓIA',
+    "TAUBATÉ‎" : "TAUBATÉ",
+    "MAJOR IZIDORO" : 'MAJOR ISIDORO',
+    "GALILEIA" : 'GALILÉIA',
+    "LAGEDO DO TABOCAL" : 'LAJEDO DO TABOCAL',
+    "OLHO-D'ÁGUA DO BORGES" : "OLHO D'ÁGUA DO BORGES",
+    "RUBINEIA" : 'RUBINÉIA',
+    "ITAPECURU-MIRIM" : 'ITAPECURU MIRIM',
+    "BORACEIA" : 'BORACÉIA',
+    "SANTA LUZIA DO ITANHI" : 'SANTA LUZIA DO ITANHY',
+    "LUIZ ANTÔNIO" : 'LUÍS ANTÔNIO',
+    "PASSA-E-FICA" :  'PASSA E FICA',
+    "CONCEIÇÃO DO LAGO AÇU" :  'CONCEIÇÃO DO LAGO-AÇU',
+    "ATÍLIO VIVÁCQUA" : 'ATÍLIO VIVACQUA',
+    "GRÃO-PARÁ" : 'GRÃO PARÁ',
+    "PATOS" : 'PATOS',
+    "COLÔNIA DO GURGUEIA" : 'COLÔNIA DO GURGUÉIA',
+    "SANTO ANTÔNIO DE LEVERGER" : 'SANTO ANTÔNIO DO LEVERGER',
+    "GRACCHO CARDOSO" : 'GRACHO CARDOSO',
+    "TAIUVA" : 'TAIÚVA',
+    "IPUIUNA" : 'IPUIÚNA',
+    "ELDORADO DOS CARAJÁS" : 'ELDORADO DO CARAJÁS',
+    "MUNHOZ DE MELLO" : 'MUNHOZ DE MELO',
+    "COITÉ DO NOIA" : 'COITÉ DO NÓIA',
+    "SÃO GONÇALO DO GURGUEIA" : 'SÃO GONÇALO DO GURGUÉIA',
+    "SÃO BENTO DO TRAIRI" : 'SÃO BENTO DO TRAIRÍ',
+    "SÃO CAETANO" : 'SÃO CAITANO'
    }
 
 df['city_name']=df['city_name'].str.upper()
@@ -112,7 +182,8 @@ for state in states_abrv:
     df_tmp=df[df['state_abrv']==state]
     print(len(df_tmp))
     #df_tmp=df_tmp.drop(['state_name'], axis=1)
-    filename="inloco/"+state.upper()+"_Municipios_2020-05-03_iso_index.csv"
+    filename="inloco/"+state.upper()+"_Municipios_"+last_date+"_iso_index.csv"
+    print(filename)
     df_tmp.to_csv(filename)
     
 
