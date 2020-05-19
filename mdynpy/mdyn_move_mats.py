@@ -18,21 +18,45 @@ import mdynpy.mdyn_socialdist as sd
 def map_move_mats(mdyn, network, ipar):
     print()
     print("Mapping move mats:")
-    #Analyse movement matrices
+    #Get movement matrices
     mdyn.collect_move_mat(network)
+
+    #Get isolation indeces
     iso = sd.socialdist(ipar.isoind_file, network) 
+
     #print(iso.df.columns)
     #print("Regions:", network.regions)
     
-    #Loop work with day data matrices and average them by day of the week
+    #Loop for each day
     for i, day in enumerate(mdyn.days_all):
         
         print("Calculating on: ", i, day.strftime("%Y-%m-%d"))
-        print(iso.df['day'].unique(), day.strftime("%Y-%m-%d"))
-        df_iso=iso.df[iso.df['day']==day.strftime("%Y-%m-%d")]
+        #print(iso.df['day'].unique(), day.strftime("%Y-%m-%d"))
+        
+        #filter day, state, regions
+        df_iso = iso.df[iso.df['day']==day.strftime("%Y-%m-%d")]
+        df_iso = df_iso[df_iso['state_abrv']==network.domain_abrv]
+
+        regions=network.regions
+        df_iso = df_iso[df_iso['reg_name'].isin(regions.values())]
+
         mat = mdyn.movemats[i]
-        reg=network.regions
-        print(df_iso, mat)
+        reg_iso = np.zeros([network.nreg_in])
+        for reg in range(network.nreg_in):
+            region = network.regions.get(reg)
+            region = str(region)   
+            if region in list(df_iso['reg_name'].values): 
+                iso = df_iso.loc[df_iso['reg_name'] == region, 'iso'].values[0]
+            else:
+                iso = np.nan
+            reg_iso[reg] = iso
+
+        #Do map
+        title = network.domain+" "+network.subdomains+" Network "+day.strftime("%Y-%m-%d")
+        filename = mdyn.dump_dir+title.replace(" ", "_")+".jpg"
+        map=Map(network)
+        map.map_network_data(reg_iso, mat, regions, title, filename)
+            
 
 def analyse_move_mats(mdyn, network, ipar):
     print()
