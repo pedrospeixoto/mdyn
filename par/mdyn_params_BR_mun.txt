@@ -6,7 +6,7 @@ domain_shape = "maps/brazil/Brazil_Boundary"
 
 #Subdomain definitions
 subdomains = "Municip"
-subdomains_gran = "NM_MUNICIP"
+subdomains_gran = "CD_GEOCMU" #NM_MUNICIP"
 subdomains_shape = "maps/br_municipios/br_mun_with_uf"
 
 #Population
