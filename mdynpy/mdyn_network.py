@@ -206,7 +206,8 @@ class Network:
             idx = np.arange(len(self.df_subdomains))
             self.df_subdomains["idx"]=idx.astype(int)
             self.df_subdomains = self.df_subdomains.set_index("idx")
-            print(self.df_subdomains)
+            
+        print(self.df_subdomains)
 
         #inner regions (subdomains)
         #--------------------------
