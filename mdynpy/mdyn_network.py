@@ -103,14 +103,14 @@ class Network:
 
         #Load regions' populations
 
+        #self.load_pop()
+
         try:
             self.load_pop()
         except:
             self.reg_pop = np.zeros([self.nregions])
             print("Warning: No population data!!!")
             pass
-
-
 
     def load_domain(self):
 
@@ -206,7 +206,8 @@ class Network:
             idx = np.arange(len(self.df_subdomains))
             self.df_subdomains["idx"]=idx.astype(int)
             self.df_subdomains = self.df_subdomains.set_index("idx")
-            print(self.df_subdomains)
+            
+        print(self.df_subdomains)
 
         #inner regions (subdomains)
         #--------------------------
@@ -952,22 +953,27 @@ class Network:
 
         df_pop = pd.read_csv(filename)
         #Filter to domain region
-        df_pop=df_pop[df_pop[dom_label]==self.domain_abrv]
-        if len(df_pop) < 1:
+        df_pop_tmp=df_pop[df_pop[dom_label]==self.domain_abrv]
+        if len(df_pop_tmp) < 1:
             print("Could not filter domain in population")
-            print(df_pop)
-            sys.exit(1)
+            print(df_pop_tmp)
+        else:
+            print("Filtered domain in population")
+            df_pop = df_pop_tmp
 
         #Put to upper case
+        #print(df_pop.dtypes)
+        df_pop[subdom_label]=df_pop[subdom_label].apply(str)
         df_pop[subdom_label]=df_pop[subdom_label].astype(str)
         df_pop[subdom_label]=df_pop[subdom_label].str.upper()
-        
-        
 
+        #print(df_pop.dtypes)
         self.reg_pop = np.zeros([self.nregions])
 
         for reg in range(self.nreg_in):
             region = self.regions.get(reg)
+            region = str(region)
+            
             try:
                 pop = df_pop.loc[df_pop[subdom_label] == region, pop_label].values[0]
             except:

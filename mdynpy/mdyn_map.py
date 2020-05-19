@@ -11,6 +11,7 @@ from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.colors as colors
 import matplotlib.cm as cm
 from matplotlib.ticker import MaxNLocator
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import networkx as nx
 
@@ -451,8 +452,9 @@ class Map:
         plt.savefig(filename, dpi=300)   
 
     def map_network_data(self, data, mat, reg0, title, filename):
-
+        
         network = self.dom
+        
         plt.title(title, y=1.08)
         print("  Plotting: ", filename)
 
@@ -473,10 +475,19 @@ class Map:
         #Graph
         G = nx.from_numpy_matrix(mattmp, create_using=nx.DiGraph)
 
+
+        np.set_printoptions(threshold=sys.maxsize)
         #Nodes (Katz)
         N = len(G)
         print("Network len:", N)
-        node_sizes = [0.5 for i in range(N)]
+        node_sizes = [15 for i in range(N)]
+        print(data)
+        delta=max(data)-min(data)
+        limits = np.array([min(data)+0.05,min(data)+delta/3, min(data)+2*delta/3, max(data)-0.05 ])
+        dataw = np.digitize(data, limits, right=True)/len(limits)
+        dataw[np.isnan(data)]=np.nan
+        node_colors = dataw
+        print(node_colors)
 
         #Edges
         M = G.number_of_edges()
@@ -484,11 +495,9 @@ class Map:
 
         edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
         weights = np.array(weights)  
-
-        np.set_printoptions(threshold=sys.maxsize)
         
         #Set categories
-        limits = np.percentile(weights, [10, 70, 80, 90, 95, 99])
+        limits = np.percentile(weights, [5, 80, 85, 90, 95, 99])
         weights = np.digitize(weights, limits, right=True)/len(limits)
         
         #weights=np.where(weights>10, 1, 0)
@@ -498,7 +507,8 @@ class Map:
         edge_widths = 0.1+0.9*weights
         edge_alphas = 0.3+weights*0.5
     
-        nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, node_color='black', with_labels=True)
+        nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, 
+            node_color=node_colors, with_labels=False, linewidths= 0.3, cmap=plt.cm.winter)
         edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
                                     arrowsize=5, edgelist=edges, edge_color=edge_colors,
                                     edge_cmap=plt.cm.hot_r, width=edge_widths,
@@ -508,9 +518,19 @@ class Map:
         for i in range(M):
             edges[i].set_alpha(edge_alphas[i])
 
+        ax = plt.gca()
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="3%", pad=0.05)
+
         pc = mpl.collections.PatchCollection(edges, cmap=plt.cm.hot_r)
         pc.set_array(edge_colors)
-        plt.colorbar(pc)
+        cbared = plt.colorbar(pc, cax=cax, label='Regional Mobility (normalized between min-max)')
+        #cbared.set_label('Regional Mobility (normalized between min-max)', rotation=270, pad=0.1)
+
+        nodes.set_array(node_colors)
+        cax = divider.append_axes("bottom", size="5%", pad=0.05)
+        cbarnodes = plt.colorbar(nodes, cax=cax)
+        cbarnodes.ax.set_xlabel('Isolation index (normalized between min-max)')
 
         #ax = plt.gca()
         #ax.set_axis_off()
