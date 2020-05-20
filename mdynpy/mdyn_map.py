@@ -88,10 +88,10 @@ class Map:
         map.drawmapboundary()
         #map.drawstates(color='k',linestyle='--', linewidth=0.2)
         if width/factor > 10: 
-            map.drawparallels(np.arange(-50,10,4), labels=[False,True,True,False])
+            map.drawparallels(np.arange(-50,10,4), labels=[True,False,False,False])
             map.drawmeridians(np.arange(-180,180,4), labels=[False,False,True,False])
         else:
-            map.drawparallels(np.arange(-50,10,1), labels=[False,True,True,False])
+            map.drawparallels(np.arange(-50,10,1), labels=[True,False,False,False])
             map.drawmeridians(np.arange(-180,180,1), labels=[False,False,True,False])
         map.ax = ax
         self.dom = network
@@ -136,7 +136,7 @@ class Map:
         cbar.set_label(title,size=12)
         
         #Save density plot to folder "dir"
-        plt.savefig(filename, dpi=300)
+        plt.savefig(filename, dpi=200)
 
     def map_data(self, data, title, dir):
         
@@ -480,14 +480,14 @@ class Map:
         #Nodes (Katz)
         N = len(G)
         print("Network len:", N)
-        node_sizes = [15 for i in range(N)]
-        print(data)
+        node_sizes = [25 for i in range(N)]
+        #print(data)
         delta=max(data)-min(data)
         limits = np.array([min(data)+0.05,min(data)+delta/3, min(data)+2*delta/3, max(data)-0.05 ])
         dataw = np.digitize(data, limits, right=True)/len(limits)
         dataw[np.isnan(data)]=np.nan
         node_colors = dataw
-        print(node_colors)
+        #print(node_colors)
 
         #Edges
         M = G.number_of_edges()
@@ -521,19 +521,21 @@ class Map:
         ax = plt.gca()
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="3%", pad=0.05)
-
+        #cax = divider.new_vertical(size="5%", pad=0.5, pack_start=True)
+        
         pc = mpl.collections.PatchCollection(edges, cmap=plt.cm.hot_r)
         pc.set_array(edge_colors)
-        cbared = plt.colorbar(pc, cax=cax, label='Regional Mobility (normalized between min-max)')
-        #cbared.set_label('Regional Mobility (normalized between min-max)', rotation=270, pad=0.1)
+        cbared = plt.colorbar(pc, cax=cax, label='Regional Mobility (normalized between min-max)')        
+        cbared.set_ticks([0, 1])
+        cbared.ax.set_yticklabels([ 'Low', 'High']) 
 
         nodes.set_array(node_colors)
         cax = divider.append_axes("bottom", size="5%", pad=0.05)
-        cbarnodes = plt.colorbar(nodes, cax=cax)
-        cbarnodes.ax.set_xlabel('Isolation index (normalized between min-max)')
+        cbarnodes = plt.colorbar(nodes, orientation="horizontal", cax=cax)
+         #label='Isolation index (normalized between min-max)'
+        cbarnodes.set_ticks([0, 0.5, 1.0])
+        cbarnodes.ax.set_xticklabels([ 'Min State Isolation', 'Isolation Index', 'Max State Isolation']) 
 
-        #ax = plt.gca()
-        #ax.set_axis_off()
         plt.tight_layout() 
         plt.savefig(filename, dpi=300)   
 
