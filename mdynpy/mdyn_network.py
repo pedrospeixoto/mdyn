@@ -225,7 +225,7 @@ class Network:
         try:
             df_domain_local = self.df_domain[self.df_domain[self.domain_gran] == self.domain]
         except:
-            self.domain = domain.upper()
+            self.domain = self.domain.upper()
             df_domain_local = self.df_domain[self.df_domain[self.domain_gran] == self.domain]
         self.domain_geometry=df_domain_local.geometry.values[0]
         
