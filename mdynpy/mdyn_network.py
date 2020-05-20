@@ -49,7 +49,6 @@ class Network:
         latlon_gran = ipar.latlon_gran
         load = ipar.load_network
 
-        self.domain = domain.upper()
         self.domain_abrv = domain_abrv
         self.domain_gran= domain_gran
         self.domain_shape = domain_shape
@@ -226,9 +225,8 @@ class Network:
         try:
             df_domain_local = self.df_domain[self.df_domain[self.domain_gran] == self.domain]
         except:
-            print("Name of domain not found in shape file base", self.domain)
-            print(self.df_domain)
-            sys.exit(1)
+            self.domain = self.domain.upper()
+            df_domain_local = self.df_domain[self.df_domain[self.domain_gran] == self.domain]
         self.domain_geometry=df_domain_local.geometry.values[0]
         
         self.domain_neib = df_domain_local.NEIGHBORS.values[0]
