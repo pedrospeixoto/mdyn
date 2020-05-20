@@ -244,9 +244,10 @@ class DayData:
                 filename = self.local_dir+title+".jpg"
                 if not os.path.exists(filename):
                     try: 
-                        map = Map(self.net)
-                        map.map_density_data(self.df['lng'+s].values, self.df['lat'+s].values, \
-                            title, filename)
+                        a=1
+                        #map = Map(self.net)
+                        #map.map_density_data(self.df['lng'+s].values, self.df['lat'+s].values, \
+                        #    title, filename)
                     except:
                         pass
 
