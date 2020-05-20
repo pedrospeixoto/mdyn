@@ -49,7 +49,7 @@ class Network:
         latlon_gran = ipar.latlon_gran
         load = ipar.load_network
 
-        self.domain = domain
+        self.domain = domain.upper()
         self.domain_abrv = domain_abrv
         self.domain_gran= domain_gran
         self.domain_shape = domain_shape
@@ -165,9 +165,14 @@ class Network:
             df["lonc"] = None #long centroid
             df["latc"] = None #lat centroid
             for index, mun in df.iterrows():
-                df.at[index, "lonc"] = mun.geometry.centroid.x
-                df.at[index, "latc"] = mun.geometry.centroid.y
-
+                poly=mun.geometry
+                if poly.geom_type == 'MultiPolygon':           
+                    maxpoly=max(poly, key=lambda a: a.area)
+                    df.at[index, "lonc"] = maxpoly.centroid.x
+                    df.at[index, "latc"] = maxpoly.centroid.y
+                else:
+                    df.at[index, "lonc"] = poly.centroid.x
+                    df.at[index, "latc"] = poly.centroid.y
             df["latc"]=df["latc"].astype(float)
             df["lonc"]=df["lonc"].astype(float)
 
@@ -218,7 +223,12 @@ class Network:
 
         #Outer regions (domain)
         #-------------------------
-        df_domain_local = self.df_domain[self.df_domain[self.domain_gran] == self.domain]
+        try:
+            df_domain_local = self.df_domain[self.df_domain[self.domain_gran] == self.domain]
+        except:
+            print("Name of domain not found in shape file base", self.domain)
+            print(self.df_domain)
+            sys.exit(1)
         self.domain_geometry=df_domain_local.geometry.values[0]
         
         self.domain_neib = df_domain_local.NEIGHBORS.values[0]
