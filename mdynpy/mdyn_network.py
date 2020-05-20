@@ -49,6 +49,7 @@ class Network:
         latlon_gran = ipar.latlon_gran
         load = ipar.load_network
 
+        self.domain = domain
         self.domain_abrv = domain_abrv
         self.domain_gran= domain_gran
         self.domain_shape = domain_shape
