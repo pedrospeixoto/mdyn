@@ -31,10 +31,13 @@ class socialdist:
         
         last_date = filename[-14:-4]
         df = pd.read_csv(filename)
-        #print(df)
+        print(df)
         
         #Check states names
         df['state_abrv'] = df['state_name'].map(mex.state_name2abrv)
+
+        #filter state
+        df = df[df['state_abrv']==network.domain_abrv]
 
         #Check city names
         fix_municip_name = {
@@ -103,5 +106,18 @@ class socialdist:
         df=df.rename(columns={"isolated": "iso", "dt": "day", "city_name":"reg_name"})
         df['reg_state'] = df.apply (lambda row: row.reg_name + "_"+row.state_abrv, axis=1)
 
+        #filter probelmatic cities
+        ndates=len(df['day'].unique())
+        cities = df['reg_name'].unique()
+        df_cities=df['reg_name'].value_counts().to_frame().reset_index().rename(columns={'index':'name', 'reg_name':'count'})
+        print(df_cities)
+
+        print("Filtering buggy cities from isolation index...")
+        for city in cities:
+            ncity = df_cities.loc[df_cities['name'] == city, 'count'].values[0] 
+            if ncity < ndates-5 :
+                print("Removing city:", city, ncity)
+                df = df[df['reg_name'] != city]      
+        
         self.df = df            
 
