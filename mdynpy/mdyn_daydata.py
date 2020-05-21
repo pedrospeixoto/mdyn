@@ -49,11 +49,11 @@ class DayData:
                         
     def clean_data(self):
         
-        mem1=mem_usage(self.df)
+        #mem1=mem_usage(self.df)
         del [self.df]
         gc.collect()
         self.df=pd.DataFrame()
-        print("Cleaning original data ", mem1, mem_usage(self.df))
+        #print("Cleaning original data ", mem1, mem_usage(self.df))
 
     def read_day_data(self, day, data_dir, data_format):
         # Input:
@@ -252,15 +252,14 @@ class DayData:
                         pass
 
             #Data density - join event 0 and 1
-            title = "density_"+self.day+" event0+1"
+            title = self.net.domain+self.net.subdomains+"_density_"+self.day+"_event0+1"
             filename = self.local_dir+title+".jpg"
             if not os.path.exists(filename):
                     print("Ploting density")
                     map = Map(self.net)
                     lons = np.concatenate((self.df['lng0'].values, self.df['lng1'].values))
                     lats = np.concatenate((self.df['lat0'].values, self.df['lat1'].values))
-                    map.map_density_data(lons, lats, \
-                        title, filename)
+                    map.map_density_data(lons, lats, title, filename)
 
             #Statistics
             print(self.df.describe())
