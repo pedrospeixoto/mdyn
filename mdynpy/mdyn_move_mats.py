@@ -35,8 +35,7 @@ def map_move_mats(mdyn, network, ipar):
         
         #filter day, state, regions
         df_iso = iso.df[iso.df['day']==day.strftime("%Y-%m-%d")]
-        df_iso = df_iso[df_iso['state_abrv']==network.domain_abrv]
-
+        
         regions=network.regions
         df_iso = df_iso[df_iso['reg_name'].isin(regions.values())]
 
@@ -46,10 +45,10 @@ def map_move_mats(mdyn, network, ipar):
             region = network.regions.get(reg)
             region = str(region)   
             if region in list(df_iso['reg_name'].values): 
-                iso = df_iso.loc[df_iso['reg_name'] == region, 'iso'].values[0]
+                isotmp = df_iso.loc[df_iso['reg_name'] == region, 'iso'].values[0]
             else:
-                iso = np.nan
-            reg_iso[reg] = iso
+                isotmp = np.nan
+            reg_iso[reg] = isotmp
 
         #Do map
         title = network.domain+" "+network.subdomains+" Network "+day.strftime("%Y-%m-%d")
