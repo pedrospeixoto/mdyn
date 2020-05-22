@@ -2,3 +2,6 @@ find data/visit_journey_sao_paulo_2020/dt\=2020-03-* -name 'move*.csv' -type f  
 
 mogrify -verbose -density 200 -format png ./*.pdf
 
+ffmpeg -i anim.avi -vcodec libx264 -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" -acodec aac output.mp4
+
+ffmpeg -i anim.avi  -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2"  output-wahtsapp.mp4
