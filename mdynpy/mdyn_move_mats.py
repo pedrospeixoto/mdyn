@@ -51,8 +51,10 @@ def map_move_mats(mdyn, network, ipar):
             reg_iso[reg] = isotmp
 
         #Do map
-        title = network.domain+" "+network.subdomains+" Network "+day.strftime("%Y-%m-%d")
-        filename = mdyn.dump_dir+title.replace(" ", "_")+".jpg"
+        dow=mex.weekdays[day.weekday()]
+        title = network.domain+" "+network.subdomains+" Network "
+        filename = mdyn.dump_dir+title.replace(" ", "_")+str(i).zfill(3)+".jpg"
+        title = title + day.strftime("%Y-%m-%d")+" "+dow
         map=Map(network)
         map.map_network_data(reg_iso, mat, regions, title, filename)
             
