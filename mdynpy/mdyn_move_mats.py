@@ -52,10 +52,16 @@ def map_move_mats(mdyn, network, ipar):
 
         #Do map
         dow=mex.weekdays[day.weekday()]
-        title = network.domain+" "+network.subdomains+" Network "
-        filename = mdyn.dump_dir+title.replace(" ", "_")+str(i).zfill(3)+".jpg"
+        if ipar.zoom[0]:
+            title = network.domain+" "+network.subdomains+" Network Zoom"
+            filename = mdyn.dump_dir+title.replace(" ", "_")+str(i).zfill(3)+".jpg"
+        else:
+            title = network.domain+" "+network.subdomains+" Network "
+            filename = mdyn.dump_dir+title.replace(" ", "_")+str(i).zfill(3)+".jpg"
+
         title = title + day.strftime("%Y-%m-%d")+" "+dow
-        map=Map(network)
+        
+        map=Map(network, ipar.zoom)
         map.map_network_data(reg_iso, mat, regions, title, filename)
             
 

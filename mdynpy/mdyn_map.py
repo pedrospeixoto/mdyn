@@ -26,20 +26,32 @@ from mdynpy.mdyn_extras import matprint
 import mdynpy.mdyn_extras as mex 
 
 class Map:
-    def __init__(self, network, linewidth=0.8): 
+    def __init__(self, network, zoom=[False, 0, 0, 0, 0, False]): 
 
         #Init the figure
+        linewidth=0.8
+        
+        if zoom[0]:
+            factor = 1.0e5
+            lat0=0.5*(zoom[2]+zoom[1])
+            lon0=0.5*(zoom[4]+zoom[3])
+            width = abs(zoom[4]-zoom[3])*factor
+            height = abs(zoom[2]-zoom[1])*factor
+            #print(lat0, lon0, height, width , zoom[2]-zoom[1] ,  zoom[4]-zoom[3])
+        else:
+        
+            factor = 1.0e5
+            lat0=0.5*(network.maxlats+network.minlats)
+            lon0=0.5*(network.maxlons+network.minlons)
+            width = abs(network.maxlons-network.minlons)*factor
+            height = abs(network.maxlats-network.minlats)*factor
+            #print(lat0, lon0, height, width,  network.maxlats-network.minlats, network.maxlons-network.minlons)
     
-        lat0=0.5*(network.maxlats+network.minlats)
-        lon0=0.5*(network.maxlons+network.minlons)
         #width=1.1e6
         #height=7.2e5
         #in meters
         # 1 deg aprox 110km, so 10e5
-        factor = 1.0e5
-        width = (network.maxlons-network.minlons)*factor
-        height = (network.maxlats-network.minlats)*factor
-
+        
         fwidth = width/factor
         fheight = height/factor
         if fwidth > 25: #Brasil plot - very large!
@@ -53,6 +65,13 @@ class Map:
             #print(fwidth, fheight)
             fwidth = fwidth/3
             fheight = fheight/3
+            width = width*1.05
+            height = height*1.05
+            #print(fwidth, fheight)
+        if fwidth < 5: #small region plot, zoom
+            #print(fwidth, fheight)
+            fwidth = fwidth*4
+            fheight = fheight*4
             width = width*1.05
             height = height*1.05
             #print(fwidth, fheight)
@@ -88,8 +107,8 @@ class Map:
         map.drawmapboundary()
         #map.drawstates(color='k',linestyle='--', linewidth=0.2)
         if width/factor > 10: 
-            map.drawparallels(np.arange(-50,10,4), labels=[True,False,False,False])
-            map.drawmeridians(np.arange(-180,180,4), labels=[False,False,True,False])
+            map.drawparallels(np.arange(-50,10,2), labels=[True,False,False,False])
+            map.drawmeridians(np.arange(-180,180,2), labels=[False,False,True,False])
         else:
             map.drawparallels(np.arange(-50,10,1), labels=[True,False,False,False])
             map.drawmeridians(np.arange(-180,180,1), labels=[False,False,True,False])
@@ -111,6 +130,21 @@ class Map:
             x, y = map(x, y)
             map.plot(x, y, marker=None, color='k',linestyle='-', linewidth=linewidth)
         
+        if zoom[0]:
+            subdomain_geometry = network.df_subdomains.geometry
+            for poly in subdomain_geometry:
+                if poly.geom_type == 'MultiPolygon':
+                    # do multipolygon things.
+                    for poly_local in list(poly):
+                        x, y = poly_local.exterior.coords.xy
+                        x, y = map(x, y)
+                        map.plot(x, y, marker=None, color = '0.35',linestyle=':', linewidth=linewidth/2)
+                elif poly.geom_type == 'Polygon':
+                # do polygon things.          
+                    x, y = poly.exterior.coords.xy
+                    x, y = map(x, y)
+                    map.plot(x, y, marker=None, color = '0.35',linestyle=':', linewidth=linewidth/2)
+
         # convert the bin mesh to map coordinates:
         self.x_bins_c, self.y_bins_c = map(network.lon_bins_c_2d, network.lat_bins_c_2d) # will be plotted using pcolormesh
         self.x_bins_ext, self.y_bins_ext = map(network.lon_bins_ext_2d, network.lat_bins_ext_2d) # will be plotted using pcolormesh
