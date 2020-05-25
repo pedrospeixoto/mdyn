@@ -139,7 +139,8 @@ fix_municip_name = {
     "COITÉ DO NOIA" : 'COITÉ DO NÓIA',
     "SÃO GONÇALO DO GURGUEIA" : 'SÃO GONÇALO DO GURGUÉIA',
     "SÃO BENTO DO TRAIRI" : 'SÃO BENTO DO TRAIRÍ',
-    "SÃO CAETANO" : 'SÃO CAITANO'
+    "SÃO CAETANO" : 'SÃO CAITANO',
+    "PAU-D'ARCO" : "PAU D'ARCO"
    }
 
 df['city_name']=df['city_name'].str.upper()
