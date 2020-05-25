@@ -221,6 +221,9 @@ class Network:
         self.regions_in_latlon = self.df_subdomains.filter(filt).set_index(self.subdomains_gran).T.to_dict('list')
         self.nreg_in = len(self.regions_in)
 
+        if self.domain_abrv == "BRA": #Save the names of cities for brasil (as the region is usually the code)
+            self.regions_in_bra = self.df_subdomains["NM_MUNICIP"].to_dict()
+        
         #Outer regions (domain)
         #-------------------------
         try:
