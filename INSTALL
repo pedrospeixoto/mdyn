@@ -4,10 +4,10 @@
 2) Open new shell to activate Anaconda environment
 
 3) Crease conda environment
-$ conda create --name mdyn --file <this file>
+$ conda create --name mdyn --file spec-file.txt
 
 4) Activate conda environment
 $ conda activate mdyn
 
 5) Install missing pip packages
-$ pip install geopy tqdm windrose pyspark pyarrow
+$ pip install geopy tqdm windrose pyspark pyarrow networkx

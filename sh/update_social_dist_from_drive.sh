@@ -23,3 +23,14 @@ cd $dir
 
 python mdynpy/mdyn_fix_inloco_cities.py  data/isol_br/"Social Distancing Index by Cities"$date".csv" maps/br_municipios/BRMUE250GC_SIR.shp
 
+
+echo "Generating maps"
+#awk 'NR==1 {$0="dia <-" replace} 1' replace=\"$date\" generate_isolationMap.R >   generate_isolationMap.R
+rfile=Rcodes/generate_isolationMap.R
+awk '{ if ( NR == 1 ) { print "dia <-" replace ;} else {print $0;} }' replace=\"$date\" $rfile >   generate_isolationMap$date.R
+
+Rscript generate_isolationMap$date.R
+
+rsync -av html/* pedrosp@ime.usp.br:www/covid19-data/iso_index/.
+
+mv generate_isolationMap$date.R Rcodes/.
