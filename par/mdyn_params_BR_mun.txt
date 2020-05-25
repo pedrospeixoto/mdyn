@@ -27,14 +27,25 @@ load_domain = True #Load precomp structures
 
 #Initialize mobile data and load data to dataframe
 data_format = "Parquet" #"ORC"
-data_dir = "data/triples_br_2020_04_17_date/all/"
+data_dir = "data/triples_br_2020_05_20_date/all/"
+#data_dir = "data/triples_br_2020_04_17_date/all/"
 #data_dir = "data/triples_br_2020_04_17_date/"
-date_ini = "2020-02-01"
-date_end = "2020-05-19"
+date_ini = "2020-03-01"
+date_end = "2020-03-01"
 load_data = True
 
 #Number of main sources for plots
 num_source = 2
+
+#Isolation index
+isoind_file = "inloco/Social Distancing Index by Cities2020-05-21.csv"
+
+#-----------------------------
+# Slicing/Zoom
+#------------------------------
+        #Flag, lats, lons, drawsubdomains, label
+zoom = [True, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ]
+#zoom = [True, -19.8, -25.5, -52.25,-43, True, "SP"  ]
 
 #-----------------------------
 # Simulation configuration

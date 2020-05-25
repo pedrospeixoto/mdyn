@@ -37,8 +37,14 @@ class socialdist:
         df['state_abrv'] = df['state_name'].map(mex.state_name2abrv)
 
         #filter state
-        df = df[df['state_abrv']==network.domain_abrv]
-
+        if network.domain_abrv != "BRA":
+            df = df[df['state_abrv']==network.domain_abrv]
+        
+        if df.empty:
+            print("You selected a regions that is neither a state nor the full Brasil")
+            print( "Cannot load socail distancing index")
+            sys.exit()
+            
         #Check city names
         fix_municip_name = {
             "BOCAIUVA": "BOCAIÚVA",

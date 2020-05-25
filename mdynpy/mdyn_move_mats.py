@@ -36,28 +36,34 @@ def map_move_mats(mdyn, network, ipar):
         #filter day, state, regions
         df_iso = iso.df[iso.df['day']==day.strftime("%Y-%m-%d")]
         
-        regions=network.regions
-        df_iso = df_iso[df_iso['reg_name'].isin(regions.values())]
+        if network.domain_abrv == "BRA":
+            #BRA uses geocodes, so get city names
+            regions = network.regions_in_bra
+        else:
+            #Use actual city names
+            regions = network.regions
+            #Filter state
+            df_iso = df_iso[df_iso['reg_name'].isin(regions.values())]
 
         mat = mdyn.movemats[i]
         reg_iso = np.zeros([network.nreg_in])
         for reg in range(network.nreg_in):
-            region = network.regions.get(reg)
+            region = regions.get(reg)
             region = str(region)   
             if region in list(df_iso['reg_name'].values): 
                 isotmp = df_iso.loc[df_iso['reg_name'] == region, 'iso'].values[0]
             else:
                 isotmp = np.nan
             reg_iso[reg] = isotmp
-
+            
         #Do map
         dow=mex.weekdays[day.weekday()]
         if ipar.zoom[0]:
-            title = network.domain+" "+network.subdomains+" Network Zoom"
-            filename = mdyn.dump_dir+title.replace(" ", "_")+str(i).zfill(3)+".jpg"
+            title = network.domain+" "+network.subdomains+" Network Zoom "+ipar.zoom[6]
+            filename = mdyn.dump_dir+title.replace(" ", "_")+"_"+str(i).zfill(3)+".jpg"
         else:
             title = network.domain+" "+network.subdomains+" Network "
-            filename = mdyn.dump_dir+title.replace(" ", "_")+str(i).zfill(3)+".jpg"
+            filename = mdyn.dump_dir+title.replace(" ", "_")+"_"+str(i).zfill(3)+".jpg"
 
         title = title + day.strftime("%Y-%m-%d")+" "+dow
         

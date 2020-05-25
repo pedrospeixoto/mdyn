@@ -43,9 +43,8 @@ num_source = 1
 #-----------------------------
 # Slicing/Zoom
 #------------------------------
-        #Flag, lats, lons, drawsubdomains
-zoom = [True, -22.8, -24.2, -47.8,-45.6, True  ]
-
+        #Flag, lats, lons, drawsubdomains, label
+zoom = [True, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ]
 
 #-----------------------------
 # Simulation configuration
