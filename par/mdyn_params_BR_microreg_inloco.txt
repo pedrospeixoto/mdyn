@@ -5,15 +5,15 @@ domain_gran = "locname"
 domain_shape = "maps/brazil/Brazil_Boundary"
 
 #Subdomain definitions
-subdomains = "Municip"
-subdomains_gran = "CD_GEOCMU" #NM_MUNICIP"
-subdomains_shape = "maps/br_municipios/br_mun_with_uf"
+subdomains = "microreg"
+subdomains_gran = "CD_GEOCMI"
+subdomains_shape = "maps/br_microrregioes/BRMIE250GC_SIR"
 
 #Population
 domain_pop = "maps/population/population_br_2019.csv"
 domain_pop_labels = ["Estado", "pop2019"]
-subdomains_pop = "maps/population/population_mun_br_2019.csv"
-subdomains_pop_labels = ["PAIS", "CD_GEOCMU", "POP2019"]
+subdomains_pop = "maps/population/population_microreg_br_fixed_lagoas2019.csv"
+subdomains_pop_labels = ["pais","id","pop2019"]
 
 #Network granularity
 latlon_gran = 0.01 #granularity of lat long spacing
@@ -28,24 +28,13 @@ load_domain = True #Load precomp structures
 #Initialize mobile data and load data to dataframe
 data_format = "Parquet" #"ORC"
 data_dir = "data/triples_br_2020_05_20_date/all/"
-#data_dir = "data/triples_br_2020_04_17_date/all/"
 #data_dir = "data/triples_br_2020_04_17_date/"
-date_ini = "2020-03-01"
-date_end = "2020-03-01"
+date_ini = "2020-02-01"
+date_end = "2020-05-25"
 load_data = True
 
 #Number of main sources for plots
 num_source = 2
-
-#Isolation index
-isoind_file = "inloco/Social Distancing Index by Cities2020-05-21.csv"
-
-#-----------------------------
-# Slicing/Zoom
-#------------------------------
-        #Flag, lats, lons, drawsubdomains, label
-zoom = [True, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ]
-#zoom = [True, -19.8, -25.5, -52.25,-43, True, "SP"  ]
 
 #-----------------------------
 # Simulation configuration

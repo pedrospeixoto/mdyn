@@ -26,20 +26,32 @@ from mdynpy.mdyn_extras import matprint
 import mdynpy.mdyn_extras as mex 
 
 class Map:
-    def __init__(self, network, linewidth=0.8): 
+    def __init__(self, network, zoom=[False, 0, 0, 0, 0, False]): 
 
         #Init the figure
+        linewidth=0.8
+        
+        if zoom[0]:
+            factor = 1.0e5
+            lat0=0.5*(zoom[2]+zoom[1])
+            lon0=0.5*(zoom[4]+zoom[3])
+            width = abs(zoom[4]-zoom[3])*factor
+            height = abs(zoom[2]-zoom[1])*factor
+            #print(lat0, lon0, height, width , zoom[2]-zoom[1] ,  zoom[4]-zoom[3])
+        else:
+        
+            factor = 1.0e5
+            lat0=0.5*(network.maxlats+network.minlats)
+            lon0=0.5*(network.maxlons+network.minlons)
+            width = abs(network.maxlons-network.minlons)*factor
+            height = abs(network.maxlats-network.minlats)*factor
+            #print(lat0, lon0, height, width,  network.maxlats-network.minlats, network.maxlons-network.minlons)
     
-        lat0=0.5*(network.maxlats+network.minlats)
-        lon0=0.5*(network.maxlons+network.minlons)
         #width=1.1e6
         #height=7.2e5
         #in meters
         # 1 deg aprox 110km, so 10e5
-        factor = 1.0e5
-        width = (network.maxlons-network.minlons)*factor
-        height = (network.maxlats-network.minlats)*factor
-
+        
         fwidth = width/factor
         fheight = height/factor
         if fwidth > 25: #Brasil plot - very large!
@@ -53,6 +65,13 @@ class Map:
             #print(fwidth, fheight)
             fwidth = fwidth/3
             fheight = fheight/3
+            width = width*1.05
+            height = height*1.05
+            #print(fwidth, fheight)
+        if fwidth < 5: #small region plot, zoom
+            #print(fwidth, fheight)
+            fwidth = fwidth*4
+            fheight = fheight*4
             width = width*1.05
             height = height*1.05
             #print(fwidth, fheight)
@@ -86,10 +105,10 @@ class Map:
         #map.drawmapboundary(fill_color='aqua')
         #map.fillcontinents(lake_color='aqua')
         map.drawmapboundary()
-        #map.drawstates(color='k',linestyle='--', linewidth=0.2)
+        map.drawstates(color='k',linestyle='--', linewidth=0.2)
         if width/factor > 10: 
-            map.drawparallels(np.arange(-50,10,4), labels=[True,False,False,False])
-            map.drawmeridians(np.arange(-180,180,4), labels=[False,False,True,False])
+            map.drawparallels(np.arange(-50,10,2), labels=[True,False,False,False])
+            map.drawmeridians(np.arange(-180,180,2), labels=[False,False,True,False])
         else:
             map.drawparallels(np.arange(-50,10,1), labels=[True,False,False,False])
             map.drawmeridians(np.arange(-180,180,1), labels=[False,False,True,False])
@@ -111,6 +130,21 @@ class Map:
             x, y = map(x, y)
             map.plot(x, y, marker=None, color='k',linestyle='-', linewidth=linewidth)
         
+        if zoom[0]:
+            subdomain_geometry = network.df_subdomains.geometry
+            for poly in subdomain_geometry:
+                if poly.geom_type == 'MultiPolygon':
+                    # do multipolygon things.
+                    for poly_local in list(poly):
+                        x, y = poly_local.exterior.coords.xy
+                        x, y = map(x, y)
+                        map.plot(x, y, marker=None, color = '0.35',linestyle=':', linewidth=linewidth/2)
+                elif poly.geom_type == 'Polygon':
+                # do polygon things.          
+                    x, y = poly.exterior.coords.xy
+                    x, y = map(x, y)
+                    map.plot(x, y, marker=None, color = '0.35',linestyle=':', linewidth=linewidth/2)
+
         # convert the bin mesh to map coordinates:
         self.x_bins_c, self.y_bins_c = map(network.lon_bins_c_2d, network.lat_bins_c_2d) # will be plotted using pcolormesh
         self.x_bins_ext, self.y_bins_ext = map(network.lon_bins_ext_2d, network.lat_bins_ext_2d) # will be plotted using pcolormesh
@@ -474,44 +508,62 @@ class Map:
 
         #Graph
         G = nx.from_numpy_matrix(mattmp, create_using=nx.DiGraph)
+        N = len(G)
+        print("Network len:", N)
+        M = G.number_of_edges()
+        print("Network edges:", M)
 
+        #Filer low flux edges:       
+        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4] 
+        #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
+        G.remove_edges_from(remove)
+        
+        N = len(G)
+        print("Filtred Network len:", N)
+        M = G.number_of_edges()
+        print("Filtred Network edges:", M)
 
         np.set_printoptions(threshold=sys.maxsize)
         #Nodes (Katz)
-        N = len(G)
-        print("Network len:", N)
-        node_sizes = [25 for i in range(N)]
+        
+        
         #print(data)
-        delta=max(data)-min(data)
-        limits = np.array([min(data)+0.05,min(data)+delta/3, min(data)+2*delta/3, max(data)-0.05 ])
-        dataw = np.digitize(data, limits, right=True)/len(limits)
-        dataw[np.isnan(data)]=np.nan
-        node_colors = dataw
+        #delta=max(data)-min(data)
+        #Set isolation limits
+        #limits = np.array([min(data)+0.05,min(data)+delta/3, min(data)+2*delta/3, max(data)-0.05 ])
+        #print("Isolation limits: ", limits)
+        #nodelimits = np.array([0.2, 0.3, 0.4, 0.5, 0.6 ])
+        #print(" Enforced limits: ", nodelimits)
+        #dataw = np.digitize(data, nodelimits, right=True)/len(nodelimits)
+        #dataw[np.isnan(data)]=np.nan
+        node_colors = data
         #print(node_colors)
-
-        #Edges
-        M = G.number_of_edges()
-        print("Network edges:", M)
+        node_sizes = [25 for i in range(N)]
 
         edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
         weights = np.array(weights)  
         
         #Set categories
-        limits = np.percentile(weights, [5, 80, 85, 90, 95, 99])
-        weights = np.digitize(weights, limits, right=True)/len(limits)
-        
+        #limits = np.percentile(weights, [5, 80, 85, 90, 95, 99])
+        #print("Flux limits: ", limits)
+        #edlimits = np.array([1, 10, 20, 40, 80, 160, 320, 640])
+        #print("  Enforced limits: ", edlimits)
+        #weights = np.digitize(weights, edlimits, right=True)/len(edlimits)
+        weights = np.log2(weights)
         #weights=np.where(weights>10, 1, 0)
         maxw = max(weights) #
         #print(weights, maxw)
         edge_colors = weights #[2+M*(i+2)/maxw for i in weights] #100*weights #range(2, M + 2)
-        edge_widths = 0.1+0.9*weights
-        edge_alphas = 0.3+weights*0.5
+        edge_widths = 0.1+0.9*(weights/maxw)
+        edge_alphas = 0.3+(weights/maxw)*0.5
     
         nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, 
-            node_color=node_colors, with_labels=False, linewidths= 0.3, cmap=plt.cm.winter)
+            node_color=node_colors, with_labels=False, linewidths= 0.3, cmap=plt.cm.winter,
+            vmin=0.3, vmax=0.7)
         edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
                                     arrowsize=5, edgelist=edges, edge_color=edge_colors,
                                     edge_cmap=plt.cm.hot_r, width=edge_widths,
+                                    edge_vmin=0 , edge_max=14,
                                     connectionstyle='arc3, rad=0.1')
         
         # set alpha value for each edge
@@ -523,18 +575,26 @@ class Map:
         cax = divider.append_axes("right", size="3%", pad=0.05)
         #cax = divider.new_vertical(size="5%", pad=0.5, pack_start=True)
         
-        pc = mpl.collections.PatchCollection(edges, cmap=plt.cm.hot_r)
-        pc.set_array(edge_colors)
-        cbared = plt.colorbar(pc, cax=cax, label='Regional Mobility (normalized between min-max)')        
-        cbared.set_ticks([0, 1])
-        cbared.ax.set_yticklabels([ 'Low', 'High']) 
+        #pc = mpl.collections.PatchCollection(edges, cmap=plt.cm.hot_r, match_original=True)
+        #pc.set_array(edge_colors)
+        
+        sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r, norm=plt.Normalize(vmin=0, vmax=14))
+        sm.set_array(edge_colors)
+        #cbar = plt.colorbar(sm)
+        cbared = plt.colorbar(sm, cax=cax, label='Mobility (log2 number of trips / day)')        
+        #cbared.set_ticks([0, 1])
+        #cbared.set_ticks(np.array(range(len(edlimits)))/len(edlimits))
+        #cbared.ax.set_yticklabels([ 'Low', 'High']) 
+        #cbared.ax.set_yticklabels(edlimits) 
 
         nodes.set_array(node_colors)
         cax = divider.append_axes("bottom", size="5%", pad=0.05)
-        cbarnodes = plt.colorbar(nodes, orientation="horizontal", cax=cax)
+        cbarnodes = plt.colorbar(nodes, orientation="horizontal", cax=cax, label="Isolation Index")
          #label='Isolation index (normalized between min-max)'
-        cbarnodes.set_ticks([0, 0.5, 1.0])
-        cbarnodes.ax.set_xticklabels([ 'Min State Isolation', 'Isolation Index', 'Max State Isolation']) 
+        #cbarnodes.set_ticks([0, 0.5, 1.0])
+        #cbarnodes.set_ticks(np.array(range(len(nodelimits)))/len(edlimits))
+        #cbarnodes.ax.set_xticklabels([ 'Min State Isolation', 'Isolation Index', 'Max State Isolation']) 
+        #cbarnodes.ax.set_xticklabels(nodelimits) 
 
         plt.tight_layout() 
         plt.savefig(filename, dpi=300)   
