@@ -672,7 +672,7 @@ class Network:
         if not os.path.exists(imgfilename):
             print("Plotting regions to file "+imgfilename)
             #Map the regions
-            map = Map(self, linewidth=0.5)
+            map = Map(self)
             map.map_reg_data(self, self.gridname, filename=imgfilename)
 
 
