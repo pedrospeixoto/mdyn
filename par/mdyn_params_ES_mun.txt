@@ -3,7 +3,7 @@
 #---------------------
 
 #Main domain definition
-domain = "ESPIRITO SANTo" #SP or RJ
+domain = "ESPIRITO SANTO" #SP or RJ
 domain_abrv = "ES"
 domain_gran = "NM_ESTADO"
 domain_shape = "maps/UFEBRASIL/UFEBRASIL"
