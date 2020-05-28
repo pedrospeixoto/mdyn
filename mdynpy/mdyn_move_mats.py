@@ -38,7 +38,7 @@ def map_move_mats(mdyn, network, ipar):
         
         if network.domain_abrv == "BRA":
             #BRA uses geocodes, so get city names
-            regions = network.regions_in_bra
+            regions = network.regions_in_names
         else:
             #Use actual city names
             regions = network.regions
