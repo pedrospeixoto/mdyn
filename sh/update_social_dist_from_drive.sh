@@ -33,4 +33,8 @@ Rscript generate_isolationMap$date.R
 
 rsync -av html/* pedrosp@ime.usp.br:www/covid19-data/iso_index/.
 
+sleep 10m
+
+rsync -av html/* pedrosp@ime.usp.br:www/covid19-data/iso_index/.
+
 mv generate_isolationMap$date.R Rcodes/.

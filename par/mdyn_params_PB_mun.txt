@@ -37,7 +37,7 @@ data_dir = "data/data_br_full_2020_05_20/"
 #data_dir = "data/triples_br_2020_04_17_proc/all/state0=São Paulo/"
 #data_dir = "data/triples_br_2020_04_17_proc/SP"
 date_ini = "2020-03-01"
-date_end = "2020-03-01"
+date_end = "2020-05-23"
 load_data = True
 
 
