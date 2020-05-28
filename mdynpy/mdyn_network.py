@@ -1032,7 +1032,7 @@ class Network:
             #print(len(pos), len(self.regions_in_codes), len(self.regions_in), len(br_array[pos]), mat_local.shape)
             #reg_collect = reg_names.index(list(self.regions_in_codes.values()))
             #print(reg_collect)
-
+        
         return mat, mat_normed, self.regions_in
 
     def load_pop(self):
