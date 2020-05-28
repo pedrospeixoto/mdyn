@@ -26,7 +26,7 @@ def map_move_mats(mdyn, network, ipar):
 
     #print(iso.df.columns)
     #print("Regions:", network.regions)
-    print(mdyn.days_all)
+    
     #Loop for each day
     for i, day in enumerate(mdyn.days_all):
         
