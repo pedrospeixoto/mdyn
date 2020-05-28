@@ -9,7 +9,7 @@ domain_gran = "NM_ESTADO"
 domain_shape = "maps/UFEBRASIL/UFEBRASIL"
 
 #Subdomain definitions
-subdomains = "Municipios"
+subdomains = "Municip"
 subdomains_gran = "NM_MUNICIP"
 subdomains_shape = "maps/es_municipios/32MUE250GC_SIR"
 
