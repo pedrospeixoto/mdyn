@@ -31,7 +31,7 @@ data_dir = "data/triples_br_2020_05_20_date/all/"
 #data_dir = "data/triples_br_2020_04_17_proc/all/state0=São Paulo/"
 #data_dir = "data/triples_br_2020_04_17_proc/SP"
 date_ini = "2020-03-01"
-date_end = "2020-03-01"
+date_end = "2020-03-02"
 load_data = True
 
 #Isolation index

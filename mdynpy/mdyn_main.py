@@ -154,6 +154,7 @@ class MobileDynamics:
         np.load = lambda *a,**k: np_load_old(*a, allow_pickle=True, **k)
 
         #Loop over folders with days 
+
         for day in daterange(self.date_ini_obj, self.date_end_obj+timedelta(days=1)):
             self.days_all.append(day)
             self.dates_dirs.append(self.data_dir+"dt="+day.strftime("%Y-%m-%d")+"/")
@@ -173,5 +174,5 @@ class MobileDynamics:
             self.movemats_reg_names.append(names)
             print("Loaded matrix for :", day )
 
-            return movemat, movemat_norm, names
+        return movemat, movemat_norm, names
             
