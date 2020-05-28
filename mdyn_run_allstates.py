@@ -65,7 +65,7 @@ for index, row in df.iterrows():
         mdyn.build_model(network)
 
     if run_opt == 1:
-        mmat.analyse_move_mats(mdyn, network, ipar)
+        mmat.map_move_mats(mdyn, network, ipar)
 
     if run_opt == 2:
         mmat.analyse_move_mats_dow(mdyn, network, ipar)
