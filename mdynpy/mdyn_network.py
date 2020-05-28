@@ -223,10 +223,14 @@ class Network:
 
         if self.domain_abrv == "BRA":
             if self.subdomains == "Municip": #Save the names of cities for brasil (as the region is usually the code)
-                self.regions_in_bra = self.df_subdomains["NM_MUNICIP"].to_dict()
+                self.regions_in_names = self.df_subdomains["NM_MUNICIP"].to_dict()
             elif self.subdomains == "microreg":
-                self.regions_in_bra = self.df_subdomains["NM_MICRO"].to_dict()
-
+                self.regions_in_names = self.df_subdomains["NM_MICRO"].to_dict()
+        else:
+            if self.subdomains == "Municip": #Save the names of cities for brasil (as the region is usually the code)
+                self.regions_in_codes = self.df_subdomains["CD_GEOCMU"].to_dict()
+            elif self.subdomains == "microreg":
+                self.regions_in_codes = self.df_subdomains["CD_GEOMI"].to_dict()
         
         #Outer regions (domain)
         #-------------------------
@@ -957,7 +961,80 @@ class Network:
 
         return mat, mat_normed, reg0, reg1
 
-    
+    def collect_move_mat(self, local_dir):
+        
+        # Try to get the matriz from usual name
+        name = "move_mat_"+self.domain+"_"+self.subdomains
+
+        np_load_old = np.load
+        np.load = lambda *a,**k: np_load_old(*a, allow_pickle=True, **k)
+
+        matfile = local_dir+name+'.csv'
+        if os.path.exists(matfile):    
+            mat = np.genfromtxt(matfile)
+            mat_normed = np.genfromtxt(local_dir+name+'_norm.csv')
+                    
+            #reg_names = np.load(local_dir+name+'_reg_names.npy')
+            filename = local_dir+name+"_reg_names.txt"
+            with open(filename) as f:
+                reg_names = f.read().splitlines()            
+        else:
+            print("Could not find this domain matrix, searching for Brasil data")
+            #Let check if we have a full brasil matriz available
+            if self.subdomains == "Municip":
+                name = "move_mat_Brasil_Municip"
+            elif self.subdomains == "microreg":
+                name = "move_mat_Brasil_microreg"
+            elif self.subdomains == "states":
+                name = "move_mat_Brasil_states"
+            else: 
+                print("Don't know how to collect this kind of subdomain", self.subdomains)
+                sys.exit()
+
+            matfile = local_dir+name+'.csv'
+            if os.path.exists(matfile):    
+                print("  Found a Brasil matrix! Calculating...this may take some time...")
+                mat_br = np.genfromtxt(matfile)  
+                filename = local_dir+name+"_reg_names.txt"
+                with open(filename) as f:
+                    reg_names = f.read().splitlines()
+            else:
+                print("Can't find Brasil matrix, please run mdyn_build_model.py first to generate the movement matrices")
+                print(" (run with the same parameter file and option -o 0!)")
+                sys.exit()
+
+            # now we need to extract from the matrix only the desired columns/lines
+            br_array = np.array(reg_names)
+            local_array = np.array(list(self.regions_in_codes.values()))
+            sorter = np.argsort(br_array)
+            pos = sorter[np.searchsorted(br_array, local_array, sorter=sorter)]
+            
+            #filter matrix
+            mat = mat_br[pos,:][: , pos]
+            if mat.shape[0] != len(self.regions_in):
+                print("Matriz build did not work propertly")
+                sys.exit()
+
+            mat_normed = mat / mat.sum(axis=0)
+
+            #Save to avoid processing this again
+            name = "move_mat_"+self.domain+"_"+self.subdomains
+            np.savetxt( local_dir+name+".csv", mat)
+            np.savetxt( local_dir+name+"_norm.csv", mat_normed)
+            #np.savetxt( day_data.local_dir+name+"_reg0.csv", day_data.reg0)
+            #np.savetxt( day_data.local_dir+name+"_reg1.csv", day_data.reg1)
+            #np.save( day_data.local_dir+name+"_reg_names.npy", network.regions)
+            reg=list(self.regions.values())
+            with open(local_dir+name+"_reg_names.txt", "w") as output:
+                for r in reg:
+                    output.write("%s\n" % r)
+
+            #print(len(pos), len(self.regions_in_codes), len(self.regions_in), len(br_array[pos]), mat_local.shape)
+            #reg_collect = reg_names.index(list(self.regions_in_codes.values()))
+            #print(reg_collect)
+
+        return mat, mat_normed, self.regions_in
+
     def load_pop(self):
         print("Loading regions' populations....", end="")
         #Population - inner regions

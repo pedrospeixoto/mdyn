@@ -538,7 +538,7 @@ class Map:
         #dataw[np.isnan(data)]=np.nan
         node_colors = data
         #print(node_colors)
-        node_sizes = [25 for i in range(N)]
+        node_sizes = [5 for i in range(N)]
 
         edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
         weights = np.array(weights)  

@@ -109,9 +109,9 @@ class MobileDynamics:
 
             np.savetxt( day_data.local_dir+name+".csv", day_data.tmat)
             np.savetxt( day_data.local_dir+name+"_norm.csv", day_data.tmat_norm)
-            np.savetxt( day_data.local_dir+name+"_reg0.csv", day_data.reg0)
-            np.savetxt( day_data.local_dir+name+"_reg1.csv", day_data.reg1)
-            np.save( day_data.local_dir+name+"_reg_names.npy", network.regions)
+            #np.savetxt( day_data.local_dir+name+"_reg0.csv", day_data.reg0)
+            #np.savetxt( day_data.local_dir+name+"_reg1.csv", day_data.reg1)
+            #np.save( day_data.local_dir+name+"_reg_names.npy", network.regions)
             reg=list(network.regions.values())
             with open(day_data.local_dir+name+"_reg_names.txt", "w") as output:
                 for r in reg:
@@ -134,21 +134,21 @@ class MobileDynamics:
             #Load data for this day
             day_str=day.strftime("%Y-%m-%d")
             #DayData(day_str, self.data_dir)
-            self.data.append(DayData(day_str, self.data_dir, load))
+            self.data.append(DayData(day_str, self.data_dir, self.network, load))
         
     def collect_move_mat(self, network):
 
         #Loop over days
         self.movemats = [] #List of matrices per day
         self.movemats_norm = [] #List of matrices per day
-        self.movemats_reg0 = [] #Regions t0 (depart from)
-        self.movemats_reg1 = [] #Regions t1 (arrive at)
+        #self.movemats_reg0 = [] #Regions t0 (depart from)
+        #self.movemats_reg1 = [] #Regions t1 (arrive at)
         self.movemats_reg_names = [] #Regions names
 
         self.days_all = [] #List of dates per day
         self.dates_dirs = [] #directory of day data
         
-        name = "move_mat_"+network.domain+"_"+network.subdomains
+        #name = "move_mat_"+network.domain+"_"+network.subdomains
 
         np_load_old = np.load
         np.load = lambda *a,**k: np_load_old(*a, allow_pickle=True, **k)
@@ -163,20 +163,15 @@ class MobileDynamics:
                 local_dir = self.data_dir+"dt="+sday+"/"
             elif self.data_format == "Parquet":
                 local_dir = self.data_dir+"date0="+sday+"/"
-            
-            try:
-                self.movemats.append(np.genfromtxt(local_dir+name+'.csv'))
-                self.movemats_norm.append(np.genfromtxt(local_dir+name+'_norm.csv'))
-                self.movemats_reg0.append(np.genfromtxt(local_dir+name+'_reg0.csv').astype(int))
-                self.movemats_reg1.append(np.genfromtxt(local_dir+name+'_reg1.csv').astype(int))
+
+            movemat, movemat_norm, names = network.collect_move_mat(local_dir) 
+            self.movemats.append(movemat)
+            self.movemats_norm.append(movemat_norm)
+            #self.movemats_reg0.append(np.genfromtxt(local_dir+name+'_reg0.csv').astype(int))
+            #self.movemats_reg1.append(np.genfromtxt(local_dir+name+'_reg1.csv').astype(int))
                 
-                #reg_names = np.load(local_dir+name+'_reg_names.npy')
-                filename = local_dir+name+"_reg_names.txt"
-                with open(filename) as f:
-                    reg_names = f.read().splitlines()            
-                self.movemats_reg_names.append(reg_names)
-                print("Loaded matrix for :", day )
-            except:
-                print("Please run mdyn_build_model.py first to generate the movement matrices")
-                print(" (run with the same parameter file!)")
-                sys.exit(1)
+            self.movemats_reg_names.append(names)
+            print("Loaded matrix for :", day )
+
+            return movemat, movemat_norm, names
+            
