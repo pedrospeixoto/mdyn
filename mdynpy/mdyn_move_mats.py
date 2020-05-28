@@ -63,7 +63,7 @@ def map_move_mats(mdyn, network, ipar):
             filename = mdyn.dump_dir+title.replace(" ", "_")+"_"+str(i).zfill(3)+".jpg"
         else:
             title = network.domain+" "+network.subdomains+" Network "
-            filename = mdyn.dump_dir+title.replace(" ", "_")+"_"+str(i).zfill(3)+".jpg"
+            filename = mdyn.dump_dir+title.replace(" ", "_")+str(i).zfill(3)+".jpg"
 
         title = title + day.strftime("%Y-%m-%d")+" "+dow
         

@@ -123,7 +123,7 @@ class MobileDynamics:
             #Store just useful data, not raw data
             self.data.append(day_data) 
 
-    def read_data(self, load):
+    def read_data(self, network, load):
         #Main dataframe list
 
         self.data = [] #List of dataframes per day
@@ -134,7 +134,7 @@ class MobileDynamics:
             #Load data for this day
             day_str=day.strftime("%Y-%m-%d")
             #DayData(day_str, self.data_dir)
-            self.data.append(DayData(day_str, self.data_dir, self.network, load))
+            self.data.append(DayData(day_str, self.data_dir, network, load))
         
     def collect_move_mat(self, network):
 
