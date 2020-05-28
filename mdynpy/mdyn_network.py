@@ -981,11 +981,11 @@ class Network:
         else:
             print("Could not find this domain matrix, searching for Brasil data")
             #Let check if we have a full brasil matriz available
-            if self.subdomains == "Municip":
+            if "unicip" in self.subdomains :
                 name = "move_mat_Brasil_Municip"
-            elif self.subdomains == "microreg":
+            elif "icroreg" in self.subdomains:
                 name = "move_mat_Brasil_microreg"
-            elif self.subdomains == "states":
+            elif  "states" in self.subdomains:
                 name = "move_mat_Brasil_states"
             else: 
                 print("Don't know how to collect this kind of subdomain", self.subdomains)
