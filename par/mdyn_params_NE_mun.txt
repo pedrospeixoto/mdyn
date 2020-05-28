@@ -9,7 +9,7 @@ domain_gran = "regiao"
 domain_shape = "maps/regioes_2010/regioes_2010_label"
 
 #Subdomain definitions
-subdomains = "Municipios"
+subdomains = "Municip"
 subdomains_gran = "NM_MUNICIP"
 subdomains_shape = "maps/br_municipios/br_mun_with_uf_region"
 
@@ -26,20 +26,26 @@ latlon_gran = 0.01 #granularity of lat long spacing
 load_domain = True #Load precomp structures
 
 
-#-----------------------------
-# Mobile Data Set Definition
-#-----------------------------
-
 #Initialize mobile data and load data to dataframe
 data_format = "Parquet" #"ORC"
-data_dir = "data/triples_br_2020_04_17_date/all/"
+data_dir = "data/triples_br_2020_05_20_date/all/"
+#data_dir = "data/triples_br_2020_04_17_proc/all/state0=São Paulo/"
+#data_dir = "data/triples_br_2020_04_17_proc/SP"
 date_ini = "2020-03-01"
-date_end = "2020-04-14"
+date_end = "2020-03-01"
 load_data = True
 
 #Number of main sources for plots
 num_source = 1
+#Isolation index
+isoind_file = "inloco/Social Distancing Index by Cities2020-05-21.csv"
 
+
+#-----------------------------
+# Slicing/Zoom
+#------------------------------
+        #Flag, lats, lons, drawsubdomains, label
+zoom = [False, -22.8, -24.2, -47.8,-45.6, True, ""  ]
 
 
 #-----------------------------

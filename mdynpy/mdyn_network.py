@@ -230,7 +230,7 @@ class Network:
             if self.subdomains == "Municip": #Save the names of cities for brasil (as the region is usually the code)
                 self.regions_in_codes = self.df_subdomains["CD_GEOCMU"].to_dict()
             elif self.subdomains == "microreg":
-                self.regions_in_codes = self.df_subdomains["CD_GEOMI"].to_dict()
+                self.regions_in_codes = self.df_subdomains["CD_GEOCMI"].to_dict()
         
         #Outer regions (domain)
         #-------------------------
