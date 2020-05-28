@@ -10,9 +10,9 @@ library(rgdal)
 library(tidyverse)
 library(progress)
 library(lubridate)
-library(doParallel)
-library(foreach)
-library(doSNOW)
+#library(doParallel)
+#library(foreach)
+#library(doSNOW)
 
 #Folder with raw matrices
 fm <- "/storage/inloco/data" #Root folder
@@ -20,7 +20,7 @@ dir_fm <- list.dirs(fm,recursive = FALSE) #List directories in root folder
 fm <- dir_fm[grepl("data_br_full",dir_fm,fixed = TRUE)] #Find directory containing "data_br_full" in the name
 
 #Folder to save processed files
-fsave <- "/storage/Shiny/Mobilidade/www"
+fsave <- "/storage/Shiny/mobilidade/www"
 
 #Find dates for which we have data
 fdates <- list.dirs(fm,recursive = FALSE) #List folders of fm directory
@@ -48,32 +48,32 @@ for(s in unique(shp$Nome_UF))
 saveRDS(object = shp,file = paste(fsave,"/shp_brazil.rds",sep = "")) #Save shapefile
 shp$key <- paste(shp$Nome_Munic,"-",shp$UF,sdp = "")
 names <- shp$key #Name of collums of matrix
-center_begin <- data.frame(shp) %>% select(key,lonc,latc) #Center of each city
-names(center_begin) <- c("begin","lonc_begin","latc_begin") #Change names to merge below
-center_end <- data.frame(shp) %>% select(key,lonc,latc) #Center of each city
-names(center_end) <- c("end","lonc_end","latc_end") #Change names to merge below
+center_begin <- data.frame(shp) %>% select(key,lonc,latc,CD_GEOCMU) #Center of each city
+names(center_begin) <- c("begin","lonc_begin","latc_begin","begin_code") #Change names to merge below
+center_end <- data.frame(shp) %>% select(key,lonc,latc,CD_GEOCMU) #Center of each city
+names(center_end) <- c("end","lonc_end","latc_end","end_code") #Change names to merge below
 
 if(length(fdates) == 0)
   cat("Mobility matrix are all up to date!")
 if(length(fdates) > 0){
   #Progress bar
-  pb <- progress_bar$new(
-    format = ":letter [:bar] :elapsed | eta: :eta",
-    total = length(fdates),
-    width = 60)
-  progress_letter <- paste(round(100*c(1:length(fdates))/length(fdates),2),"%")
-  progress <- function(n){
-    pb$tick(tokens = list(letter = progress_letter[n]))
-  } 
-  opts <- list(progress = progress)
-  k <- 1
-  #Register parallel
-  cl <- makeSOCKcluster(24)
-  registerDoSNOW(cl)
-  
-  a <- foreach(d = fdates,.options.snow = opts,.packages = c("tidyverse","data.table")) %dopar% { #For each day
-    pb$tick(tokens = list(letter = progress_letter[k]))
-    k <- k + 1
+  # pb <- progress_bar$new(
+  #   format = ":letter [:bar] :elapsed | eta: :eta",
+  #   total = length(fdates),
+  #   width = 60)
+  # progress_letter <- paste(round(100*c(1:length(fdates))/length(fdates),2),"%")
+  # progress <- function(n){
+  #   pb$tick(tokens = list(letter = progress_letter[n]))
+  # } 
+  # opts <- list(progress = progress)
+  # k <- 1
+  # #Register parallel
+  # cl <- makeSOCKcluster(24)
+  # registerDoSNOW(cl)
+  # 
+  for(d in fdates){#,.options.snow = opts,.packages = c("tidyverse","data.table")) %dopar% { #For each day
+    #pb$tick(tokens = list(letter = progress_letter[k]))
+    #k <- k + 1
     file_d <- paste(fm,"/date0=",d,"/move_mat_Brasil_Municip.csv",sep = "") #Path to matrix
     if("move_mat_Brasil_Municip.csv" %in% list.files(paste(fm,"/date0=",d,"/",sep = ""))){
       mat <- as.matrix(fread(file_d)) #Open matrix
@@ -86,14 +86,16 @@ if(length(fdates) > 0){
       mat <- merge(mat,center_end) #Find center of end
       mat <- mat %>% filter(end != begin) #Erase end = begin
       mat$key <- paste(mat$begin,"-->",mat$end) #Set key as the path
-      mat <- mat %>% select(key,end,begin,w,lonc_begin,latc_begin,lonc_end,latc_end) %>% 
-        gather("side_lng","lng",-key,-w,-begin,-end,-latc_begin,-latc_end) %>%
-        gather("side_lat","lat",-side_lng,-key,-w,-begin,-end,-lng) %>% unique() #One line for each pair lat,long
-      mat$side <- unlist(lapply(strsplit(mat$side_lat,"_"),function(x) x[[2]])) #Find if a pair is a begin or end
+      mat <- mat %>% select(key,end_code,begin_code,w,lonc_begin,latc_begin,lonc_end,latc_end) %>% 
+        gather("side_lng","lng",-key,-w,-begin_code,-end_code,-latc_begin,-latc_end) %>%
+        gather("side_lat","lat",-side_lng,-key,-w,-begin_code,-end_code,-lng) %>% unique() #One line for each pair lat,long
+      mat$side_lat <- unlist(lapply(strsplit(mat$side_lat,"_"),function(x) x[[2]])) #Find if lat is a begin or end
+      mat$side_lng <- unlist(lapply(strsplit(mat$side_lng,"_"),function(x) x[[2]])) #Find if lgn is a begin or end
+      mat <- mat %>% filter(side_lng == side_lat) #Only sides which are equal
+      mat$side <- mat$side_lat #Get side
       mat$side_lng <- NULL #Erase
       mat$side_lat <- NULL #Erase
-      mat$end <- unlist(lapply(strsplit(x = as.character(mat$end),split = "-"),function(x) x[[1]])) #Erase UF
-      mat$begin <- unlist(lapply(strsplit(x = as.character(mat$begin),split = "-"),function(x) x[[1]])) #Erase UF
+      names(mat)[2:3] <- c("end","begin") #Rename
       saveRDS(object = mat,file = paste(fsave,"/graph_",d,".rds",sep = "")) #save
       rm(mat,file_d)
     }
@@ -105,7 +107,7 @@ if(length(fdates) > 0){
   dates <- data.frame("min" = min(ymd(fdates_done)),"max" = max(ymd(fdates_done))) #Min and Max date
   saveRDS(dates,paste(fsave,"/dates.rds",sep = "")) #Save
   cat("Done!")
-  stopCluster(cl)
+  #stopCluster(cl)
 }
 
 
