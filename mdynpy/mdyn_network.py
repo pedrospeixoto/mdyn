@@ -1019,6 +1019,7 @@ class Network:
 
             #Save to avoid processing this again
             name = "move_mat_"+self.domain+"_"+self.subdomains
+            print("..saving matrix for future use : " , name)
             np.savetxt( local_dir+name+".csv", mat)
             np.savetxt( local_dir+name+"_norm.csv", mat_normed)
             #np.savetxt( day_data.local_dir+name+"_reg0.csv", day_data.reg0)
