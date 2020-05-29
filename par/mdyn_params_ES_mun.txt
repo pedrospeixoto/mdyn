@@ -47,6 +47,13 @@ isoind_file = "data/isol_br/Social Distancing Index by Cities2020-05-27.csv"
 num_source = 1
 
 #-----------------------------
+# Slicing/Zoom
+#------------------------------
+        #Flag, lats, lons, drawsubdomains, label
+zoom = [False, -22.8, -24.2, -47.8,-45.6, True, ""  ]
+
+
+#-----------------------------
 # Simulation configuration
 #------------------------------
 
