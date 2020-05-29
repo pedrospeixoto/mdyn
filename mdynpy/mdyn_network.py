@@ -16,7 +16,8 @@ from datetime import timedelta
 import geopy.distance
 import geopandas as gpd
 
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Point, Polygon, MultiPolygon
+
 
 import concurrent.futures
 
@@ -139,6 +140,19 @@ class Network:
 
                 # add names of neighbors as NEIGHBORS value
                 df.at[index, "NEIGHBORS"] = ",".join(neighbors)
+
+            #Romome island from Espiro Santo or other small islands
+            for index, reg in df.iterrows():
+                
+                poly=reg.geometry
+                if poly.geom_type == 'MultiPolygon':           
+                    #Remove small islands
+                    geotmp=reg.geometry
+                    df.at[index, "geometry"] = \
+                        MultiPolygon([P for P in poly if P.area > 0.007])
+                    if geotmp != df.at[index, "geometry"]:
+                        print(reg)
+
             print(df)
             #Save modified shape file for future use
             print("Done. Saving domain shape structure for future use")
@@ -170,6 +184,18 @@ class Network:
                     maxpoly=max(poly, key=lambda a: a.area)
                     df.at[index, "lonc"] = maxpoly.centroid.x
                     df.at[index, "latc"] = maxpoly.centroid.y
+                    #Remove small islands of Espirito Santo
+                    #if mun.NM_MUNICIP == "VITÓRIA":
+                    #    print("Vitoria", maxpoly.area)
+                    #    for p in poly:
+                    #        print(p.area)
+                    #    #print(df.at[index, "geometry"])
+                    #    df.at[index, "geometry"] = \
+                    #        MultiPolygon([P for P in poly if P.area > 0.007])
+                    #    print("cutting out islands")
+                    #    for p in df.at[index, "geometry"]:
+                    #        print(p.area)
+                        #print(df.at[index, "geometry"])    
                 else:
                     df.at[index, "lonc"] = poly.centroid.x
                     df.at[index, "latc"] = poly.centroid.y

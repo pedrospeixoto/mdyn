@@ -54,6 +54,11 @@ class Map:
         
         fwidth = width/factor
         fheight = height/factor
+        #print(fwidth, fheight)
+        if fwidth < fheight: #we want more square like figures
+            #print(fwidth, fheight)
+            fwidth = fheight
+            width = height
         if fwidth > 25: #Brasil plot - very large!
             #print(fwidth, fheight)
             fwidth = fwidth/5
@@ -61,8 +66,8 @@ class Map:
             width = width*1.1
             height = height*1.1
             #print(fwidth, fheight)
-        if fwidth > 15: #Bug region plot, but not all brasil
-            #print(fwidth, fheight)
+        if fwidth > 15 or fheight > 15: #Bug region plot, but not all brasil
+            print(fwidth, fheight)
             fwidth = fwidth/3
             fheight = fheight/3
             width = width*1.05
@@ -70,11 +75,22 @@ class Map:
             #print(fwidth, fheight)
         if fwidth < 5: #small region plot, zoom
             #print(fwidth, fheight)
+            fwidth = fwidth*2
+            fheight = fheight*2
+            width = width*1.02
+            height = height*1.02
+            #print(fwidth, fheight)
+
+        if fwidth < 3: #small region plot, zoom
+            #print(fwidth, fheight)
             fwidth = fwidth*4
             fheight = fheight*4
             width = width*1.05
             height = height*1.05
             #print(fwidth, fheight)
+        
+        
+
         fig, ax = plt.subplots( figsize=(fwidth, fheight))
 
         #Define map projection
