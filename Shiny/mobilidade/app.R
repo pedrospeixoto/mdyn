@@ -63,9 +63,11 @@ server <- function(input, output) {
                                                     choices = list("Com entrada e saída de todas as cidades" = F, 
                                                                    "Escolher cidades com entrada e saída" = T), 
                                                     selected = F))),
-                     fluidRow(column(5,uiOutput("cidades")),
-                              column(5,uiOutput("cidades_sai"))),
-                     fluidRow(column(12,p("Dependendo da sua escolha, o processamento pode demorar",style = "color:red")))))),
+                     fluidRow(column(4,uiOutput("cidades")),
+                              column(4,uiOutput("cidades_sai")),
+                              column(4,actionButton("process", "Processar"))),
+                     fluidRow(column(12,p("Escolha os parâmetros e clique em Processar. Dependendo da sua escolha, o processamento pode demorar",
+                                          style = "color:red")))))),
                      fluidRow(addSpinner(leafletOutput(outputId = "map",height=650),spin = "circle", color = "#E41A1C")),
                      br(),
                      br(),
@@ -160,7 +162,7 @@ server <- function(input, output) {
   })
   
   #Input map
-   observe({
+  observeEvent(input$process,{
      if(!is.null(input$date) & !is.null(input$state) & !is.null(input$type) & (!is.null(input$cidades)) | (!is.null(input$cidades_ent) & !is.null(!is.null(input$cidades_sai)))){
        withProgress(message = 'Gerando mapa...',value = 0,{
        file <- paste("./www/graph_",input$date,".rds",sep = "")
