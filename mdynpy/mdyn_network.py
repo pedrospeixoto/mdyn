@@ -966,8 +966,8 @@ class Network:
         # Try to get the matriz from usual name
         name = "move_mat_"+self.domain+"_"+self.subdomains
 
-        np_load_old = np.load
-        np.load = lambda *a,**k: np_load_old(*a, allow_pickle=True, **k)
+        #np_load_old = np.load
+        #np.load = lambda *a,**k: np_load_old(*a, allow_pickle=True, **k)
 
         matfile = local_dir+name+'.csv'
         if os.path.exists(matfile):    

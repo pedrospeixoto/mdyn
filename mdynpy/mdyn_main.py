@@ -150,8 +150,8 @@ class MobileDynamics:
         
         #name = "move_mat_"+network.domain+"_"+network.subdomains
 
-        np_load_old = np.load
-        np.load = lambda *a,**k: np_load_old(*a, allow_pickle=True, **k)
+        #np_load_old = np.load
+        #np.load = lambda *a,**k: np_load_old(*a, allow_pickle=True, **k)
 
         #Loop over folders with days 
 
