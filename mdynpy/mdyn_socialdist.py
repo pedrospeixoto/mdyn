@@ -121,7 +121,7 @@ class socialdist:
         print("Filtering buggy cities from isolation index...")
         for city in cities:
             ncity = df_cities.loc[df_cities['name'] == city, 'count'].values[0] 
-            if ncity < ndates-5 :
+            if ncity < ndates-20 :
                 print("Removing city:", city, ncity)
                 df = df[df['reg_name'] != city]      
         
