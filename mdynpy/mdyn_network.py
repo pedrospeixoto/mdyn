@@ -143,15 +143,14 @@ class Network:
 
             #Romome island from Espiro Santo or other small islands
             for index, reg in df.iterrows():
-                
                 poly=reg.geometry
                 if poly.geom_type == 'MultiPolygon':           
                     #Remove small islands
                     geotmp=reg.geometry
                     df.at[index, "geometry"] = \
                         MultiPolygon([P for P in poly if P.area > 0.007])
-                    if geotmp != df.at[index, "geometry"]:
-                        print(reg)
+                    #if geotmp != df.at[index, "geometry"]:
+                    #    print(reg)
 
             print(df)
             #Save modified shape file for future use
