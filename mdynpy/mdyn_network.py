@@ -146,7 +146,7 @@ class Network:
                 poly=reg.geometry
                 if poly.geom_type == 'MultiPolygon':           
                     #Remove small islands
-                    geotmp=reg.geometry
+                    #geotmp=reg.geometry
                     df.at[index, "geometry"] = \
                         MultiPolygon([P for P in poly if P.area > 0.007]) #This number is important!
                     #if geotmp != df.at[index, "geometry"]:
