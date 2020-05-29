@@ -73,15 +73,15 @@ class Map:
             width = width*1.05
             height = height*1.05
             #print(fwidth, fheight)
-        if fwidth < 5: #small region plot, zoom
+        if fwidth < 5 and fwidth > 3 : #small region plot, zoom a bit
             #print(fwidth, fheight)
-            fwidth = fwidth*2
-            fheight = fheight*2
+            fwidth = fwidth*1.5
+            fheight = fheight*1.5
             width = width*1.02
             height = height*1.02
             #print(fwidth, fheight)
 
-        if fwidth < 3: #small region plot, zoom
+        if fwidth < 3: #small region plot, zoom a lot
             #print(fwidth, fheight)
             fwidth = fwidth*4
             fheight = fheight*4
@@ -554,7 +554,8 @@ class Map:
         #dataw[np.isnan(data)]=np.nan
         node_colors = data
         #print(node_colors)
-        node_sizes = [5 for i in range(N)]
+        
+        node_sizes = [10 for i in range(N)]
 
         edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
         weights = np.array(weights)  
