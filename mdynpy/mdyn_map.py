@@ -595,6 +595,8 @@ class Map:
         #cbarnodes.set_ticks(np.array(range(len(nodelimits)))/len(edlimits))
         #cbarnodes.ax.set_xticklabels([ 'Min State Isolation', 'Isolation Index', 'Max State Isolation']) 
         #cbarnodes.ax.set_xticklabels(nodelimits) 
+        textstr = "Source: IME-USP/InLoco"
+        plt.gcf().text(0.02, 0.02, textstr, fontsize=10)
 
         plt.tight_layout() 
         plt.savefig(filename, dpi=300)   

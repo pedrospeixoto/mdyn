@@ -59,7 +59,7 @@ def map_move_mats(mdyn, network, ipar):
         #Do map
         dow=mex.weekdays[day.weekday()]
         if ipar.zoom[0]:
-            title = network.domain+" "+network.subdomains+" Network Zoom "+ipar.zoom[6]
+            title = network.domain+" "+network.subdomains+" Network Zoom "+ipar.zoom[6]+" "
             filename = mdyn.dump_dir+title.replace(" ", "_")+"_"+str(i).zfill(3)+".jpg"
         else:
             title = network.domain+" "+network.subdomains+" Network "
