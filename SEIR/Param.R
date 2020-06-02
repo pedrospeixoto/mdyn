@@ -7,8 +7,6 @@
 library(lubridate)
 
 #Parameters
-#wd <- "/home/diego/" #Working directory where the SEIR folder is
-wd <- paste(getwd(),"/",sep = "")
 cores <- 24 #Number of cores to use in parallel computation
 pos <- "teste" #What to add at the end of all output files
 seed <- rnorm(1,10,100000) #Seed

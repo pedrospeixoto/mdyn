@@ -1,0 +1,646 @@
+DRS;Regiao;Municipio
+I;Grande São Paulo;ARUJÁ
+I;Grande São Paulo;BARUERI
+I;Grande São Paulo;BIRITIBA-MIRIM
+I;Grande São Paulo;CAIEIRAS
+I;Grande São Paulo;CAJAMAR
+I;Grande São Paulo;CARAPICUÍBA
+I;Grande São Paulo;COTIA
+I;Grande São Paulo;DIADEMA
+I;Grande São Paulo;EMBU DAS ARTES
+I;Grande São Paulo;EMBU-GUAÇU
+I;Grande São Paulo;FERRAZ DE VASCONCELOS
+I;Grande São Paulo;FRANCISCO MORATO
+I;Grande São Paulo;FRANCO DA ROCHA
+I;Grande São Paulo;GUARAREMA
+I;Grande São Paulo;GUARULHOS
+I;Grande São Paulo;ITAPECERICA DA SERRA
+I;Grande São Paulo;ITAPEVI
+I;Grande São Paulo;ITAQUAQUECETUBA
+I;Grande São Paulo;JANDIRA
+I;Grande São Paulo;JUQUITIBA
+I;Grande São Paulo;MAIRIPORÃ
+I;Grande São Paulo;MAUÁ
+I;Grande São Paulo;MOGI DAS CRUZES
+I;Grande São Paulo;OSASCO
+I;Grande São Paulo;PIRAPORA DO BOM JESUS
+I;Grande São Paulo;POÁ
+I;Grande São Paulo;RIBEIRÃO PIRES
+I;Grande São Paulo;RIO GRANDE DA SERRA
+I;Grande São Paulo;SALESÓPOLIS
+I;Grande São Paulo;SANTA ISABEL
+I;Grande São Paulo;SANTANA DE PARNAÍBA
+I;Grande São Paulo;SANTO ANDRÉ
+I;Grande São Paulo;SÃO BERNARDO DO CAMPO
+I;Grande São Paulo;SÃO CAETANO DO SUL
+I;Grande São Paulo;SÃO LOURENÇO DA SERRA
+I;Grande São Paulo;SÃO PAULO
+I;Grande São Paulo;SUZANO
+I;Grande São Paulo;TABOÃO DA SERRA
+I;Grande São Paulo;VARGEM GRANDE PAULISTA
+II;Araçatuba;ALTO ALEGRE
+II;Araçatuba;ANDRADINA
+II;Araçatuba;ARAÇATUBA
+II;Araçatuba;AURIFLAMA
+II;Araçatuba;AVANHANDAVA
+II;Araçatuba;BARBOSA
+II;Araçatuba;BENTO DE ABREU
+II;Araçatuba;BILAC
+II;Araçatuba;BIRIGUI
+II;Araçatuba;BRAÚNA
+II;Araçatuba;BREJO ALEGRE
+II;Araçatuba;BURITAMA
+II;Araçatuba;CASTILHO
+II;Araçatuba;CLEMENTINA
+II;Araçatuba;COROADOS
+II;Araçatuba;GABRIEL MONTEIRO
+II;Araçatuba;GLICÉRIO
+II;Araçatuba;GUARAÇAÍ
+II;Araçatuba;GUARARAPES
+II;Araçatuba;GUZOLÂNDIA
+II;Araçatuba;ILHA SOLTEIRA
+II;Araçatuba;ITAPURA
+II;Araçatuba;LAVÍNIA
+II;Araçatuba;LOURDES
+II;Araçatuba;LUIZIÂNIA
+II;Araçatuba;MIRANDÓPOLIS
+II;Araçatuba;MURUTINGA DO SUL
+II;Araçatuba;NOVA CASTILHO
+II;Araçatuba;NOVA INDEPENDÊNCIA
+II;Araçatuba;NOVA LUZITÂNIA
+II;Araçatuba;PENÁPOLIS
+II;Araçatuba;PEREIRA BARRETO
+II;Araçatuba;PIACATU
+II;Araçatuba;RUBIÁCEA
+II;Araçatuba;SANTO ANTÔNIO DO ARACANGUÁ
+II;Araçatuba;SANTÓPOLIS DO AGUAPEÍ
+II;Araçatuba;SUD MENNUCCI
+II;Araçatuba;SUZANÁPOLIS
+II;Araçatuba;TURIÚBA
+II;Araçatuba;VALPARAÍSO
+III;Araraquara;AMÉRICO BRASILIENSE
+III;Araraquara;ARARAQUARA
+III;Araraquara;BOA ESPERANÇA DO SUL
+III;Araraquara;BORBOREMA
+III;Araraquara;CÂNDIDO RODRIGUES
+III;Araraquara;DESCALVADO
+III;Araraquara;DOBRADA
+III;Araraquara;DOURADO
+III;Araraquara;GAVIÃO PEIXOTO
+III;Araraquara;IBATÉ
+III;Araraquara;IBITINGA
+III;Araraquara;ITÁPOLIS
+III;Araraquara;MATÃO
+III;Araraquara;MOTUCA
+III;Araraquara;NOVA EUROPA
+III;Araraquara;PORTO FERREIRA
+III;Araraquara;RIBEIRÃO BONITO
+III;Araraquara;RINCÃO
+III;Araraquara;SANTA ERNESTINA
+III;Araraquara;SANTA LÚCIA
+III;Araraquara;SÃO CARLOS
+III;Araraquara;TABATINGA
+III;Araraquara;TAQUARITINGA
+III;Araraquara;TRABIJU
+IV;Baixada Santista;BERTIOGA
+IV;Baixada Santista;CUBATÃO
+IV;Baixada Santista;GUARUJÁ
+IV;Baixada Santista;ITANHAÉM
+IV;Baixada Santista;MONGAGUÁ
+IV;Baixada Santista;PERUÍBE
+IV;Baixada Santista;PRAIA GRANDE
+IV;Baixada Santista;SANTOS
+IV;Baixada Santista;SÃO VICENTE
+V;Barretos;ALTAIR
+V;Barretos;BARRETOS
+V;Barretos;BEBEDOURO
+V;Barretos;CAJOBI
+V;Barretos;COLINA
+V;Barretos;COLÔMBIA
+V;Barretos;GUAÍRA
+V;Barretos;GUARACI
+V;Barretos;JABORANDI
+V;Barretos;MONTE AZUL PAULISTA
+V;Barretos;OLÍMPIA
+V;Barretos;SEVERÍNIA
+V;Barretos;TAIAÇU
+V;Barretos;TAIÚVA
+V;Barretos;TAQUARAL
+V;Barretos;TERRA ROXA
+V;Barretos;VIRADOURO
+V;Barretos;VISTA ALEGRE DO ALTO
+VI;Bauru;ÁGUAS DE SANTA BÁRBARA
+VI;Bauru;AGUDOS
+VI;Bauru;ANHEMBI
+VI;Bauru;ARANDU
+VI;Bauru;AREALVA
+VI;Bauru;AREIÓPOLIS
+VI;Bauru;AVAÍ
+VI;Bauru;AVARÉ
+VI;Bauru;BALBINOS
+VI;Bauru;BARÃO DE ANTONINA
+VI;Bauru;BARIRI
+VI;Bauru;BARRA BONITA
+VI;Bauru;BAURU
+VI;Bauru;BOCAINA
+VI;Bauru;BOFETE
+VI;Bauru;BORACÉIA
+VI;Bauru;BOREBI
+VI;Bauru;BOTUCATU
+VI;Bauru;BROTAS
+VI;Bauru;CABRÁLIA PAULISTA
+VI;Bauru;CAFELÂNDIA
+VI;Bauru;CERQUEIRA CÉSAR
+VI;Bauru;CONCHAS
+VI;Bauru;CORONEL MACEDO
+VI;Bauru;DOIS CÓRREGOS
+VI;Bauru;DUARTINA
+VI;Bauru;FARTURA
+VI;Bauru;GETULINA
+VI;Bauru;GUAIÇARA
+VI;Bauru;IACANGA
+VI;Bauru;IARAS
+VI;Bauru;IGARAÇU DO TIETÊ
+VI;Bauru;ITAÍ
+VI;Bauru;ITAJU
+VI;Bauru;ITAPORANGA
+VI;Bauru;ITAPUÍ
+VI;Bauru;ITATINGA
+VI;Bauru;JAÚ
+VI;Bauru;LARANJAL PAULISTA
+VI;Bauru;LENÇÓIS PAULISTA
+VI;Bauru;LINS
+VI;Bauru;LUCIANÓPOLIS
+VI;Bauru;MACATUBA
+VI;Bauru;MANDURI
+VI;Bauru;MINEIROS DO TIETÊ
+VI;Bauru;PARANAPANEMA
+VI;Bauru;PARDINHO
+VI;Bauru;PAULISTÂNIA
+VI;Bauru;PEDERNEIRAS
+VI;Bauru;PEREIRAS
+VI;Bauru;PIRAJU
+VI;Bauru;PIRAJUÍ
+VI;Bauru;PIRATININGA
+VI;Bauru;PONGAÍ
+VI;Bauru;PORANGABA
+VI;Bauru;PRATÂNIA
+VI;Bauru;PRESIDENTE ALVES
+VI;Bauru;PROMISSÃO
+VI;Bauru;REGINÓPOLIS
+VI;Bauru;SABINO
+VI;Bauru;SÃO MANUEL
+VI;Bauru;SARUTAIÁ
+VI;Bauru;TAGUAÍ
+VI;Bauru;TAQUARITUBA
+VI;Bauru;TEJUPÁ
+VI;Bauru;TORRE DE PEDRA
+VI;Bauru;TORRINHA
+VI;Bauru;URU
+VII;Campinas;ÁGUAS DE LINDÓIA
+VII;Campinas;AMERICANA
+VII;Campinas;AMPARO
+VII;Campinas;ARTUR NOGUEIRA
+VII;Campinas;ATIBAIA
+VII;Campinas;BOM JESUS DOS PERDÕES
+VII;Campinas;BRAGANÇA PAULISTA
+VII;Campinas;CABREÚVA
+VII;Campinas;CAMPINAS
+VII;Campinas;CAMPO LIMPO PAULISTA
+VII;Campinas;COSMÓPOLIS
+VII;Campinas;HOLAMBRA
+VII;Campinas;HORTOLÂNDIA
+VII;Campinas;INDAIATUBA
+VII;Campinas;ITATIBA
+VII;Campinas;ITUPEVA
+VII;Campinas;JAGUARIÚNA
+VII;Campinas;JARINU
+VII;Campinas;JOANÓPOLIS
+VII;Campinas;JUNDIAÍ
+VII;Campinas;LINDÓIA
+VII;Campinas;LOUVEIRA
+VII;Campinas;MONTE ALEGRE DO SUL
+VII;Campinas;MONTE MOR
+VII;Campinas;MORUNGABA
+VII;Campinas;NAZARÉ PAULISTA
+VII;Campinas;NOVA ODESSA
+VII;Campinas;PAULÍNIA
+VII;Campinas;PEDRA BELA
+VII;Campinas;PEDREIRA
+VII;Campinas;PINHALZINHO
+VII;Campinas;PIRACAIA
+VII;Campinas;SANTA BÁRBARA D'OESTE
+VII;Campinas;SANTO ANTÔNIO DE POSSE
+VII;Campinas;SERRA NEGRA
+VII;Campinas;SOCORRO
+VII;Campinas;SUMARÉ
+VII;Campinas;TUIUTI
+VII;Campinas;VALINHOS
+VII;Campinas;VARGEM
+VII;Campinas;VÁRZEA PAULISTA
+VII;Campinas;VINHEDO
+VIII;Franca;ARAMINA
+VIII;Franca;BURITIZAL
+VIII;Franca;CRISTAIS PAULISTA
+VIII;Franca;FRANCA
+VIII;Franca;GUARÁ
+VIII;Franca;IGARAPAVA
+VIII;Franca;IPUÃ
+VIII;Franca;ITIRAPUÃ
+VIII;Franca;ITUVERAVA
+VIII;Franca;JERIQUARA
+VIII;Franca;MIGUELÓPOLIS
+VIII;Franca;MORRO AGUDO
+VIII;Franca;NUPORANGA
+VIII;Franca;ORLÂNDIA
+VIII;Franca;PATROCÍNIO PAULISTA
+VIII;Franca;PEDREGULHO
+VIII;Franca;RESTINGA
+VIII;Franca;RIBEIRÃO CORRENTE
+VIII;Franca;RIFAINA
+VIII;Franca;SALES OLIVEIRA
+VIII;Franca;SÃO JOAQUIM DA BARRA
+VIII;Franca;SÃO JOSÉ DA BELA VISTA
+IX;Marília;ADAMANTINA
+IX;Marília;ÁLVARO DE CARVALHO
+IX;Marília;ALVINLÂNDIA
+IX;Marília;ARCO-ÍRIS
+IX;Marília;ASSIS
+IX;Marília;BASTOS
+IX;Marília;BERNARDINO DE CAMPOS
+IX;Marília;BORÁ
+IX;Marília;CAMPOS NOVOS PAULISTA
+IX;Marília;CÂNDIDO MOTA
+IX;Marília;CANITAR
+IX;Marília;CHAVANTES
+IX;Marília;CRUZÁLIA
+IX;Marília;ECHAPORÃ
+IX;Marília;ESPÍRITO SANTO DO TURVO
+IX;Marília;FERNÃO
+IX;Marília;FLÓRIDA PAULISTA
+IX;Marília;FLORÍNEA
+IX;Marília;GÁLIA
+IX;Marília;GARÇA
+IX;Marília;GUAIMBÊ
+IX;Marília;GUARANTÃ
+IX;Marília;HERCULÂNDIA
+IX;Marília;IACRI
+IX;Marília;IBIRAREMA
+IX;Marília;INÚBIA PAULISTA
+IX;Marília;IPAUSSU
+IX;Marília;JÚLIO MESQUITA
+IX;Marília;LUCÉLIA
+IX;Marília;LUPÉRCIO
+IX;Marília;LUTÉCIA
+IX;Marília;MARACAÍ
+IX;Marília;MARIÁPOLIS
+IX;Marília;MARÍLIA
+IX;Marília;OCAUÇU
+IX;Marília;ÓLEO
+IX;Marília;ORIENTE
+IX;Marília;OSCAR BRESSANE
+IX;Marília;OSVALDO CRUZ
+IX;Marília;OURINHOS
+IX;Marília;PACAEMBU
+IX;Marília;PALMITAL
+IX;Marília;PARAGUAÇU PAULISTA
+IX;Marília;PARAPUÃ
+IX;Marília;PEDRINHAS PAULISTA
+IX;Marília;PLATINA
+IX;Marília;POMPÉIA
+IX;Marília;PRACINHA
+IX;Marília;QUEIROZ
+IX;Marília;QUINTANA
+IX;Marília;RIBEIRÃO DO SUL
+IX;Marília;RINÓPOLIS
+IX;Marília;SAGRES
+IX;Marília;SALMOURÃO
+IX;Marília;SALTO GRANDE
+IX;Marília;SANTA CRUZ DO RIO PARDO
+IX;Marília;SÃO PEDRO DO TURVO
+IX;Marília;TARUMÃ
+IX;Marília;TIMBURI
+IX;Marília;TUPÃ
+IX;Marília;UBIRAJARA
+IX;Marília;VERA CRUZ
+X;Piracicaba;ÁGUAS DE SÃO PEDRO
+X;Piracicaba;ANALÂNDIA
+X;Piracicaba;ARARAS
+X;Piracicaba;CAPIVARI
+X;Piracicaba;CHARQUEADA
+X;Piracicaba;CONCHAL
+X;Piracicaba;CORDEIRÓPOLIS
+X;Piracicaba;CORUMBATAÍ
+X;Piracicaba;ELIAS FAUSTO
+X;Piracicaba;ENGENHEIRO COELHO
+X;Piracicaba;IPEÚNA
+X;Piracicaba;IRACEMÁPOLIS
+X;Piracicaba;ITIRAPINA
+X;Piracicaba;LEME
+X;Piracicaba;LIMEIRA
+X;Piracicaba;MOMBUCA
+X;Piracicaba;PIRACICABA
+X;Piracicaba;PIRASSUNUNGA
+X;Piracicaba;RAFARD
+X;Piracicaba;RIO CLARO
+X;Piracicaba;RIO DAS PEDRAS
+X;Piracicaba;SALTINHO
+X;Piracicaba;SANTA CRUZ DA CONCEIÇÃO
+X;Piracicaba;SANTA GERTRUDES
+X;Piracicaba;SANTA MARIA DA SERRA
+X;Piracicaba;SÃO PEDRO
+XI;Presidente Prudente;ALFREDO MARCONDES
+XI;Presidente Prudente;ÁLVARES MACHADO
+XI;Presidente Prudente;ANHUMAS
+XI;Presidente Prudente;CAIABU
+XI;Presidente Prudente;CAIUÁ
+XI;Presidente Prudente;DRACENA
+XI;Presidente Prudente;EMILIANÓPOLIS
+XI;Presidente Prudente;ESTRELA DO NORTE
+XI;Presidente Prudente;EUCLIDES DA CUNHA PAULISTA
+XI;Presidente Prudente;FLORA RICA
+XI;Presidente Prudente;IEPÊ
+XI;Presidente Prudente;INDIANA
+XI;Presidente Prudente;IRAPURU
+XI;Presidente Prudente;JOÃO RAMALHO
+XI;Presidente Prudente;JUNQUEIRÓPOLIS
+XI;Presidente Prudente;MARABÁ PAULISTA
+XI;Presidente Prudente;MARTINÓPOLIS
+XI;Presidente Prudente;MIRANTE DO PARANAPANEMA
+XI;Presidente Prudente;MONTE CASTELO
+XI;Presidente Prudente;NANTES
+XI;Presidente Prudente;NARANDIBA
+XI;Presidente Prudente;NOVA GUATAPORANGA
+XI;Presidente Prudente;OURO VERDE
+XI;Presidente Prudente;PANORAMA
+XI;Presidente Prudente;PAULICÉIA
+XI;Presidente Prudente;PIQUEROBI
+XI;Presidente Prudente;PIRAPOZINHO
+XI;Presidente Prudente;PRESIDENTE BERNARDES
+XI;Presidente Prudente;PRESIDENTE EPITÁCIO
+XI;Presidente Prudente;PRESIDENTE PRUDENTE
+XI;Presidente Prudente;PRESIDENTE VENCESLAU
+XI;Presidente Prudente;QUATÁ
+XI;Presidente Prudente;RANCHARIA
+XI;Presidente Prudente;REGENTE FEIJÓ
+XI;Presidente Prudente;RIBEIRÃO DOS ÍNDIOS
+XI;Presidente Prudente;ROSANA
+XI;Presidente Prudente;SANDOVALINA
+XI;Presidente Prudente;SANTA MERCEDES
+XI;Presidente Prudente;SANTO ANASTÁCIO
+XI;Presidente Prudente;SANTO EXPEDITO
+XI;Presidente Prudente;SÃO JOÃO DO PAU D'ALHO
+XI;Presidente Prudente;TACIBA
+XI;Presidente Prudente;TARABAI
+XI;Presidente Prudente;TEODORO SAMPAIO
+XI;Presidente Prudente;TUPI PAULISTA
+XII;Registro;BARRA DO TURVO
+XII;Registro;CAJATI
+XII;Registro;CANANÉIA
+XII;Registro;ELDORADO
+XII;Registro;IGUAPE
+XII;Registro;ILHA COMPRIDA
+XII;Registro;IPORANGA
+XII;Registro;ITARIRI
+XII;Registro;JACUPIRANGA
+XII;Registro;JUQUIÁ
+XII;Registro;MIRACATU
+XII;Registro;PARIQUERA-AÇU
+XII;Registro;PEDRO DE TOLEDO
+XII;Registro;REGISTRO
+XII;Registro;SETE BARRAS
+XIII;Ribeirão Preto;ALTINÓPOLIS
+XIII;Ribeirão Preto;BARRINHA
+XIII;Ribeirão Preto;BATATAIS
+XIII;Ribeirão Preto;BRODOWSKI
+XIII;Ribeirão Preto;CAJURU
+XIII;Ribeirão Preto;CÁSSIA DOS COQUEIROS
+XIII;Ribeirão Preto;CRAVINHOS
+XIII;Ribeirão Preto;DUMONT
+XIII;Ribeirão Preto;GUARIBA
+XIII;Ribeirão Preto;GUATAPARÁ
+XIII;Ribeirão Preto;JABOTICABAL
+XIII;Ribeirão Preto;JARDINÓPOLIS
+XIII;Ribeirão Preto;LUÍS ANTÔNIO
+XIII;Ribeirão Preto;MONTE ALTO
+XIII;Ribeirão Preto;PITANGUEIRAS
+XIII;Ribeirão Preto;PONTAL
+XIII;Ribeirão Preto;PRADÓPOLIS
+XIII;Ribeirão Preto;RIBEIRÃO PRETO
+XIII;Ribeirão Preto;SANTA CRUZ DA ESPERANÇA
+XIII;Ribeirão Preto;SANTA RITA DO PASSA QUATRO
+XIII;Ribeirão Preto;SANTA ROSA DE VITERBO
+XIII;Ribeirão Preto;SANTO ANTÔNIO DA ALEGRIA
+XIII;Ribeirão Preto;SÃO SIMÃO
+XIII;Ribeirão Preto;SERRA AZUL
+XIII;Ribeirão Preto;SERRANA
+XIII;Ribeirão Preto;SERTÃOZINHO
+XIV;São João da Boa Vista;AGUAÍ
+XIV;São João da Boa Vista;ÁGUAS DA PRATA
+XIV;São João da Boa Vista;CACONDE
+XIV;São João da Boa Vista;CASA BRANCA
+XIV;São João da Boa Vista;DIVINOLÂNDIA
+XIV;São João da Boa Vista;ESPÍRITO SANTO DO PINHAL
+XIV;São João da Boa Vista;ESTIVA GERBI
+XIV;São João da Boa Vista;ITAPIRA
+XIV;São João da Boa Vista;ITOBI
+XIV;São João da Boa Vista;MOCOCA
+XIV;São João da Boa Vista;MOGI GUAÇU
+XIV;São João da Boa Vista;MOGI MIRIM
+XIV;São João da Boa Vista;SANTA CRUZ DAS PALMEIRAS
+XIV;São João da Boa Vista;SANTO ANTÔNIO DO JARDIM
+XIV;São João da Boa Vista;SÃO JOÃO DA BOA VISTA
+XIV;São João da Boa Vista;SÃO JOSÉ DO RIO PARDO
+XIV;São João da Boa Vista;SÃO SEBASTIÃO DA GRAMA
+XIV;São João da Boa Vista;TAMBAÚ
+XIV;São João da Boa Vista;TAPIRATIBA
+XIV;São João da Boa Vista;VARGEM GRANDE DO SUL
+XV;São José do Rio Preto;ADOLFO
+XV;São José do Rio Preto;ÁLVARES FLORENCE
+XV;São José do Rio Preto;AMÉRICO DE CAMPOS
+XV;São José do Rio Preto;APARECIDA D'OESTE
+XV;São José do Rio Preto;ARIRANHA
+XV;São José do Rio Preto;ASPÁSIA
+XV;São José do Rio Preto;BADY BASSITT
+XV;São José do Rio Preto;BÁLSAMO
+XV;São José do Rio Preto;CARDOSO
+XV;São José do Rio Preto;CATANDUVA
+XV;São José do Rio Preto;CATIGUÁ
+XV;São José do Rio Preto;CEDRAL
+XV;São José do Rio Preto;COSMORAMA
+XV;São José do Rio Preto;DIRCE REIS
+XV;São José do Rio Preto;DOLCINÓPOLIS
+XV;São José do Rio Preto;ELISIÁRIO
+XV;São José do Rio Preto;EMBAÚBA
+XV;São José do Rio Preto;ESTRELA D'OESTE
+XV;São José do Rio Preto;FERNANDÓPOLIS
+XV;São José do Rio Preto;FERNANDO PRESTES
+XV;São José do Rio Preto;FLOREAL
+XV;São José do Rio Preto;GASTÃO VIDIGAL
+XV;São José do Rio Preto;GENERAL SALGADO
+XV;São José do Rio Preto;GUAPIAÇU
+XV;São José do Rio Preto;GUARANI D'OESTE
+XV;São José do Rio Preto;IBIRÁ
+XV;São José do Rio Preto;ICÉM
+XV;São José do Rio Preto;INDIAPORÃ
+XV;São José do Rio Preto;IPIGUÁ
+XV;São José do Rio Preto;IRAPUÃ
+XV;São José do Rio Preto;ITAJOBI
+XV;São José do Rio Preto;JACI
+XV;São José do Rio Preto;JALES
+XV;São José do Rio Preto;JOSÉ BONIFÁCIO
+XV;São José do Rio Preto;MACAUBAL
+XV;São José do Rio Preto;MACEDÔNIA
+XV;São José do Rio Preto;MAGDA
+XV;São José do Rio Preto;MARAPOAMA
+XV;São José do Rio Preto;MARINÓPOLIS
+XV;São José do Rio Preto;MENDONÇA
+XV;São José do Rio Preto;MERIDIANO
+XV;São José do Rio Preto;MESÓPOLIS
+XV;São José do Rio Preto;MIRA ESTRELA
+XV;São José do Rio Preto;MIRASSOL
+XV;São José do Rio Preto;MIRASSOLÂNDIA
+XV;São José do Rio Preto;MONÇÕES
+XV;São José do Rio Preto;MONTE APRAZÍVEL
+XV;São José do Rio Preto;NEVES PAULISTA
+XV;São José do Rio Preto;NHANDEARA
+XV;São José do Rio Preto;NIPOÃ
+XV;São José do Rio Preto;NOVA ALIANÇA
+XV;São José do Rio Preto;NOVA CANAÃ PAULISTA
+XV;São José do Rio Preto;NOVA GRANADA
+XV;São José do Rio Preto;NOVAIS
+XV;São José do Rio Preto;NOVO HORIZONTE
+XV;São José do Rio Preto;ONDA VERDE
+XV;São José do Rio Preto;ORINDIÚVA
+XV;São José do Rio Preto;OUROESTE
+XV;São José do Rio Preto;PALESTINA
+XV;São José do Rio Preto;PALMARES PAULISTA
+XV;São José do Rio Preto;PALMEIRA D'OESTE
+XV;São José do Rio Preto;PARAÍSO
+XV;São José do Rio Preto;PARANAPUÃ
+XV;São José do Rio Preto;PARISI
+XV;São José do Rio Preto;PAULO DE FARIA
+XV;São José do Rio Preto;PEDRANÓPOLIS
+XV;São José do Rio Preto;PINDORAMA
+XV;São José do Rio Preto;PIRANGI
+XV;São José do Rio Preto;PLANALTO
+XV;São José do Rio Preto;POLONI
+XV;São José do Rio Preto;PONTALINDA
+XV;São José do Rio Preto;PONTES GESTAL
+XV;São José do Rio Preto;POPULINA
+XV;São José do Rio Preto;POTIRENDABA
+XV;São José do Rio Preto;RIOLÂNDIA
+XV;São José do Rio Preto;RUBINÉIA
+XV;São José do Rio Preto;SALES
+XV;São José do Rio Preto;SANTA ADÉLIA
+XV;São José do Rio Preto;SANTA ALBERTINA
+XV;São José do Rio Preto;SANTA CLARA D'OESTE
+XV;São José do Rio Preto;SANTA FÉ DO SUL
+XV;São José do Rio Preto;SANTA RITA D'OESTE
+XV;São José do Rio Preto;SANTA SALETE
+XV;São José do Rio Preto;SANTANA DA PONTE PENSA
+XV;São José do Rio Preto;SÃO FRANCISCO
+XV;São José do Rio Preto;SÃO JOÃO DAS DUAS PONTES
+XV;São José do Rio Preto;SÃO JOÃO DE IRACEMA
+XV;São José do Rio Preto;SÃO JOSÉ DO RIO PRETO
+XV;São José do Rio Preto;SEBASTIANÓPOLIS DO SUL
+XV;São José do Rio Preto;TABAPUÃ
+XV;São José do Rio Preto;TANABI
+XV;São José do Rio Preto;TRÊS FRONTEIRAS
+XV;São José do Rio Preto;TURMALINA
+XV;São José do Rio Preto;UBARANA
+XV;São José do Rio Preto;UCHOA
+XV;São José do Rio Preto;UNIÃO PAULISTA
+XV;São José do Rio Preto;URÂNIA
+XV;São José do Rio Preto;URUPÊS
+XV;São José do Rio Preto;VALENTIM GENTIL
+XV;São José do Rio Preto;VITÓRIA BRASIL
+XV;São José do Rio Preto;VOTUPORANGA
+XV;São José do Rio Preto;ZACARIAS
+XVI;Sorocaba;ALAMBARI
+XVI;Sorocaba;ALUMÍNIO
+XVI;Sorocaba;ANGATUBA
+XVI;Sorocaba;APIAÍ
+XVI;Sorocaba;ARAÇARIGUAMA
+XVI;Sorocaba;ARAÇOIABA DA SERRA
+XVI;Sorocaba;BARRA DO CHAPÉU
+XVI;Sorocaba;BOITUVA
+XVI;Sorocaba;BOM SUCESSO DE ITARARÉ
+XVI;Sorocaba;BURI
+XVI;Sorocaba;CAMPINA DO MONTE ALEGRE
+XVI;Sorocaba;CAPÃO BONITO
+XVI;Sorocaba;CAPELA DO ALTO
+XVI;Sorocaba;CERQUILHO
+XVI;Sorocaba;CESÁRIO LANGE
+XVI;Sorocaba;GUAPIARA
+XVI;Sorocaba;GUAREÍ
+XVI;Sorocaba;IBIÚNA
+XVI;Sorocaba;IPERÓ
+XVI;Sorocaba;ITABERÁ
+XVI;Sorocaba;ITAOCA
+XVI;Sorocaba;ITAPETININGA
+XVI;Sorocaba;ITAPEVA
+XVI;Sorocaba;ITAPIRAPUÃ PAULISTA
+XVI;Sorocaba;ITARARÉ
+XVI;Sorocaba;ITU
+XVI;Sorocaba;JUMIRIM
+XVI;Sorocaba;MAIRINQUE
+XVI;Sorocaba;NOVA CAMPINA
+XVI;Sorocaba;PIEDADE
+XVI;Sorocaba;PILAR DO SUL
+XVI;Sorocaba;PORTO FELIZ
+XVI;Sorocaba;QUADRA
+XVI;Sorocaba;RIBEIRA
+XVI;Sorocaba;RIBEIRÃO BRANCO
+XVI;Sorocaba;RIBEIRÃO GRANDE
+XVI;Sorocaba;RIVERSUL
+XVI;Sorocaba;SALTO
+XVI;Sorocaba;SALTO DE PIRAPORA
+XVI;Sorocaba;SÃO MIGUEL ARCANJO
+XVI;Sorocaba;SÃO ROQUE
+XVI;Sorocaba;SARAPUÍ
+XVI;Sorocaba;SOROCABA
+XVI;Sorocaba;TAPIRAÍ
+XVI;Sorocaba;TAQUARIVAÍ
+XVI;Sorocaba;TATUÍ
+XVI;Sorocaba;TIETÊ
+XVI;Sorocaba;VOTORANTIM
+XVII;Taubaté;APARECIDA
+XVII;Taubaté;ARAPEÍ
+XVII;Taubaté;AREIAS
+XVII;Taubaté;BANANAL
+XVII;Taubaté;CAÇAPAVA
+XVII;Taubaté;CACHOEIRA PAULISTA
+XVII;Taubaté;CAMPOS DO JORDÃO
+XVII;Taubaté;CANAS
+XVII;Taubaté;CARAGUATATUBA
+XVII;Taubaté;CRUZEIRO
+XVII;Taubaté;CUNHA
+XVII;Taubaté;GUARATINGUETÁ
+XVII;Taubaté;IGARATÁ
+XVII;Taubaté;ILHABELA
+XVII;Taubaté;JACAREÍ
+XVII;Taubaté;JAMBEIRO
+XVII;Taubaté;LAGOINHA
+XVII;Taubaté;LAVRINHAS
+XVII;Taubaté;LORENA
+XVII;Taubaté;MONTEIRO LOBATO
+XVII;Taubaté;NATIVIDADE DA SERRA
+XVII;Taubaté;PARAIBUNA
+XVII;Taubaté;PINDAMONHANGABA
+XVII;Taubaté;PIQUETE
+XVII;Taubaté;POTIM
+XVII;Taubaté;QUELUZ
+XVII;Taubaté;REDENÇÃO DA SERRA
+XVII;Taubaté;ROSEIRA
+XVII;Taubaté;SANTA BRANCA
+XVII;Taubaté;SANTO ANTÔNIO DO PINHAL
+XVII;Taubaté;SÃO BENTO DO SAPUCAÍ
+XVII;Taubaté;SÃO JOSÉ DO BARREIRO
+XVII;Taubaté;SÃO JOSÉ DOS CAMPOS
+XVII;Taubaté;SÃO LUIZ DO PARAITINGA
+XVII;Taubaté;SÃO SEBASTIÃO
+XVII;Taubaté;SILVEIRAS
+XVII;Taubaté;TAUBATÉ
+XVII;Taubaté;TREMEMBÉ
+XVII;Taubaté;UBATUBA
