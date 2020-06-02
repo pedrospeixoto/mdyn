@@ -161,6 +161,13 @@ server <- function(input, output) {
       addPolygons(data = shp_estados,weight = 3,fill = F,color = "black")
   })
   
+  #Control break app
+  autoInvalidate <- reactiveTimer(10000)
+  observe({
+    autoInvalidate()
+    cat(".")
+  })
+  
   #Input map
   observeEvent(input$process,{
      if(!is.null(input$date) & !is.null(input$state) & !is.null(input$type) & (!is.null(input$cidades)) | (!is.null(input$cidades_ent) & !is.null(!is.null(input$cidades_sai)))){
