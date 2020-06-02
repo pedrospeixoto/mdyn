@@ -90,7 +90,7 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
   system(paste("mkdir /storage/SEIR/",pos,sep = ""))
   
   #####Notifications#####
-  cat("Download data about confirmed cases and deaths and plor epidemiological curve...\n")
+  cat("Download data about confirmed cases and deaths and plot epidemiological curve...\n")
   obs <- get_data_SP()
   if(nrow(obs)/par$sites-round(nrow(obs)/par$sites) > 0)
     stop("There is a problem with the notifications dataset. Please fix it.")
@@ -141,7 +141,7 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
   init <- vector()
   tmp <- obs %>% filter(date == ymd(init_validate))
   tmp <- tmp[match(x = par$names,table = tmp$city),]
-  init[1:par$sites] <- tmp$new_infected_mean #E
+  init[1:par$sites] <- tmp$new_infected_cor #E
   init[(par$sites + 1):(2*par$sites)] <- tmp$infected #Ia
   init[(2*par$sites + 1):(3*par$sites)] <- tmp$infected #Is
   init[(3*par$sites + 1):(4*par$sites)] <- tmp$recovered #R
@@ -309,6 +309,69 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
       den[den == 0] <- min(den[den > 0])
     parK$beta <- as.vector(num/den) #Beta
     
+    #Find best initial condition
+    tf <- function(c){
+      initfK <- initK
+      initfK[1:par$sites] <- c[1]*initK[1:par$sites]
+      mod <- solve_seir(y = initfK,times = 1:7,derivatives = derivatives,parms = parK)[,-1]
+      
+      D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Predicted death for testing
+      I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Predicted cases for testing
+      
+      #Test if model predicted well
+      
+      #Cases
+      colnames(I) <- par$names
+      I$date <- seq.Date(ymd(init_validate),ymd(end_validate),1) 
+      I <- I %>% gather("Municipio","I",-date)
+      I <- merge(I,drs)
+      I$key <- paste(I$date,I$DRS)
+      I <- data.table(I)
+      I <- I[,I_pred := sum(I),by = key]
+      I <- I %>% select(I_pred,key) %>% unique() %>% data.frame()
+      I <- merge(I,teste_I)
+      I$dif <- abs(I$I_pred - I$I_drs)/I$I_drs
+      dif_I <- max(I$dif[I$I_drs > 1000])
+      
+      return(dif_I)
+    }
+    
+    c <- optimize(interval = c(0,5),f = tf,tol = 1e-3)
+    c <- c$minimum
+    initK[1:par$sites] <- c[1]*initK[1:par$sites]
+    parK$upE <- c*parK$upE
+    
+    #Find best initial condition
+    tf <- function(c){
+      parfK <- parK
+      parfK$delta <- c*parK$delta
+      mod <- solve_seir(y = initK,times = 1:7,derivatives = derivatives,parms = parfK)[,-1]
+      
+      D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Predicted death for testing
+      I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Predicted cases for testing
+      
+      #Test if model predicted well
+      
+      #Deaths
+      colnames(D) <- par$names
+      D$date <- seq.Date(ymd(init_validate),ymd(end_validate),1) 
+      D <- D %>% gather("Municipio","D",-date)
+      D <- merge(D,drs)
+      D$key <- paste(D$date,D$DRS)
+      D <- data.table(D)
+      D <- D[,D_pred := sum(D),by = key]
+      D <- D %>% select(D_pred,key) %>% unique() %>% data.frame()
+      D <- merge(D,teste_D)
+      D$dif <- abs(D$D_pred - D$D_drs)/D$D_drs
+      dif_D <- max(D$dif[D$D_drs >= 100])
+      
+      return(dif_D)
+    }
+    
+    c <- optimize(interval = c(0,5),f = tf,tol = 1e-3)
+    c <- c$minimum
+    parK$delta <- c*parK$delta
+    
     #Model
     mod <- solve_seir(y = initK,times = 1:7,derivatives = derivatives,parms = parK)[,-1] #Simulate model k
   
@@ -349,7 +412,7 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
     D <- D %>% select(D_pred,key) %>% unique() %>% data.frame()
     D <- merge(D,teste_D)
     D$dif <- abs(D$D_pred - D$D_drs)/D$D_drs
-    dif_D <- max(D$dif[D$D_drs >= 100])
+    dif_D <- quantile(D$dif[D$D_drs >= 100],0.95)
     
     #Cases
     colnames(I) <- par$names
@@ -362,10 +425,11 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
     I <- I %>% select(I_pred,key) %>% unique() %>% data.frame()
     I <- merge(I,teste_I)
     I$dif <- abs(I$I_pred - I$I_drs)/I$I_drs
-    dif_I <- max(I$dif[I$I_drs > 1000])
+    I <- I %>% filter(date == ymd(end_validate))
+    dif_I <- quantile(I$dif[I$I_drs > 1000],0.95)
     
     #Is good
-    good <- as.numeric(dif_I <= error_good & dif_D <= 0.6*error_good)
+    good <- as.numeric(dif_I <= 0.1 & dif_D <= 0.5)
     is.good[k] <- good
     error[k] <- dif_D
     if(dif_I < mI)
@@ -520,7 +584,8 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
   
   #######Plot by DRS#####
   cat("Plot observed and predicted number of deaths for each DRS...\n")
-
+  system(paste("mkdir /storage/SEIR/",pos,"/validate",sep = ""))
+  
   #For each DRS
   D <- vector("list",length(levels(drs$DRS)))
   names(D) <- levels(drs$DRS)
@@ -604,7 +669,7 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
               strip.text = element_text(size = 20,face = "bold",color = "white")) +
         labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
       ggtitle(paste("Mortes confirmadas COVID-19 na DRS",d,"-",unique(drs$Regiao[drs$DRS == d])))
-      pdf(file = paste(wd,"SEIR/Workspace/Plots/Mortes/",pos,"/DRS_",d,"_mortes.pdf",sep = ""),width = 15,height = 10)
+      pdf(file = paste("/storage/SEIR/",pos,"/validate/",gsub(" ","",d),"_mortes.pdf",sep = ""),width = 15,height = 10)
       suppressWarnings(suppressMessages(print(pD)))
       dev.off()
     
@@ -629,8 +694,8 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
               strip.text = element_text(size = 20,face = "bold",color = "white")) +
         labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
         ggtitle(paste("Casos confirmados COVID-19 na DRS",d,"-",unique(drs$Regiao[drs$DRS == d])))
-      pdf(file = paste(wd,"SEIR/Workspace/Plots/Mortes/",pos,"/DRS_",d,"_casos.pdf",sep = ""),width = 15,height = 10)
-      suppressWarnings(suppressMessages(print(pD)))
+      pdf(file = paste("/storage/SEIR/",pos,"/validate/",gsub(" ","",d),"_casos.pdf",sep = ""),width = 15,height = 10)
+      suppressWarnings(suppressMessages(print(pI)))
       dev.off()
     }
   }
@@ -673,7 +738,7 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
             strip.text = element_text(size = 20,face = "bold",color = "white")) +
       labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
       ggtitle("Mortes confirmadas COVID-19 no estado de São Paulo")
-  pdf(file = paste(wd,"/SEIR/Workspace/Plots/SP_mortes_",pos,".pdf",sep = ""),width = 15,height = 10)
+  pdf(file = paste("/storage/SEIR/",pos,"/SP_mortes_",pos,".pdf",sep = ""),width = 15,height = 10)
   suppressWarnings(suppressMessages(print(pD)))
   dev.off()
   
@@ -699,8 +764,8 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
           strip.text = element_text(size = 20,face = "bold",color = "white")) +
     labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
     ggtitle("Casos confirmados COVID-19 no estado de São Paulo")
-  pdf(file = paste(wd,"/SEIR/Workspace/Plots/SP_casos_",pos,".pdf",sep = ""),width = 15,height = 10)
-  suppressWarnings(suppressMessages(print(pD)))
+  pdf(file = paste("/storage/SEIR/",pos,"/SP_casos_",pos,".pdf",sep = ""),width = 15,height = 10)
+  suppressWarnings(suppressMessages(print(pI)))
   dev.off()
 
   #######Simulation of scenarios########

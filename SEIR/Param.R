@@ -18,8 +18,8 @@ simulate_length <- 365 #Number of days to simulate
 
 #Set mobility matrix
 par$mob <- list()
-day <- seq.Date(from = ymd("2020-05-01"),to = ymd("2020-05-23"),1)
-d_max <- "2020-05-23"
+day <- seq.Date(from = ymd("2020-05-01"),to = ymd("2020-05-20"),1)
+d_max <- "2020-05-20"
 for(d in as.character(day)){
   cat(d)
   cat("\n")
@@ -51,10 +51,10 @@ for(i in 1:length(par$mob)){
 
 #Cadidate parameters  
 par$gammaA <-0.9
-par$Te <- seq(1,7,1)
+par$Te <- c(5,5.5,6,6.5,7)
 par$Ta <- seq(7,21,1)
 par$Ts <- seq(7,28,1)
-par$Td <- c(8,9,9.5,10,10.5,11,12)
+par$Td <- c(7,8,9,9.5,10,10.5,11,12,13,14)
 par$s <- c(0.01,0.5,1,1.5,2,2.5,3)
 
 #####Sample Size#####
