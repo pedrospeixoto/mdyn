@@ -125,8 +125,6 @@ get_data_SP <- function(){
     tmp$new_infected_mean #Initialize new variables
     for(i in 4:(nrow(tmp)-3)){
       tmp$new_infected_cor[i] <- mean(tmp$new_infected[(i-3):(i+3)]) #New cases corrected
-      if(i > 6)
-        tmp$new_infected_mean <- mean(tmp$new_infected_cor[(i-6):i]) #Mean of new cases corrected
       tmp$new_death_cor[i] <- mean(tmp$new_death[(i-3):(i+3)]) #New deaths corrected
       tmp$confirmed_corrected <- cumsum(tmp$new_infected_cor) #Confirmed cases corrected
       tmp$deaths_corrected <- cumsum(tmp$new_death_cor) #Confirmed deaths corrected
@@ -138,7 +136,9 @@ get_data_SP <- function(){
         tmp$recovered[i] <- 0
         tmp$infected[i] <- tmp$confirmed_corrected[i]
       }
-    }  
+    }
+    for(i in 1:(nrow(tmp)-2))
+      tmp$new_infected_mean[i] <- mean(tmp$new_infected_cor[i:(i+2)]) #Mean of new cases corrected
     obs_new <- rbind.data.frame(obs_new,tmp[-c(nrow(tmp)-1,nrow(tmp)),]) #Bind
   }
   obs <- obs_new[-1,] #Erase first extra row
