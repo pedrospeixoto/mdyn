@@ -67,18 +67,18 @@ solve_seir <- function(y,times,derivatives,parms){
 }
 
 #Get drs data
-drs <- read.csv("/home/dmarcondes/mdyn/SEIR/dados/DRS.csv",sep = ";") #Read drs table
-drs$Municipio <- gsub("'","",drs$Municipio) #Correct names 
-drs <- drs[match(par$names,drs$Municipio),] #Order cities
-tmp <- data.frame("Municipio" = par$names,"pop" = par$pop) #Get population of each city
-drs <- data.table(merge(drs,tmp)) #Merge to get population
-drs <- drs[,N := sum(pop),by = DRS] #Population by DRS
-drs <- drs %>% select(DRS,Regiao,Municipio,N) %>% data.frame() #Clean
-drs$DRS <- as.character(drs$DRS) #Character DRS
-drs$DRS[drs$Municipio == "SÃO PAULO"] <- "0" #Set city of SP as DRS
-drs$Regiao <- as.character(drs$Regiao) #Character Regiao
-drs$Regiao[drs$Municipio == "SÃO PAULO"] <- "Cidade de São Paulo" #Set city of SP as DRS
-drs$DRS <- factor(drs$DRS,c("0","I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII",
-                            "XIII","XIV","XV","XVI","XVII")) #DRS to factor
-drs$Regiao <- factor(drs$Regiao) #Regiao to factor
-
+# drs <- read.csv("/home/dmarcondes/mdyn/SEIR/dados/DRS.csv",sep = ";") #Read drs table
+# drs$Municipio <- gsub("'","",drs$Municipio) #Correct names 
+# drs <- drs[match(par$names,drs$Municipio),] #Order cities
+# tmp <- data.frame("Municipio" = par$names,"pop" = par$pop) #Get population of each city
+# drs <- data.table(merge(drs,tmp)) #Merge to get population
+# drs <- drs[,N := sum(pop),by = DRS] #Population by DRS
+# drs <- drs %>% select(DRS,Regiao,Municipio,N) %>% data.frame() #Clean
+# drs$DRS <- as.character(drs$DRS) #Character DRS
+# drs$DRS[drs$Municipio == "SÃO PAULO"] <- "0" #Set city of SP as DRS
+# drs$Regiao <- as.character(drs$Regiao) #Character Regiao
+# drs$Regiao[drs$Municipio == "SÃO PAULO"] <- "Cidade de São Paulo" #Set city of SP as DRS
+# drs$DRS <- factor(drs$DRS,c("0","I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII",
+#                             "XIII","XIV","XV","XVI","XVII")) #DRS to factor
+# drs$Regiao <- factor(drs$Regiao) #Regiao to factor
+# saveRDS(object = drs,"drs.rds")

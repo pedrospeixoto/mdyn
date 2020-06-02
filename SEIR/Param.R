@@ -18,8 +18,8 @@ simulate_length <- 365 #Number of days to simulate
 
 #Set mobility matrix
 par$mob <- list()
-day <- seq.Date(from = ymd("2020-05-01"),to = ymd("2020-05-20"),1)
-d_max <- "2020-05-20"
+day <- seq.Date(from = ymd("2020-05-01"),to = ymd("2020-05-23"),1)
+d_max <- "2020-05-23"
 for(d in as.character(day)){
   cat(d)
   cat("\n")
@@ -56,28 +56,27 @@ par$Ta <- seq(7,28,1)
 par$Ts <- seq(7,28,1)
 par$Td <- seq(7,28,1)
 par$s <- c(0.01,0.5,1,1.5,2,2.5,3)
-#cand_beta <- c(0.05,0.2)
 
 #####Sample Size#####
-log_choose <- function(n,k){
-  lc <- vector()
-  for(i in 1:length(k))
-    lc[i] <- sum(log((n-k[i]+1):n)) - sum(log(1:k[i]))
-  return(lc)
-}
-
-mc <- function(p,c,delta,cardinality){
-  m <- (1/c)*(log_choose(cardinality,p) - log(delta))
-  ifelse(m <= cardinality,m,NA)
-}
-n_independent <- as.numeric(length(par$gammaA))*as.numeric(length(par$Te))*as.numeric(length(par$Ta))*as.numeric(length(par$Ts))*as.numeric(length(par$Td))*as.numeric(length(par$s))
-#n_dependent <- as.numeric((length(cand_beta)^10)^4)
-n_models <- n_independent
-sample_size <- mc(p = 0.1*n_models,c = 0.1,delta = 0.99,cardinality = n_models)
-sample_size <- 100000
+# log_choose <- function(n,k){
+#   lc <- vector()
+#   for(i in 1:length(k))
+#     lc[i] <- sum(log((n-k[i]+1):n)) - sum(log(1:k[i]))
+#   return(lc)
+# }
+# 
+# mc <- function(p,c,delta,cardinality){
+#   m <- (1/c)*(log_choose(cardinality,p) - log(delta))
+#   ifelse(m <= cardinality,m,NA)
+# }
+# n_independent <- as.numeric(length(par$gammaA))*as.numeric(length(par$Te))*as.numeric(length(par$Ta))*as.numeric(length(par$Ts))*as.numeric(length(par$Td))*as.numeric(length(par$s))
+# #n_dependent <- as.numeric((length(cand_beta)^10)^4)
+# n_models <- n_independent
+# sample_size <- mc(p = 0.1*n_models,c = 0.1,delta = 0.99,cardinality = n_models)
+sample_size <- 100
 max_models <- 100000
 
-source(paste(wd,"SEIR/Codigos/SEIR_COVID19.R",sep = ""))
+source("mdyn/SEIR/SEIR_COVID19.R",sep = "")
 SEIR_covid(wd,cores,par,cand_beta,pos,seed,sample_size,simulate_length,d_max,max_models,error_good)
 
 # cat("Converting pdfs...\n")

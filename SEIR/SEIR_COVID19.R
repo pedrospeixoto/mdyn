@@ -86,7 +86,6 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
   #DRS
   drs <- readRDS(file = "mdyn/dados/drs.rds")
   
-  
   #####Notifications#####
   cat("Download data about confirmed cases and deaths...\n")
   file <- gzcon(url("https://data.brasil.io/dataset/covid19/caso_full.csv.gz")) #Data path
