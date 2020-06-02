@@ -11,7 +11,7 @@ cores <- 24 #Number of cores to use in parallel computation
 pos <- "teste" #What to add at the end of all output files
 seed <- rnorm(1,10,100000) #Seed
 par <- list() #Candidate values of model parameters
-error_good <- 0.05
+error_good <- 0.1
 
 #Dates
 simulate_length <- 365 #Number of days to simulate
@@ -51,10 +51,10 @@ for(i in 1:length(par$mob)){
 
 #Cadidate parameters  
 par$gammaA <-0.9
-par$Te <- seq(5,7,1)
-par$Ta <- seq(7,14,1)
+par$Te <- seq(1,7,1)
+par$Ta <- seq(7,21,1)
 par$Ts <- seq(7,28,1)
-par$Td <- seq(7,28,1)
+par$Td <- seq(7,35,1)
 par$s <- c(0.01,0.5,1,1.5,2,2.5,3)
 
 #####Sample Size#####

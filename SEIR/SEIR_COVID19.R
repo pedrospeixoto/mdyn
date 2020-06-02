@@ -141,7 +141,7 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
   init <- vector()
   tmp <- obs %>% filter(date == ymd(init_validate))
   tmp <- tmp[match(x = par$names,table = tmp$city),]
-  init[1:par$sites] <- tmp$new_infected_cor_mean #E
+  init[1:par$sites] <- tmp$new_infected_mean #E
   init[(par$sites + 1):(2*par$sites)] <- tmp$infected #Ia
   init[(2*par$sites + 1):(3*par$sites)] <- tmp$infected #Is
   init[(3*par$sites + 1):(4*par$sites)] <- tmp$recovered #R
@@ -365,7 +365,7 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
     dif_I <- max(I$dif[I$I_drs > 1000])
     
     #Is good
-    good <- as.numeric(max(dif_D,dif_I) <= error_good) #Is a good model
+    good <- as.numeric(dif_I <= error_good & dif_D < 0.6*error_good)
     is.good[k] <- good
     error[k] <- dif_D
     if(dif_I < mI)
