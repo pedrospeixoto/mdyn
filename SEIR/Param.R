@@ -51,8 +51,8 @@ for(i in 1:length(par$mob)){
 
 #Cadidate parameters  
 par$gammaA <-0.9
-par$Te <- seq(5,14,1)
-par$Ta <- seq(7,28,1)
+par$Te <- seq(5,7,1)
+par$Ta <- seq(7,14,1)
 par$Ts <- seq(7,28,1)
 par$Td <- seq(7,28,1)
 par$s <- c(0.01,0.5,1,1.5,2,2.5,3)
@@ -73,7 +73,7 @@ par$s <- c(0.01,0.5,1,1.5,2,2.5,3)
 # #n_dependent <- as.numeric((length(cand_beta)^10)^4)
 # n_models <- n_independent
 # sample_size <- mc(p = 0.1*n_models,c = 0.1,delta = 0.99,cardinality = n_models)
-sample_size <- 100
+sample_size <- 1000
 max_models <- 100000
 
 source("mdyn/SEIR/SEIR_COVID19.R",sep = "")
