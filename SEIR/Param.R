@@ -34,11 +34,11 @@ for(i in 0:6){
                                                    sep = " ",
                                                    header = F))[1:645,1:645]
 }
-par$names <- as.vector(read.table(paste(wd,"SEIR//Dados/move_mat_SÃO PAULO_Municip_reg_names.txt",sep = ""),sep = ";")[1:645,1]) #Sites name
+par$names <- as.vector(read.table("mdyn/SEIR/dados/move_mat_SÃO PAULO_Municip_reg_names.txt",sep = ";")[1:645,1]) #Sites name
 par$sites <- length(par$names) #Number of sites
 
 #Population
-par$pop <- read.csv(paste(wd,"/SEIR/Dados/population_sp_mun.csv",sep = ""),sep = ";")
+par$pop <- read.csv("mdyn/SEIR/dados/population_sp_mun.csv",sep = ";")
 par$pop$municipio <- gsub(pattern = "'",replacement = "",x = par$pop$municipio)
 par$pop <- par$pop[match(x = par$names,table = toupper(par$pop$municipio)),]
 par$pop <- as.vector(par$pop$populacao_estimada)
