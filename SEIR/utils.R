@@ -67,7 +67,7 @@ solve_seir <- function(y,times,derivatives,parms){
 }
 
 #Get drs data
-drs <- read.csv("/mdyn/SEIR/Dados/DRS.csv",sep = "") #Read drs table
+drs <- read.csv("/home/dmarcondes/mdyn/SEIR/dados/DRS.csv",sep = ";") #Read drs table
 drs$Municipio <- gsub("'","",drs$Municipio) #Correct names 
 drs <- drs[match(par$names,drs$Municipio),] #Order cities
 tmp <- data.frame("Municipio" = par$names,"pop" = par$pop) #Get population of each city

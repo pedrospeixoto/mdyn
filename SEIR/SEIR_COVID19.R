@@ -84,7 +84,7 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
   }
   
   #DRS
-  drs <- readRDS(file = "/mdyn/dados/drs.rds")
+  drs <- readRDS(file = "mdyn/dados/drs.rds")
   
   
   #####Notifications#####
