@@ -365,7 +365,7 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
     dif_I <- max(I$dif[I$I_drs > 1000])
     
     #Is good
-    good <- as.numeric(dif_I <= error_good & dif_D < 0.6*error_good)
+    good <- as.numeric(dif_I <= error_good & dif_D <= 0.6*error_good)
     is.good[k] <- good
     error[k] <- dif_D
     if(dif_I < mI)
@@ -398,15 +398,15 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
   Ta <- unlist(lapply(results$models,function(x) x$Ta)) #Ta
   Ts <- unlist(lapply(results$models,function(x) x$Ts)) #Ts
   Td <- unlist(lapply(results$models,function(x) x$Td)) #Td
-  gammaA <- lapply(results$models,function(x) x$gammaA*x$Te) #gammaA
+  gammaA <- unlist(lapply(lapply(results$models,function(x) x$gammaA*x$Te),median)) #Median gammaA
   s <- unlist(lapply(results$models,function(x) x$s)) #s
   upI <- lapply(results$models,function(x) x$upI) #Mutiply symptomatics to get assymptomatics
   upE <- lapply(results$models,function(x) x$upE) #Proportion of symptomatic which to put on exposed
   beta <- lapply(results$models,function(x) x$beta) #Beta
   Rt <- lapply(results$models,function(x) x$Rt) #Rt
   pred <- pred[is.good == 1] #Prediction of only good models
-  saveRDS(object = results,file = paste(wd,"/SEIR/Workspace/result_",pos,".rds",sep = "")) #Save results
-  saveRDS(object = pred,file = paste(wd,"/SEIR/Workspace/prediction_",pos,".rds",sep = "")) #Save predictions
+  saveRDS(object = results,file = paste("/storage/SEIR/",pos,"/result_",pos,".rds",sep = "")) #Save results
+  saveRDS(object = pred,file = paste("/storage/SEIR/",pos,"/prediction_",pos,".rds",sep = "")) #Save predictions
   
   param <- data.frame("Model" = 1:kgood,Te,Ta,Ts,Td,s) #Parameters of good models
   fwrite(param,paste(wd,"/SEIR/Workspace/parameters_",pos,".csv",sep = "")) #Write parameters of good models
