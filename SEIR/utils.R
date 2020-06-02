@@ -1,3 +1,5 @@
+#Util functions for fitting and simulating the SEIR metapopulation model for COVID-19
+
 #Plot themes
 titles <- theme(strip.text = element_text(size = 12), axis.text = element_text(size = 12,color = "black"),
                 axis.title = element_text(size = 14), legend.text = element_text(size = 14),

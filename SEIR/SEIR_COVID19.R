@@ -5,7 +5,6 @@
 ###############################
 
 #Libraries
-library(deSolve)
 library(tidyverse)
 library(lubridate)
 library(readxl)
@@ -23,18 +22,15 @@ library(readODS)
 library(doSNOW)
 library(progress)
 library(gridExtra)
-source(paste(wd,"SEIR/Codigos/utils.R",sep = ""))
+source("mdyn/SEIR/utils.R")
 
-SEIR_covid <- function(wd,cores,par,cand_beta,pos,seed,sample_size,simulate_length,d_max,max_models,error_good){
+SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,d_max,max_models,error_good){
   
   cat("\n")
   cat("Welcome to Covid SEIR Mobility Model estimation!")
   cat("\n")
   cat("One moment and I will be right there with you...")
   cat("\n")
-  
-  #wd
-  setwd(wd)
   
   #Seed
   set.seed(seed)
