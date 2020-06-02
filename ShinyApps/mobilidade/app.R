@@ -162,7 +162,7 @@ server <- function(input, output) {
   })
   
   #Control break app
-  autoInvalidate <- reactiveTimer(10000)
+  autoInvalidate <- reactiveTimer(1000)
   observe({
     autoInvalidate()
     cat(".")
@@ -185,29 +185,19 @@ server <- function(input, output) {
        #Find which cities and edges should be plotted
        if(input$type){
          if('all' %in% unlist(input$cidades_sai)){
-           if(!('all' %in% unlist(input$state))){
+           if(!('all' %in% unlist(input$state)))
             tmp <- tmp %>% filter(tmp$begin %in% shp$CD_GEOCMU[shp$UF %in% unlist(input$state)])
-            begin <- shp$CD_GEOCMU[shp$UF %in% unlist(input$state)]
-           }
-           else
-             begin <- shp$CD_GEOCMU
          }
          else{
            tmp <- tmp %>% filter(tmp$begin %in% unlist(input$cidades_sai))
-           begin <- unlist(input$cidades_sai)
          }
          
          if('all' %in% unlist(input$cidades_ent)){
-           if(!('all' %in% unlist(input$state))){
+           if(!('all' %in% unlist(input$state)))
              tmp <- tmp %>% filter(tmp$end %in% shp$CD_GEOCMU[shp$UF %in% unlist(input$state)])
-             end <- shp$CD_GEOCMU[shp$UF %in% unlist(input$state)]
-           }
-           else
-             end <- shp$CD_GEOCMU
          }
          else{
            tmp <- tmp %>% filter(tmp$end %in% unlist(input$cidades_ent))
-           end <- unlist(input$cidades_ent)
          }
        }
        else{
@@ -215,19 +205,11 @@ server <- function(input, output) {
            if(!('all' %in% unlist(input$state))){
              tmp <- tmp %>% filter(tmp$begin %in% shp$CD_GEOCMU[shp$UF %in% unlist(input$state)])
              tmp <- tmp %>% filter(tmp$end %in% shp$CD_GEOCMU[shp$UF %in% unlist(input$state)])
-             begin <- shp$CD_GEOCMU[shp$UF %in% unlist(input$state)]
-             end <- shp$CD_GEOCMU[shp$UF %in% unlist(input$state)]
-           }
-           else{
-             begin <- shp$CD_GEOCMU
-             end <- shp$CD_GEOCMU
            }
          }
          else{
            tmp <- tmp %>% filter(tmp$begin %in% unlist(input$cidades)) 
            tmp <- tmp %>% filter(tmp$end %in% unlist(input$cidades))
-           begin <- unlist(input$cidades)
-           end <- unlist(input$cidades)
          }
        }
        incProgress(1/3, detail = "Dados lidos com sucesso, lendo shapefile...")
@@ -238,7 +220,7 @@ server <- function(input, output) {
        tmp$size <- 0.5 + 0.5 * (tmp$w/max(tmp$w))
        
        #Shapes
-       shp_tmp <- shp[shp$CD_GEOCMU %in% unique(c(begin,end)),]
+       shp_tmp <- shp[shp$CD_GEOCMU %in% unique(c(tmp$begin,tmp$end)),]
        if("all" %in% unlist(input$state))
          shp_estados_tmp <- shp_estados
        else
