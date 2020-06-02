@@ -109,7 +109,7 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
   EPI_curve(obs,end_validate,pos)
   
   #Calculate lift
-  lift <- obs %>% filter(date == max(obs$date)) #Only last day
+  lift <- obs %>% filter(date == ymd(end_validate)) #Only end_validate
   lift <- lift[match(par$names,lift$city),] #order cities
   lift$rate <- lift$last_available_deaths/lift$last_available_confirmed #death rate cities
   rate <- sum(lift$last_available_deaths)/sum(lift$last_available_confirmed) #death rate state
@@ -134,221 +134,254 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
   obs_drs <- obs_drs[,confirmed_corrected := sum(confirmed_corrected),by = key] #Sum by DRS anda date
   obs_drs <- obs_drs[,deaths_corrected := sum(deaths_corrected),by = key] #Sum by DRS anda date
 
-  #####Model estimation#####
-  cat("Calculate growth and death rate...\n")
-  
-  #Initial condition
-  init <- vector()
-  tmp <- obs %>% filter(date == ymd(init_validate))
-  tmp <- tmp[match(x = par$names,table = tmp$city),]
-  init[1:par$sites] <- tmp$new_infected_cor #E
-  init[(par$sites + 1):(2*par$sites)] <- tmp$infected #Ia
-  init[(2*par$sites + 1):(3*par$sites)] <- tmp$infected #Is
-  init[(3*par$sites + 1):(4*par$sites)] <- tmp$recovered #R
-  init[(4*par$sites + 1):(5*par$sites)] <- tmp$deaths_corrected #D
-  init[(5*par$sites + 1):(6*par$sites)] <- tmp$confirmed_corrected #prevalence
-  I <- tmp$infected
-  
-  #Obs each day around week of validation
-  par$obs <- list()
-  C_500 <- obs %>% filter(date == init_validate & confirmed_corrected >= 500) %>% unique() #Data of cities with 500+ cases in first day of validation
-  C_500 <- C_500$city #Get city name
-  for(t in 0:8){
-    tmp <- obs %>% filter(date == ymd(init_validate) + t - 1)
+    #####Model estimation#####
+    cat("Calculate growth and death rate...\n")
+    
+    #Initial condition
+    init <- vector()
+    tmp <- obs %>% filter(date == ymd(init_validate))
     tmp <- tmp[match(x = par$names,table = tmp$city),]
-    tmp1 <- obs_drs %>% filter(date == ymd(init_validate) + t - 1)
-    tmp1 <- tmp1[match(x = par$names,table = tmp1$city),]
-    par$obs$E[[as.character(t)]] <- tmp$infected #E
-    par$obs$Ia[[as.character(t)]] <- tmp$infected #Ia
-    par$obs$Is[[as.character(t)]] <- tmp$infected #Is
-    par$obs$R[[as.character(t)]] <- tmp$recovered #R
-    par$obs$D[[as.character(t)]] <- tmp$deaths_corrected #D
-    par$obs$S[[as.character(t)]] <- par$pop - par$obs$E[[as.character(t)]] - par$obs$Ia[[as.character(t)]] - par$obs$Is[[as.character(t)]] - 
-      par$obs$R[[as.character(t)]] - par$obs$D[[as.character(t)]] #S
-    par$obs_DRS$E[[as.character(t)]] <- tmp1$infected #E
-    par$obs_DRS$Is[[as.character(t)]] <- tmp1$infected #Is
-  }
+    init[1:par$sites] <- tmp$new_infected #E
+    init[(par$sites + 1):(2*par$sites)] <- tmp$infected #Ia
+    init[(2*par$sites + 1):(3*par$sites)] <- tmp$infected #Is
+    init[(3*par$sites + 1):(4*par$sites)] <- tmp$recovered #R
+    init[(4*par$sites + 1):(5*par$sites)] <- tmp$deaths_corrected #D
+    init[(5*par$sites + 1):(6*par$sites)] <- tmp$confirmed_corrected #prevalence
+    I <- tmp$infected
     
-  #Test data by DRS
-  teste <- obs %>% filter(date %in% seq.Date(from = ymd(init_validate),to = ymd(end_validate),1)) #Get data in validation days
-  teste_D <- teste %>% dplyr::select(date,city,deaths_corrected) %>% 
-    spread(key = city,value = deaths_corrected) #Select only deaths corrected and spread
-  teste_D <- teste_D[,c(1,match(par$names,names(teste_D)))] #Order cities
-  teste_D <- teste_D %>% gather("Municipio","D",-date) #Gather
-  teste_D <- merge(teste_D,drs) #Merge to find DRSs
-  teste_D$key <- paste(teste_D$date,teste_D$DRS) #Key
-  teste_D <- data.table(teste_D) #Data table
-  teste_D <- teste_D[,D_drs := sum(D),by = key] #Death by DRS
-  teste_D <- teste_D %>% select(date,DRS,D_drs,key) %>% unique() %>% data.frame() #Clean
-  
-  teste_I <- teste %>% dplyr::select(date,city,confirmed_corrected) %>% 
-    spread(key = city,value = confirmed_corrected) #Select only confirmed corrected and spread
-  teste_I <- teste_I[,c(1,match(par$names,names(teste_I)))] #Order cities
-  teste_I <- teste_I %>% gather("Municipio","I",-date) #Gather
-  teste_I <- merge(teste_I,drs) #Merge to find DRSs
-  teste_I$key <- paste(teste_I$date,teste_I$DRS) #Key
-  teste_I <- data.table(teste_I) #Data table
-  teste_I <- teste_I[,I_drs := sum(I),by = key] #Death by DRS
-  teste_I <- teste_I %>% select(date,DRS,I_drs,key) %>% unique() %>% data.frame() #Clean
-
-  #Calculate growth rate
-  system(paste("mkdir /storage/SEIR/",pos,"/AjusteRate/",sep = ""))
-  par$lambda <- vector()
-  
-  #For each DRS
-  for(d in unique(drs$DRS)){
-    tmp <- teste_I %>% filter(DRS == d) #Data of DRS
-    tmp <- data.frame("t" = 0:6,"y" = tmp$I_drs) #Data
-    mod <- lm(log(y) ~ t,data = tmp) #lm
-    par$lambda[par$names %in% drs$Municipio[drs$DRS == d]] <- mod$coefficients[2] #Lambda
-    p <- ggplot(tmp,aes(x = t,y = y)) + geom_point(color = "white") + 
-      stat_function(fun = function(t) exp(mod$coefficients[1])*exp(mod$coefficients[2]*t),color = "white") +
-      theme_solarized(light = FALSE) +  
-      theme(legend.title = element_text(face = "bold"),legend.position = "none") + ylab("Confirmed Cases Corrected") +
-      xlab("Date") + scale_x_continuous(breaks = 0:6,labels = paste(day(day_validate),"/0",
-                                                                    month(day_validate),sep = "")) +
-      theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
-            axis.text.x = element_text(size = 15,face = "bold",color = "white"),
-            axis.text.y = element_text(size = 15,face = "bold",color = "white"),
-            legend.box.margin = unit(x=c(20,0,0,0),units="mm"),
-            legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
-            panel.grid.minor.y = element_blank(),
-            axis.title = element_text(color = "white",size = 20),
-            plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
-      theme(plot.margin = unit(c(1,1,1,1), "lines")) +
-      theme(strip.background = element_blank(),
-            strip.text = element_text(size = 20,face = "bold",color = "white")) +
-      labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
-      ggtitle(paste("Exponetial growth on validation week for DRS",d,"-",unique(drs$Regiao[drs$DRS == d])))
-    pdf(file = paste("/storage/SEIR/",pos,"/AjusteRate/DRS_",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_rate_",pos,".pdf",sep = ""),
-        width = 15,height = 10)
-    suppressWarnings(suppressMessages(print(p))) #Save plot
-    dev.off()
-  }
-  
-  #Calculate death rate for each DRS
-  for(d in unique(drs$DRS)){ #For each DRS
-    tmpD <- teste_D %>% filter(DRS == d) #Death in DRS d
-    tmpI <- teste_I %>% filter(DRS == d) #Confirmed in DRS d
-    dr <- tmpD$D_drs[tmpD$date == end_validate]/tmpI$I_drs[tmpI$date == end_validate] #Death rate in DRS d in last day of validation
-    par$delta[match(drs$Municipio[drs$DRS == d],par$names)] <- dr #Attribute death rate of DRS to each city
-  }
-  
-  #Calculate death rate for each city with 50+ deaths
-  C_50 <- obs %>% filter(date == init_validate & deaths_corrected >= 50) %>% unique() #Data of cities with 50+ deaths in last day of validation
-  C_50 <- C_50$city #Get city name
-  for(c in C_50){ #For each city with 50+ deaths by last_validation
-    tmp <- obs %>% filter(city == c & date == end_validate) #Get data of city is last day of validation
-    dr <- tmp$deaths_corrected/tmp$confirmed_corrected #Death rate
-    par$delta[match(c,par$names)] <- dr #Attribute death rate
-  }
-  
-  cat("Estimatimating the model...\n")
-  #Choosing models
-  pred <- vector("list",sample_size) #Store predicted values
-  
-  #Set progress bar
-  pb <- progress_bar$new(
-    format = ":letter [:bar] :elapsed | eta: :eta",
-    total = sample_size,    # 100 
-    width = 60)
-  progress_letter <- paste(round(100*c(1:sample_size)/sample_size,2),"%")
-  progress <- function(n){
-    pb$tick(tokens = list(letter = progress_letter[n]))
-  } 
-  opts <- list(progress = progress)
-  
-  #Objects to store results
-  results <- list()
-  results$models <- vector("list",sample_size) #Store parameters of models
-  kgood <- 0 #Number of good models
-  is.good <- vector() #Track good models
-  error <- vector() #track error
-  mI <- 1
-  mD <- 1
-  
-  for(k in 1:sample_size){#For each sampled model
-    pb$tick(tokens = list(letter = paste(progress_letter[k],kgood,"D =",round(mD,5),"I =",round(mI,5)))) #Update progress bar
-  
-    #Parameters of model k
-    parK <- list()
-    parK$day <- day_validate #Days of validation
-    parK$val <- TRUE #Is validation
-    parK$mob <- par$mob #Mobility matrix
-    parK$pop <- par$pop #Population
-    parK$Te <- sample(x = par$Te,size = 1) #Te
-    parK$Ta <- sample(x = par$Ta,size = 1) #Ta
-    parK$Ts <- sample(x = par$Ts,size = 1) #Ts
-    parK$Td <- sample(x = par$Td,size = 1) #Td
-    parK$delta <- par$delta/parK$Td #delta
-    parK$sites <- par$sites #Number of sites
-    parK$s <- sample(x = par$s,size = 1) #s
-    parK$upI <- par$lift*sample(x = c(6:10),size = 1) #Asymptomatic initial condition
-    parK$gammaA <- parK$upI/((1+parK$upI)*parK$Te) #GammaA
-    gammaS <- (1 - parK$Te*parK$gammaA)/parK$Te #Rate of Exposed to Symptomatic
-    nuA <- 1/parK$Ta #Rate from Asymptomatic to Recovered
-    nuS <- (1-parK$delta*parK$Td)/parK$Ts #Rate from Symptomatic to Recoveres
-    parK$upE <- 1/((1 - parK$Te*gammaS)/parK$Te) #To multiply number of new infected to get exposed
-    initK <- init #Initial condition
-    initK[1:par$sites] <- parK$upE*initK[1:par$sites] #Correct E
-    initK[(par$sites + 1):(2*par$sites)] <- parK$upI*initK[(par$sites + 1):(2*par$sites)] #Assymptomatics
-    initK[(3*par$sites + 1):(4*par$sites)] <- (parK$upI+1)*initK[(3*par$sites + 1):(4*par$sites)] #Correct R
-
-    #Beta
-    lambdaE <- 0.5*(log(par$lambda + nuS + parK$delta) + log(1+par$obs$Is[[as.character(1)]]) -
-                      log(gammaS * parK$upE * (1+par$obs$E[[as.character(0)]]))) + 0.5*(log(par$lambda + nuA) + 
-                                                                                               log(1+parK$upI*par$obs$Is[[as.character(0+1)]]) -
-                                                                                               log(parK$gammaA * parK$upE * 
-                                                                                                     (1+par$obs$E[[as.character(0)]]))) #Growth rate
-    num <- ((par$lambda + gammaS + parK$gammaA) * parK$upE * par$obs$E[[as.character(0)]] * (par$pop - par$obs$D[[as.character(0)]])) #Numerator
-    den <- par$obs$S[[as.character(0)]] * (parK$s*((parK$mob[[as.character(init_validate-1)]]-
-                                                  diag(diag(parK$mob[[as.character(init_validate-1)]]))) %*% cbind(par$obs$Is[[as.character(0)]] + 
-                                                                                          parK$upI*par$obs$Is[[as.character(0)]])) + 
-                                             (parK$upI+1)*par$obs$Is[[as.character(0)]]) #Denominator
-    if(min(den) == 0) #Correct zero denominator
-      den[den == 0] <- min(den[den > 0])
-    parK$beta <- as.vector(num/den) #Beta
+    #Obs each day around week of validation
+    par$obs <- list()
+    C_500 <- obs %>% filter(date == init_validate & confirmed_corrected >= 500) %>% unique() #Data of cities with 500+ cases in first day of validation
+    C_500 <- C_500$city #Get city name
+    for(t in 0:8){
+      tmp <- obs %>% filter(date == ymd(init_validate) + t - 1)
+      tmp <- tmp[match(x = par$names,table = tmp$city),]
+      tmp1 <- obs_drs %>% filter(date == ymd(init_validate) + t - 1)
+      tmp1 <- tmp1[match(x = par$names,table = tmp1$city),]
+      par$obs$E[[as.character(t)]] <- tmp$infected #E
+      par$obs$Ia[[as.character(t)]] <- tmp$infected #Ia
+      par$obs$Is[[as.character(t)]] <- tmp$infected #Is
+      par$obs$R[[as.character(t)]] <- tmp$recovered #R
+      par$obs$D[[as.character(t)]] <- tmp$deaths_corrected #D
+      par$obs$S[[as.character(t)]] <- par$pop - par$obs$E[[as.character(t)]] - par$obs$Ia[[as.character(t)]] - par$obs$Is[[as.character(t)]] - 
+        par$obs$R[[as.character(t)]] - par$obs$D[[as.character(t)]] #S
+      par$obs_DRS$E[[as.character(t)]] <- tmp1$infected #E
+      par$obs_DRS$Is[[as.character(t)]] <- tmp1$infected #Is
+    }
+      
+    #Test data by DRS
+    teste <- obs %>% filter(date %in% seq.Date(from = ymd(init_validate),to = ymd(end_validate),1)) #Get data in validation days
+    teste_D <- teste %>% dplyr::select(date,city,deaths_corrected) %>% 
+      spread(key = city,value = deaths_corrected) #Select only deaths corrected and spread
+    teste_D <- teste_D[,c(1,match(par$names,names(teste_D)))] #Order cities
+    teste_D <- teste_D %>% gather("Municipio","D",-date) #Gather
+    teste_D <- merge(teste_D,drs) #Merge to find DRSs
+    teste_D$key <- paste(teste_D$date,teste_D$DRS) #Key
+    teste_D <- data.table(teste_D) #Data table
+    teste_D <- teste_D[,D_drs := sum(D),by = key] #Death by DRS
+    teste_D <- teste_D %>% select(date,DRS,D_drs,key) %>% unique() %>% data.frame() #Clean
     
-    #Find best initial condition
-    tf <- function(c){
-      initfK <- initK
-      initfK[1:par$sites] <- c[1]*initK[1:par$sites]
-      mod <- solve_seir(y = initfK,times = 1:7,derivatives = derivatives,parms = parK)[,-1]
-      
-      D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Predicted death for testing
-      I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Predicted cases for testing
-      
-      #Test if model predicted well
-      
-      #Cases
-      colnames(I) <- par$names
-      I$date <- seq.Date(ymd(init_validate),ymd(end_validate),1) 
-      I <- I %>% gather("Municipio","I",-date)
-      I <- merge(I,drs)
-      I$key <- paste(I$date,I$DRS)
-      I <- data.table(I)
-      I <- I[,I_pred := sum(I),by = key]
-      I <- I %>% select(I_pred,key) %>% unique() %>% data.frame()
-      I <- merge(I,teste_I)
-      I$dif <- abs(I$I_pred - I$I_drs)/I$I_drs
-      dif_I <- max(I$dif[I$I_drs > 1000])
-      
-      return(dif_I)
+    teste_I <- teste %>% dplyr::select(date,city,confirmed_corrected) %>% 
+      spread(key = city,value = confirmed_corrected) #Select only confirmed corrected and spread
+    teste_I <- teste_I[,c(1,match(par$names,names(teste_I)))] #Order cities
+    teste_I <- teste_I %>% gather("Municipio","I",-date) #Gather
+    teste_I <- merge(teste_I,drs) #Merge to find DRSs
+    teste_I$key <- paste(teste_I$date,teste_I$DRS) #Key
+    teste_I <- data.table(teste_I) #Data table
+    teste_I <- teste_I[,I_drs := sum(I),by = key] #Death by DRS
+    teste_I <- teste_I %>% select(date,DRS,I_drs,key) %>% unique() %>% data.frame() #Clean
+  
+    #Calculate growth rate
+    system(paste("mkdir /storage/SEIR/",pos,"/AjusteRate/",sep = ""))
+    par$lambda <- vector()
+    
+    #For each DRS
+    for(d in unique(drs$DRS)){
+      tmp <- teste_I %>% filter(DRS == d) #Data of DRS
+      tmp <- data.frame("t" = 0:6,"y" = tmp$I_drs) #Data
+      mod <- lm(log(y) ~ t,data = tmp) #lm
+      par$lambda[par$names %in% drs$Municipio[drs$DRS == d]] <- mod$coefficients[2] #Lambda
+      p <- ggplot(tmp,aes(x = t,y = y)) + geom_point(color = "white") + 
+        stat_function(fun = function(t) exp(mod$coefficients[1])*exp(mod$coefficients[2]*t),color = "white") +
+        theme_solarized(light = FALSE) +  
+        theme(legend.title = element_text(face = "bold"),legend.position = "none") + ylab("Confirmed Cases Corrected") +
+        xlab("Date") + scale_x_continuous(breaks = 0:6,labels = paste(day(day_validate),"/0",
+                                                                      month(day_validate),sep = "")) +
+        theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
+              axis.text.x = element_text(size = 15,face = "bold",color = "white"),
+              axis.text.y = element_text(size = 15,face = "bold",color = "white"),
+              legend.box.margin = unit(x=c(20,0,0,0),units="mm"),
+              legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
+              panel.grid.minor.y = element_blank(),
+              axis.title = element_text(color = "white",size = 20),
+              plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
+        theme(plot.margin = unit(c(1,1,1,1), "lines")) +
+        theme(strip.background = element_blank(),
+              strip.text = element_text(size = 20,face = "bold",color = "white")) +
+        labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
+        ggtitle(paste("Exponetial growth on validation week for DRS",d,"-",unique(drs$Regiao[drs$DRS == d])))
+      pdf(file = paste("/storage/SEIR/",pos,"/AjusteRate/DRS_",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_rate_",pos,".pdf",sep = ""),
+          width = 15,height = 10)
+      suppressWarnings(suppressMessages(print(p))) #Save plot
+      dev.off()
     }
     
-    c <- optimize(interval = c(0,5),f = tf,tol = 1e-3)
-    c <- c$minimum
-    initK[1:par$sites] <- c[1]*initK[1:par$sites]
-    parK$upE <- c*parK$upE
+    #Calculate death rate for each DRS
+    for(d in unique(drs$DRS)){ #For each DRS
+      tmpD <- teste_D %>% filter(DRS == d) #Death in DRS d
+      tmpI <- teste_I %>% filter(DRS == d) #Confirmed in DRS d
+      dr <- tmpD$D_drs[tmpD$date == end_validate]/tmpI$I_drs[tmpI$date == end_validate] #Death rate in DRS d in last day of validation
+      par$delta[match(drs$Municipio[drs$DRS == d],par$names)] <- dr #Attribute death rate of DRS to each city
+    }
     
-    #Find best initial condition
-    tf <- function(c){
-      parfK <- parK
-      parfK$delta <- c*parK$delta
-      mod <- solve_seir(y = initK,times = 1:7,derivatives = derivatives,parms = parfK)[,-1]
+    #Calculate death rate for each city with 50+ deaths
+    C_50 <- obs %>% filter(date == init_validate & deaths_corrected >= 50) %>% unique() #Data of cities with 50+ deaths in last day of validation
+    C_50 <- C_50$city #Get city name
+    for(c in C_50){ #For each city with 50+ deaths by last_validation
+      tmp <- obs %>% filter(city == c & date == end_validate) #Get data of city is last day of validation
+      dr <- tmp$deaths_corrected/tmp$confirmed_corrected #Death rate
+      par$delta[match(c,par$names)] <- dr #Attribute death rate
+    }
+    
+    cat("Estimatimating the model...\n")
+    #Choosing models
+    pred <- vector("list",sample_size) #Store predicted values
+    
+    #Set progress bar
+    pb <- progress_bar$new(
+      format = ":letter [:bar] :elapsed | eta: :eta",
+      total = sample_size,    # 100 
+      width = 60)
+    progress_letter <- paste(round(100*c(1:sample_size)/sample_size,2),"%")
+    progress <- function(n){
+      pb$tick(tokens = list(letter = progress_letter[n]))
+    } 
+    opts <- list(progress = progress)
+    
+    #Objects to store results
+    results <- list()
+    results$models <- vector("list",sample_size) #Store parameters of models
+    kgood <- 0 #Number of good models
+    is.good <- vector() #Track good models
+    error <- vector() #track error
+    mI <- 1
+    mD <- 1
+    
+    for(k in 1:sample_size){#For each sampled model
+      pb$tick(tokens = list(letter = paste(progress_letter[k],kgood,"D =",round(mD,5),"I =",round(mI,5)))) #Update progress bar
+    
+      #Parameters of model k
+      parK <- list()
+      parK$day <- day_validate #Days of validation
+      parK$val <- TRUE #Is validation
+      parK$mob <- par$mob #Mobility matrix
+      parK$pop <- par$pop #Population
+      parK$Te <- sample(x = par$Te,size = 1) #Te
+      parK$Ta <- sample(x = par$Ta,size = 1) #Ta
+      parK$Ts <- sample(x = par$Ts,size = 1) #Ts
+      parK$Td <- sample(x = par$Td,size = 1) #Td
+      parK$delta <- par$delta/parK$Td #delta
+      parK$sites <- par$sites #Number of sites
+      parK$s <- sample(x = par$s,size = 1) #s
+      parK$upI <- par$lift*sample(x = c(6:10),size = 1) #Asymptomatic initial condition
+      parK$gammaA <- parK$upI/((1+parK$upI)*parK$Te) #GammaA
+      gammaS <- (1 - parK$Te*parK$gammaA)/parK$Te #Rate of Exposed to Symptomatic
+      nuA <- 1/parK$Ta #Rate from Asymptomatic to Recovered
+      nuS <- (1-parK$delta*parK$Td)/parK$Ts #Rate from Symptomatic to Recoveres
+      parK$upE <- (parK$upI+1)#1/((1 - parK$Te*gammaS)/parK$Te) #To multiply number of new infected to get exposed
+      initK <- init #Initial condition
+      initK[1:par$sites] <- parK$upE*initK[1:par$sites] #Correct E
+      initK[(par$sites + 1):(2*par$sites)] <- parK$upI*initK[(par$sites + 1):(2*par$sites)] #Assymptomatics
+      initK[(3*par$sites + 1):(4*par$sites)] <- (parK$upI+1)*initK[(3*par$sites + 1):(4*par$sites)] #Correct R
+  
+      #Find best initial condition
+      tf <- function(c){
+        initfK <- initK
+        initfK[1:par$sites] <- c[1]*initK[1:par$sites]
+        
+        #Beta
+        lambdaE <- 0.5*(log(par$lambda + nuS + parK$delta) + log(1+par$obs$Is[[as.character(1)]]) -
+                          log(gammaS * c * parK$upE * (1+par$obs$E[[as.character(0)]]))) + 0.5*(log(par$lambda + nuA) + 
+                                                                                              log(1+parK$upI*par$obs$Is[[as.character(0+1)]]) -
+                                                                                              log(parK$gammaA * c * parK$upE * 
+                                                                                                    (1+par$obs$E[[as.character(0)]]))) #Growth rate
+        num <- ((par$lambda + gammaS + parK$gammaA) * c * parK$upE * par$obs$E[[as.character(0)]] * (par$pop - par$obs$D[[as.character(0)]])) #Numerator
+        den <- par$obs$S[[as.character(0)]] * (parK$s*((parK$mob[[as.character(init_validate-1)]]-
+                                                          diag(diag(parK$mob[[as.character(init_validate-1)]]))) %*% cbind(par$obs$Is[[as.character(0)]] + 
+                                                                                                                             parK$upI*par$obs$Is[[as.character(0)]])) + 
+                                                 (parK$upI+1)*par$obs$Is[[as.character(0)]]) #Denominator
+        if(min(den) == 0) #Correct zero denominator
+          den[den == 0] <- min(den[den > 0])
+        parK$beta <- as.vector(num/den) #Beta
+        mod <- solve_seir(y = initfK,times = 1:7,derivatives = derivatives,parms = parK)[,-1]
+        
+        D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Predicted death for testing
+        I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Predicted cases for testing
+        
+        #Test if model predicted well
+        
+        #Cases
+        colnames(I) <- par$names
+        I$date <- seq.Date(ymd(init_validate),ymd(end_validate),1) 
+        I <- I %>% gather("Municipio","I",-date)
+        I <- merge(I,drs)
+        I$key <- paste(I$date,I$DRS)
+        I <- data.table(I)
+        I <- I[,I_pred := sum(I),by = key]
+        I <- I %>% select(I_pred,key) %>% unique() %>% data.frame()
+        I <- merge(I,teste_I)
+        I$dif <- abs(I$I_pred - I$I_drs)/I$I_drs
+        dif_I <- max(I$dif[I$I_drs > 500])
+        
+        return(dif_I)
+      }
       
-      D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Predicted death for testing
-      I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Predicted cases for testing
+      c <- optimize(interval = c(0,5),f = tf,tol = 1e-3)
+      c <- c$minimum
+      initK[1:par$sites] <- c[1]*initK[1:par$sites]
+      parK$upE <- c*parK$upE
+      
+      #Beta
+      lambdaE <- 0.5*(log(par$lambda + nuS + parK$delta) + log(1+par$obs$Is[[as.character(1)]]) -
+                        log(gammaS * parK$upE * (1+par$obs$E[[as.character(0)]]))) + 0.5*(log(par$lambda + nuA) + 
+                                                                                            log(1+parK$upI*par$obs$Is[[as.character(0+1)]]) -
+                                                                                            log(parK$gammaA * parK$upE * 
+                                                                                                  (1+par$obs$E[[as.character(0)]]))) #Growth rate
+      num <- ((par$lambda + gammaS + parK$gammaA) * parK$upE * par$obs$E[[as.character(0)]] * (par$pop - par$obs$D[[as.character(0)]])) #Numerator
+      den <- par$obs$S[[as.character(0)]] * (parK$s*((parK$mob[[as.character(init_validate-1)]]-
+                                                        diag(diag(parK$mob[[as.character(init_validate-1)]]))) %*% cbind(par$obs$Is[[as.character(0)]] + 
+                                                                                                                           parK$upI*par$obs$Is[[as.character(0)]])) + 
+                                               (parK$upI+1)*par$obs$Is[[as.character(0)]]) #Denominator
+      if(min(den) == 0) #Correct zero denominator
+        den[den == 0] <- min(den[den > 0])
+      parK$beta <- as.vector(num/den) #Beta
+      
+      #Model
+      mod <- solve_seir(y = initK,times = 1:7,derivatives = derivatives,parms = parK)[,-1] #Simulate model k
+    
+      #Delete unecessary parameters
+      parK$day <- NULL #Days of validation
+      parK$val <- NULL #Is validation
+      parK$mob <- NULL #Mobility matrix
+      parK$pop <- NULL #Population
+      
+      #Mean infected time and Rt
+      parK$meanTi <- (parK$upI/(parK$upI + 1)) * parK$Ta + (1/(parK$upI + 1)) * (1-par$delta) * parK$Ts + (1/(parK$upI + 1)) * par$delta * parK$Td 
+      parK$Rt <- parK$meanTi * parK$beta
+      
+      #Result
+      pred[[k]]$E <- mod[,1:parK$sites] #Prediction of E
+      pred[[k]]$Ia <- mod[,(parK$sites + 1):(2*parK$sites)] #Prediction of Ia
+      pred[[k]]$Is <- mod[,(2*parK$sites + 1):(3*parK$sites)] #Prediction of Is
+      pred[[k]]$R <- mod[,(3*parK$sites + 1):(4*parK$sites)] #Prediction of R
+      pred[[k]]$D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Prediction of D
+      pred[[k]]$I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Total cases
+      pred[[k]]$beta <- parK$beta #Prediction of beta
+      pred[[k]]$meanTi <- parK$meanTi #Prediction of mean infection time
+      pred[[k]]$Rt <- parK$Rt #Prediction of Rt
+      
+      D <- pred[[k]]$D #Predicted death for testing
+      I <- pred[[k]]$I #Predicted cases for testing
       
       #Test if model predicted well
       
@@ -363,94 +396,44 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
       D <- D %>% select(D_pred,key) %>% unique() %>% data.frame()
       D <- merge(D,teste_D)
       D$dif <- abs(D$D_pred - D$D_drs)/D$D_drs
-      dif_D <- max(D$dif[D$D_drs >= 100])
+      dif_D <- max(D$dif[D$D_drs > 50])
       
-      return(dif_D)
-    }
+      #Cases
+      colnames(I) <- par$names
+      I$date <- seq.Date(ymd(init_validate),ymd(end_validate),1) 
+      I <- I %>% gather("Municipio","I",-date)
+      I <- merge(I,drs)
+      I$key <- paste(I$date,I$DRS)
+      I <- data.table(I)
+      I <- I[,I_pred := sum(I),by = key]
+      I <- I %>% select(I_pred,key) %>% unique() %>% data.frame()
+      I <- merge(I,teste_I)
+      I$dif <- abs(I$I_pred - I$I_drs)/I$I_drs
+      dif_I <- max(I$dif[I$I_drs > 500])
+      
+      #Is good
+      good <- as.numeric(dif_I <= 0.075 & dif_D <= 0.075)
+      is.good[k] <- good
+      error[k] <- dif_D
+      if(dif_I < mI)
+        mI <- dif_I
+      if(dif_D < mD)
+        mD <- dif_D
     
-    c <- optimize(interval = c(0,5),f = tf,tol = 1e-3)
-    c <- c$minimum
-    parK$delta <- c*parK$delta
-    
-    #Model
-    mod <- solve_seir(y = initK,times = 1:7,derivatives = derivatives,parms = parK)[,-1] #Simulate model k
-  
-    #Delete unecessary parameters
-    parK$day <- NULL #Days of validation
-    parK$val <- NULL #Is validation
-    parK$mob <- NULL #Mobility matrix
-    parK$pop <- NULL #Population
-    
-    #Mean infected time and Rt
-    parK$meanTi <- (parK$upI/(parK$upI + 1)) * parK$Ta + (1/(parK$upI + 1)) * (1-par$delta) * parK$Ts + (1/(parK$upI + 1)) * par$delta * parK$Td 
-    parK$Rt <- parK$meanTi * parK$beta
-    
-    #Result
-    pred[[k]]$E <- mod[,1:parK$sites] #Prediction of E
-    pred[[k]]$Ia <- mod[,(parK$sites + 1):(2*parK$sites)] #Prediction of Ia
-    pred[[k]]$Is <- mod[,(2*parK$sites + 1):(3*parK$sites)] #Prediction of Is
-    pred[[k]]$R <- mod[,(3*parK$sites + 1):(4*parK$sites)] #Prediction of R
-    pred[[k]]$D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Prediction of D
-    pred[[k]]$I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Total cases
-    pred[[k]]$beta <- parK$beta #Prediction of beta
-    pred[[k]]$meanTi <- parK$meanTi #Prediction of mean infection time
-    pred[[k]]$Rt <- parK$Rt #Prediction of Rt
-    
-    D <- pred[[k]]$D #Predicted death for testing
-    I <- pred[[k]]$I #Predicted cases for testing
-    
-    #Test if model predicted well
-    
-    #Deaths
-    colnames(D) <- par$names
-    D$date <- seq.Date(ymd(init_validate),ymd(end_validate),1) 
-    D <- D %>% gather("Municipio","D",-date)
-    D <- merge(D,drs)
-    D$key <- paste(D$date,D$DRS)
-    D <- data.table(D)
-    D <- D[,D_pred := sum(D),by = key]
-    D <- D %>% select(D_pred,key) %>% unique() %>% data.frame()
-    D <- merge(D,teste_D)
-    D$dif <- abs(D$D_pred - D$D_drs)/D$D_drs
-    dif_D <- quantile(D$dif[D$D_drs >= 100],0.95)
-    
-    #Cases
-    colnames(I) <- par$names
-    I$date <- seq.Date(ymd(init_validate),ymd(end_validate),1) 
-    I <- I %>% gather("Municipio","I",-date)
-    I <- merge(I,drs)
-    I$key <- paste(I$date,I$DRS)
-    I <- data.table(I)
-    I <- I[,I_pred := sum(I),by = key]
-    I <- I %>% select(I_pred,key) %>% unique() %>% data.frame()
-    I <- merge(I,teste_I)
-    I$dif <- abs(I$I_pred - I$I_drs)/I$I_drs
-    I <- I %>% filter(date == ymd(end_validate))
-    dif_I <- quantile(I$dif[I$I_drs > 1000],0.95)
-    
-    #Is good
-    good <- as.numeric(dif_I <= 0.1 & dif_D <= 0.5)
-    is.good[k] <- good
-    error[k] <- dif_D
-    if(dif_I < mI)
-      mI <- dif_I
-    if(dif_D < mD)
-      mD <- dif_D
-  
-    #Result
-    if(good == 1){#Store good models
-      kgood <- kgood + 1
-      results$models[[kgood]] <- parK
-      if(kgood == max_models){
-        is.good[(k+1):sample_size] <- 0
-        break
+      #Result
+      if(good == 1){#Store good models
+        kgood <- kgood + 1
+        results$models[[kgood]] <- parK
+        if(kgood == max_models){
+          is.good[(k+1):sample_size] <- 0
+          break
+        }
       }
+      rm(parK,D,I,dif_D,mod,good,initK,gammaS,nuA,nuS)
     }
-    rm(parK,D,I,dif_D,mod,good,initK,gammaS,nuA,nuS)
-  }
-  cat("\n")
-  cat(paste("Good models: ",kgood," (",round(100*kgood/sample_size,2),"%)\n",sep = ""))
-  cat("\n")
+    cat("\n")
+    cat(paste("Good models: ",kgood," (",round(100*kgood/sample_size,2),"%)\n",sep = ""))
+    cat("\n")
 
   cat("\n")
   cat("Saving parameters of good models...\n")
@@ -639,65 +622,68 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
     I[[d]]$Ipred <- apply(X = I[[d]] %>% select(-date,-key),MARGIN = 1,FUN = median)
     I[[d]]$IpredInf <- apply(X = I[[d]] %>% select(-date,-key),MARGIN = 1,FUN = min)
     I[[d]]$IpredSup <- apply(X = I[[d]] %>% select(-date,-key),MARGIN = 1,FUN = max)
-    tmp <- teste_D[teste_D$DRS == d,c(3,4)]
-    names(tmp)[1] <- "D"
-    D[[d]] <- merge(D[[d]],tmp)
-    tmp <- teste_I[teste_I$DRS == d,c(3,4)]
-    names(tmp)[1] <- "I"
-    I[[d]] <- merge(I[[d]],tmp)
+    tmp <- obs_drs %>% filter(ymd(date) >= ymd(end_validate)-31 & ymd(date) <= ymd(end_validate))
+    tmp$key <- paste(tmp$date,tmp$DRS)
+    tmp <- tmp[tmp$DRS == d,c(2,13)]
+    names(tmp)[2] <- "D"
+    D[[d]] <- merge(D[[d]],tmp,all = T)
+    tmp <- obs_drs %>% filter(ymd(date) >= ymd(end_validate)-31 & ymd(date) <= ymd(end_validate))
+    tmp$key <- paste(tmp$date,tmp$DRS)
+    tmp <- tmp[tmp$DRS == d,c(2,12)]
+    names(tmp)[2] <- "I"
+    I[[d]] <- merge(I[[d]],tmp,all = T)
     
     #Plot
-    if(sum(D[[d]]$D > 100) > 0 & sum(I[[d]]$I > 1000) > 0){
-      tmp <- D[[d]]
-      pD <- ggplot(tmp,aes(x = date)) + theme_solarized(light = FALSE) + geom_line(aes(y = D),color = "red") + 
-        geom_line(aes(y = Dpred),linetype = "dashed",color = "red") +
-        geom_ribbon(aes(ymin = DpredInf,ymax = DpredSup),fill = "red",alpha = 0.5) + xlab("Data") + ylab("Mortes confirmadas") +
-        scale_x_date(breaks = seq.Date(from = min(ymd(tmp$date)),to = max(ymd(tmp$date)),by = 1),
-                     labels = paste(day(seq.Date(from = min(ymd(tmp$date)),to = max(ymd(tmp$date)),by = 1)),"/0",
-                                    month(seq.Date(from = min(ymd(tmp$date)),to = max(ymd(tmp$date)),by = 1)),sep = "")) +
-        theme(legend.title = element_text(face = "bold"),legend.position = "none") +
-        theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
-              axis.text.x = element_text(size = 15,face = "bold",color = "white"),
-              axis.text.y = element_text(size = 15,face = "bold",color = "white"),
-              legend.box.margin = unit(x=c(20,0,0,0),units="mm"),
-              legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
-              panel.grid.minor.y = element_blank(),
-              axis.title = element_text(color = "white",size = 20),
-              plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
-        theme(plot.margin = unit(c(1,1,1,1), "lines")) +
-        theme(strip.background = element_blank(),
-              strip.text = element_text(size = 20,face = "bold",color = "white")) +
-        labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
-      ggtitle(paste("Mortes confirmadas COVID-19 na DRS",d,"-",unique(drs$Regiao[drs$DRS == d])))
-      pdf(file = paste("/storage/SEIR/",pos,"/validate/",gsub(" ","",d),"_mortes.pdf",sep = ""),width = 15,height = 10)
-      suppressWarnings(suppressMessages(print(pD)))
-      dev.off()
+    tmp <- D[[d]]
+    pD <- ggplot(tmp,aes(x = date)) + theme_solarized(light = FALSE) + geom_line(aes(y = D),color = "red") + 
+      geom_line(aes(y = Dpred),linetype = "dashed",color = "red") +
+      geom_ribbon(aes(ymin = DpredInf,ymax = DpredSup),fill = "red",alpha = 0.5) + xlab("Data") + ylab("Mortes confirmadas") +
+      scale_x_date(breaks = seq.Date(from = min(ymd(tmp$date),na.rm = T),to = max(ymd(tmp$date),na.rm = T),by = 3),
+                   labels = paste(day(seq.Date(from = min(ymd(tmp$date),na.rm = T),to = max(ymd(tmp$date),na.rm = T),by = 3)),"/0",
+                                  month(seq.Date(from = min(ymd(tmp$date),na.rm = T),to = max(ymd(tmp$date),na.rm = T),by = 3)),sep = "")) +
+      theme(legend.title = element_text(face = "bold"),legend.position = "none") +
+      theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
+            axis.text.x = element_text(size = 15,face = "bold",color = "white"),
+            axis.text.y = element_text(size = 15,face = "bold",color = "white"),
+            legend.box.margin = unit(x=c(20,0,0,0),units="mm"),
+            legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
+            panel.grid.minor.y = element_blank(),
+            axis.title = element_text(color = "white",size = 20),
+            plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
+      theme(plot.margin = unit(c(1,1,1,1), "lines")) +
+      theme(strip.background = element_blank(),
+            strip.text = element_text(size = 20,face = "bold",color = "white")) +
+      labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
+    ggtitle(paste("Mortes confirmadas COVID-19 na DRS",d,"-",unique(drs$Regiao[drs$DRS == d])))
+    pdf(file = paste("/storage/SEIR/",pos,"/validate/",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_mortes.pdf",sep = ""),width = 15,height = 10)
+    suppressWarnings(suppressMessages(print(pD)))
+    dev.off()
     
-      tmp <- I[[d]]
-      pI <- ggplot(tmp,aes(x = date)) + theme_solarized(light = FALSE) + geom_line(aes(y = I),color = "red") + 
-        geom_line(aes(y = Ipred),linetype = "dashed",color = "red") +
-        geom_ribbon(aes(ymin = IpredInf,ymax = IpredSup),fill = "red",alpha = 0.5) + xlab("Data") + ylab("Casos confirmados") +
-        scale_x_date(breaks = seq.Date(from = min(ymd(tmp$date)),to = max(ymd(tmp$date)),by = 1),
-                     labels = paste(day(seq.Date(from = min(ymd(tmp$date)),to = max(ymd(tmp$date)),by = 1)),"/0",
-                                    month(seq.Date(from = min(ymd(tmp$date)),to = max(ymd(tmp$date)),by = 1)),sep = "")) +
-        theme(legend.title = element_text(face = "bold"),legend.position = "none") +
-        theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
-              axis.text.x = element_text(size = 15,face = "bold",color = "white"),
-              axis.text.y = element_text(size = 15,face = "bold",color = "white"),
-              legend.box.margin = unit(x=c(20,0,0,0),units="mm"),
-              legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
-              panel.grid.minor.y = element_blank(),
-              axis.title = element_text(color = "white",size = 20),
-              plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
-        theme(plot.margin = unit(c(1,1,1,1), "lines")) +
-        theme(strip.background = element_blank(),
-              strip.text = element_text(size = 20,face = "bold",color = "white")) +
-        labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
-        ggtitle(paste("Casos confirmados COVID-19 na DRS",d,"-",unique(drs$Regiao[drs$DRS == d])))
-      pdf(file = paste("/storage/SEIR/",pos,"/validate/",gsub(" ","",d),"_casos.pdf",sep = ""),width = 15,height = 10)
-      suppressWarnings(suppressMessages(print(pI)))
-      dev.off()
-    }
+    tmp <- I[[d]]
+    pI <- ggplot(tmp,aes(x = date)) + theme_solarized(light = FALSE) + geom_line(aes(y = I),color = "red") + 
+      geom_line(aes(y = Ipred),linetype = "dashed",color = "red") +
+      geom_ribbon(aes(ymin = IpredInf,ymax = IpredSup),fill = "red",alpha = 0.5) + xlab("Data") + ylab("Casos confirmados") +
+      scale_x_date(breaks = seq.Date(from = min(ymd(tmp$date)),to = max(ymd(tmp$date)),by = 3),
+                   labels = paste(day(seq.Date(from = min(ymd(tmp$date),na.rm = T),to = max(ymd(tmp$date),na.rm = T),by = 3)),"/0",
+                                  month(seq.Date(from = min(ymd(tmp$date),na.rm = T),to = max(ymd(tmp$date),na.rm = T),by = 3)),sep = "")) +
+      theme(legend.title = element_text(face = "bold"),legend.position = "none") +
+      theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
+            axis.text.x = element_text(size = 15,face = "bold",color = "white"),
+            axis.text.y = element_text(size = 15,face = "bold",color = "white"),
+            legend.box.margin = unit(x=c(20,0,0,0),units="mm"),
+            legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
+            panel.grid.minor.y = element_blank(),
+            axis.title = element_text(color = "white",size = 20),
+            plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
+      theme(plot.margin = unit(c(1,1,1,1), "lines")) +
+      theme(strip.background = element_blank(),
+            strip.text = element_text(size = 20,face = "bold",color = "white")) +
+      labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
+      ggtitle(paste("Casos confirmados COVID-19 na DRS",d,"-",unique(drs$Regiao[drs$DRS == d])))
+    pdf(file = paste("/storage/SEIR/",pos,"/validate/",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_casos.pdf",sep = ""),width = 15,height = 10)
+    suppressWarnings(suppressMessages(print(pI)))
+    dev.off()
+    
   }
  
   #Plot state
