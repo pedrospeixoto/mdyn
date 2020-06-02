@@ -283,7 +283,7 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
     parK$delta <- par$delta/parK$Td #delta
     parK$sites <- par$sites #Number of sites
     parK$s <- sample(x = par$s,size = 1) #s
-    parK$upI <- par$lift*sample(x = c(4:10,19),size = 1) #Asymptomatic initial condition
+    parK$upI <- par$lift*sample(x = c(6:10),size = 1) #Asymptomatic initial condition
     parK$gammaA <- parK$upI/((1+parK$upI)*parK$Te) #GammaA
     gammaS <- (1 - parK$Te*parK$gammaA)/parK$Te #Rate of Exposed to Symptomatic
     nuA <- 1/parK$Ta #Rate from Asymptomatic to Recovered
@@ -401,53 +401,28 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
   gammaA <- unlist(lapply(lapply(results$models,function(x) x$gammaA*x$Te),median)) #Median gammaA
   s <- unlist(lapply(results$models,function(x) x$s)) #s
   upI <- lapply(results$models,function(x) x$upI) #Mutiply symptomatics to get assymptomatics
+  assymptomatic <- unlist(lapply(upI,median)) #Mutiply symptomatics to get assymptomatics
+  assymptomatic <- assymptomatic/(assymptomatic+1) #Assymptomatic
   upE <- lapply(results$models,function(x) x$upE) #Proportion of symptomatic which to put on exposed
   beta <- lapply(results$models,function(x) x$beta) #Beta
+  betasave <- unlist(lapply(beta,median)) #Beta
   Rt <- lapply(results$models,function(x) x$Rt) #Rt
+  Rtsave <- unlist(lapply(Rt,median)) #Rt
   pred <- pred[is.good == 1] #Prediction of only good models
   saveRDS(object = results,file = paste("/storage/SEIR/",pos,"/result_",pos,".rds",sep = "")) #Save results
   saveRDS(object = pred,file = paste("/storage/SEIR/",pos,"/prediction_",pos,".rds",sep = "")) #Save predictions
   
-  param <- data.frame("Model" = 1:kgood,Te,Ta,Ts,Td,s) #Parameters of good models
-  fwrite(param,paste(wd,"/SEIR/Workspace/parameters_",pos,".csv",sep = "")) #Write parameters of good models
-  
-  #Plot beta for each day and cities with 100+ cases
-  c_beta <- c(1:par$sites)[pred[[1]]$Is[1,] > 100]
-  
-  #Set progress bar
-  pb <- progress_bar$new(
-    format = "Iterations = :letter [:bar] :elapsed | eta: :eta",
-    total = length(c_beta),
-    width = 60)
-  progress_letter <- paste(round(100*c(1:length(c_beta))/length(c_beta),2),"%")
-  progress <- function(n){
-    pb$tick(tokens = list(letter = progress_letter[n]))
-  } 
-  opts <- list(progress = progress)
+  param <- data.frame("Model" = 1:kgood,Te,Ta,Ts,Td,s,gammaA,"MedianBeta" = betasave,"MedianRt" = Rtsave,"MedianAssymptomatic" = assymptomatic) #Parameters
+  fwrite(param,paste("/storage/SEIR/",pos,"/parameters_",pos,".csv",sep = "")) #Write parameters of good models
   
   cat("Plotting maps of parameters which are city dependent...\n")
+  
   #Mapas
   shp <- readOGR(dsn = "~/mdyn/maps/sp_municipios/35MUE250GC_SIR.shp",stringsAsFactors = F,verbose = F) #Shapefiles
   shp$NM_MUNICIP <- gsub("'","",shp$NM_MUNICIP) #Correct names
   shp$NM_MUNICIP[shp$NM_MUNICIP == "BIRITIBA MIRIM"] <- "BIRITIBA-MIRIM"  #Correct names
   shp <- fortify(shp,region = "NM_MUNICIP") #Fortify
-  rc_cont <- colorRampPalette(colors = c("white","yellow","orange","red"))(100)
-  
-  #Beta
-  pbeta <- lapply(pbeta,function(x) data.frame(rbind(x)))
-  pbeta <- bind_rows(pbeta)
-  colnames(pbeta) <- par$names
-  pbeta <- apply(pbeta,2,median)
-  pbeta <- data.frame("id" = names(pbeta),"beta" = pbeta)
-  pbeta <- merge(pbeta,shp)
-  pbeta <- pbeta[order(pbeta$order),]
-    
-  pbeta <- ggplot(pbeta,aes(long, lat,group=group,fill = beta)) + theme_bw() + geom_polygon(colour='gray30') +
-    xlab("") + ylab("") + scale_fill_gradientn("",colours = rc_cont) + titles_Map +
-    ggtitle("Median of estimated beta")
-  pdf(file = paste(wd,"/SEIR/Workspace/Plots/SP_beta_",pos,".pdf",sep = ""),width = 15,height = 10)
-  suppressWarnings(suppressMessages(print(pbeta)))
-  dev.off()
+  rc_cont <- colorRampPalette(colors = c("white","orange","red"))(100)
   
   #Rt
   pRt <- lapply(Rt,function(x) data.frame(rbind(x)))
@@ -455,47 +430,93 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
   colnames(pRt) <- par$names
   pRt <- apply(pRt,2,median)
   pRt <- data.frame("id" = names(pRt),"Rt" = pRt)
+  pRt <- merge(pRt,drs %>% select(Municipio,Regiao),by.y = "Municipio",by.x = "id")
+  pRt$Regiao <- as.character(pRt$Regiao)
+  pRt$Regiao[pRt$Regiao == "Cidade de São Paulo"] <- "Grande São Paulo"
   pRt <- merge(pRt,shp)
   pRt <- pRt[order(pRt$order),]
   
-  pRt <- ggplot(pRt,aes(long, lat,group=group,fill = Rt)) + theme_bw() + geom_polygon(colour='gray30') +
-    xlab("") + ylab("") + scale_fill_gradientn("",colours = rc_cont) + titles_Map +
+  p <- ggplot(pRt,aes(long, lat,group=group,fill = log(1+Rt,2))) + theme_bw() + geom_polygon(colour='gray30') +
+    xlab("") + ylab("") + scale_fill_gradientn("",colours = rc_cont,breaks = c(seq(1.1*min(log(1+pRt$Rt,2)),0.95*max(log(1+pRt$Rt,2)),length.out = 4)),
+                                               labels = round(2^(seq(1.1*min(log(1+pRt$Rt,2)),0.95*max(log(1+pRt$Rt,2)),length.out = 4))-1,2),
+                                               limits = c(min(log(1+pRt$Rt,2)),max(log(1+pRt$Rt,2)))) + titles_Map +
     ggtitle("Median of estimated Rt")
-  pdf(file = paste(wd,"/SEIR/Workspace/Plots/SP_Rt_",pos,".pdf",sep = ""),width = 15,height = 10)
-  suppressWarnings(suppressMessages(print(pRt)))
+  pdf(file = paste("/storage/SEIR/",pos,"/SP_Rt_",pos,".pdf",sep = ""),width = 15,height = 10)
+  suppressWarnings(suppressMessages(print(p)))
   dev.off()
   
+  for(d in unique(pRt$Regiao)){
+    tmp <- pRt %>% filter(Regiao == d)
+    p <- ggplot(tmp,aes(long, lat,group=group,fill = log(1+Rt,2))) + theme_bw() + geom_polygon(colour='gray30') +
+      xlab("") + ylab("") + scale_fill_gradientn("",colours = rc_cont,breaks = c(seq(1.1*min(log(1+pRt$Rt,2)),0.95*max(log(1+pRt$Rt,2)),length.out = 4)),
+                                                 labels = round(2^(seq(1.1*min(log(1+pRt$Rt,2)),0.95*max(log(1+pRt$Rt,2)),length.out = 4))-1,2),
+                                                 limits = c(min(log(1+pRt$Rt,2)),max(log(1+pRt$Rt,2)))) + 
+      titles_Map +
+      ggtitle(paste("Median of estimated Rt DRS -",d))
+    pdf(file = paste("/storage/SEIR/",pos,"/",gsub(" ","",d),"_Rt_",pos,".pdf",sep = ""),width = 15,height = 10)
+    suppressWarnings(suppressMessages(print(p)))
+    dev.off()
+  }
+  
   #Save Rt
-  pRt <- data.frame("Municipio" = par$names,"Minimo" = apply(Rt,bind_rows(lapply(Rt,function(x) data.frame(rbind(x)))),2,min),
-                   "Mediana" = apply(Rt,bind_rows(lapply(Rt,function(x) data.frame(rbind(x)))),2,median),
-                   "Máximo" = apply(Rt,bind_rows(lapply(Rt,function(x) data.frame(rbind(x)))),2,max))
+  pRt <- data.frame("Municipio" = par$names,"Minimo" = apply(bind_rows(lapply(Rt,function(x) data.frame(rbind(x)))),2,min),
+                   "Mediana" = apply(bind_rows(lapply(Rt,function(x) data.frame(rbind(x)))),2,median),
+                   "Máximo" = apply(bind_rows(lapply(Rt,function(x) data.frame(rbind(x)))),2,max))
+  pRt <- merge(drs %>% select(Municipio,Regiao),pRt)
+  names(pRt)[2] <- "DRS"
   pRt <- pRt[order(pRt$Mediana,decreasing = T),]
-  write.csv(pRt,file = paste(wd,"/SEIR/Workspace/SP_Rt_",pos,".csv",sep = ""),row.names = F)
+  write.csv(pRt,file = paste("/storage/SEIR/",pos,"/SP_Rt_",pos,".csv",sep = ""),row.names = F)
   
   #Assintomáticos
   pupI <- lapply(upI,function(x) data.frame(rbind(x)))
   pupI <- bind_rows(pupI)
-  for(j in 1:col(pupI))
+  for(j in 1:ncol(pupI))
     pupI[,j] <- pupI[,j]/(1+pupI[,j])
   colnames(pupI) <- par$names
   pupI <- apply(pupI,2,median)
   pupI <- data.frame("id" = names(pupI),"upI" = pupI)
+  pupI <- merge(pupI,drs %>% select(Municipio,Regiao),by.y = "Municipio",by.x = "id")
+  pupI$Regiao <- as.character(pupI$Regiao)
+  pupI$Regiao[pupI$Regiao == "Cidade de São Paulo"] <- "Grande São Paulo"
   pupI <- merge(pupI,shp)
   pupI <- pupI[order(pupI$order),]
+  rc_ass <- colorRampPalette(colors = c("orange","red"))(100)
   
-  pupI <- ggplot(pupI,aes(long, lat,group=group,fill = upI)) + theme_bw() + geom_polygon(colour='gray30') +
-    xlab("") + ylab("") + scale_fill_gradientn("",colours = rc_cont) + titles_Map +
+  p <- ggplot(pupI,aes(long, lat,group=group,fill = log(1+upI,2))) + theme_bw() + geom_polygon(colour='gray30') +
+    xlab("") + ylab("") + 
+    scale_fill_gradientn("",colours = rc_ass,breaks = c(seq(1.01*min(log(1+pupI$upI,2)),0.99*max(log(1+pupI$upI,2)),length.out = 4)),
+                                               labels = round(2^(seq(1.01*min(log(1+pupI$upI,2)),0.99*max(log(1+pupI$upI,2)),length.out = 4))-1,2),
+                         limits = c(min(log(1+pupI$upI,2)),max(log(1+pupI$upI,2)))) + 
+    titles_Map +
     ggtitle("Median of estimated proportion of assymptomatics")
-  pdf(file = paste(wd,"/SEIR/Workspace/Plots/SP_assymptomatics_",pos,".pdf",sep = ""),width = 15,height = 10)
-  suppressWarnings(suppressMessages(print(pRt)))
+  pdf(file = paste("/storage/SEIR/",pos,"/SP_assymptomatics_",pos,".pdf",sep = ""),width = 15,height = 10)
+  suppressWarnings(suppressMessages(print(p)))
   dev.off()
   
+  for(d in unique(pupI$Regiao)){
+    tmp <- pupI %>% filter(Regiao == d)
+    p <- ggplot(tmp,aes(long, lat,group=group,fill = log(1+upI,2))) + theme_bw() + geom_polygon(colour='gray30') +
+      xlab("") + ylab("") + 
+      scale_fill_gradientn("",colours = rc_ass,breaks = c(seq(1.01*min(log(1+pupI$upI,2)),0.99*max(log(1+pupI$upI,2)),length.out = 4)),
+                           labels = round(2^(seq(1.01*min(log(1+pupI$upI,2)),0.99*max(log(1+pupI$upI,2)),length.out = 4))-1,2),
+                           limits = c(min(log(1+pupI$upI,2)),max(log(1+pupI$upI,2)))) + 
+      titles_Map +
+      ggtitle("Median of estimated proportion of assymptomatics")
+    pdf(file = paste("/storage/SEIR/",pos,"/",gsub(" ","",d),"_assymptomatics_",pos,".pdf",sep = ""),width = 15,height = 10)
+    suppressWarnings(suppressMessages(print(p)))
+    dev.off()
+  }
+  
   #Save assymptomatics
-  pA <- data.frame("Municipio" = par$names,"Minimo" = apply(upI,bind_rows(lapply(Rt,function(x) data.frame(rbind(x)))),2,min),
-                   "Mediana" = apply(Rt,bind_rows(lapply(upI,function(x) data.frame(rbind(x)))),2,median),
-                   "Máximo" = apply(Rt,bind_rows(lapply(upI,function(x) data.frame(rbind(x)))),2,max))
+  pA <- data.frame("Municipio" = par$names,"Minimo" = apply(bind_rows(lapply(upI,function(x) data.frame(rbind(x)))),2,min),
+                   "Mediana" = apply(bind_rows(lapply(upI,function(x) data.frame(rbind(x)))),2,median),
+                   "Máximo" = apply(bind_rows(lapply(upI,function(x) data.frame(rbind(x)))),2,max))
+  pA <- merge(drs %>% select(Municipio,Regiao),pA)
+  names(pA)[2] <- "DRS"
+  for(j in 3:5)
+    pA[,j] <- 100*pA[,j]/(1+pA[,j])
   pA <- pA[order(pA$Mediana,decreasing = T),]
-  write.csv(pA,file = paste(wd,"/SEIR/Workspace/SP_assymptomatics_",pos,".csv",sep = ""),row.names = F)
+  write.csv(pA,file = paste("/storage/SEIR/",pos,"/SP_assymptomatics_",pos,".csv",sep = ""),row.names = F)
   
   #######Plot by DRS#####
   cat("Plot observed and predicted number of deaths for each DRS...\n")
