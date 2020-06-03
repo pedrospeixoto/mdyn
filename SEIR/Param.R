@@ -11,9 +11,6 @@ cores <- 24 #Number of cores to use in parallel computation
 pos <- "teste" #What to add at the end of all output files
 seed <- rnorm(1,10,100000) #Seed
 par <- list() #Candidate values of model parameters
-error_good <- 0.1
-
-#Dates
 simulate_length <- 365 #Number of days to simulate
 
 #Set mobility matrix
@@ -73,11 +70,11 @@ par$s <- c(0.01,0.5,1,1.5,2,2.5,3)
 # #n_dependent <- as.numeric((length(cand_beta)^10)^4)
 # n_models <- n_independent
 # sample_size <- mc(p = 0.1*n_models,c = 0.1,delta = 0.99,cardinality = n_models)
-sample_size <- 1000
-max_models <- 100000
+sample_size <- 100000
 
-source("mdyn/SEIR/SEIR_COVID19.R",sep = "")
-SEIR_covid(wd,cores,par,cand_beta,pos,seed,sample_size,simulate_length,d_max,max_models,error_good)
+
+# source("mdyn/SEIR/SEIR_COVID19.R",sep = "")
+# SEIR_covid(wd,cores,par,cand_beta,pos,seed,sample_size,simulate_length,d_max,max_models,error_good)
 
 # cat("Converting pdfs...\n")
 # setwd(wd)
