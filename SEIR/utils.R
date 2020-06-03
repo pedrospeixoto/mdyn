@@ -190,10 +190,14 @@ get_data_API <- function(){
   dados <- dados$results
   dados <- lapply(dados,function(x) data.frame(rbind(x)))
   dados <- bind_rows(dados)
+  cat(n)
+  cat("\n")
   while(!is.null(n)){
     tmp <- GET("https://brasil.io/api/dataset/covid19/caso_full/data/")
     tmp <- content(tmp)
     n <- tmp$'next'
+    cat(n)
+    cat("\n")
     tmp <- tmp$results
     tmp <- lapply(tmp,function(x) data.frame(rbind(x)))
     tmp <- bind_rows(tmp)
