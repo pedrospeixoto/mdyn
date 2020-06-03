@@ -88,7 +88,13 @@ get_data_SP <- function(){
   #file <- gzcon(url("https://data.brasil.io/dataset/covid19/caso_full.csv.gz")) #Data path
   #txt <- readLines(file) #Read lines
   #obs <- read.csv(textConnection(txt)) #Get data
-  obs <- get_data_API()
+  d <- Sys.Date()
+  if(!file.exists(paste("/storage/SEIR/dados_",d,".csv",sep = ""))){
+    obs <- data.frame(get_data_API())
+    write.csv(x = obs,file = paste("/storage/SEIR/dados_",d,".csv",sep = ""),row.names = F)
+  }
+  else
+    obs <- data.frame(read.csv(paste("/storage/SEIR/dados_",d,".csv",sep = "")))
   obs <- obs %>% filter(state == "SP" & city != "") %>% na.omit() %>% 
     select(city,date,last_available_confirmed,last_available_deaths) #Only SP state and confirmed cases and death
   obs$city <- toupper(gsub(pattern = "'",replacement = "",x = obs$city)) #Correct names
@@ -111,7 +117,7 @@ get_data_SP <- function(){
   obs_new$deaths_corrected <- 0 #Initialize new variables
   obs_new$new_infected_mean <- 0 #Initialize new variables
   for(c in unique(obs$city)){ #For each city
-    tmp <- obs %>% filter(city == c) #Get data from the city
+    tmp <- data.frame(obs %>% filter(city == c)) #Get data from the city
     tmp <- tmp[order(tmp$date),] #Order by date
     tmp$recovered <- 0 #Initialize new variables
     tmp$infected <- 0 #Initialize new variables
@@ -188,7 +194,7 @@ get_data_API <- function(){
   dados <- content(dados)
   n <- dados$'next'
   dados <- dados$results
-  dados <- lapply(dados,function(x) data.frame(rbind(x)))
+  dados <- lapply(dados,function(x) data.frame(rbind(unlist(x))))
   dados <- bind_rows(dados)
   cat(n)
   cat("\n")
@@ -199,7 +205,7 @@ get_data_API <- function(){
     cat(n)
     cat("\n")
     tmp <- tmp$results
-    tmp <- lapply(tmp,function(x) data.frame(rbind(x)))
+    tmp <- lapply(tmp,function(x) data.frame(rbind(unlist(x))))
     tmp <- bind_rows(tmp)
     dados <- rbind.data.frame(dados,tmp)
   }
