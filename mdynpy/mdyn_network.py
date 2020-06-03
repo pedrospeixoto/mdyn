@@ -1024,7 +1024,8 @@ class Network:
                 with open(filename) as f:
                     reg_names = f.read().splitlines()
             else:
-                print("Can't find Brasil matrix, please run mdyn_build_model.py first to generate the movement matrices")
+                
+                print("Can't find Brasil matrix, please run mdyn_build_model.py first to generate the movement matrices", local_dir)
                 print(" (run with the same parameter file and option -o 0!)")
                 sys.exit()
 
