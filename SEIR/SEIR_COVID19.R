@@ -141,7 +141,7 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
     init <- vector()
     tmp <- obs %>% filter(date == ymd(init_validate))
     tmp <- tmp[match(x = par$names,table = tmp$city),]
-    init[1:par$sites] <- tmp$new_infected #E
+    init[1:par$sites] <- tmp$infected #E
     init[(par$sites + 1):(2*par$sites)] <- tmp$infected #Ia
     init[(2*par$sites + 1):(3*par$sites)] <- tmp$infected #Is
     init[(3*par$sites + 1):(4*par$sites)] <- tmp$recovered #R
@@ -331,7 +331,7 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
         I <- I %>% select(I_pred,key) %>% unique() %>% data.frame()
         I <- merge(I,teste_I)
         I$dif <- abs(I$I_pred - I$I_drs)/I$I_drs
-        dif_I <- max(I$dif[I$I_drs > 500])
+        dif_I <- max(I$dif[I$I_drs > 1000])
         
         return(dif_I)
       }
@@ -409,10 +409,10 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
       I <- I %>% select(I_pred,key) %>% unique() %>% data.frame()
       I <- merge(I,teste_I)
       I$dif <- abs(I$I_pred - I$I_drs)/I$I_drs
-      dif_I <- max(I$dif[I$I_drs > 500])
+      dif_I <- max(I$dif[I$I_drs > 1000])
       
       #Is good
-      good <- as.numeric(dif_I <= 0.075 & dif_D <= 0.075)
+      good <- as.numeric(dif_I <= 0.06 & dif_D <= 0.06)
       is.good[k] <- good
       error[k] <- dif_D
       if(dif_I < mI)
