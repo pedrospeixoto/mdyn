@@ -193,7 +193,7 @@ get_data_API <- function(){
   cat(n)
   cat("\n")
   while(!is.null(n)){
-    tmp <- GET("https://brasil.io/api/dataset/covid19/caso_full/data/")
+    tmp <- GET(n)
     tmp <- content(tmp)
     n <- tmp$'next'
     cat(n)
