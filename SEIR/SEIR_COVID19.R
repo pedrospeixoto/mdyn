@@ -893,7 +893,8 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     
     #Epidemiological curve
     if(max(c_pred$Ipred) > 100){
-      p <- ggplot(c_pred,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
+      tmp <- c_pred
+      p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                                                                     linetype = "dashed") + 
         geom_line(aes(y = Ispred, color = "a")) + geom_ribbon(aes(ymin = IspredInf,ymax = IspredSup,fill = "a"),alpha = 0.25) +
         geom_line(aes(y = Dpred, color = "c")) + geom_ribbon(aes(ymin = DpredInf,ymax = DpredSup,fill = "c"),alpha = 0.25) + 
@@ -948,6 +949,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   tmp <- merge(tmpI,tmpm)
   tmp <- merge(tmp,tmpS)
   tmp$key <- NULL
+  Dsim <- tmp
   fwrite(tmp,paste("/storage/SEIR/",pos,"/deaths_",pos,".csv",sep = ""))
   
   #Saving Cases
@@ -976,6 +978,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   tmp <- merge(tmpI,tmpm)
   tmp <- merge(tmp,tmpS)
   tmp$key <- NULL
+  Isim <- tmp
   fwrite(tmp,paste("/storage/SEIR/",pos,"/cases_",pos,".csv",sep = ""))
   
   #Saving all predictions
@@ -1116,6 +1119,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   tmp <- merge(tmpI,tmpm)
   tmp <- merge(tmp,tmpS)
   tmp$key <- NULL
+  Dsim_drs <- tmp
   fwrite(tmp,paste("/storage/SEIR/",pos,"/deaths_DRS_",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_",pos,".csv",sep = ""))
   
   #Saving Cases
@@ -1144,6 +1148,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   tmp <- merge(tmpI,tmpm)
   tmp <- merge(tmp,tmpS)
   tmp$key <- NULL
+  Isim_drs <- tmp
   fwrite(tmp,paste("/storage/SEIR/",pos,"/cases_DRS_",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_",pos,".csv",sep = ""))
   
   #Peak
@@ -1201,33 +1206,33 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   suppressWarnings(suppressMessages(print(p))) #Save plot
   dev.off()
   
-  
   cat("Building maps...\n")
 
   #Mapas
-  shp <- readOGR(dsn = "~/mdyn/maps/sp_municipios/35MUE250GC_SIR.shp",stringsAsFactors = F,verbose = F) #Shapefiles
-  shp$NM_MUNICIP <- gsub("'","",shp$NM_MUNICIP) #Correct names
-  shp$NM_MUNICIP[shp$NM_MUNICIP == "BIRITIBA MIRIM"] <- "BIRITIBA-MIRIM"  #Correct names
-  shp <- fortify(shp,region = "NM_MUNICIP") #Fortify
-  shp <- merge(shp,drs,by.x = "id",by.y = "Municipio")
-  D_drs <- D_drs %>% select(DRS,date,Dpred,DpredInf,DpredSup)
-  drs_pop <- tapply(X = par$pop,INDEX = drs$DRS,FUN = sum)
-  drs_pop <- data.frame("DRS" = names(drs_pop),"pop" = drs_pop)
-  D_drs <- merge(D_drs,drs_pop)
-  mD <- max(1e5*D_drs$DpredSup/D_drs$pop) #Get maximum of death per 100k
+  # shp <- readOGR(dsn = "~/mdyn/maps/sp_municipios/35MUE250GC_SIR.shp",stringsAsFactors = F,verbose = F) #Shapefiles
+  # shp$NM_MUNICIP <- gsub("'","",shp$NM_MUNICIP) #Correct names
+  # shp$NM_MUNICIP[shp$NM_MUNICIP == "BIRITIBA MIRIM"] <- "BIRITIBA-MIRIM"  #Correct names
+  # shp <- fortify(shp,region = "NM_MUNICIP") #Fortify
+  # shp <- merge(shp,drs,by.x = "id",by.y = "Municipio")
+  shp <- readRDS("~/mdyn/SEIR/dados/shp.rds")
+  Dsim <- merge(Dsim,data.frame("Municipio" = par$names,"pop" = par$pop))
+  Isim <- merge(Isim,data.frame("Municipio" = par$names,"pop" = par$pop))
+  mD <- max(1e5*Dsim$Sup/Dsim$pop) #Get maximum of death per 100k
+  mI <- max(1e5*Isim$Sup/Isim$pop) #Get maximum of cases per 100k
 
   #Peak
-  tmp <- peak_DRS
-  tmp$tmedian <- as.numeric(tmp$tmedian - ymd(end_validate)+1)
+  tmp <- peak
+  tmp$tmedian <- as.numeric(ymd(tmp$TMediana) - ymd(end_validate)+1)
+  tmp <- tmp %>% select(DRS,tmedian)
   tmp <- merge(shp,tmp,by = "DRS")
   tmp <- tmp[order(tmp$order),]
   rc_cont_inv <- colorRampPalette(colors = c("red","darkgoldenrod1","white"))(simulate_length+1)
-  p <- ggplot(tmp,aes(long, lat, group=group,fill = tmedian)) + theme_bw() + geom_polygon(colour='gray30') +
+  p <- ggplot(tmp,aes(long, lat, group=group,fill = log(TMediana))) + theme_bw() + geom_polygon(colour='gray30') +
     xlab("") + ylab("") + titles_Map + scale_fill_gradientn("",colours = rc_cont_inv,limits = c(0,simulate_length),
-                                                            breaks = c(1,simulate_length),
+                                                            breaks = c(1,log(simulate_length)),
                                                             labels = c("Pico próximo","Pico distante")) +
-    theme(legend.background = element_blank())
-  pdf(file = paste(wd,"SEIR/Workspace/Plots/risk_peak_",pos,".pdf",sep = ""),width = 15,height = 10)
+    theme(legend.background = element_blank()) + ggtitle("Distância até o pico por DRS")
+  pdf(file = paste("/storage/SEIR/",p,"/risk_peak_",pos,".pdf",sep = ""),width = 15,height = 10)
   print(p)
   dev.off()
 
@@ -1242,45 +1247,52 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   } 
   opts <- list(progress = progress)
   
-  system(paste("mkdir",paste(wd,"SEIR/Workspace/Plots/Videos/",pos,sep = ""))) #mkdir
+  system(paste("mkdir",paste("/storage/SEIR/",pos,"/Videos/",sep = ""))) #mkdir
+  system(paste("mkdir",paste("/storage/SEIR/",pos,"/Videos/Estado/",sep = "")))
+  system(paste("mkdir",paste("/storage/SEIR/",pos,"/Videos/Estado/mortes/",sep = "")))
+  system(paste("mkdir",paste("/storage/SEIR/",pos,"/Videos/Estado/casos/",sep = "")))
+  for(d in unique(drs$Regiao)){
+    system(paste("mkdir",paste("/storage/SEIR/",pos,"/Videos/",d,"/",sep = "")))
+    system(paste("mkdir",paste("/storage/SEIR/",pos,"/Videos/",d,"/mortes/",sep = "")))
+    system(paste("mkdir",paste("/storage/SEIR/",pos,"/Videos/",d,"/casos/",sep = "")))
+  }
   
   #Parallel
-  #cl <- makeSOCKcluster(cores)
-  #registerDoSNOW(cl)
-  for(t in 1:simulate_length){#,.options.snow = opts,.packages = c("tidyverse","ggplot2","ggthemes","lubridate","data.table","gridExtra")) %dopar%{
+  cl <- makeSOCKcluster(cores)
+  registerDoSNOW(cl)
+  foreach(t = 1:simulate_length,.options.snow = opts,.packages = c("tidyverse","ggplot2","ggthemes","lubridate","data.table","gridExtra")) %dopar%{
     pb$tick(tokens = list(letter = progress_letter[t]))
+    
     rc_cont <- colorRampPalette(colors = c("white","darkgoldenrod1","red"))(200)
-    tmp <- D_drs %>% filter(date == ymd(end_validate)+t-1)
-    tmp$D <- 1e5*tmp$Dpred/tmp$pop
-    tmp$Dinf <- 1e5*tmp$DpredInf/tmp$pop
-    tmp$Dsup <- 1e5*tmp$DpredSup/tmp$pop
-    #tmp <- data.frame("id" = par$names,"D" = 10e5*deaths$median[t,]/par$pop,"Dinf" = 10e5*deaths$inf[t,]/par$pop,"Dsup" = 10e5*deaths$sup[t,]/par$pop,
-    #                  "I" = 10e5*cases$median[t,]/par$pop,"Iinf" = 10e5*cases$inf[t,]/par$pop,"Isup" = 10e5*cases$sup[t,]/par$pop)
-    tmp <- merge(shp,tmp,by = "DRS")
+    
+    #Deaths
+    tmp <- Dsim %>% filter(date == ymd(end_validate)+t-1) %>% select(Municipio,Dpred)
+    tmp$Dpred <- 1e5*tmp$Dpred/tmp$pop
+    tmp <- merge(shp,tmp,by.x = "id",by.y = "Municipio")
     tmp <- tmp[order(tmp$order),]
-    pD <- ggplot(tmp,aes(long, lat, group=group,fill = log(1+D))) + theme_bw() + geom_polygon(colour='gray30') +
-          xlab("") + ylab("") + scale_fill_gradientn("Mortes 100k",colours = rc_cont,limits = c(0,log(1+mD)+0.1),
-                                                     breaks = round(seq(0,log(mD+1),log(mD+1)/5)),
-                                                     labels = round(c(0,exp(round(seq(0,log(mD+1),log(mD+1)/5)))[-1]))) + titles_Map +
+    
+    pD <- ggplot(tmp,aes(long, lat, group=group,fill = log(1+Dpred,2))) + theme_bw() + geom_polygon(colour='gray30') +
+          xlab("") + ylab("") + scale_fill_gradientn("Mortes 100k",colours = rc_cont,limits = c(0,log(1+mD,2)+0.1),
+                                                     breaks = round(seq(0,log(mD+1,2),log(mD+1,2)/5)),
+                                                     labels = round(c(0,2^(round(seq(0,log(mD+1,2),log(mD+1,2)/5)))[-1]))) + titles_Map +
       ggtitle(paste("Mortes estimadas em",ymd(end_validate)+t-1))
-    pDinf <- ggplot(tmp,aes(long, lat, group=group,fill = log(1+Dinf))) + theme_bw() + geom_polygon(colour='gray30') +
-      xlab("") + ylab("") + scale_fill_gradientn("Mortes 100k",colours = rc_cont,limits = c(0,log(1+mD)+0.1),
-                                                 breaks = round(seq(0,log(mD+1),log(mD+1)/5)),
-                                                 labels = round(c(0,exp(round(seq(0,log(mD+1),log(mD+1)/5)))[-1]))) + titles_Map +
-      ggtitle(paste("Mortes estimadas em",ymd(end_validate)+t-1,"(melhor cenário)"))
-    pDsup <- ggplot(tmp,aes(long, lat, group=group,fill = log(1+Dsup))) + theme_bw() + geom_polygon(colour='gray30') +
-      xlab("") + ylab("") + scale_fill_gradientn("Mortes 100k",colours = rc_cont,limits = c(0,log(1+mD)+0.1),
-                                                 breaks = round(seq(0,log(mD+1),log(mD+1)/5)),
-                                                 labels = round(c(0,exp(round(seq(0,log(mD+1),log(mD+1)/5)))[-1]))) + titles_Map +
-      ggtitle(paste("Mortes estimadas em",ymd(end_validate)+t-1,"(pior cenário)"))
-    mylegend<-g_legend(pD)
-  
-    pdf(file = paste(wd,"SEIR/Workspace/Plots/Videos/",pos,"/",pos,"_",sprintf("%03d", t),".pdf",sep = ""),width = 3*10,height = 10)
-    p1 <- grid.arrange(arrangeGrob(pDinf + theme(legend.position="none"),
-                                   pD + theme(legend.position="none"),
-                                   pDsup + theme(legend.position="none"),
-                                   nrow=1),
-                       mylegend, nrow=2,heights=c(10, 1))
+    pdf(file = paste("/storage/SEIR/",pos,"/Videos/Estado/mortes/",sprintf("%03d", t),".pdf",sep = ""),width = 3*10,height = 10)
+    print(pD)
+    dev.off()
+    
+    #Cases
+    tmp <- Isim %>% filter(date == ymd(end_validate)+t-1) %>% select(Municipio,Ipred)
+    tmp$Ipred <- 1e5*tmp$Ipred/tmp$pop
+    tmp <- merge(shp,tmp,by.x = "id",by.y = "Municipio")
+    tmp <- tmp[order(tmp$order),]
+    
+    pI <- ggplot(tmp,aes(long, lat, group=group,fill = log(1+Ipred))) + theme_bw() + geom_polygon(colour='gray30') +
+          xlab("") + ylab("") + scale_fill_gradientn("Casos 100k",colours = rc_cont,limits = c(0,log(1+mI,2)+0.1),
+                                                     breaks = round(seq(0,log(mI+1,2),log(mI+1,2)/5)),
+                                                     labels = round(c(0,exp(round(seq(0,log(mD+1,2),log(mD+1,2)/5)))[-1]))) + titles_Map +
+      ggtitle(paste("Mortes estimadas em",ymd(end_validate)+t-1))
+    pdf(file = paste("/storage/SEIR/",pos,"/Videos/Estado/casos/",sprintf("%03d", t),".pdf",sep = ""),width = 3*10,height = 10)
+    print(pD)
     dev.off()
   }
   #stopCluster(cl)
