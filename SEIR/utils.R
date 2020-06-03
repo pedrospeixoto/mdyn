@@ -85,9 +85,10 @@ solve_seir <- function(y,times,derivatives,parms){
 
 #Get notification data state of SP
 get_data_SP <- function(){
-  file <- gzcon(url("https://data.brasil.io/dataset/covid19/caso_full.csv.gz")) #Data path
-  txt <- readLines(file) #Read lines
-  obs <- read.csv(textConnection(txt)) #Get data
+  #file <- gzcon(url("https://data.brasil.io/dataset/covid19/caso_full.csv.gz")) #Data path
+  #txt <- readLines(file) #Read lines
+  #obs <- read.csv(textConnection(txt)) #Get data
+  obs <- get_data_API()
   obs <- obs %>% filter(state == "SP" & city != "") %>% na.omit() %>% 
     select(city,date,last_available_confirmed,last_available_deaths) #Only SP state and confirmed cases and death
   obs$city <- toupper(gsub(pattern = "'",replacement = "",x = obs$city)) #Correct names
@@ -178,4 +179,25 @@ EPI_curve <- function(obs,end_validate,pos){
   pdf(file = paste("/storage/SEIR/",pos,"/EPCurve_",end_validate,".pdf",sep = ""),width = 15,height = 10)
   suppressWarnings(suppressMessages(print(p))) #Save plot
   dev.off()
+}
+
+#Get data API
+get_data_API <- function(){
+  library(httr)
+  dados <- GET("https://brasil.io/api/dataset/covid19/caso_full/data/")
+  dados <- content(dados)
+  n <- dados$'next'
+  dados <- dados$results
+  dados <- lapply(dados,function(x) data.frame(rbind(x)))
+  dados <- bind_rows(dados)
+  while(!is.null(n)){
+    tmp <- GET("https://brasil.io/api/dataset/covid19/caso_full/data/")
+    tmp <- content(tmp)
+    n <- tmp$'next'
+    tmp <- tmp$results
+    tmp <- lapply(tmp,function(x) data.frame(rbind(x)))
+    tmp <- bind_rows(tmp)
+    dados <- rbind.data.frame(dados,tmp)
+  }
+  return(dados)
 }

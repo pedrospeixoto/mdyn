@@ -10,7 +10,6 @@ library(lubridate)
 library(readxl)
 library(doParallel)
 library(foreach)
-library(xgboost)
 library(rgdal)
 library(rgeos)
 library(geosphere)
@@ -24,7 +23,7 @@ library(progress)
 library(gridExtra)
 source("mdyn/SEIR/utils.R")
 
-SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,d_max,max_models,error_good){
+SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   
   cat("\n")
   cat("Welcome to Covid SEIR Mobility Model estimation!")
@@ -83,10 +82,10 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
     return(list(dY)) #Return
   }
   
-  #DRS
+  #####DRS#####
   drs <- readRDS(file = "mdyn/SEIR/dados/drs.rds")
   
-  #mkdir
+  #####mkdir#####
   system(paste("mkdir /storage/SEIR/",pos,sep = ""))
   
   #####Notifications#####
@@ -95,7 +94,7 @@ SEIR_covid <- function(cores,par,cand_beta,pos,seed,sample_size,simulate_length,
   if(nrow(obs)/par$sites-round(nrow(obs)/par$sites) > 0)
     stop("There is a problem with the notifications dataset. Please fix it.")
   
-  #Days of validation
+  #####Days of validation#####
   end_validate <- min(max(ymd(na.omit(obs)$date)),ymd(d_max))
   init_validate <- end_validate - 6
   end_fit <- init_validate
