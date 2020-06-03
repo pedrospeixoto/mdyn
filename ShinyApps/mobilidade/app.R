@@ -63,9 +63,11 @@ server <- function(input, output) {
                                                     choices = list("Com entrada e saída de todas as cidades" = F, 
                                                                    "Escolher cidades com entrada e saída" = T), 
                                                     selected = F))),
-                     fluidRow(column(5,uiOutput("cidades")),
-                              column(5,uiOutput("cidades_sai"))),
-                     fluidRow(column(12,p("Dependendo da sua escolha, o processamento pode demorar",style = "color:red")))))),
+                     fluidRow(column(4,uiOutput("cidades")),
+                              column(4,uiOutput("cidades_sai")),
+                              column(4,actionButton("process", "Processar"))),
+                     fluidRow(column(12,p("Escolha os parâmetros e clique em Processar. Dependendo da sua escolha, o processamento pode demorar",
+                                          style = "color:red")))))),
                      fluidRow(addSpinner(leafletOutput(outputId = "map",height=650),spin = "circle", color = "#E41A1C")),
                      br(),
                      br(),
@@ -159,8 +161,15 @@ server <- function(input, output) {
       addPolygons(data = shp_estados,weight = 3,fill = F,color = "black")
   })
   
+  #Control break app
+  autoInvalidate <- reactiveTimer(1000)
+  observe({
+    autoInvalidate()
+    cat(".")
+  })
+  
   #Input map
-   observe({
+  observeEvent(input$process,{
      if(!is.null(input$date) & !is.null(input$state) & !is.null(input$type) & (!is.null(input$cidades)) | (!is.null(input$cidades_ent) & !is.null(!is.null(input$cidades_sai)))){
        withProgress(message = 'Gerando mapa...',value = 0,{
        file <- paste("./www/graph_",input$date,".rds",sep = "")
@@ -176,29 +185,19 @@ server <- function(input, output) {
        #Find which cities and edges should be plotted
        if(input$type){
          if('all' %in% unlist(input$cidades_sai)){
-           if(!('all' %in% unlist(input$state))){
+           if(!('all' %in% unlist(input$state)))
             tmp <- tmp %>% filter(tmp$begin %in% shp$CD_GEOCMU[shp$UF %in% unlist(input$state)])
-            begin <- shp$CD_GEOCMU[shp$UF %in% unlist(input$state)]
-           }
-           else
-             begin <- shp$CD_GEOCMU
          }
          else{
            tmp <- tmp %>% filter(tmp$begin %in% unlist(input$cidades_sai))
-           begin <- unlist(input$cidades_sai)
          }
          
          if('all' %in% unlist(input$cidades_ent)){
-           if(!('all' %in% unlist(input$state))){
+           if(!('all' %in% unlist(input$state)))
              tmp <- tmp %>% filter(tmp$end %in% shp$CD_GEOCMU[shp$UF %in% unlist(input$state)])
-             end <- shp$CD_GEOCMU[shp$UF %in% unlist(input$state)]
-           }
-           else
-             end <- shp$CD_GEOCMU
          }
          else{
            tmp <- tmp %>% filter(tmp$end %in% unlist(input$cidades_ent))
-           end <- unlist(input$cidades_ent)
          }
        }
        else{
@@ -206,19 +205,11 @@ server <- function(input, output) {
            if(!('all' %in% unlist(input$state))){
              tmp <- tmp %>% filter(tmp$begin %in% shp$CD_GEOCMU[shp$UF %in% unlist(input$state)])
              tmp <- tmp %>% filter(tmp$end %in% shp$CD_GEOCMU[shp$UF %in% unlist(input$state)])
-             begin <- shp$CD_GEOCMU[shp$UF %in% unlist(input$state)]
-             end <- shp$CD_GEOCMU[shp$UF %in% unlist(input$state)]
-           }
-           else{
-             begin <- shp$CD_GEOCMU
-             end <- shp$CD_GEOCMU
            }
          }
          else{
            tmp <- tmp %>% filter(tmp$begin %in% unlist(input$cidades)) 
            tmp <- tmp %>% filter(tmp$end %in% unlist(input$cidades))
-           begin <- unlist(input$cidades)
-           end <- unlist(input$cidades)
          }
        }
        incProgress(1/3, detail = "Dados lidos com sucesso, lendo shapefile...")
@@ -229,7 +220,7 @@ server <- function(input, output) {
        tmp$size <- 0.5 + 0.5 * (tmp$w/max(tmp$w))
        
        #Shapes
-       shp_tmp <- shp[shp$CD_GEOCMU %in% unique(c(begin,end)),]
+       shp_tmp <- shp[shp$CD_GEOCMU %in% unique(c(tmp$begin,tmp$end)),]
        if("all" %in% unlist(input$state))
          shp_estados_tmp <- shp_estados
        else
