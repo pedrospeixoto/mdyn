@@ -25,7 +25,7 @@ find ./validate/ -maxdepth 1 -type f -iname "*.pdf" -delete;
 find . -maxdepth 1 -type f -iname "*.png" -exec cp {} /storage/ShinyApps/seircovid19/www/ \; &
 
 #Convert files in videos and create video
-cd Videos/
+cd /storage/SEIR/$1/Videos
 for d in /*     # list directories
 do
   #Convert files in casos
