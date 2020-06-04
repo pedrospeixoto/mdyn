@@ -26,7 +26,7 @@ find . -maxdepth 1 -type f -iname "*.png" -exec cp {} /storage/ShinyApps/seircov
 
 #Convert files in videos and create video
 cd /storage/SEIR/$1/Videos
-for d in /*     # list directories
+for d in *     # list directories
 do
   #Convert files in casos
   mogrify -density 100 -format png ./$d/casos/*.pdf;
