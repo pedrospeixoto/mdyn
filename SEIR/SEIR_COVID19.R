@@ -1321,6 +1321,13 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   registerDoSNOW(cl)
   a <- foreach(t = 1:simulate_length,.options.snow = opts,.packages = c("tidyverse","ggplot2","ggthemes","lubridate","data.table","gridExtra")) %dopar%{
     pb$tick(tokens = list(letter = progress_letter[t]))
+    titles_Map <- theme(strip.text = element_text(size = 12), axis.text = element_text(size = 12,color = "black"),
+                        axis.title = element_text(size = 14), legend.text = element_text(size = 14),
+                        legend.title = element_text(size = 14,face = "bold"),plot.title = element_text(size = 16,face = "bold",hjust = 0.5),
+                        panel.border = element_blank(),legend.key.width=unit(4,"cm"),
+                        panel.background = element_rect(fill="white",size=0.5, linetype="solid",color = "black"),
+                        legend.background = element_rect(fill="white",size=0.5, linetype="solid",color = "black"),
+                        legend.position="bottom",legend.spacing.x = unit(0.5, 'cm'))
     
     rc_cont <- colorRampPalette(colors = c("white","darkgoldenrod1","red"))(200)
     
