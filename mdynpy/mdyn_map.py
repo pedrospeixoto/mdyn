@@ -701,16 +701,16 @@ class Map:
         maxw = max(weights) #
         #print(weights, maxw)
         edge_colors = weights #[2+M*(i+2)/maxw for i in weights] #100*weights #range(2, M + 2)
-        edge_widths = 0.4+0.5*(weights/maxw)
+        edge_widths = 0.2+0.9*(weights/maxw)
         edge_alphas = 0.5+(weights/maxw)*0.5
-    
+
         #nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, 
         #    node_color=node_colors, with_labels=False, linewidths= 0.3, cmap=plt.cm.winter,
         #    vmin=0.3, vmax=0.7)
         edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
                                     arrowsize=5, edgelist=edges, edge_color=edge_colors,
                                     edge_cmap=plt.cm.hot_r, width=edge_widths,
-                                    edge_vmin=4 , edge_max=14,
+                                    edge_vmin=0 , edge_max=14,
                                     connectionstyle='arc3, rad=0.1')
         
         # set alpha value for each edge
