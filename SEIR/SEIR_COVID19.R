@@ -84,6 +84,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   
   #####DRS#####
   drs <- readRDS(file = "mdyn/SEIR/dados/drs.rds")
+  drs <- drs[match(par$names,drs$Municipio),]
   
   #####mkdir#####
   system(paste("mkdir /storage/SEIR/",pos,sep = ""))
@@ -115,7 +116,6 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   lift$lift <- lift$rate/rate #lift
   lift$lift[is.na(lift$lift)] <- 1 #fill NA with 1
   lift$lift[lift$last_available_deaths < 10] <- 1 #if not enough data, fill with one
-  lift[lift < 1] <- 1 #if to small fill with one
   par$lift <- lift$lift #attribute to par
   
   #Obs by DRS
@@ -129,6 +129,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   obs_drs <- obs_drs[,new_infected := sum(new_infected),by = key] #Sum by DRS anda date
   obs_drs <- obs_drs[,new_death := sum(new_death),by = key] #Sum by DRS anda date
   obs_drs <- obs_drs[,new_infected_cor := sum(new_infected_cor),by = key] #Sum by DRS anda date
+  obs_drs <- obs_drs[,new_infected_mean := sum(new_infected_mean),by = key] #Sum by DRS anda date
   obs_drs <- obs_drs[,new_death_cor := sum(new_death_cor),by = key] #Sum by DRS anda date
   obs_drs <- obs_drs[,confirmed_corrected := sum(confirmed_corrected),by = key] #Sum by DRS anda date
   obs_drs <- obs_drs[,deaths_corrected := sum(deaths_corrected),by = key] #Sum by DRS anda date
@@ -150,22 +151,22 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     
   #Obs each day around week of validation
   par$obs <- list()
-  C_500 <- obs %>% filter(date == init_validate & confirmed_corrected >= 500) %>% unique() #Data of cities with 500+ cases in first day of validation
-  C_500 <- C_500$city #Get city name
+  par$obs_DRS <- list()
   for(t in 0:8){
     tmp <- obs %>% filter(date == ymd(init_validate) + t - 1)
     tmp <- tmp[match(x = par$names,table = tmp$city),]
     tmp1 <- obs_drs %>% filter(date == ymd(init_validate) + t - 1)
     tmp1 <- tmp1[match(x = par$names,table = tmp1$city),]
-    par$obs$E[[as.character(t)]] <- tmp$infected #E
+    par$obs$E[[as.character(t)]] <- tmp$new_infected_mean #E
     par$obs$Ia[[as.character(t)]] <- tmp$infected #Ia
     par$obs$Is[[as.character(t)]] <- tmp$infected #Is
     par$obs$R[[as.character(t)]] <- tmp$recovered #R
     par$obs$D[[as.character(t)]] <- tmp$deaths_corrected #D
-    par$obs$S[[as.character(t)]] <- par$pop - par$obs$E[[as.character(t)]] - par$obs$Ia[[as.character(t)]] - par$obs$Is[[as.character(t)]] - 
-      par$obs$R[[as.character(t)]] - par$obs$D[[as.character(t)]] #S
-    par$obs_DRS$E[[as.character(t)]] <- tmp1$infected #E
+    par$obs_DRS$E[[as.character(t)]] <- tmp1$new_infected_mean #E
+    par$obs_DRS$Ia[[as.character(t)]] <- tmp1$infected #Ia
     par$obs_DRS$Is[[as.character(t)]] <- tmp1$infected #Is
+    par$obs_DRS$R[[as.character(t)]] <- tmp1$recovered #R
+    par$obs_DRS$D[[as.character(t)]] <- tmp1$deaths_corrected #D
   }
       
   #Test data by DRS
@@ -203,8 +204,8 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     p <- ggplot(tmp,aes(x = t,y = y)) + geom_point(color = "white") + 
       stat_function(fun = function(t) exp(mod$coefficients[1])*exp(mod$coefficients[2]*t),color = "white") +
       theme_solarized(light = FALSE) +  
-      theme(legend.title = element_text(face = "bold"),legend.position = "none") + ylab("Confirmed Cases Corrected") +
-        xlab("Date") + scale_x_continuous(breaks = 0:6,labels = paste(day(day_validate),"/0",
+      theme(legend.title = element_text(face = "bold"),legend.position = "none") + ylab("Casos Confirmados") +
+        xlab("Data") + scale_x_continuous(breaks = 0:6,labels = paste(day(day_validate),"/0",
                                                                     month(day_validate),sep = "")) +
       theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
             axis.text.x = element_text(size = 15,face = "bold",color = "white"),
@@ -218,8 +219,41 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
       theme(strip.background = element_blank(),
             strip.text = element_text(size = 20,face = "bold",color = "white")) +
       labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
-      ggtitle(paste("Exponetial growth on validation week for DRS",d,"-",unique(drs$Regiao[drs$DRS == d])))
+      ggtitle(paste("Crescimento exponencial na semana de validação para a DRS",d,"-",unique(drs$Regiao[drs$DRS == d])))
     pdf(file = paste("/storage/SEIR/",pos,"/AjusteRate/DRS_",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_rate_",pos,".pdf",sep = ""),
+        width = 15,height = 10)
+    suppressWarnings(suppressMessages(print(p))) #Save plot
+    dev.off()
+  }
+  
+  #For each city with 100+ cases in init_validate
+  c_100 <- obs %>% filter(date == ymd(init_validate) & confirmed_corrected >= 100)
+  c_100 <- c_100$city
+  for(c in c_100){
+    tmp <- obs %>% filter(city == c & date >= ymd(init_validate) & date <= ymd(end_validate)) #Data of DRS
+    tmp <- data.frame("t" = 0:6,"y" = tmp$confirmed_corrected) #Data
+    mod <- lm(log(y) ~ t,data = tmp) #lm
+    par$lambda[par$names == c] <- mod$coefficients[2] #Lambda
+    p <- ggplot(tmp,aes(x = t,y = y)) + geom_point(color = "white") + 
+      stat_function(fun = function(t) exp(mod$coefficients[1])*exp(mod$coefficients[2]*t),color = "white") +
+      theme_solarized(light = FALSE) +  
+      theme(legend.title = element_text(face = "bold"),legend.position = "none") + ylab("Casos Confirmados") +
+      xlab("Data") + scale_x_continuous(breaks = 0:6,labels = paste(day(day_validate),"/0",
+                                                                    month(day_validate),sep = "")) +
+      theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
+            axis.text.x = element_text(size = 15,face = "bold",color = "white"),
+            axis.text.y = element_text(size = 15,face = "bold",color = "white"),
+            legend.box.margin = unit(x=c(20,0,0,0),units="mm"),
+            legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
+            panel.grid.minor.y = element_blank(),
+            axis.title = element_text(color = "white",size = 20),
+            plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
+      theme(plot.margin = unit(c(1,1,1,1), "lines")) +
+      theme(strip.background = element_blank(),
+            strip.text = element_text(size = 20,face = "bold",color = "white")) +
+      labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
+      ggtitle(paste("Crescimento exponencial na semana de validação para",c,"- SP"))
+    pdf(file = paste("/storage/SEIR/",pos,"/AjusteRate/",gsub(" ","",c),"_rate_",pos,".pdf",sep = ""),
         width = 15,height = 10)
     suppressWarnings(suppressMessages(print(p))) #Save plot
     dev.off()
@@ -233,10 +267,10 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     par$delta[match(drs$Municipio[drs$DRS == d],par$names)] <- dr #Attribute death rate of DRS to each city
   }
     
-  #Calculate death rate for each city with 50+ deaths
-  C_50 <- obs %>% filter(date == init_validate & deaths_corrected >= 50) %>% unique() #Data of cities with 50+ deaths in last day of validation
-  C_50 <- C_50$city #Get city name
-  for(c in C_50){ #For each city with 50+ deaths by last_validation
+  #Calculate death rate for each city with 10+ deaths
+  C_10 <- obs %>% filter(date == init_validate & deaths_corrected >= 10) %>% unique() #Data of cities with 10+ deaths in last day of validation
+  C_10 <- C_10$city #Get city name
+  for(c in C_10){ #For each city with 50+ deaths by last_validation
     tmp <- obs %>% filter(city == c & date == end_validate) #Get data of city is last day of validation
     dr <- tmp$deaths_corrected/tmp$confirmed_corrected #Death rate
     par$delta[match(c,par$names)] <- dr #Attribute death rate
@@ -290,28 +324,50 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     parK$gammaA <- parK$upI/((1+parK$upI)*parK$Te) #GammaA
     gammaS <- (1 - parK$Te*parK$gammaA)/parK$Te #Rate of Exposed to Symptomatic
     nuA <- 1/parK$Ta #Rate from Asymptomatic to Recovered
-    nuS <- (1-parK$delta*parK$Td)/parK$Ts #Rate from Symptomatic to Recoveres
-    parK$upE <- par$lift/((1 - parK$Te*gammaS)/parK$Te) #To multiply number of new infected to get exposed
+    nuS <- (1-parK$delta*parK$Td)/parK$Ts #Rate from Symptomatic to Recovered
+    parK$upE <- par$lift/gammaS #To multiply number of new infected to get exposed
     initK <- init #Initial condition
     initK[1:par$sites] <- parK$upE*init[1:par$sites] #Correct
     initK[(par$sites + 1):(2*par$sites)] <- parK$upI*initK[(par$sites + 1):(2*par$sites)] #Assymptomatics
     initK[(3*par$sites + 1):(4*par$sites)] <- (parK$upI+1)*initK[(3*par$sites + 1):(4*par$sites)] #Correct R
     
-    #Beta
-    lambdaE <- 0.5*(log(par$lambda + nuS + parK$delta) + log(1+par$obs$Is[[as.character(1)]]) -
-                      log(gammaS * parK$upE * (1+par$obs$E[[as.character(0)]]))) + 0.5*(log(par$lambda + nuA) + 
-                                                                                          log(1+parK$upI*par$obs$Is[[as.character(0+1)]]) -
+    #Beta by DRS
+    Sobs <- drs$N - parK$upE*par$obs_DRS$E[[as.character(0)]] - (1+parK$upI)*par$obs_DRS$Is[[as.character(0)]] - par$obs_DRS$R[[as.character(0)]] - 
+      par$obs_DRS$D[[as.character(0)]]
+    lambdaE <- 0.5*(log(par$lambda + nuS + parK$delta) + log(1+par$obs_DRS$Is[[as.character(1)]]) -
+                      log(gammaS * parK$upE * (1+par$obs_DRS$E[[as.character(0)]]))) + 0.5*(log(par$lambda + nuA) + 
+                                                                                          log(1+parK$upI*par$obs_DRS$Is[[as.character(0+1)]]) -
                                                                                           log(parK$gammaA * parK$upE * 
-                                                                                                (1+par$obs$E[[as.character(0)]]))) #Growth rate
-    num <- ((par$lambda + gammaS + parK$gammaA) * parK$upE * par$obs$E[[as.character(0)]] * (par$pop - par$obs$D[[as.character(0)]])) #Numerator
-    den <- par$obs$S[[as.character(0)]] * (parK$s*((parK$mob[[as.character(init_validate-1)]]-
+                                                                                                (1+par$obs_DRS$E[[as.character(0)]]))) #Growth rate
+    num <- ((lambdaE + gammaS + parK$gammaA) * parK$upE * par$obs_DRS$E[[as.character(0)]] * (par$pop - par$obs_DRS$D[[as.character(0)]])) #Numerator
+    den <- Sobs * (parK$s*((parK$mob[[as.character(init_validate-1)]]-
                                                       diag(diag(parK$mob[[as.character(init_validate-1)]]))) %*% 
-                                                     cbind(par$obs$Is[[as.character(0)]] + parK$upI*par$obs$Is[[as.character(0)]])) + 
-                                               (parK$upI+1)*par$obs$Is[[as.character(0)]]) #Denominator
+                                                     cbind(par$obs_DRS$Is[[as.character(0)]] + parK$upI*par$obs_DRS$Is[[as.character(0)]])) + 
+                                               (parK$upI+1)*par$obs_DRS$Is[[as.character(0)]]) #Denominator
     if(min(den) == 0) #Correct zero denominator
       den[den == 0] <- min(den[den > 0])
     parK$beta <- as.vector(num/den) #Beta
-      
+    
+    #Cities with 100+ cases
+    Sobs <- par$pop - parK$upE*par$obs$E[[as.character(0)]] - (1+parK$upI)*par$obs$Is[[as.character(0)]] - par$obs$R[[as.character(0)]] - 
+      par$obs$D[[as.character(0)]]
+    lambdaE <- 0.5*(log(par$lambda + nuS + parK$delta) + log(1+par$obs$Is[[as.character(1)]]) -
+                      log(gammaS * parK$upE * (1+par$obs$E[[as.character(0)]]))) + 0.5*(log(par$lambda + nuA) + 
+                                                                                              log(1+parK$upI*par$obs$Is[[as.character(0+1)]]) -
+                                                                                              log(parK$gammaA * parK$upE * 
+                                                                                                    (1+par$obs$E[[as.character(0)]]))) #Growth rate
+    num <- ((lambdaE + gammaS + parK$gammaA) * parK$upE * par$obs$E[[as.character(0)]] * (par$pop - par$obs$D[[as.character(0)]])) #Numerator
+    den <- Sobs * (parK$s*((parK$mob[[as.character(init_validate-1)]]-
+                              diag(diag(parK$mob[[as.character(init_validate-1)]]))) %*% 
+                             cbind(par$obs$Is[[as.character(0)]] + parK$upI*par$obs$Is[[as.character(0)]])) + 
+                     (parK$upI+1)*par$obs$Is[[as.character(0)]]) #Denominator
+    if(min(den) == 0) #Correct zero denominator
+      den[den == 0] <- min(den[den > 0])
+    b <- num/den
+    parK$beta[par$names %in% c_100] <- b[par$names %in% c_100]
+    if(min(parK$beta) < 0)
+      parK$beta[parK$beta < 0] <- min(parK$beta[parK$beta > 0])
+    
     #Model
     mod <- solve_seir(y = initK,times = 1:7,derivatives = derivatives,parms = parK)[,-1] #Simulate model k
     
@@ -365,10 +421,10 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     I <- I %>% select(I_pred,key) %>% unique() %>% data.frame()
     I <- merge(I,teste_I)
     I$dif <- (I$I_pred - I$I_drs)/I$I_drs
-    dif_I <- max(abs(I$dif)[I$I_drs > 1000])
+    dif_I <- max(abs(I$dif)[I$I_drs > 500])
       
     #Is good
-    good <- as.numeric(dif_I <= 0.1 & dif_D <= 0.06)
+    good <- as.numeric(dif_I <= 0.08 & dif_D <= 0.05)
     is.good[k] <- good
     error[k] <- dif_D
     if(dif_I < mI)
@@ -379,10 +435,10 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     #Result
     if(good == 1){#Store good models
       kgood <- kgood + 1
-      minDK <- ifelse(min((D$dif * (D$D_drs/D$D_pred))[D$D_drs > 50]) < 0,min((D$dif * (D$D_drs/D$D_pred))[D$D_drs > 50]) + 1,0)
-      maxDK <- ifelse(max((D$dif * (D$D_drs/D$D_pred))[D$D_drs > 50]) > 0,max((D$dif * (D$D_drs/D$D_pred))[D$D_drs > 50]) + 1,0)
-      minIK <- ifelse(min((I$dif * (I$I_drs/I$I_pred))[I$I_drs > 1000]) < 0,min((I$dif * (I$I_drs/I$I_pred))[I$I_drs > 1000]) + 1,0)
-      maxIK <- ifelse(max((I$dif * (I$I_drs/I$I_pred))[I$I_drs > 1000]) > 0,max((I$dif * (I$I_drs/I$I_pred))[I$I_drs > 1000]) + 1,0)
+      minDK <- ifelse(min(1 + D$dif[D$D_drs > 50]) < 1,min(1 + D$dif[D$D_drs > 50]),1)
+      maxDK <- ifelse(max(1 + D$dif[D$D_drs > 50]) > 1,max(1 + D$dif[D$D_drs > 50]),1)
+      minIK <- ifelse(min(1 + I$dif[I$I_drs > 500]) < 1,min(1 + I$dif[I$I_drs > 500]),1)
+      maxIK <- ifelse(max(1 + I$dif[I$I_drs > 500]) > 1,max(1 + I$dif[I$I_drs > 500]),1)
       parK$minDK <- minDK
       parK$minIK <- minIK
       parK$maxDK <- maxDK
@@ -397,7 +453,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
       if(maxIK > maxI)
         maxI <- maxIK
     }
-    rm(parK,D,I,dif_D,mod,good,initK,gammaS,nuA,nuS)
+    rm(parK,D,I,dif_D,dif_I,mod,good,initK,gammaS,nuA,nuS)
   }
   cat("\n")
   cat(paste("Good models: ",kgood," (",round(100*kgood/sample_size,2),"%)\n",sep = ""))
@@ -436,7 +492,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   fwrite(param,paste("/storage/SEIR/",pos,"/parameters_",pos,".csv",sep = "")) #Write parameters of good models
   
   cat("Plotting maps of parameters which are city dependent...\n")
-  
+    
   #Mapas
   shp <- readOGR(dsn = "~/mdyn/maps/sp_municipios/35MUE250GC_SIR.shp",stringsAsFactors = F,verbose = F) #Shapefiles
   shp$NM_MUNICIP <- gsub("'","",shp$NM_MUNICIP) #Correct names
@@ -460,7 +516,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     xlab("") + ylab("") + scale_fill_gradientn("",colours = rc_cont,breaks = c(seq(1.1*min(log(1+pRt$Rt,2)),0.95*max(log(1+pRt$Rt,2)),length.out = 4)),
                                                labels = round(2^(seq(1.1*min(log(1+pRt$Rt,2)),0.95*max(log(1+pRt$Rt,2)),length.out = 4))-1,2),
                                                limits = c(min(log(1+pRt$Rt,2)),max(log(1+pRt$Rt,2)))) + titles_Map +
-    ggtitle("Median of estimated Rt")
+    ggtitle("Mediana do Rt estimado")
   pdf(file = paste("/storage/SEIR/",pos,"/SP_Rt_",pos,".pdf",sep = ""),width = 15,height = 10)
   suppressWarnings(suppressMessages(print(p)))
   dev.off()
@@ -472,7 +528,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
                                                  labels = round(2^(seq(1.1*min(log(1+pRt$Rt,2)),0.95*max(log(1+pRt$Rt,2)),length.out = 4))-1,2),
                                                  limits = c(min(log(1+pRt$Rt,2)),max(log(1+pRt$Rt,2)))) + 
       titles_Map +
-      ggtitle(paste("Median of estimated Rt DRS -",d))
+      ggtitle(paste("Mediana do Rt estimado na DRS -",d))
     pdf(file = paste("/storage/SEIR/",pos,"/",gsub(" ","",d),"_Rt_",pos,".pdf",sep = ""),width = 15,height = 10)
     suppressWarnings(suppressMessages(print(p)))
     dev.off()
@@ -508,36 +564,36 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
                                                labels = round(2^(seq(1.01*min(log(1+pupI$upI,2)),0.99*max(log(1+pupI$upI,2)),length.out = 4))-1,2),
                          limits = c(min(log(1+pupI$upI,2)),max(log(1+pupI$upI,2)))) + 
     titles_Map +
-    ggtitle("Median of estimated proportion of assymptomatics")
-  pdf(file = paste("/storage/SEIR/",pos,"/SP_assymptomatics_",pos,".pdf",sep = ""),width = 15,height = 10)
-  suppressWarnings(suppressMessages(print(p)))
-  dev.off()
-  
+    ggtitle("Mediana da proporção estimada de assintomáticos")
+   pdf(file = paste("/storage/SEIR/",pos,"/SP_assymptomatics_",pos,".pdf",sep = ""),width = 15,height = 10)
+   suppressWarnings(suppressMessages(print(p)))
+   dev.off()
+    
   for(d in unique(pupI$Regiao)){
-    tmp <- pupI %>% filter(Regiao == d)
-    p <- ggplot(tmp,aes(long, lat,group=group,fill = log(1+upI,2))) + theme_bw() + geom_polygon(colour='gray30') +
-      xlab("") + ylab("") + 
-      scale_fill_gradientn("",colours = rc_ass,breaks = c(seq(1.01*min(log(1+pupI$upI,2)),0.99*max(log(1+pupI$upI,2)),length.out = 4)),
-                           labels = round(2^(seq(1.01*min(log(1+pupI$upI,2)),0.99*max(log(1+pupI$upI,2)),length.out = 4))-1,2),
-                           limits = c(min(log(1+pupI$upI,2)),max(log(1+pupI$upI,2)))) + 
-      titles_Map +
-      ggtitle("Median of estimated proportion of assymptomatics")
-    pdf(file = paste("/storage/SEIR/",pos,"/",gsub(" ","",d),"_assymptomatics_",pos,".pdf",sep = ""),width = 15,height = 10)
-    suppressWarnings(suppressMessages(print(p)))
-    dev.off()
+   tmp <- pupI %>% filter(Regiao == d)
+   p <- ggplot(tmp,aes(long, lat,group=group,fill = log(1+upI,2))) + theme_bw() + geom_polygon(colour='gray30') +
+     xlab("") + ylab("") + 
+     scale_fill_gradientn("",colours = rc_ass,breaks = c(seq(1.01*min(log(1+pupI$upI,2)),0.99*max(log(1+pupI$upI,2)),length.out = 4)),
+                          labels = round(2^(seq(1.01*min(log(1+pupI$upI,2)),0.99*max(log(1+pupI$upI,2)),length.out = 4))-1,2),
+                          limits = c(min(log(1+pupI$upI,2)),max(log(1+pupI$upI,2)))) + 
+     titles_Map +
+     ggtitle("Mediana da proporção estimada de assintomáticos")
+   pdf(file = paste("/storage/SEIR/",pos,"/",gsub(" ","",d),"_assymptomatics_",pos,".pdf",sep = ""),width = 15,height = 10)
+   suppressWarnings(suppressMessages(print(p)))
+   dev.off()
   }
-  
+   
   #Save assymptomatics
   pA <- data.frame("Municipio" = par$names,"Minimo" = apply(bind_rows(lapply(upI,function(x) data.frame(rbind(x)))),2,min),
-                   "Mediana" = apply(bind_rows(lapply(upI,function(x) data.frame(rbind(x)))),2,median),
-                   "Máximo" = apply(bind_rows(lapply(upI,function(x) data.frame(rbind(x)))),2,max))
+                  "Mediana" = apply(bind_rows(lapply(upI,function(x) data.frame(rbind(x)))),2,median),
+                  "Máximo" = apply(bind_rows(lapply(upI,function(x) data.frame(rbind(x)))),2,max))
   pA <- merge(drs %>% select(Municipio,Regiao),pA)
   names(pA)[2] <- "DRS"
   for(j in 3:5)
     pA[,j] <- 100*pA[,j]/(1+pA[,j])
   pA <- pA[order(pA$Mediana,decreasing = T),]
   write.csv(pA,file = paste("/storage/SEIR/",pos,"/SP_assymptomatics_",pos,".csv",sep = ""),row.names = F)
-  
+    
   #######Plot by DRS#####
   cat("Plot observed and predicted number of deaths for each DRS...\n")
   system(paste("mkdir /storage/SEIR/",pos,"/validate",sep = ""))
@@ -564,7 +620,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
         D[[d]] <- merge(D[[d]],tmp %>% select(-date))
     }
   }
-  
+    
   #For each DRS cases
   I <- vector("list",length(levels(drs$DRS)))
   names(I) <- levels(drs$DRS)
@@ -587,7 +643,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
         I[[d]] <- merge(I[[d]],tmp %>% select(-date))
     }
   }
-  
+    
   for(d in unique(drs$DRS)){
     D[[d]]$Dpred <- apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = median)
     D[[d]]$DpredInf <- minD*apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = min)
@@ -611,7 +667,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     I[[d]] <- merge(I[[d]],tmp,all = T)
     
     #Plot
-    if(max(I[[d]]$I) > 1000 & max(D[[d]]$D) > 50){
+    if(max(I[[d]]$I) > 500 | max(D[[d]]$D) > 50){
       tmp <- D[[d]]
       pD <- ggplot(tmp,aes(x = date)) + theme_solarized(light = FALSE) + geom_line(aes(y = D),color = "red") + 
         geom_line(aes(y = Dpred),linetype = "dashed",color = "red") +
@@ -663,7 +719,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
       dev.off()
     }
   }
- 
+   
   #Plot state
   tmp <- data.table(obs %>% filter(ymd(date) >= ymd(end_validate)-31 & ymd(date) <= ymd(end_validate))) #Notifications in validation period
   tmp <- tmp[,TD := sum(deaths_corrected),by = date] #Sum of deaths each day
@@ -779,9 +835,6 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     parK$s <- results$models[[k]]$s #s
     parK$upI <- results$models[[k]]$upI #Asymptomatic initial condition
     parK$gammaA <- results$models[[k]]$gammaA #GammaA
-    gammaS <- (1 - parK$Te*parK$gammaA)/parK$Te #Rate of Exposed to Symptomatic
-    nuA <- 1/parK$Ta #Rate from Asymptomatic to Recovered
-    nuS <- (1-parK$delta*parK$Td)/parK$Ts #Rate from Symptomatic to Recoveres
     parK$upE <- results$models[[k]]$upE #To multiply number of new infected to get exposed
     initK <- init #Initial condition
     initK[1:par$sites] <- parK$upE*init[1:par$sites] #Correct
@@ -803,6 +856,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   }
   
   cat("Storing results of simulation...\n")
+  
   #####Results of simulation#####
   peak <- data.frame("Municipio" = NA,"TMinimo" = NA,"TMediana" = NA,"TMaximo" = NA,"MMinimo" = NA,"MMediana" = NA,"MMaximo" = NA)
   deaths <- list()
@@ -892,7 +946,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     cases_all <- rbind.data.frame(cases_all,tmp)
     
     #Epidemiological curve
-    if(max(c_pred$Ipred) > 100){
+    if(c_pred$Ipred[1] > 1000){
       tmp <- c_pred
       p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                                                                     linetype = "dashed") + 
@@ -901,7 +955,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
         theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length,length.out = 12),
                                                        labels = strftime(seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length,length.out = 12),
                                                                          format="%d/%m/%y")) + 
-        scale_y_continuous(breaks = round(seq(min(tmp$Dpred),max(tmp$IspredSup),length.out = 10))) +
+        scale_y_continuous(breaks = round(seq(min(c(tmp$DpredInf,tmp$IspredInf)),max(c(tmp$DpredSup,tmp$IspredSup)),length.out = 10))) +
         theme(legend.title = element_text(face = "bold"),legend.position = "bottom") + ylab("Indivíduos") +
         xlab("Data") + scale_colour_discrete("",labels = c("Infectados","Total de Óbitos")) +
         theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
@@ -1063,7 +1117,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
                                              "TMaximo" = as.character(ymd(end_validate)+max(pd)),
                                              "MMinimo" = min(mpd),"MMediana" = median(mpd),"MMaximo" = max(mpd))) #Peak
     #Epidemiological curve
-    tmp <- c_pred %>% filter(Ispred >= 100)
+    tmp <- c_pred
     p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                                                                     linetype = "dashed") +
         geom_line(aes(y = Ispred, color = "a")) + geom_ribbon(aes(ymin = IspredInf,ymax = IspredSup,fill = "a"),alpha = 0.25) +
@@ -1156,7 +1210,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   for(i in 2:4)
     peak[,i] <- ymd(peak[,i])
   peak <- merge(peak,drs %>% select(DRS,Regiao))
-  fwrite(peak,paste("/storage/SEIR/",pos,"/peak_DRS_",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_",pos,".csv",sep = ""))
+  fwrite(peak,paste("/storage/SEIR/",pos,"/peak_DRS_",pos,".csv",sep = ""))
   
   #Curve for state
   c_pred <- data.frame("date" = seq.Date(from = ymd(end_validate),to = ymd(end_validate)+simulate_length-1,by = 1),
@@ -1214,9 +1268,11 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   # shp <- fortify(shp,region = "NM_MUNICIP") #Fortify
   # shp <- merge(shp,drs,by.x = "id",by.y = "Municipio")
   shp <- readRDS("~/mdyn/SEIR/dados/shp.rds")
+  shp$DRS <- as.character(shp$DRS)
   shp$DRS[shp$DRS == "0"] <- "I"
-  Dsim <- merge(Dsim,data.frame("Municipio" = par$names,"pop" = par$pop))
-  Isim <- merge(Isim,data.frame("Municipio" = par$names,"pop" = par$pop))
+  shp$DRS <- as.factor(shp$DRS)
+  Dsim <- merge(Dsim,data.frame("Municipio" = par$names,"pop" = par$pop,"DRS" = drs$DRS))
+  Isim <- merge(Isim,data.frame("Municipio" = par$names,"pop" = par$pop,"DRS" = drs$DRS))
   mD <- max(1e5*Dsim$Sup/Dsim$pop) #Get maximum of death per 100k
   mI <- max(1e5*Isim$Sup/Isim$pop) #Get maximum of cases per 100k
 
@@ -1224,15 +1280,17 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   tmp <- peak
   tmp$tmedian <- as.numeric(ymd(tmp$TMediana) - ymd(end_validate)+1)
   tmp <- tmp %>% select(DRS,tmedian)
-  tmp <- merge(shp,tmp,by = "DRS")
+  tmp$DRS[tmp$DRS == "0"] <- "I"
+  tmp$DRS <- factor(tmp$DRS)
+  tmp <- merge(shp,tmp)
   tmp <- tmp[order(tmp$order),]
   rc_cont_inv <- colorRampPalette(colors = c("red","darkgoldenrod1","white"))(simulate_length+1)
-  p <- ggplot(tmp,aes(long, lat, group=group,fill = log(TMediana))) + theme_bw() + geom_polygon(colour='gray30') +
-    xlab("") + ylab("") + titles_Map + scale_fill_gradientn("",colours = rc_cont_inv,limits = c(0,simulate_length),
-                                                            breaks = c(1,log(simulate_length)),
+  p <- ggplot(tmp,aes(long, lat, group=group,fill = log(1+tmedian))) + theme_bw() + geom_polygon(colour='gray30') +
+    xlab("") + ylab("") + titles_Map + scale_fill_gradientn("",colours = rc_cont_inv,limits = log(1+c(0,simulate_length)),
+                                                            breaks = c(1,log(1+simulate_length)),
                                                             labels = c("Pico próximo","Pico distante")) +
-    theme(legend.background = element_blank()) + ggtitle("Distância até o pico por DRS")
-  pdf(file = paste("/storage/SEIR/",p,"/risk_peak_",pos,".pdf",sep = ""),width = 15,height = 10)
+    theme(legend.background = element_blank()) + ggtitle("Distância até o pico por Município")
+  pdf(file = paste("/storage/SEIR/",pos,"/risk_peak_",pos,".pdf",sep = ""),width = 15,height = 10)
   print(p)
   dev.off()
 
@@ -1252,9 +1310,9 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   system(paste("mkdir",paste("/storage/SEIR/",pos,"/Videos/Estado/mortes/",sep = "")))
   system(paste("mkdir",paste("/storage/SEIR/",pos,"/Videos/Estado/casos/",sep = "")))
   for(d in unique(drs$Regiao)){
-    system(paste("mkdir",paste("/storage/SEIR/",pos,"/Videos/",d,"/",sep = "")))
-    system(paste("mkdir",paste("/storage/SEIR/",pos,"/Videos/",d,"/mortes/",sep = "")))
-    system(paste("mkdir",paste("/storage/SEIR/",pos,"/Videos/",d,"/casos/",sep = "")))
+    system(paste("mkdir",paste("/storage/SEIR/",pos,"/Videos/",gsub(" ","",d),"/",sep = "")))
+    system(paste("mkdir",paste("/storage/SEIR/",pos,"/Videos/",gsub(" ","",d),"/mortes/",sep = "")))
+    system(paste("mkdir",paste("/storage/SEIR/",pos,"/Videos/",gsub(" ","",d),"/casos/",sep = "")))
   }
   
   #Parallel
@@ -1266,8 +1324,8 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     rc_cont <- colorRampPalette(colors = c("white","darkgoldenrod1","red"))(200)
     
     #Deaths
-    tmp <- Dsim %>% filter(date == ymd(end_validate)+t-1) %>% select(Municipio,Dpred)
-    tmp$Dpred <- 1e5*tmp$Dpred/tmp$pop
+    tmp <- Dsim %>% filter(Date == ymd(end_validate)+t-1) %>% select(Municipio,Mediana,pop,DRS)
+    tmp$Dpred <- 1e5*tmp$Mediana/tmp$pop
     tmp <- merge(shp,tmp,by.x = "id",by.y = "Municipio")
     tmp <- tmp[order(tmp$order),]
     
@@ -1275,8 +1333,8 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
           xlab("") + ylab("") + scale_fill_gradientn("Mortes 100k",colours = rc_cont,limits = c(0,log(1+mD,2)+0.1),
                                                      breaks = round(seq(0,log(mD+1,2),log(mD+1,2)/5)),
                                                      labels = round(c(0,2^(round(seq(0,log(mD+1,2),log(mD+1,2)/5)))[-1]))) + titles_Map +
-      ggtitle(paste("Mortes estimadas em",ymd(end_validate)+t-1))
-    pdf(file = paste("/storage/SEIR/",pos,"/Videos/Estado/mortes/",sprintf("%03d", t),".pdf",sep = ""),width = 3*10,height = 10)
+      ggtitle(paste("Mortes por 100k estimadas em",ymd(end_validate)+t-1))
+    pdf(file = paste("/storage/SEIR/",pos,"/Videos/Estado/mortes/",sprintf("%03d", t),".pdf",sep = ""),width = 15,height = 10)
     print(pD)
     dev.off()
     
@@ -1287,9 +1345,9 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
           xlab("") + ylab("") + scale_fill_gradientn("Mortes 100k",colours = rc_cont,limits = c(0,log(1+mD,2)+0.1),
                                                      breaks = round(seq(0,log(mD+1,2),log(mD+1,2)/5)),
                                                      labels = round(c(0,2^(round(seq(0,log(mD+1,2),log(mD+1,2)/5)))[-1]))) + titles_Map +
-      ggtitle(paste("Mortes estimadas em",ymd(end_validate)+t-1,"na DRS",unique(drs$Regiao[drs$DRS == d])))
+      ggtitle(paste("Mortes por 100k estimadas em",ymd(end_validate)+t-1,"na DRS",unique(drs$Regiao[drs$DRS == d])))
       pdf(file = paste("/storage/SEIR/",pos,"/Videos/",unique(drs$Regiao[drs$DRS == d]),"/mortes/",sprintf("%03d", t),".pdf",sep = ""),
-          width = 3*10,height = 10)
+          width = 15,height = 10)
       print(pD)
       dev.off()
     }
@@ -1300,7 +1358,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     tmp <- merge(shp,tmp,by.x = "id",by.y = "Municipio")
     tmp <- tmp[order(tmp$order),]
     
-    pI <- ggplot(tmp,aes(long, lat, group=group,fill = log(1+Ipred))) + theme_bw() + geom_polygon(colour='gray30') +
+    pI <- ggplot(tmp,aes(long, lat, group=group,fill = log(1+Ipred,2))) + theme_bw() + geom_polygon(colour='gray30') +
           xlab("") + ylab("") + scale_fill_gradientn("Casos 100k",colours = rc_cont,limits = c(0,log(1+mI,2)+0.1),
                                                      breaks = round(seq(0,log(mI+1,2),log(mI+1,2)/5)),
                                                      labels = round(c(0,exp(round(seq(0,log(mD+1,2),log(mD+1,2)/5)))[-1]))) + titles_Map +
@@ -1312,10 +1370,10 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     for(d in unique(DRS)[-18]){
       tmpi <- tmp %>% filter(DRS == d)
       tmpi <- tmpd[order(tmpd$order),]
-       pI <- ggplot(tmpi,aes(long, lat, group=group,fill = log(1+Ipred))) + theme_bw() + geom_polygon(colour='gray30') +
+       pI <- ggplot(tmpi,aes(long, lat, group=group,fill = log(1+Ipred,2))) + theme_bw() + geom_polygon(colour='gray30') +
           xlab("") + ylab("") + scale_fill_gradientn("Casos 100k",colours = rc_cont,limits = c(0,log(1+mI,2)+0.1),
                                                      breaks = round(seq(0,log(mI+1,2),log(mI+1,2)/5)),
-                                                     labels = round(c(0,exp(round(seq(0,log(mD+1,2),log(mD+1,2)/5)))[-1]))) + titles_Map +
+                                                     labels = round(c(0,2^(round(seq(0,log(mD+1,2),log(mD+1,2)/5)))[-1]))) + titles_Map +
       ggtitle(paste("Casos estimados em",ymd(end_validate)+t-1,"na DRS",unique(drs$Regiao[drs$DRS == d])))
       pdf(file = paste("/storage/SEIR/",pos,"/Videos/",unique(drs$Regiao[drs$DRS == d]),"/casos/",sprintf("%03d", t),".pdf",sep = ""),
           width = 3*10,height = 10)
