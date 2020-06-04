@@ -85,20 +85,15 @@ solve_seir <- function(y,times,derivatives,parms){
 
 #Get notification data state of SP
 get_data_SP <- function(){
-  #file <- gzcon(url("https://data.brasil.io/dataset/covid19/caso_full.csv.gz")) #Data path
-  #txt <- readLines(file) #Read lines
-  #obs <- read.csv(textConnection(txt)) #Get data
-  d <- Sys.Date()
-  if(!file.exists(paste("/storage/SEIR/dados_",d,".csv",sep = ""))){
-    obs <- data.frame(get_data_API())
-    write.csv(x = obs,file = paste("/storage/SEIR/dados_",d,".csv",sep = ""),row.names = F)
-  }
-  else
-    obs <- data.frame(read.csv(paste("/storage/SEIR/dados_",d,".csv",sep = "")))
-  obs <- obs %>% filter(state == "SP" & city != "") %>% na.omit() %>% 
-    select(city,date,last_available_confirmed,last_available_deaths) #Only SP state and confirmed cases and death
+  file <- gzcon(url("https://github.com/seade-R/dados-covid-sp/raw/master/data/dados_covid_sp.csv")) #Data path
+  txt <- readLines(file) #Read lines
+  obs <- read.csv(textConnection(txt),sep = ";") #Get data
+  names(obs)[c(5,1,6,10)] <- c("date","city","last_available_confirmed","last_available_deaths")
+  obs <- obs %>% filter(city != "IGNORADO") %>%
+    select(city,date,last_available_confirmed,last_available_deaths) %>% na.omit() #Only SP state and confirmed cases and death
   obs$city <- toupper(gsub(pattern = "'",replacement = "",x = obs$city)) #Correct names
   obs$city[obs$city == "ITAÓCA"] <- "ITAOCA" #Correct names
+  obs$city[obs$city == "BIRITIBA MIRIM"] <- "BIRITIBA-MIRIM" #Correct names
   obs$date <- ymd(obs$date) #Date
   for(d in unique(as.character(obs$date))){ #Add zero to cities where and when no cases/deaths were confirmed
     tmp <- par$names[!(par$names %in% obs$city[obs$date == d])]
