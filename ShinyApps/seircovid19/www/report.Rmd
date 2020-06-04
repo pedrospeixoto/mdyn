@@ -1,0 +1,132 @@
+---
+params:
+  input: 'NULL'
+  title: 'NULL'
+  data: 'NULL'
+  cases_city: 'NULL'
+  cases_DRS: 'NULL'
+  deaths_city: 'NULL'
+  deaths_DRS: 'NULL'
+  peak_city: 'NULL'
+  peak_DRS: 'NULL'
+  pos: 'NULL'
+  nmodels: 'NULL'
+title: Previsões COVID-19 Estado de São Paulo
+subtitle: Relatório Executivo
+author: 
+  - Diego Marcondes\newline
+  - Cláudia Peixoto\newline
+  - Sergio Oliva\newline
+  - Pedro Peixoto\newline
+date: "`r params$data`"
+institute: IME - USP
+output: 
+  beamer_presentation:
+    theme: "Warsaw"
+    fonttheme: "structurebold"
+header-includes:
+   - \usepackage{float}
+   - \usepackage{color}
+   - \setlength\parindent{24pt}
+   - \usepackage{graphicx}
+   - \usepackage{transparent}
+   - \usepackage[portuguese]{babel}
+   - \setbeamercolor{frametitle}{fg=white}
+   - \setbeamercolor{background canvas}{bg=black}
+   - \setbeamercolor{normal text}{fg=white}
+   - \logo{\makebox[0.95\paperwidth]{\includegraphics[height=1cm,keepaspectratio]{logoblack.png}\hfill\includegraphics[height=1cm,keepaspectratio]{logo_USP.png}}}
+   - \setbeamercolor{normal text}{fg=white,bg=black!90}
+   - \setbeamercolor{structure}{fg=white}
+   - \setbeamercolor{alerted text}{fg=red!85!black}
+   - \setbeamercolor{item projected}{use=item,fg=black,bg=item.fg!35}
+   - \setbeamercolor*{palette primary}{use=structure,fg=structure.fg}
+   - \setbeamercolor*{palette secondary}{use=structure,fg=structure.fg!95!black}
+   - \setbeamercolor*{palette tertiary}{use=structure,fg=structure.fg!90!black}
+   - \setbeamercolor*{palette quaternary}{use=structure,fg=structure.fg!95!black,bg=black!80}
+   - \setbeamercolor*{framesubtitle}{fg=white}
+   - \setbeamercolor*{block title}{parent=structure,bg=black!60}
+   - \setbeamercolor*{block body}{fg=black,bg=black!10}
+   - \setbeamercolor*{block title alerted}{parent=alerted text,bg=black!15}
+   - \setbeamercolor*{block title example}{parent=example text,bg=black!15}
+---
+
+```{r,echo=FALSE}
+deaths_city <- params$deaths_city
+tmpC <- params$cases_city %>% filter(Date == ymd(params$input$date))
+tmpM <- deaths_city %>% filter(Date == ymd(params$input$date))
+#tmpC_DRS <- params$cases_DRS %>% filter(date == ymd(params$input$date))
+tmpM_DRS <- params$deaths_DRS %>% filter(date == ymd(params$input$date)) %>% unique()
+```
+
+
+# Projeção para dia `r format(params$input$date,"%d/%m/%Y")`
+
+\noindent Projetamos \textcolor{yellow}{`r format(round(sum(tmpC$Mediana)),decimal.mark = ",",big.mark = ".")` [`r format(round(sum(tmpC$Infimo)),decimal.mark = ",",big.mark = ".")`,`r format(round(sum(tmpC$Sup)),decimal.mark = ",",big.mark = ".")`] Casos Confirmados} e \textcolor{red}{`r format(round(sum(tmpM$Mediana)),decimal.mark = ",",big.mark = ".")` [`r format(round(sum(tmpM$Infimo)),decimal.mark = ",",big.mark = ".")`,`r format(round(sum(tmpM$Sup)),decimal.mark = ",",big.mark = ".")`] Mortes} no Estado de São Paulo em `r format(params$input$date,"%d/%m/%Y")`
+
+\begin{center}
+Curva epidemiológica prevista
+\end{center}
+
+# Previsão de Casos por DRS em `r format(params$input$date,"%d/%m/%Y")`
+
+```{r,echo=FALSE,warning=FALSE}
+#tmpC_DRS <- tmpM_DRS[order(tmpC_DRS$Mediana,decreasing = T),c(6,3,4,5)]
+#names(tmpC_DRS) <- c("DRS","Mín. Previsões","Mediana Previsões","Max. Previsões")
+#kable(tmpC_DRS,row.names = F,format = "latex",align = "lccc",digits = 0,
+#      format.args = list(big.mark = ".")) %>% kable_styling(font_size = 10,latex_options = "scale_down")
+```
+
+# Previsão de Mortos por DRS em `r format(params$input$date,"%d/%m/%Y")`
+
+```{r,echo=FALSE,warning=FALSE}
+tmpM_DRS <- tmpM_DRS[order(tmpM_DRS$Mediana,decreasing = T),c(6,3,4,5)]
+names(tmpM_DRS) <- c("DRS","Mín. Previsões","Mediana Previsões","Max. Previsões")
+kable(tmpM_DRS,row.names = F,format = "latex",align = "lccc",digits = 0,
+      format.args = list(big.mark = ".")) %>% kable_styling(font_size = 10,latex_options = "scale_down")
+```
+
+# Previsão do Pico de Mortes por DRS (100+ mortes)
+
+```{r,echo=FALSE,warning=FALSE}
+#peak_DRS <- params$peak_DRS
+#names(tmpM_DRS) <- c("DRS","Mín. Previsões","Mediana Previsões","Max. Previsões")
+#kable(tmpM_DRS,row.names = F,format = "latex",align = "lccc",digits = 0,
+#      format.args = list(big.mark = ".")) %>% kable_styling(font_size = 10,latex_options = "scale_down")
+```
+
+# Previsão de Casos por Município em `r format(params$input$date,"%d/%m/%Y")`
+
+```{r,echo=FALSE,warning=FALSE}
+tmpC <- tmpC[order(tmpC$Mediana,decreasing = T),-1]
+names(tmpC) <- c("Município","Mín. Previsões","Mediana Previsões","Max. Previsões")
+kable(tmpC,row.names = F,format = "latex",align = "lccc",digits = 0,
+      format.args = list(big.mark = ".")) %>% kable_styling(font_size = 6,latex_options = "scale_down")
+```
+
+# Previsão de Mortes por Município em `r format(params$input$date,"%d/%m/%Y")`
+
+```{r,echo=FALSE,warning=FALSE}
+tmpM <- tmpM[order(tmpM$Mediana,decreasing = T),-1]
+names(tmpM) <- c("Município","Mín. Previsões","Mediana Previsões","Max. Previsões")
+kable(tmpM,row.names = F,format = "latex",align = "lccc",digits = 0,
+      format.args = list(big.mark = ".")) %>% kable_styling(font_size = 6,latex_options = "scale_down")
+```
+
+# Previsão do Pico de Mortes por Município
+
+\begin{figure}
+   \centering
+   \includegraphics[width=\linewidth]{risk_peak_`r params$pos`.png}
+\end{figure}
+
+#Sobre o modelo
+
+\noindent As projeção foram realizadas através da simulação de `r params$nmodels` Modelos SEIR Metapopulacionais, em que a mobilidade entre as cidades do Estado, mensurada por dados anônimos de geolocalização de celulares, é acoplada à um modelo epidemiológico de compartimentos
+
+\noindent Os modelos foram escolhidos dentre dezenas de milhares de modelos candidatos, pois se aderiram bem aos dados observados. A aderência foi mensurada pela distância entre o número de mortes e o número de casos confirmados nas DRSs com mais de 50 mortes e 500 casos, respectivamente, durante o período de uma semana, terminando em `r params$data`
+
+\noindent As projeções para esse modelo, que leva em consideração a transmissão do vírus entre as cidades, só pode ser realizada com maior confiança pelo período de um mês. Além disso, também podemos estimar através desses modelos quando será o pico de mortes pela doença (dia com mais mortes). As bandas superior e inferior das estimativas dizem respeito ao pior e melhor caso, respectivamente, simulados pelas modelos escolhidos
+
+\noindent Para mais informações sobre essas e outras análises sobre a COVID-19 ver \href{https://www.ime.usp.br/~pedrosp/covid19/}
+
+

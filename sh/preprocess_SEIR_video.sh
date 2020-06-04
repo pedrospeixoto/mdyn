@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "Converting pdf to png..."
+echo "Creating videos..."
 
 cd /storage/SEIR/$1/Videos
 
@@ -12,11 +12,11 @@ do
   #Files in mortes
   find ./$d/mortes/ -maxdepth 1 -type f -iname "*.pdf" -delete;
   ffmpeg -framerate 5 -i "./$d/mortes/%03d".png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p /storage/SEIR/$1/mortes_$d.mp4 &
-done
+done;
 
 #Copy video files to ShinyApp
 cd /storage/SEIR/$1
 find . -maxdepth 1 -type f -iname "*.mp4" -exec cp {} /storage/ShinyApps/seircovid19/www/ \;
 cd /storage/SEIR/$1/Videos/Estado
-cp casos/ /storage/ShinyApps/seircovid19/www/casos/
-cp mortes/ /storage/ShinyApps/seircovid19/www/mortes/
+cp -r casos/ /storage/ShinyApps/seircovid19/www/
+cp -r mortes/ /storage/ShinyApps/seircovid19/www/
