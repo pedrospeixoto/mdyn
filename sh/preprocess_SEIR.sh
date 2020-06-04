@@ -35,7 +35,7 @@ do
   #Convert files in mortes
   mogrify -density 100 -format png ./$d/mortes/*.pdf;
   find ./$d/mortes/ -maxdepth 1 -type f -iname "*.pdf" -delete;
-  ffmpeg -framerate 1 -i "%03d".png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p /storage/SEIR/$1/mortes_$d_$1.mp4 &
+  ffmpeg -framerate 1 -i "./$d/mortes/%03d".png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p /storage/SEIR/$1/mortes_$d_$1.mp4 &
 done
 
 #Copy video files to ShinyApp
