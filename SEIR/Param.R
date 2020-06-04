@@ -11,7 +11,7 @@ cores <- 24 #Number of cores to use in parallel computation
 pos <- "teste" #What to add at the end of all output files
 seed <- rnorm(1,10,100000) #Seed
 par <- list() #Candidate values of model parameters
-simulate_length <- 365 #Number of days to simulate
+simulate_length <- 300 #Number of days to simulate
 
 #Set mobility matrix
 par$mob <- list()

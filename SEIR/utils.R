@@ -89,8 +89,8 @@ get_data_SP <- function(){
   txt <- readLines(file) #Read lines
   obs <- read.csv(textConnection(txt),sep = ";") #Get data
   names(obs)[c(5,1,6,10)] <- c("date","city","last_available_confirmed","last_available_deaths")
-  obs <- obs %>% filter(city != "IGNORADO") %>%
-    select(city,date,last_available_confirmed,last_available_deaths) %>% na.omit() #Only SP state and confirmed cases and death
+  obs <- obs %>% 
+    select(city,date,last_available_confirmed,last_available_deaths) %>% na.omit() %>% filter(city != "Ignorado") #Only confirmed cases and death
   obs$city <- toupper(gsub(pattern = "'",replacement = "",x = obs$city)) #Correct names
   obs$city[obs$city == "ITAÓCA"] <- "ITAOCA" #Correct names
   obs$city[obs$city == "BIRITIBA MIRIM"] <- "BIRITIBA-MIRIM" #Correct names
