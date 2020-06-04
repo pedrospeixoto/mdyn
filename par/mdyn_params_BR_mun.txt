@@ -30,15 +30,15 @@ data_format = "Parquet" #"ORC"
 data_dir = "data/data_br_full_2020_05_20/"
 #data_dir = "data/triples_br_2020_04_17_date/all/"
 #data_dir = "data/triples_br_2020_04_17_date/"
-date_ini = "2019-03-01"
-date_end = "2020-05-25"
+date_ini = "2020-03-01"
+date_end = "2020-03-01"
 load_data = True
 
 #Number of main sources for plots
 num_source = 2
 
 #Isolation index
-isoind_file = "inloco/Social Distancing Index by Cities2020-05-25.csv"
+isoind_file = "inloco/Social Distancing Index by Cities2020-05-23.csv"
 
 #-----------------------------
 # Slicing/Zoom

@@ -70,6 +70,13 @@ def map_move_mats(mdyn, network, ipar):
         map=Map(network, ipar.zoom)
         map.map_network_data(reg_iso, mat, regions, title, filename)
     
+        map=Map(network, ipar.zoom)
+        filename=filename.replace("Network", "NetworkFlux")
+        map.map_network_flux(mat, regions, title, filename)
+
+        map=Map(network, ipar.zoom)
+        filename=filename.replace("NetworkFlux", "NetworkIso")
+        map.map_data_on_network(reg_iso, mat, regions, title, filename)
 
 def analyse_move_mats(mdyn, network, ipar):
     print()
