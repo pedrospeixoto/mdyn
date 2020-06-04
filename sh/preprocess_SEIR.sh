@@ -21,7 +21,7 @@ find . -maxdepth 1 -type f -iname "*.png" -exec cp {} /storage/ShinyApps/seircov
 
 #Convert files in validate
 mogrify -density 100 -format png ./validate/*.pdf;
-find .EPCurve/ -maxdepth 1 -type f -iname "*.pdf" -delete;
+find ./validate/ -maxdepth 1 -type f -iname "*.pdf" -delete;
 find . -maxdepth 1 -type f -iname "*.png" -exec cp {} /storage/ShinyApps/seircovid19/www/ \; &
 
 #Convert files in videos and create video
