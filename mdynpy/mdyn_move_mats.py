@@ -58,14 +58,7 @@ def map_move_mats(mdyn, network, ipar):
             
         #Do map
         dow=mex.weekdays[day.weekday()]
-        if ipar.zoom[0]:
-            title = network.domain+" "+network.subdomains+" Network Zoom "+ipar.zoom[6]+" "
-            filename = mdyn.dump_dir+title.replace(" ", "_")+"_"+str(i).zfill(3)+".jpg"
-        else:
-            title = network.domain+" "+network.subdomains+" Network "
-            filename = mdyn.dump_dir+title.replace(" ", "_")+str(i).zfill(3)+".jpg"
-
-        title = title + day.strftime("%Y-%m-%d")+" "+dow
+        
         
         if network.domain_abrv=="BRA":
 
@@ -79,6 +72,15 @@ def map_move_mats(mdyn, network, ipar):
             ]
 
             for zoom in zooms:
+                if zoom[0]:
+                    title = network.domain+" "+network.subdomains+" Network Zoom "+zoom[6]+" "
+                    filename = mdyn.dump_dir+title.replace(" ", "_")+"_"+str(i).zfill(3)+".jpg"
+                else:
+                    title = network.domain+" "+network.subdomains+" Network "
+                    filename = mdyn.dump_dir+title.replace(" ", "_")+str(i).zfill(3)+".jpg"
+
+                title = title + day.strftime("%Y-%m-%d")+" "+dow
+
                 map=Map(network, zoom)
                 map.map_network_data(reg_iso, mat, regions, title, filename)
         
@@ -86,8 +88,17 @@ def map_move_mats(mdyn, network, ipar):
                 map.map_network_flux(mat, regions, title, filename.replace("Network", "Network_Flux"))
 
                 map=Map(network, zoom)
-                map.map_data_on_network(reg_iso, mat, regions, title, filename=filename.replace("Network", "Network_Iso"))
+                map.map_data_on_network(reg_iso, mat, regions, title, filename.replace("Network", "Network_Iso"))
         else:
+            if ipar.zoom[0]:
+                title = network.domain+" "+network.subdomains+" Network Zoom "+ipar.zoom[6]+" "
+                filename = mdyn.dump_dir+title.replace(" ", "_")+"_"+str(i).zfill(3)+".jpg"
+            else:
+                title = network.domain+" "+network.subdomains+" Network "
+                filename = mdyn.dump_dir+title.replace(" ", "_")+str(i).zfill(3)+".jpg"
+
+            title = title + day.strftime("%Y-%m-%d")+" "+dow
+
             map=Map(network, ipar.zoom)
             map.map_network_data(reg_iso, mat, regions, title, filename)
         
