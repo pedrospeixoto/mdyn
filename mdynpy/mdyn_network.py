@@ -996,13 +996,25 @@ class Network:
 
         matfile = local_dir+name+'.csv'
         if os.path.exists(matfile):    
+            
+            #time_start = time.time()
             mat = np.genfromtxt(matfile)
-            mat_normed = np.genfromtxt(local_dir+name+'_norm.csv')
-                    
+            #time_end = time.time()
+            #print("Execution time "+str(time_end-time_start)+" seconds")
+            #time_start = time.time()
+            #mat_normed = np.genfromtxt(local_dir+name+'_norm.csv')
+            #time_end = time.time()
+            #print("Execution time "+str(time_end-time_start)+" seconds")
+            #time_start = time.time()
+            mat_normed = mat / mat.sum(axis=0)
+            #time_end = time.time()
+            #print("Execution time "+str(time_end-time_start)+" seconds")
+            #time_start = time.time()
             #reg_names = np.load(local_dir+name+'_reg_names.npy')
             filename = local_dir+name+"_reg_names.txt"
             with open(filename) as f:
                 reg_names = f.read().splitlines()            
+            #print("Execution time "+str(time_end-time_start)+" seconds")
         else:
             print("Could not find this domain matrix, searching for Brasil data")
             #Let check if we have a full brasil matriz available
