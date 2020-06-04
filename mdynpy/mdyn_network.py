@@ -141,7 +141,7 @@ class Network:
                 # add names of neighbors as NEIGHBORS value
                 df.at[index, "NEIGHBORS"] = ",".join(neighbors)
 
-            #Romome island from Espiro Santo or other small islands
+            #Remame island from Espirito Santo or other small islands
             for index, reg in df.iterrows():
                 poly=reg.geometry
                 if poly.geom_type == 'MultiPolygon':           
