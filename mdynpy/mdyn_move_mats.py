@@ -83,12 +83,10 @@ def map_move_mats(mdyn, network, ipar):
                 map.map_network_data(reg_iso, mat, regions, title, filename)
         
                 map=Map(network, zoom)
-                filename=filename.replace("Network", "Network_Flux")
-                map.map_network_flux(mat, regions, title, filename)
+                map.map_network_flux(mat, regions, title, filename.replace("Network", "Network_Flux"))
 
                 map=Map(network, zoom)
-                filename=filename.replace("Network_Flux", "Network_Iso")
-                map.map_data_on_network(reg_iso, mat, regions, title, filename)
+                map.map_data_on_network(reg_iso, mat, regions, title, filename=filename.replace("Network", "Network_Iso"))
         else:
             map=Map(network, ipar.zoom)
             map.map_network_data(reg_iso, mat, regions, title, filename)
