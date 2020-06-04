@@ -90,7 +90,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   system(paste("mkdir /storage/SEIR/",pos,sep = ""))
   
   #####Notifications#####
-  cat("Download data about confirmed cases and deaths and plot epidemiological curve...\n")
+  cat("Downloading data about confirmed cases and deaths and plot epidemiological curve...\n")
   obs <- get_data_SP()
   if(nrow(obs)/par$sites-round(nrow(obs)/par$sites) > 0)
     stop("There is a problem with the notifications dataset. Please fix it.")
@@ -1203,7 +1203,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   tmp <- merge(tmp,tmpS)
   tmp$key <- NULL
   Isim_drs <- tmp
-  fwrite(tmp,paste("/storage/SEIR/",pos,"/cases_DRS_",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_",pos,".csv",sep = ""))
+  fwrite(tmp,paste("/storage/SEIR/",pos,"/cases_DRS_",pos,".csv",sep = ""))
   
   #Peak
   peak <- na.omit(peak)
@@ -1318,7 +1318,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   #Parallel
   cl <- makeSOCKcluster(cores)
   registerDoSNOW(cl)
-  foreach(t = 1:simulate_length,.options.snow = opts,.packages = c("tidyverse","ggplot2","ggthemes","lubridate","data.table","gridExtra")) %dopar%{
+  a <- foreach(t = 1:simulate_length,.options.snow = opts,.packages = c("tidyverse","ggplot2","ggthemes","lubridate","data.table","gridExtra")) %dopar%{
     pb$tick(tokens = list(letter = progress_letter[t]))
     
     rc_cont <- colorRampPalette(colors = c("white","darkgoldenrod1","red"))(200)
@@ -1385,5 +1385,9 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   
   cat("\n")
   cat("We are done fitting the model! I will starting preprocessing the data in a moment...\n")
+  preprocess_SEIR_output(pos,obs,init_validate)
+  
+  cat("\n")
+  cat("And that is it! Please come back more often.\n")
 }
   

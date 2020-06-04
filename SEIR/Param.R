@@ -73,8 +73,8 @@ par$s <- c(0.01,0.5,1,1.5,2,2.5,3)
 sample_size <- 1000
 
 
-# source("mdyn/SEIR/SEIR_COVID19.R",sep = "")
-# SEIR_covid(wd,cores,par,cand_beta,pos,seed,sample_size,simulate_length,d_max,max_models,error_good)
+source("mdyn/SEIR/SEIR_COVID19.R")
+SEIR_covid(cores,par,pos,seed,sample_size,simulate_length,d_max)
 
 # cat("Converting pdfs...\n")
 # setwd(wd)
