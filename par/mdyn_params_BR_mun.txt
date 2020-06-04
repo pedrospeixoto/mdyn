@@ -44,7 +44,8 @@ isoind_file = "inloco/Social Distancing Index by Cities2020-05-23.csv"
 # Slicing/Zoom
 #------------------------------
         #Flag, lats, lons, drawsubdomains, label
-zoom = [False, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ]
+zoom = [False, -15, -34, -60,-40, True, "Sul-Sudeste"  ]
+#zoom = [True, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ]
 #zoom = [True, -19.8, -25.5, -52.25,-43, True, "SP"  ]
 
 #-----------------------------
