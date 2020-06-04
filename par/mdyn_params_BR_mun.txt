@@ -38,7 +38,8 @@ load_data = True
 num_source = 2
 
 #Isolation index
-isoind_file = "inloco/Social Distancing Index by Cities2020-05-23.csv"
+isoind_file = "data/isol_br/Social Distancing Index by Cities2020-06-02.csv"
+#isoind_file = "inloco/Social Distancing Index by Cities2020-05-23.csv"
 
 #-----------------------------
 # Slicing/Zoom
