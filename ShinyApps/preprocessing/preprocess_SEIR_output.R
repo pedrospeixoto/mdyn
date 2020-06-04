@@ -7,11 +7,11 @@ preprocess_SEIR_output <- function(pos,obs,init_validate){
   
   #wd
   wd <- paste("/storage/SEIR/",pos,sep = "")
-  
+    
   ######Convert to png and create video######
-  cat("Converting pdf to png and creating videos...\n")
-  system(paste("./mdyn/sh/preprocess_SIR.sh",pos))
-  
+  system(paste("./mdyn/sh/preprocess_SEIR_convert.sh",pos))
+  system(paste("./mdyn/sh/preprocess_SEIR_video.sh",pos))
+    
   #####Create rds files for shiny#####
   cat("Creating files for ShinyApp...\n")
   #Cases city
@@ -31,12 +31,8 @@ preprocess_SEIR_output <- function(pos,obs,init_validate){
   saveRDS(deaths_city,"/storage/ShinyApps/seircovid19/www/deaths_city.rds")
   
   #Cases DRS
-  cases_DRS <- fread(paste(wd,"/cases_DRS_",pos,".csv",sep = ""),sep = ",") %>% select(DRS,date,Ipred,IpredInf,IpredSup,Regiao)
-  cases_DRS$Date <- ymd(cases_DRS$Date)
-  cases_DRS$Regiao <- factor(cases_DRS$Regiao)
-  cases_DRS$DRS <- factor(cases_DRS$DRS)
-  names(cases_DRS)[3:5] <- c("Mediana","Sup","Infimo")
-  saveRDS(cases_DRS,"/storage/ShinyApps/seircovid19/www/cases_DRS.rds")
+  cases_DRS <- data.frame(fread(paste(wd,"/cases_DRS_",pos,".csv",sep = ""),sep = ","))#%>% dplyr::select(DRS,date,Ipred,IpredInf,IpredSup,Regiao)
+  saveRDS(unique(cases_DRS),"/storage/ShinyApps/seircovid19/www/cases_DRS.rds")
   
   #Deaths cities
   deaths_DRS <- fread(paste(wd,"/deaths_DRS_",pos,".csv",sep = ""),sep = ",") %>% select(DRS,date,Dpred,DpredInf,DpredSup,Regiao)
@@ -44,7 +40,7 @@ preprocess_SEIR_output <- function(pos,obs,init_validate){
   deaths_DRS$Regiao <- factor(deaths_DRS$Regiao)
   deaths_DRS$DRS <- factor(deaths_DRS$DRS)
   names(deaths_DRS)[3:5] <- c("Mediana","Sup","Infimo")
-  saveRDS(deaths_DRS,"/storage/ShinyApps/seircovid19/www/deaths_DRS.rds")
+  saveRDS(unique(deaths_DRS),"/storage/ShinyApps/seircovid19/www/deaths_DRS.rds")
   
   #peak
   peak_city <- data.frame(fread(paste(wd,"/peak_",pos,".csv",sep = ""),sep = ","))
@@ -54,7 +50,7 @@ preprocess_SEIR_output <- function(pos,obs,init_validate){
   
   #peak DRS
   peak_DRS <- data.frame(fread(paste(wd,"/peak_DRS_",pos,".csv",sep = ""),sep = ","))
-  peak_DRS <- peak_city[order(peak_DRS$MMediana),]
+  peak_DRS <- peak_DRS[order(peak_DRS$MMediana),]
   saveRDS(peak_DRS,"/storage/ShinyApps/seircovid19/www/peak_DRS.rds")
   
   #Rt
@@ -70,6 +66,6 @@ preprocess_SEIR_output <- function(pos,obs,init_validate){
   
   #####Sync with ShinyApps####
   cat("Syncing with Shiny server...\n")
-  system('rsync -u -avz -e "ssh -p 2223" dmarcondes@shiny.ime.usp.br: /storage/ShinyApps')
-  system('rsync -u -avz -e "ssh -p 2223" /storage/ShinyApps dmarcondes@shiny.ime.usp.br:')
+  system('rsync -u -avz -e "ssh -p 2223" dmarcondes@shiny.ime.usp.br:ShinyApps /storage/ShinyApps')
+  system('rsync -u -avz -e "ssh -p 2223" /storage/ShinyApps dmarcondes@shiny.ime.usp.br:ShinyApps')
 }
