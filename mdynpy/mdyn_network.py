@@ -996,9 +996,14 @@ class Network:
 
         matfile = local_dir+name+'.csv'
         if os.path.exists(matfile):    
-            
+            #check if mat exists in numpy format
+            npmat = local_dir+name+'.npy'
+            if os.path.exists(npmat):
+                mat = np.load(npmat)
+            else:
             #time_start = time.time()
-            mat = np.genfromtxt(matfile)
+                mat = np.genfromtxt(matfile)
+                np.save(npmat, mat)
             #time_end = time.time()
             #print("Execution time "+str(time_end-time_start)+" seconds")
             #time_start = time.time()
@@ -1031,12 +1036,18 @@ class Network:
             matfile = local_dir+name+'.csv'
             if os.path.exists(matfile):    
                 print("  Found a Brasil matrix! Calculating...this may take some time...")
-                mat_br = np.genfromtxt(matfile)  
+                npmat = local_dir+name+'.npy'
+                if os.path.exists(npmat):
+                    mat_br = np.load(npmat)
+                else:
+                    #time_start = time.time()
+                    mat_br = np.genfromtxt(matfile)
+                    np.save(npmat, mat_br)
+                #mat_br = np.genfromtxt(matfile)  
                 filename = local_dir+name+"_reg_names.txt"
                 with open(filename) as f:
                     reg_names = f.read().splitlines()
             else:
-                
                 print("Can't find Brasil matrix, please run mdyn_build_model.py first to generate the movement matrices", local_dir)
                 print(" (run with the same parameter file and option -o 0!)")
                 sys.exit()
@@ -1059,7 +1070,8 @@ class Network:
             name = "move_mat_"+self.domain+"_"+self.subdomains
             print("..saving matrix for future use : " , name)
             np.savetxt( local_dir+name+".csv", mat)
-            np.savetxt( local_dir+name+"_norm.csv", mat_normed)
+            np.save( local_dir+name+".npy", mat)
+            #np.savetxt( local_dir+name+"_norm.csv", mat_normed)
             #np.savetxt( day_data.local_dir+name+"_reg0.csv", day_data.reg0)
             #np.savetxt( day_data.local_dir+name+"_reg1.csv", day_data.reg1)
             #np.save( day_data.local_dir+name+"_reg_names.npy", network.regions)
