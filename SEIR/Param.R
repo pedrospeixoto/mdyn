@@ -49,9 +49,9 @@ for(i in 1:length(par$mob)){
 #Cadidate parameters  
 par$gammaA <-0.9
 par$Te <- c(2,3,4,5,6)
-par$Ta <- seq(7,14,1)
-par$Ts <- seq(14,21,1)
-par$Td <- c(9,10,11)
+par$Ta <- c(7:14)
+par$Ts <- c(14:21,1)
+par$Td <- c(7:21)
 par$s <- c(0.01,0.5,1,1.5,2,2.5,3)
 
 #####Sample Size#####
