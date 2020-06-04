@@ -1324,7 +1324,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     rc_cont <- colorRampPalette(colors = c("white","darkgoldenrod1","red"))(200)
     
     #Deaths
-    tmp <- Dsim %>% filter(Date == ymd(end_validate)+t-1) %>% select(Municipio,Mediana,pop,DRS)
+    tmp <- Dsim %>% filter(Date == ymd(end_validate)+t-1) %>% select(Municipio,Mediana,pop)
     tmp$Dpred <- 1e5*tmp$Mediana/tmp$pop
     tmp <- merge(shp,tmp,by.x = "id",by.y = "Municipio")
     tmp <- tmp[order(tmp$order),]
@@ -1338,23 +1338,23 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     print(pD)
     dev.off()
     
-    for(d in unique(DRS)[-18]){
+    for(d in unique(drs$DRS)[-18]){
       tmpd <- tmp %>% filter(DRS == d)
       tmpd <- tmpd[order(tmpd$order),]
-       pD <- ggplot(tmp,aes(long, lat, group=group,fill = log(1+Dpred,2))) + theme_bw() + geom_polygon(colour='gray30') +
+       pD <- ggplot(tmpd,aes(long, lat, group=group,fill = log(1+Dpred,2))) + theme_bw() + geom_polygon(colour='gray30') +
           xlab("") + ylab("") + scale_fill_gradientn("Mortes 100k",colours = rc_cont,limits = c(0,log(1+mD,2)+0.1),
                                                      breaks = round(seq(0,log(mD+1,2),log(mD+1,2)/5)),
                                                      labels = round(c(0,2^(round(seq(0,log(mD+1,2),log(mD+1,2)/5)))[-1]))) + titles_Map +
       ggtitle(paste("Mortes por 100k estimadas em",ymd(end_validate)+t-1,"na DRS",unique(drs$Regiao[drs$DRS == d])))
-      pdf(file = paste("/storage/SEIR/",pos,"/Videos/",unique(drs$Regiao[drs$DRS == d]),"/mortes/",sprintf("%03d", t),".pdf",sep = ""),
+      pdf(file = paste("/storage/SEIR/",pos,"/Videos/",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"/mortes/",sprintf("%03d", t),".pdf",sep = ""),
           width = 15,height = 10)
       print(pD)
       dev.off()
     }
     
     #Cases
-    tmp <- Isim %>% filter(date == ymd(end_validate)+t-1) %>% select(Municipio,Ipred)
-    tmp$Ipred <- 1e5*tmp$Ipred/tmp$pop
+    tmp <- Isim %>% filter(Date == ymd(end_validate)+t-1) %>% select(Municipio,Mediana,pop)
+    tmp$Ipred <- 1e5*tmp$Mediana/tmp$pop
     tmp <- merge(shp,tmp,by.x = "id",by.y = "Municipio")
     tmp <- tmp[order(tmp$order),]
     
@@ -1362,29 +1362,28 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
           xlab("") + ylab("") + scale_fill_gradientn("Casos 100k",colours = rc_cont,limits = c(0,log(1+mI,2)+0.1),
                                                      breaks = round(seq(0,log(mI+1,2),log(mI+1,2)/5)),
                                                      labels = round(c(0,exp(round(seq(0,log(mD+1,2),log(mD+1,2)/5)))[-1]))) + titles_Map +
-      ggtitle(paste("Casos estimados em",ymd(end_validate)+t-1))
-    pdf(file = paste("/storage/SEIR/",pos,"/Videos/Estado/casos/",sprintf("%03d", t),".pdf",sep = ""),width = 3*10,height = 10)
-    print(pD)
+      ggtitle(paste("Casos por 100k estimados em",ymd(end_validate)+t-1))
+    pdf(file = paste("/storage/SEIR/",pos,"/Videos/Estado/casos/",sprintf("%03d", t),".pdf",sep = ""),width = 15,height = 10)
+    print(pI)
     dev.off()
     
-    for(d in unique(DRS)[-18]){
+    for(d in unique(drs$DRS)[-18]){
       tmpi <- tmp %>% filter(DRS == d)
-      tmpi <- tmpd[order(tmpd$order),]
+      tmpi <- tmpi[order(tmpi$order),]
        pI <- ggplot(tmpi,aes(long, lat, group=group,fill = log(1+Ipred,2))) + theme_bw() + geom_polygon(colour='gray30') +
           xlab("") + ylab("") + scale_fill_gradientn("Casos 100k",colours = rc_cont,limits = c(0,log(1+mI,2)+0.1),
                                                      breaks = round(seq(0,log(mI+1,2),log(mI+1,2)/5)),
                                                      labels = round(c(0,2^(round(seq(0,log(mD+1,2),log(mD+1,2)/5)))[-1]))) + titles_Map +
-      ggtitle(paste("Casos estimados em",ymd(end_validate)+t-1,"na DRS",unique(drs$Regiao[drs$DRS == d])))
-      pdf(file = paste("/storage/SEIR/",pos,"/Videos/",unique(drs$Regiao[drs$DRS == d]),"/casos/",sprintf("%03d", t),".pdf",sep = ""),
-          width = 3*10,height = 10)
-      print(pD)
+      ggtitle(paste("Casos por 100k estimados em",ymd(end_validate)+t-1,"na DRS",unique(drs$Regiao[drs$DRS == d])))
+      pdf(file = paste("/storage/SEIR/",pos,"/Videos/",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"/casos/",sprintf("%03d", t),".pdf",sep = ""),
+          width = 15,height = 10)
+      print(pI)
       dev.off()
     }
   }
   stopCluster(cl)
   
   cat("\n")
-  cat("We are done! You can convert the pdfs now. It was good to have you here. Please, come back more often.")
-  cat("\n")
+  cat("We are done fitting the model! I will starting preprocessing the data in a moment...\n")
 }
   
