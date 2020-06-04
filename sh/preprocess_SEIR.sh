@@ -25,17 +25,18 @@ find ./validate/ -maxdepth 1 -type f -iname "*.pdf" -delete;
 find . -maxdepth 1 -type f -iname "*.png" -exec cp {} /storage/ShinyApps/seircovid19/www/ \; &
 
 #Convert files in videos and create video
-for d in "Videos"/*     # list directories in the form "/tmp/dirname/"
+cd Videos/
+for d in /*     # list directories
 do
   #Convert files in casos
   mogrify -density 100 -format png ./$d/casos/*.pdf;
   find ./$d/casos/ -maxdepth 1 -type f -iname "*.pdf" -delete;
-  ffmpeg -framerate 1 -i "%03d".png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p /storage/SEIR/$1/casos_$d_$1.mp4 &
+  ffmpeg -framerate 1 -i "%03d".png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p /storage/SEIR/$1/casos_$d.mp4 &
 
   #Convert files in mortes
   mogrify -density 100 -format png ./$d/mortes/*.pdf;
   find ./$d/mortes/ -maxdepth 1 -type f -iname "*.pdf" -delete;
-  ffmpeg -framerate 1 -i "./$d/mortes/%03d".png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p /storage/SEIR/$1/mortes_$d_$1.mp4 &
+  ffmpeg -framerate 3 -i "./$d/mortes/%03d".png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p /storage/SEIR/$1/mortes_$d.mp4 &
 done
 
 #Copy video files to ShinyApp
