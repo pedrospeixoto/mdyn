@@ -122,7 +122,10 @@ class Map:
         #map.fillcontinents(lake_color='aqua')
         map.drawmapboundary()
         map.drawstates(color='k',linestyle='--', linewidth=0.2)
-        if width/factor > 10: 
+        if network.maxlats-network.minlats > 20: 
+            map.drawparallels(np.arange(-50,10,5), labels=[True,False,False,False])
+            map.drawmeridians(np.arange(-180,180,5), labels=[False,False,True,False])
+        elif network.maxlats-network.minlats > 10: 
             map.drawparallels(np.arange(-50,10,2), labels=[True,False,False,False])
             map.drawmeridians(np.arange(-180,180,2), labels=[False,False,True,False])
         else:
