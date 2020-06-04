@@ -8,8 +8,8 @@ library(lubridate)
 
 #Parameters
 cores <- 24 #Number of cores to use in parallel computation
-pos <- "teste" #What to add at the end of all output files
-seed <- rnorm(1,10,100000) #Seed
+pos <- "JUN04" #What to add at the end of all output files
+seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
 simulate_length <- 300 #Number of days to simulate
 
@@ -54,6 +54,10 @@ par$Ts <- c(14:21,1)
 par$Td <- c(7:21)
 par$s <- c(0.01,0.5,1,1.5,2,2.5,3)
 
+sample_size <- 2000
+source("mdyn/SEIR/SEIR_COVID19.R")
+SEIR_covid(cores,par,pos,seed,sample_size,simulate_length,d_max)
+
 #####Sample Size#####
 # log_choose <- function(n,k){
 #   lc <- vector()
@@ -70,22 +74,3 @@ par$s <- c(0.01,0.5,1,1.5,2,2.5,3)
 # #n_dependent <- as.numeric((length(cand_beta)^10)^4)
 # n_models <- n_independent
 # sample_size <- mc(p = 0.1*n_models,c = 0.1,delta = 0.99,cardinality = n_models)
-sample_size <- 1000
-
-
-source("mdyn/SEIR/SEIR_COVID19.R")
-SEIR_covid(cores,par,pos,seed,sample_size,simulate_length,d_max)
-
-# cat("Converting pdfs...\n")
-# setwd(wd)
-# #mogrify -density 100 -format png /home/diego/SEIR/Workspace/Plots/Videos/teste_big/*.pdf
-#mogrify -density 100 -format png *.pdf &
-#ffmpeg -framerate 2 -i teste_big_%03d.png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p video.mp4
-#              sep = ""
-# system(paste("for x in 0 1 2 3 4 5 6 7 8 9; do mogrify -density 100 -format png ",wd,
-#              "SEIR/Workspace/Plots/Videos/",pos,"/",pos,"_0$x*.pdf & done",
-#              sep = ""))
-# setwd(paste(wd,"SEIR/Workspace/Plots/Videos/",pos,"/",sep =""))
-# system(paste("ffmpeg -framerate 2 -i ",pos,"_%03d.png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p video.mp4",
-#              sep = ""))
-# setwd(wd)

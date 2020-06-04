@@ -65,7 +65,11 @@ preprocess_SEIR_output <- function(pos,obs,init_validate){
   ass <- data.frame(fread(paste(wd,"/SP_assymptomatics_",pos,".csv",sep = ""),sep = ","))
   saveRDS(ass,"/storage/ShinyApps/seircovid19/www/assymptomatics.rds")
   
+  #pos
+  saveRDS(pos,"/storage/ShinyApps/seircovid19/www/pos.rds")
+  
   #####Sync with ShinyApps####
   cat("Syncing with Shiny server...\n")
+  system('rsync -u -avz -e "ssh -p 2223" dmarcondes@shiny.ime.usp.br: /storage/ShinyApps')
   system('rsync -u -avz -e "ssh -p 2223" /storage/ShinyApps dmarcondes@shiny.ime.usp.br:')
 }

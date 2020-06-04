@@ -22,6 +22,7 @@ library(doSNOW)
 library(progress)
 library(gridExtra)
 source("mdyn/SEIR/utils.R")
+source("mdyn/ShinyApps/preprocessing/preprocess_SEIR_output.R")
 
 SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   
@@ -424,7 +425,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     dif_I <- max(abs(I$dif)[I$I_drs > 500])
       
     #Is good
-    good <- as.numeric(dif_I <= 0.08 & dif_D <= 0.05)
+    good <- as.numeric(dif_I <= 0.06 & dif_D <= 0.05)
     is.good[k] <- good
     error[k] <- dif_D
     if(dif_I < mI)
