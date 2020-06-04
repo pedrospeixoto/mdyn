@@ -8,14 +8,14 @@ library(lubridate)
 
 #Parameters
 cores <- 24 #Number of cores to use in parallel computation
-pos <- "JUN04" #What to add at the end of all output files
+pos <- "teste" #What to add at the end of all output files
 seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
 simulate_length <- 300 #Number of days to simulate
 
 #Set mobility matrix
 par$mob <- list()
-day <- seq.Date(from = ymd("2020-05-01"),to = ymd("2020-05-20"),1)
+day <- seq.Date(from = ymd("2020-05-13"),to = ymd("2020-05-20"),1)
 d_max <- "2020-05-20"
 for(d in as.character(day)){
   cat(d)
@@ -54,7 +54,7 @@ par$Ts <- c(14:21,1)
 par$Td <- c(7:21)
 par$s <- c(0.01,0.5,1,1.5,2,2.5,3)
 
-sample_size <- 2000
+sample_size <- 1000
 source("mdyn/SEIR/SEIR_COVID19.R")
 SEIR_covid(cores,par,pos,seed,sample_size,simulate_length,d_max)
 
