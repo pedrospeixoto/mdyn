@@ -31,7 +31,7 @@ do
   #Convert files in casos
   mogrify -density 100 -format png ./$d/casos/*.pdf;
   find ./$d/casos/ -maxdepth 1 -type f -iname "*.pdf" -delete;
-  ffmpeg -framerate 1 -i "%03d".png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p /storage/SEIR/$1/casos_$d.mp4 &
+  ffmpeg -framerate 1 -i "./$d/casos/%03d".png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p /storage/SEIR/$1/casos_$d.mp4 &
 
   #Convert files in mortes
   mogrify -density 100 -format png ./$d/mortes/*.pdf;
