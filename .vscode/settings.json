@@ -1,5 +1,4 @@
 {
-    "python.pythonPath": "/home/pedrosp/anaconda3/envs/mdyn/bin/python",
     "files.exclude": {
         "**/data/*": true
     },
