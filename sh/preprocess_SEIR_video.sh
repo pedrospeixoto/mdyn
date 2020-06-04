@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Converting pdf to png..."
 
-cd /storage/SEIR/$1
+cd /storage/SEIR/$1/Videos
 
 for d in *     # list directories
 do
@@ -12,7 +12,7 @@ do
   #Files in mortes
   find ./$d/mortes/ -maxdepth 1 -type f -iname "*.pdf" -delete;
   ffmpeg -framerate 5 -i "./$d/mortes/%03d".png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p /storage/SEIR/$1/mortes_$d.mp4 &
-done;
+done
 
 #Copy video files to ShinyApp
 cd /storage/SEIR/$1
