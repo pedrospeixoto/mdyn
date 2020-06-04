@@ -67,16 +67,39 @@ def map_move_mats(mdyn, network, ipar):
 
         title = title + day.strftime("%Y-%m-%d")+" "+dow
         
-        map=Map(network, ipar.zoom)
-        map.map_network_data(reg_iso, mat, regions, title, filename)
-    
-        map=Map(network, ipar.zoom)
-        filename=filename.replace("Network", "NetworkFlux")
-        map.map_network_flux(mat, regions, title, filename)
+        if network.domain_abrv=="BRA":
 
-        map=Map(network, ipar.zoom)
-        filename=filename.replace("NetworkFlux", "NetworkIso")
-        map.map_data_on_network(reg_iso, mat, regions, title, filename)
+            zooms=[
+                [False, -15, -34, -60, -40, False, "BRA"  ],
+                [True, 0, -15, -50,-34, False, "Nordeste"  ],
+                [True, -15, -34, -60,-40, False, "Sul-Sudeste"  ],
+                [True, -10, -25, -60,-40, False, "Centro-Sudeste"  ],
+                [True, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ],
+                [True, -19.8, -25.5, -52.25,-43, True, "SP"  ]
+            ]
+
+            for zoom in zooms:
+                map=Map(network, zoom)
+                map.map_network_data(reg_iso, mat, regions, title, filename)
+        
+                map=Map(network, zoom)
+                filename=filename.replace("Network", "Network_Flux")
+                map.map_network_flux(mat, regions, title, filename)
+
+                map=Map(network, zoom)
+                filename=filename.replace("Network_Flux", "Network_Iso")
+                map.map_data_on_network(reg_iso, mat, regions, title, filename)
+        else:
+            map=Map(network, ipar.zoom)
+            map.map_network_data(reg_iso, mat, regions, title, filename)
+        
+            map=Map(network, ipar.zoom)
+            filename=filename.replace("Network", "Network_Flux")
+            map.map_network_flux(mat, regions, title, filename)
+
+            map=Map(network, ipar.zoom)
+            filename=filename.replace("Network_Flux", "Network_Iso")
+            map.map_data_on_network(reg_iso, mat, regions, title, filename)
 
 def analyse_move_mats(mdyn, network, ipar):
     print()
