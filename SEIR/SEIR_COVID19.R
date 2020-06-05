@@ -1398,6 +1398,6 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   preprocess_SEIR_output(drs,pos,obs,init_validate)
   
   cat("\n")
-  cat("And that is it! Please come back more often.\n")
+  cat("And that is it! You can create the videos. Please come back more often.\n")
 }
   
