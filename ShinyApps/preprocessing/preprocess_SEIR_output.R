@@ -8,7 +8,7 @@ preprocess_SEIR_output <- function(drs,pos,obs,init_validate){
   wd <- paste("/storage/SEIR/",pos,sep = "")
     
   ######Convert to png and create video######
-  system(paste("./mdyn/sh/preprocess_SEIR_convert.sh",pos,"&> log_teste1.txt; ./mdyn/sh/preprocess_SEIR_video.sh",pos,"teste &> log_teste2.txt &"))
+  system(paste("./mdyn/sh/preprocess_SEIR_convert.sh",pos,"&> log_teste1.txt"))# ./mdyn/sh/preprocess_SEIR_video.sh",pos,"teste &> log_teste2.txt &"))
   #system(paste("./mdyn/sh/preprocess_SEIR_video.sh",pos))
     
   #####Create rds files for shiny#####
@@ -91,9 +91,4 @@ preprocess_SEIR_output <- function(drs,pos,obs,init_validate){
   
   #drs
   saveRDS(drs,"/storage/ShinyApps/seircovid19/www/drs.rds")
-  
-  #####Sync with ShinyApps####
-  cat("Syncing with Shiny server...\n")
-  system('rsync -u -avz -e "ssh -p 2223" dmarcondes@shiny.ime.usp.br:ShinyApps /storage/')
-  system('rsync -u -avz -e "ssh -p 2223" /storage/ShinyApps dmarcondes@shiny.ime.usp.br:')
 }

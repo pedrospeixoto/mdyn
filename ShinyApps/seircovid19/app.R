@@ -58,14 +58,14 @@ server <- function(input, output) {
                      width = 3),
                    mainPanel(h2("Resultados para o Estado de São Paulo",align = "center"),
                              fluidRow(column(7,sliderInput("date",
-                                                          h4("Data"),
+                                                          h4("Escolha a data para projeção"),
                                                           min = as.Date(dmin,"%d/%m/%y"),
                                                           max = as.Date(dmax,"%d/%m/%y"),
                                                           value=as.Date(dmax),
-                                                          timeFormat="%d/%m/%y")),
+                                                          timeFormat="%d/%m/%y",width = '90%')),
                                       column(5,downloadButton("report", "Gerar Relatório Executivo para a data escolhida")),
                                       tags$style(type='text/css', ".irs-grid-text { font-size: 14pt; }"),
-                                      tags$style(type='text/css', "#report { width:100%; margin-top: 25px;}")))),
+                                      tags$style(type='text/css', "#report { width:100%; margin-top: 60px;}")))),
                    fluidRow(column(8,HTML(paste('<center><img src="SP_EPcurve_predicted_',pos,'.png" height="625" width="937"></center>',sep = ""))),
                             column(4,uiOutput("resEstado")),
                             tags$style("#resEstado{color: white;font-size: 20px;font-style: bold;
@@ -132,7 +132,9 @@ server <- function(input, output) {
          file.copy("./www/logo_USP.png", templogoUSP, overwrite = TRUE)
          temppico <- file.path(tempdir(),paste("risk_peak_",pos,".png",sep = ""))
          file.copy(paste("./www/risk_peak_",pos,".png",sep = ""), temppico, overwrite = TRUE)
-         params <- list(input = input,data = format(dmin,"%d/%m/%Y"),cases_city = cases_city,#cases_DRS = cases_DRS,
+         tempEP <- file.path(tempdir(),paste("SP_EPcurve_predicted_",pos,".png",sep = ""))
+         file.copy(paste("./www/SP_EPcurve_predicted_",pos,".png",sep = ""), tempEP, overwrite = TRUE)
+         params <- list(input = input,data = format(dmin,"%d/%m/%Y"),cases_city = cases_city,cases_DRS = cases_DRS,
                         deaths_city = deaths_city,deaths_DRS = deaths_DRS,peak_DRS = peak_DRS,peak_city = peak_city,
                         pos = pos,nmodels = nmodels)
          incProgress(1/3)
