@@ -425,7 +425,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     dif_I <- max(abs(I$dif)[I$I_drs > 500])
       
     #Is good
-    good <- as.numeric(dif_I <= 0.075 & dif_D <= 0.05)
+    good <- as.numeric(dif_I <= 0.06 & dif_D <= 0.05)
     is.good[k] <- good
     error[k] <- dif_D
     if(dif_I < mI)
@@ -1175,7 +1175,8 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   tmp <- merge(tmp,tmpS)
   tmp$key <- NULL
   Dsim_drs <- tmp
-  fwrite(tmp,paste("/storage/SEIR/",pos,"/deaths_DRS_",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_",pos,".csv",sep = ""))
+  tmp <- merge(tmp,unique(drs %>% select(DRS,Regiao)))
+  fwrite(tmp,paste("/storage/SEIR/",pos,"/deaths_DRS_",pos,".csv",sep = ""))
   
   #Saving Cases
   tmpI <- data.frame(cases$inf)
@@ -1204,13 +1205,14 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   tmp <- merge(tmp,tmpS)
   tmp$key <- NULL
   Isim_drs <- tmp
+  tmp <- merge(tmp,unique(drs %>% select(DRS,Regiao)))
   fwrite(tmp,paste("/storage/SEIR/",pos,"/cases_DRS_",pos,".csv",sep = ""))
   
   #Peak
   peak <- na.omit(peak)
   for(i in 2:4)
     peak[,i] <- ymd(peak[,i])
-  peak <- merge(peak,drs %>% select(DRS,Regiao))
+  peak <- merge(peak,unique(drs %>% select(DRS,Regiao)))
   fwrite(peak,paste("/storage/SEIR/",pos,"/peak_DRS_",pos,".csv",sep = ""))
   
   #Curve for state
@@ -1263,12 +1265,12 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   
   cat("Building maps...\n")
   #Mapas
-  # shp <- readOGR(dsn = "~/mdyn/maps/sp_municipios/35MUE250GC_SIR.shp",stringsAsFactors = F,verbose = F) #Shapefiles
-  # shp$NM_MUNICIP <- gsub("'","",shp$NM_MUNICIP) #Correct names
-  # shp$NM_MUNICIP[shp$NM_MUNICIP == "BIRITIBA MIRIM"] <- "BIRITIBA-MIRIM"  #Correct names
-  # shp <- fortify(shp,region = "NM_MUNICIP") #Fortify
-  # shp <- merge(shp,drs,by.x = "id",by.y = "Municipio")
-  shp <- readRDS("~/mdyn/SEIR/dados/shp.rds")
+  shp <- readOGR(dsn = "~/mdyn/maps/sp_municipios/35MUE250GC_SIR.shp",stringsAsFactors = F,verbose = F) #Shapefiles
+  shp$NM_MUNICIP <- gsub("'","",shp$NM_MUNICIP) #Correct names
+  shp$NM_MUNICIP[shp$NM_MUNICIP == "BIRITIBA MIRIM"] <- "BIRITIBA-MIRIM"  #Correct names
+  shp <- fortify(shp,region = "NM_MUNICIP") #Fortify
+  shp <- merge(shp,drs,by.x = "id",by.y = "Municipio")
+  #shp <- readRDS("~/mdyn/SEIR/dados/shp.rds")
   shp$DRS <- as.character(shp$DRS)
   shp$DRS[shp$DRS == "0"] <- "I"
   shp$DRS <- as.factor(shp$DRS)
@@ -1393,9 +1395,9 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   
   cat("\n")
   cat("We are done fitting the model! I will starting preprocessing the data in a moment...\n")
-  preprocess_SEIR_output(pos,obs,init_validate)
+  preprocess_SEIR_output(drs,pos,obs,init_validate)
   
   cat("\n")
-  cat("And that is it! Please come back more often.\n")
+  cat("And that is it! You can create the videos. Please come back more often.\n")
 }
   

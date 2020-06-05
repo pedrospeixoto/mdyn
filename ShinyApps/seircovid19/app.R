@@ -24,14 +24,14 @@ options(java.parameters = "-Xss2560k")
 
 #####Dados#####
 cases_city <- readRDS("./www/cases_city.rds")
-#cases_DRS <- readRDS("./www/cases_DRS.rds")
+cases_DRS <- readRDS("./www/cases_DRS.rds")
 deaths_city <- readRDS("./www/deaths_city.rds")
 deaths_DRS <- readRDS("./www/deaths_DRS.rds")
 peak_city <- readRDS("./www/peak_city.rds")
 peak_DRS <- readRDS("./www/peak_DRS.rds")
 asymp <- readRDS("./www/assymptomatics.rds")
-#pos <- readRDS("./www/pos.rds")
-#nmodels <- readRDS("./www/nmodels.rds")
+pos <- readRDS("./www/pos.rds")
+nmodels <- readRDS("./www/nmodels.rds")
 dmin <- min(ymd(cases_city$Date))
 dmax <- dmin+30
 
@@ -58,14 +58,14 @@ server <- function(input, output) {
                      width = 3),
                    mainPanel(h2("Resultados para o Estado de São Paulo",align = "center"),
                              fluidRow(column(7,sliderInput("date",
-                                                          h4("Data"),
+                                                          h4("Escolha a data para projeção"),
                                                           min = as.Date(dmin,"%d/%m/%y"),
                                                           max = as.Date(dmax,"%d/%m/%y"),
                                                           value=as.Date(dmax),
-                                                          timeFormat="%d/%m/%y")),
+                                                          timeFormat="%d/%m/%y",width = '90%')),
                                       column(5,downloadButton("report", "Gerar Relatório Executivo para a data escolhida")),
                                       tags$style(type='text/css', ".irs-grid-text { font-size: 14pt; }"),
-                                      tags$style(type='text/css', "#report { width:100%; margin-top: 25px;}")))),
+                                      tags$style(type='text/css', "#report { width:100%; margin-top: 60px;}")))),
                    fluidRow(column(8,HTML(paste('<center><img src="SP_EPcurve_predicted_',pos,'.png" height="625" width="937"></center>',sep = ""))),
                             column(4,uiOutput("resEstado")),
                             tags$style("#resEstado{color: white;font-size: 20px;font-style: bold;
@@ -124,15 +124,17 @@ server <- function(input, output) {
      content <- function(file) {
        withProgress(message = 'Baixando', value = 0,{
          incProgress(1/3)
-         tempReport <- file.path(tempdir(), "report.Rmd")
-         file.copy("./www/report.Rmd", tempReport, overwrite = TRUE)
+         tempReport <- file.path(tempdir(), "report_SP.Rmd")
+         file.copy("./www/report_SP.Rmd", tempReport, overwrite = TRUE)
          templogo <- file.path(tempdir(), "logoblack.png")
          file.copy("./www/logoblack.png", templogo, overwrite = TRUE)
          templogoUSP <- file.path(tempdir(), "logo_USP.png")
          file.copy("./www/logo_USP.png", templogoUSP, overwrite = TRUE)
          temppico <- file.path(tempdir(),paste("risk_peak_",pos,".png",sep = ""))
          file.copy(paste("./www/risk_peak_",pos,".png",sep = ""), temppico, overwrite = TRUE)
-         params <- list(input = input,data = format(dmin,"%d/%m/%Y"),cases_city = cases_city,#cases_DRS = cases_DRS,
+         tempEP <- file.path(tempdir(),paste("SP_EPcurve_predicted_",pos,".png",sep = ""))
+         file.copy(paste("./www/SP_EPcurve_predicted_",pos,".png",sep = ""), tempEP, overwrite = TRUE)
+         params <- list(input = input,data = format(dmin,"%d/%m/%Y"),cases_city = cases_city,cases_DRS = cases_DRS,
                         deaths_city = deaths_city,deaths_DRS = deaths_DRS,peak_DRS = peak_DRS,peak_city = peak_city,
                         pos = pos,nmodels = nmodels)
          incProgress(1/3)
