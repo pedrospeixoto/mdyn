@@ -74,10 +74,10 @@ def map_move_mats(mdyn, network, ipar):
             for zoom in zooms:
                 if zoom[0]:
                     title = network.domain+" "+network.subdomains+" Network Zoom "+zoom[6]+" "
-                    filename = mdyn.dump_dir+title.replace(" ", "_")+"_"+str(i+42).zfill(3)+".jpg"
+                    filename = mdyn.dump_dir+title.replace(" ", "_")+"_"+str(i+67).zfill(3)+".jpg"
                 else:
                     title = network.domain+" "+network.subdomains+" Network "
-                    filename = mdyn.dump_dir+title.replace(" ", "_")+str(i+42).zfill(3)+".jpg"
+                    filename = mdyn.dump_dir+title.replace(" ", "_")+str(i+67).zfill(3)+".jpg"
 
                 title = title + day.strftime("%Y-%m-%d")+" "+dow
 
@@ -92,10 +92,10 @@ def map_move_mats(mdyn, network, ipar):
         else:
             if ipar.zoom[0]:
                 title = network.domain+" "+network.subdomains+" Network Zoom "+ipar.zoom[6]+" "
-                filename = mdyn.dump_dir+title.replace(" ", "_")+"_"+str(i+42).zfill(3)+".jpg"
+                filename = mdyn.dump_dir+title.replace(" ", "_")+"_"+str(i+67).zfill(3)+".jpg"
             else:
                 title = network.domain+" "+network.subdomains+" Network "
-                filename = mdyn.dump_dir+title.replace(" ", "_")+str(i+42).zfill(3)+".jpg"
+                filename = mdyn.dump_dir+title.replace(" ", "_")+str(i+67).zfill(3)+".jpg"
 
             title = title + day.strftime("%Y-%m-%d")+" "+dow
 
