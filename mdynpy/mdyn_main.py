@@ -6,28 +6,25 @@ import sys
 import os
 from pathlib import Path
 
-
 import numpy as np
-import pandas as pd
-import math
-import time
+#import pandas as pd
+#import math
+#import time
 
-import time
 from datetime import datetime
 from datetime import date
 from datetime import timedelta
 
-import calendar
-
-import imp
+#import calendar
+#import imp
 
 from mdynpy.mdyn_daydata import DayData
 from mdynpy.mdyn_network import Network
 from mdynpy.mdyn_extras import daterange
 from mdynpy.mdyn_map import Map
 
-import matplotlib.pyplot as plt
-from matplotlib import animation
+#import matplotlib.pyplot as plt
+#from matplotlib import animation
 
 class MobileDynamics:
 
