@@ -24,7 +24,7 @@ mogrify -density 100 -format png ./validate/*.pdf;
 find ./validate/ -maxdepth 1 -type f -iname "*.pdf" -delete;
 find . -maxdepth 1 -type f -iname "*.png" -exec cp {} /storage/ShinyApps/seircovid19/www/ \; &
 
-#Convert files in videos
+#Convert files to png
 cd /storage/SEIR/$1/Videos
 for d in *     # list directories
 do
@@ -33,4 +33,4 @@ do
 
   #Convert files in mortes
   mogrify -density 100 -format png ./$d/mortes/*.pdf &
-done
+done;
