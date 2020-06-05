@@ -1175,7 +1175,8 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   tmp <- merge(tmp,tmpS)
   tmp$key <- NULL
   Dsim_drs <- tmp
-  fwrite(tmp,paste("/storage/SEIR/",pos,"/deaths_DRS_",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_",pos,".csv",sep = ""))
+  tmp <- merge(tmp,unique(drs %>% select(DRS,Regiao)))
+  fwrite(tmp,paste("/storage/SEIR/",pos,"/deaths_DRS_",pos,".csv",sep = ""))
   
   #Saving Cases
   tmpI <- data.frame(cases$inf)
@@ -1204,13 +1205,14 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   tmp <- merge(tmp,tmpS)
   tmp$key <- NULL
   Isim_drs <- tmp
+  tmp <- merge(tmp,unique(drs %>% select(DRS,Regiao)))
   fwrite(tmp,paste("/storage/SEIR/",pos,"/cases_DRS_",pos,".csv",sep = ""))
   
   #Peak
   peak <- na.omit(peak)
   for(i in 2:4)
     peak[,i] <- ymd(peak[,i])
-  peak <- merge(peak,drs %>% select(DRS,Regiao))
+  peak <- merge(peak,unique(drs %>% select(DRS,Regiao)))
   fwrite(peak,paste("/storage/SEIR/",pos,"/peak_DRS_",pos,".csv",sep = ""))
   
   #Curve for state
@@ -1393,7 +1395,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   
   cat("\n")
   cat("We are done fitting the model! I will starting preprocessing the data in a moment...\n")
-  preprocess_SEIR_output(pos,obs,init_validate)
+  preprocess_SEIR_output(drs,pos,obs,init_validate)
   
   cat("\n")
   cat("And that is it! Please come back more often.\n")
