@@ -24,14 +24,14 @@ options(java.parameters = "-Xss2560k")
 
 #####Dados#####
 cases_city <- readRDS("./www/cases_city.rds")
-#cases_DRS <- readRDS("./www/cases_DRS.rds")
+cases_DRS <- readRDS("./www/cases_DRS.rds")
 deaths_city <- readRDS("./www/deaths_city.rds")
 deaths_DRS <- readRDS("./www/deaths_DRS.rds")
 peak_city <- readRDS("./www/peak_city.rds")
 peak_DRS <- readRDS("./www/peak_DRS.rds")
 asymp <- readRDS("./www/assymptomatics.rds")
-#pos <- readRDS("./www/pos.rds")
-#nmodels <- readRDS("./www/nmodels.rds")
+pos <- readRDS("./www/pos.rds")
+nmodels <- readRDS("./www/nmodels.rds")
 dmin <- min(ymd(cases_city$Date))
 dmax <- dmin+30
 
@@ -124,8 +124,8 @@ server <- function(input, output) {
      content <- function(file) {
        withProgress(message = 'Baixando', value = 0,{
          incProgress(1/3)
-         tempReport <- file.path(tempdir(), "report.Rmd")
-         file.copy("./www/report.Rmd", tempReport, overwrite = TRUE)
+         tempReport <- file.path(tempdir(), "report_SP.Rmd")
+         file.copy("./www/report_SP.Rmd", tempReport, overwrite = TRUE)
          templogo <- file.path(tempdir(), "logoblack.png")
          file.copy("./www/logoblack.png", templogo, overwrite = TRUE)
          templogoUSP <- file.path(tempdir(), "logo_USP.png")
