@@ -190,6 +190,7 @@ class Map:
         
         #Save density plot to folder "dir"
         plt.savefig(filename, dpi=200)
+        plt.close()
 
     def map_data(self, data, title, dir):
         
@@ -208,6 +209,7 @@ class Map:
         dpi = min(self.max_dpi, int(max(self.dpi, self.dpi*np.max(data.shape)/1000)))
         print("Using ", dpi, " dpi")
         plt.savefig(filename, dpi=dpi)
+        plt.close()
 
     def map_reg_data(self, network, title, filename=None):
         
@@ -269,6 +271,7 @@ class Map:
         dpi = min(self.max_dpi, int(max(self.dpi, self.dpi*np.max(data.shape)/1000)))
         print("Using ", dpi, " dpi")
         plt.savefig(filename, dpi=dpi, transparent=False)
+        plt.close()
         
 
     def map_movemat_by_reg(self, mat, ireg0, reg1, network, title, filename):
@@ -300,6 +303,7 @@ class Map:
         #filename = dir+"/map_data_"+title+".eps"
         filename = filename+".jpg"
         plt.savefig(filename, dpi=300)   
+        plt.close()
         
     def map_move_by_reg(self, movevec, reg1, network, title, filename):
         #print(network.regions)
@@ -357,7 +361,8 @@ class Map:
         
         #filename = dir+"/map_data_"+title+".eps"
         #filename = filename+".jpg"
-        plt.savefig(filename, dpi=150)   
+        plt.savefig(filename, dpi=150)  
+        plt.close() 
         
 
     def map_reg_var(self, regvec, regs, network, title, filename):
@@ -411,6 +416,7 @@ class Map:
         if filename[-4:] != ".jpg":
             filename = filename+".jpg"
         plt.savefig(filename, dpi=300)   
+        plt.close()
 
     def map_lat_lon_z_data(self, lats, lons, z, title, filename):
         
@@ -435,7 +441,8 @@ class Map:
         
         #filename = dir+"/map_data_"+title+".eps"
         filename = filename+".jpg"
-        plt.savefig(filename, dpi=300)   
+        plt.savefig(filename, dpi=300) 
+        plt.close()  
         
     def map_network(self, mat, reg0, title, filename):
 
@@ -503,6 +510,7 @@ class Map:
         #ax.set_axis_off()
         plt.tight_layout() 
         plt.savefig(filename, dpi=300)   
+        plt.close()
 
     def map_network_data(self, data, mat, reg0, title, filename):
         
@@ -625,6 +633,7 @@ class Map:
 
         plt.tight_layout() 
         plt.savefig(filename, dpi=300)   
+        plt.close()
 
     def map_network_flux(self, mat, reg0, title, filename):
         
@@ -747,6 +756,7 @@ class Map:
 
         plt.tight_layout() 
         plt.savefig(filename, dpi=300)   
+        plt.close()
         
     def map_data_on_network(self, data, mat, reg0, title, filename):
         
@@ -871,3 +881,4 @@ class Map:
 
         plt.tight_layout() 
         plt.savefig(filename, dpi=300)   
+        plt.close()
