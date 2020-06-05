@@ -20,3 +20,8 @@ find . -maxdepth 1 -type f -iname "*.mp4" -exec cp {} /storage/ShinyApps/seircov
 cd /storage/SEIR/$1/Videos/Estado
 cp -r casos/ /storage/ShinyApps/seircovid19/www/
 cp -r mortes/ /storage/ShinyApps/seircovid19/www/
+
+echo "Syncing with Shiny server..."
+
+rsync -u -avz -e "ssh -p 2223" dmarcondes@shiny.ime.usp.br:ShinyApps /storage/
+rsync -u -avz -e "ssh -p 2223" /storage/ShinyApps dmarcondes@shiny.ime.usp.br:
