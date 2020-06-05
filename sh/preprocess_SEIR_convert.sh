@@ -33,4 +33,4 @@ do
 
   #Convert files in mortes
   mogrify -density 100 -format png ./$d/mortes/*.pdf &
-done;
+done
