@@ -1053,13 +1053,13 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   #DRS
   peak <- data.frame("DRS" = NA,"TMinimo" = NA,"TMediana" = NA,"TMaximo" = NA,"MMinimo" = NA,"MMediana" = NA,"MMaximo" = NA)
   deaths <- list()
-  deaths$inf <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS))-1)
-  deaths$sup <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS))-1)
-  deaths$median <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS))-1)
+  deaths$inf <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
+  deaths$sup <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
+  deaths$median <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
   cases <- list()
-  cases$inf <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS))-1)
-  cases$sup <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS))-1)
-  cases$median <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS))-1)
+  cases$inf <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
+  cases$sup <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
+  cases$median <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
   
   for(d in unique(drs$DRS)){
     position <- match(drs$Municipio[drs$DRS == d],par$names)
