@@ -20,4 +20,3 @@ find . -maxdepth 1 -type f -iname "*.mp4" -exec cp {} /storage/ShinyApps/seircov
 cd /storage/SEIR/$1/Videos/Estado
 cp -r casos/ /storage/ShinyApps/seircovid19/www/
 cp -r mortes/ /storage/ShinyApps/seircovid19/www/
-return 1
