@@ -1265,12 +1265,12 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   
   cat("Building maps...\n")
   #Mapas
-  # shp <- readOGR(dsn = "~/mdyn/maps/sp_municipios/35MUE250GC_SIR.shp",stringsAsFactors = F,verbose = F) #Shapefiles
-  # shp$NM_MUNICIP <- gsub("'","",shp$NM_MUNICIP) #Correct names
-  # shp$NM_MUNICIP[shp$NM_MUNICIP == "BIRITIBA MIRIM"] <- "BIRITIBA-MIRIM"  #Correct names
-  # shp <- fortify(shp,region = "NM_MUNICIP") #Fortify
-  # shp <- merge(shp,drs,by.x = "id",by.y = "Municipio")
-  shp <- readRDS("~/mdyn/SEIR/dados/shp.rds")
+  shp <- readOGR(dsn = "~/mdyn/maps/sp_municipios/35MUE250GC_SIR.shp",stringsAsFactors = F,verbose = F) #Shapefiles
+  shp$NM_MUNICIP <- gsub("'","",shp$NM_MUNICIP) #Correct names
+  shp$NM_MUNICIP[shp$NM_MUNICIP == "BIRITIBA MIRIM"] <- "BIRITIBA-MIRIM"  #Correct names
+  shp <- fortify(shp,region = "NM_MUNICIP") #Fortify
+  shp <- merge(shp,drs,by.x = "id",by.y = "Municipio")
+  #shp <- readRDS("~/mdyn/SEIR/dados/shp.rds")
   shp$DRS <- as.character(shp$DRS)
   shp$DRS[shp$DRS == "0"] <- "I"
   shp$DRS <- as.factor(shp$DRS)
