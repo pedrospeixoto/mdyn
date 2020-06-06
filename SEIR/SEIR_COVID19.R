@@ -425,7 +425,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     dif_I <- max(abs(I$dif)[I$I_drs > 500])
       
     #Is good
-    good <- as.numeric(dif_I <= 0.075 & dif_D <= 0.05)
+    good <- as.numeric(dif_I <= 0.05 & dif_D <= 0.05)
     is.good[k] <- good
     error[k] <- dif_D
     if(dif_I < mI)
@@ -762,7 +762,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
       theme(strip.background = element_blank(),
             strip.text = element_text(size = 20,face = "bold",color = "white")) +
       labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
-      ggtitle("Mortes confirmadas COVID-19 no estado de São Paulo")
+      ggtitle("Mortes confirmadas COVID-19 no Estado de São Paulo")
   pdf(file = paste("/storage/SEIR/",pos,"/SP_mortes_",pos,".pdf",sep = ""),width = 15,height = 10)
   suppressWarnings(suppressMessages(print(pD)))
   dev.off()
@@ -788,7 +788,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     theme(strip.background = element_blank(),
           strip.text = element_text(size = 20,face = "bold",color = "white")) +
     labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
-    ggtitle("Casos confirmados COVID-19 no estado de São Paulo")
+    ggtitle("Casos confirmados COVID-19 no Estado de São Paulo")
   pdf(file = paste("/storage/SEIR/",pos,"/SP_casos_",pos,".pdf",sep = ""),width = 15,height = 10)
   suppressWarnings(suppressMessages(print(pI)))
   dev.off()
