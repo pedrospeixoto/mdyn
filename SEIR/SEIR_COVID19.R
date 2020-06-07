@@ -383,18 +383,8 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     parK$Rt <- parK$meanTi * parK$beta
       
     #Result
-    pred[[k]]$E <- mod[,1:parK$sites] #Prediction of E
-    pred[[k]]$Ia <- mod[,(parK$sites + 1):(2*parK$sites)] #Prediction of Ia
-    pred[[k]]$Is <- mod[,(2*parK$sites + 1):(3*parK$sites)] #Prediction of Is
-    pred[[k]]$R <- mod[,(3*parK$sites + 1):(4*parK$sites)] #Prediction of R
-    pred[[k]]$D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Prediction of D
-    pred[[k]]$I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Total cases
-    pred[[k]]$beta <- parK$beta #Prediction of beta
-    pred[[k]]$meanTi <- parK$meanTi #Prediction of mean infection time
-    pred[[k]]$Rt <- parK$Rt #Prediction of Rt
-      
-    D <- pred[[k]]$D #Predicted death for testing
-    I <- pred[[k]]$I #Predicted cases for testing
+    D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Predicted death for testing
+    I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Predicted cases for testing
       
     #Test if model predicted well
     
@@ -435,6 +425,16 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     
     #Result
     if(good == 1){#Store good models
+      pred[[k]]$E <- mod[,1:parK$sites] #Prediction of E
+      pred[[k]]$Ia <- mod[,(parK$sites + 1):(2*parK$sites)] #Prediction of Ia
+      pred[[k]]$Is <- mod[,(2*parK$sites + 1):(3*parK$sites)] #Prediction of Is
+      pred[[k]]$R <- mod[,(3*parK$sites + 1):(4*parK$sites)] #Prediction of R
+      pred[[k]]$D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Prediction of D
+      pred[[k]]$I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Total cases
+      pred[[k]]$beta <- parK$beta #Prediction of beta
+      pred[[k]]$meanTi <- parK$meanTi #Prediction of mean infection time
+      pred[[k]]$Rt <- parK$Rt #Prediction of Rt
+      
       kgood <- kgood + 1
       minDK <- ifelse(min(1 + D$dif[D$D_drs > 50]) < 1,min(1 + D$dif[D$D_drs > 50]),1)
       maxDK <- ifelse(max(1 + D$dif[D$D_drs > 50]) > 1,max(1 + D$dif[D$D_drs > 50]),1)
