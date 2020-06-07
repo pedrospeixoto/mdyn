@@ -25,7 +25,7 @@ d=$inidate
 i=0
 while [ "${d}" != "${enddate_p1}" ]; do 
   count=$(printf "%03d" $i)
-  echo $d, $count
+  echo $d, $count, $i
   file_date=$basename$d".jpg"
   basenameanim=$basename"anim"$inidate"_"$enddate
   file_ind=$basenameanim"_"$count".jpg"
@@ -38,7 +38,8 @@ while [ "${d}" != "${enddate_p1}" ]; do
     exit 1
   fi
   d=$(date -I -d "$d + 1 day")
-  i+=1
+  ((i+=1))
+  
 done
 
 #now create video
