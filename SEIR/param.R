@@ -11,12 +11,12 @@ cores <- 24 #Number   of cores to use in parallel computation
 pos <- "JUN07" #What to add at the end of all output files
 seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
-d_max <- "2020-06-01"
+d_max <- "2020-06-03"
 simulate_length <- ymd("2020-12-31") - ymd(d_max) #Number of days to simulate
 
 #Set mobility matrix
 par$mob <- list()
-day <- seq.Date(from = ymd("2020-05-20"),to = ymd("2020-06-01"),1)
+day <- seq.Date(from = ymd("2020-05-20"),to = ymd("2020-06-03"),1)
 for(d in as.character(day)){
   cat(d)
   cat("\n")

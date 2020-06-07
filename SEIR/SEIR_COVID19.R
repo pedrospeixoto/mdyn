@@ -412,7 +412,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     I <- I %>% select(I_pred,key) %>% unique() %>% data.frame()
     I <- merge(I,teste_I)
     I$dif <- (I$I_pred - I$I_drs)/I$I_drs
-    dif_I <- max(abs(I$dif)[I$I_drs > 500])
+    dif_I <- max(abs(I$dif)[I$I_drs > 1000])
       
     #Is good
     good <- as.numeric(dif_I <= 0.05 & dif_D <= 0.05)
@@ -438,8 +438,8 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
       kgood <- kgood + 1
       minDK <- ifelse(min(1 + D$dif[D$D_drs > 50]) < 1,min(1 + D$dif[D$D_drs > 50]),1)
       maxDK <- ifelse(max(1 + D$dif[D$D_drs > 50]) > 1,max(1 + D$dif[D$D_drs > 50]),1)
-      minIK <- ifelse(min(1 + I$dif[I$I_drs > 500]) < 1,min(1 + I$dif[I$I_drs > 500]),1)
-      maxIK <- ifelse(max(1 + I$dif[I$I_drs > 500]) > 1,max(1 + I$dif[I$I_drs > 500]),1)
+      minIK <- ifelse(min(1 + I$dif[I$I_drs > 1000]) < 1,min(1 + I$dif[I$I_drs > 1000]),1)
+      maxIK <- ifelse(max(1 + I$dif[I$I_drs > 1000]) > 1,max(1 + I$dif[I$I_drs > 1000]),1)
       parK$minDK <- minDK
       parK$minIK <- minIK
       parK$maxDK <- maxDK
@@ -668,7 +668,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     I[[d]] <- merge(I[[d]],tmp,all = T)
     
     #Plot
-    if(max(I[[d]]$I) > 500 | max(D[[d]]$D) > 50){
+    if(max(I[[d]]$I) > 1000 | max(D[[d]]$D) > 50){
       tmp <- D[[d]]
       pD <- ggplot(tmp,aes(x = date)) + theme_solarized(light = FALSE) + geom_line(aes(y = D),color = "red") + 
         geom_line(aes(y = Dpred),linetype = "dashed",color = "red") +
