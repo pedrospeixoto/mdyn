@@ -372,12 +372,6 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     #Model
     mod <- solve_seir(y = initK,times = 1:7,derivatives = derivatives,parms = parK)[,-1] #Simulate model k
     
-    #Delete unecessary parameters
-    parK$day <- NULL #Days of validation
-    parK$val <- NULL #Is validation
-    parK$mob <- NULL #Mobility matrix
-    parK$pop <- NULL #Population
-    
     #Mean infected time and Rt
     parK$meanTi <- (parK$upI/(parK$upI + 1)) * parK$Ta + (1/(parK$upI + 1)) * (1-parK$delta*parK$Td) * parK$Ts + (1/(parK$upI + 1)) * parK$delta * parK$Td 
     parK$Rt <- parK$meanTi * parK$beta
@@ -425,6 +419,12 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     
     #Result
     if(good == 1){#Store good models
+      #Delete unecessary parameters
+      parK$day <- NULL #Days of validation
+      parK$val <- NULL #Is validation
+      parK$mob <- NULL #Mobility matrix
+      parK$pop <- NULL #Population
+      
       pred[[k]]$E <- mod[,1:parK$sites] #Prediction of E
       pred[[k]]$Ia <- mod[,(parK$sites + 1):(2*parK$sites)] #Prediction of Ia
       pred[[k]]$Is <- mod[,(2*parK$sites + 1):(3*parK$sites)] #Prediction of Is
