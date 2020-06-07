@@ -425,7 +425,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     dif_I <- max(abs(I$dif)[I$I_drs > 500])
       
     #Is good
-    good <- as.numeric(dif_I <= 0.075 & dif_D <= 0.05)
+    good <- as.numeric(dif_I <= 0.05 & dif_D <= 0.05)
     is.good[k] <- good
     error[k] <- dif_D
     if(dif_I < mI)
@@ -762,7 +762,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
       theme(strip.background = element_blank(),
             strip.text = element_text(size = 20,face = "bold",color = "white")) +
       labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
-      ggtitle("Mortes confirmadas COVID-19 no estado de São Paulo")
+      ggtitle("Mortes confirmadas COVID-19 no Estado de São Paulo")
   pdf(file = paste("/storage/SEIR/",pos,"/SP_mortes_",pos,".pdf",sep = ""),width = 15,height = 10)
   suppressWarnings(suppressMessages(print(pD)))
   dev.off()
@@ -788,7 +788,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     theme(strip.background = element_blank(),
           strip.text = element_text(size = 20,face = "bold",color = "white")) +
     labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
-    ggtitle("Casos confirmados COVID-19 no estado de São Paulo")
+    ggtitle("Casos confirmados COVID-19 no Estado de São Paulo")
   pdf(file = paste("/storage/SEIR/",pos,"/SP_casos_",pos,".pdf",sep = ""),width = 15,height = 10)
   suppressWarnings(suppressMessages(print(pI)))
   dev.off()
@@ -947,7 +947,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     cases_all <- rbind.data.frame(cases_all,tmp)
     
     #Epidemiological curve
-    if(c_pred$Ipred[1] > 1000){
+    if(c_pred$Ipred[1] > 100){
       tmp <- c_pred
       p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                                                                     linetype = "dashed") + 
@@ -1053,15 +1053,15 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   #DRS
   peak <- data.frame("DRS" = NA,"TMinimo" = NA,"TMediana" = NA,"TMaximo" = NA,"MMinimo" = NA,"MMediana" = NA,"MMaximo" = NA)
   deaths <- list()
-  deaths$inf <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS))-1)
-  deaths$sup <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS))-1)
-  deaths$median <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS))-1)
+  deaths$inf <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
+  deaths$sup <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
+  deaths$median <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
   cases <- list()
-  cases$inf <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS))-1)
-  cases$sup <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS))-1)
-  cases$median <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS))-1)
+  cases$inf <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
+  cases$sup <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
+  cases$median <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
   
-  for(d in unique(drs$DRS)[-18]){
+  for(d in unique(drs$DRS)){
     position <- match(drs$Municipio[drs$DRS == d],par$names)
     c_pred <- list()
     for(v in c("E","Is","Ia","I","R","D")){
@@ -1150,13 +1150,13 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   
   #Saving deaths
   tmpI <- data.frame(deaths$inf)
-  colnames(tmpI) <- unique(drs$DRS)[-18]
+  colnames(tmpI) <- unique(drs$DRS)
   tmpI$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
   tmpI <- tmpI %>% gather("DRS","Infimo",-Date)
   tmpI$key <- paste(tmpI$DRS,tmpI$Date)
   
   tmpm <- data.frame(deaths$median)
-  colnames(tmpm) <- unique(drs$DRS)[-18]
+  colnames(tmpm) <- unique(drs$DRS)
   tmpm$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
   tmpm <- tmpm %>% gather("DRS","Mediana",-Date)
   tmpm$key <- paste(tmpm$DRS,tmpm$Date)
@@ -1164,7 +1164,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   tmpm$Date <- NULL
   
   tmpS <- data.frame(deaths$sup)
-  colnames(tmpS) <- unique(drs$DRS)[-18]
+  colnames(tmpS) <- unique(drs$DRS)
   tmpS$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
   tmpS <- tmpS %>% gather("DRS","Sup",-Date)
   tmpS$key <- paste(tmpS$DRS,tmpS$Date)
@@ -1180,13 +1180,13 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   
   #Saving Cases
   tmpI <- data.frame(cases$inf)
-  colnames(tmpI) <- unique(drs$DRS)[-18]
+  colnames(tmpI) <- unique(drs$DRS)
   tmpI$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
   tmpI <- tmpI %>% gather("DRS","Infimo",-Date)
   tmpI$key <- paste(tmpI$DRS,tmpI$Date)
   
   tmpm <- data.frame(cases$median)
-  colnames(tmpm) <- unique(drs$DRS)[-18]
+  colnames(tmpm) <- unique(drs$DRS)
   tmpm$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
   tmpm <- tmpm %>% gather("DRS","Mediana",-Date)
   tmpm$key <- paste(tmpm$DRS,tmpm$Date)
@@ -1194,7 +1194,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   tmpm$Date <- NULL
   
   tmpS <- data.frame(cases$sup)
-  colnames(tmpS) <- unique(drs$DRS)[-18]
+  colnames(tmpS) <- unique(drs$DRS)
   tmpS$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
   tmpS <- tmpS %>% gather("DRS","Sup",-Date)
   tmpS$key <- paste(tmpS$DRS,tmpS$Date)
@@ -1348,7 +1348,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     print(pD)
     dev.off()
     
-    for(d in unique(drs$DRS)[-18]){
+    for(d in unique(drs$DRS)){
       tmpd <- tmp %>% filter(DRS == d)
       tmpd <- tmpd[order(tmpd$order),]
        pD <- ggplot(tmpd,aes(long, lat, group=group,fill = log(1+Dpred,2))) + theme_bw() + geom_polygon(colour='gray30') +
@@ -1377,7 +1377,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     print(pI)
     dev.off()
     
-    for(d in unique(drs$DRS)[-18]){
+    for(d in unique(drs$DRS)){
       tmpi <- tmp %>% filter(DRS == d)
       tmpi <- tmpi[order(tmpi$order),]
        pI <- ggplot(tmpi,aes(long, lat, group=group,fill = log(1+Ipred,2))) + theme_bw() + geom_polygon(colour='gray30') +
