@@ -543,7 +543,7 @@ class Map:
         #Filer low flux edges:       
         remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
         if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
-            remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 15] 
+            remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4] 
         #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
         G.remove_edges_from(remove)
         
@@ -666,7 +666,7 @@ class Map:
         #Filer low flux edges:       
         remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
         if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
-            remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 15] 
+            remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4] 
         #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
         G.remove_edges_from(remove)
         
