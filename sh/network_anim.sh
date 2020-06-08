@@ -25,7 +25,7 @@ d=$inidate
 i=0
 while [ "${d}" != "${enddate_p1}" ]; do 
   count=$(printf "%03d" $i)
-  echo $d, $count, $i
+  #echo $d, $count, $i
   file_date=$basename$d".jpg"
   basenameanim=$basename"anim"$inidate"_"$enddate
   file_ind=$basenameanim"_"$count".jpg"
@@ -46,7 +46,7 @@ done
 
 #Create video
 #ffmpeg -framerate 1 -i $name"-%03d".png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p $name.mp4
-ffmpeg -f image2 -framerate 1 -i $basenameanim"_"%3d.jpg -qscale:v 2 -crf 20 -pix_fmt yuv420p -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" $basenameanim.avi
-ffmpeg -i $basenameanim.avi  -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2"  $basenameanim.mp4
+ffmpeg -y -f image2 -framerate 1 -i $basenameanim"_"%3d.jpg -qscale:v 2 -crf 20 -pix_fmt yuv420p -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" $basenameanim.avi
+ffmpeg -y -i $basenameanim.avi  -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2"  $basenameanim.mp4
 
-rm $basenameanim*.jpg
+rm $basenameanim"_"*.jpg
