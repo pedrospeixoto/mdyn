@@ -1264,6 +1264,13 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   dev.off()
   
   cat("Building maps...\n")
+  drs$DRS <- as.character(drs$DRS)
+  drs$DRS[drs$Municipio == "SÃO PAULO"] <- "I"
+  drs$DRS <- factor(drs$DRS)
+  drs$Regiao <- as.character(drs$Regiao)
+  drs$Regiao[drs$Municipio == "SÃO PAULO"] <- "Grande São Paulo"
+  drs$Regiao <- factor(drs$Regiao)
+  
   #Mapas
   shp <- readOGR(dsn = "~/mdyn/maps/sp_municipios/35MUE250GC_SIR.shp",stringsAsFactors = F,verbose = F) #Shapefiles
   shp$NM_MUNICIP <- gsub("'","",shp$NM_MUNICIP) #Correct names
