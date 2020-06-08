@@ -409,7 +409,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     dif_I <- max(abs(I$dif)[I$I_drs > 1000])
       
     #Is good
-    good <- as.numeric(dif_I <= 0.05 & dif_D <= 0.05)
+    good <- as.numeric(dif_I <= 0.075 & dif_D <= 0.05)
     is.good[k] <- good
     error[k] <- dif_D
     if(dif_I < mI)
@@ -487,6 +487,8 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   pred <- pred[is.good == 1] #Prediction of only good models
   saveRDS(object = results,file = paste("/storage/SEIR/",pos,"/result_",pos,".rds",sep = "")) #Save results
   saveRDS(object = pred,file = paste("/storage/SEIR/",pos,"/prediction_",pos,".rds",sep = "")) #Save predictions
+  #results <- readRDS(paste("/storage/SEIR/",pos,"/result_",pos,".rds",sep = "")) #Save results
+  #pred <- readRDS(paste("/storage/SEIR/",pos,"/prediction_",pos,".rds",sep = "")) #Save predictions
   
   param <- data.frame("Model" = 1:kgood,Te,Ta,Ts,Td,s,gammaA,"MedianBeta" = betasave,"MedianRt" = Rtsave,"MedianAssymptomatic" = assymptomatic,
                       cinfD,csupD,cinfI,csupI) #Parameters
@@ -1068,9 +1070,11 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
       tmp <- list()
       for(k in 1:length(position))
         tmp[[k]] <- lapply(X = predSIM,FUN = function(x) data.frame(rbind(x[[v]][,position[k]])))
-      for(i in 1:length(tmp[[1]]))
-        for(k in 2:length(position))
-          tmp[[1]][[i]] <- tmp[[1]][[i]] + tmp[[k]][[i]]
+      if(length(position) >= 2){
+        for(i in 1:length(tmp[[1]]))
+          for(k in 2:length(position))
+            tmp[[1]][[i]] <- tmp[[1]][[i]] + tmp[[k]][[i]]
+      }
       if(v == "D"){
         pd <- unlist(lapply(tmp[[1]],function(x) which(diff(as.vector(t(x[1,]))) == max(diff(as.vector(t(x[1,]))),na.rm = T)))) #Peak
         mpd <- unlist(lapply(tmp[[1]],function(x) max(diff(as.vector(t(x[1,])))))) #Peak
