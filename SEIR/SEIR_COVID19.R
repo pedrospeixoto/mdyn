@@ -372,29 +372,13 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     #Model
     mod <- solve_seir(y = initK,times = 1:7,derivatives = derivatives,parms = parK)[,-1] #Simulate model k
     
-    #Delete unecessary parameters
-    parK$day <- NULL #Days of validation
-    parK$val <- NULL #Is validation
-    parK$mob <- NULL #Mobility matrix
-    parK$pop <- NULL #Population
-    
     #Mean infected time and Rt
     parK$meanTi <- (parK$upI/(parK$upI + 1)) * parK$Ta + (1/(parK$upI + 1)) * (1-parK$delta*parK$Td) * parK$Ts + (1/(parK$upI + 1)) * parK$delta * parK$Td 
     parK$Rt <- parK$meanTi * parK$beta
       
     #Result
-    pred[[k]]$E <- mod[,1:parK$sites] #Prediction of E
-    pred[[k]]$Ia <- mod[,(parK$sites + 1):(2*parK$sites)] #Prediction of Ia
-    pred[[k]]$Is <- mod[,(2*parK$sites + 1):(3*parK$sites)] #Prediction of Is
-    pred[[k]]$R <- mod[,(3*parK$sites + 1):(4*parK$sites)] #Prediction of R
-    pred[[k]]$D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Prediction of D
-    pred[[k]]$I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Total cases
-    pred[[k]]$beta <- parK$beta #Prediction of beta
-    pred[[k]]$meanTi <- parK$meanTi #Prediction of mean infection time
-    pred[[k]]$Rt <- parK$Rt #Prediction of Rt
-      
-    D <- pred[[k]]$D #Predicted death for testing
-    I <- pred[[k]]$I #Predicted cases for testing
+    D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Predicted death for testing
+    I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Predicted cases for testing
       
     #Test if model predicted well
     
@@ -422,7 +406,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     I <- I %>% select(I_pred,key) %>% unique() %>% data.frame()
     I <- merge(I,teste_I)
     I$dif <- (I$I_pred - I$I_drs)/I$I_drs
-    dif_I <- max(abs(I$dif)[I$I_drs > 500])
+    dif_I <- max(abs(I$dif)[I$I_drs > 1000])
       
     #Is good
     good <- as.numeric(dif_I <= 0.05 & dif_D <= 0.05)
@@ -435,11 +419,27 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     
     #Result
     if(good == 1){#Store good models
+      #Delete unecessary parameters
+      parK$day <- NULL #Days of validation
+      parK$val <- NULL #Is validation
+      parK$mob <- NULL #Mobility matrix
+      parK$pop <- NULL #Population
+      
+      pred[[k]]$E <- mod[,1:parK$sites] #Prediction of E
+      pred[[k]]$Ia <- mod[,(parK$sites + 1):(2*parK$sites)] #Prediction of Ia
+      pred[[k]]$Is <- mod[,(2*parK$sites + 1):(3*parK$sites)] #Prediction of Is
+      pred[[k]]$R <- mod[,(3*parK$sites + 1):(4*parK$sites)] #Prediction of R
+      pred[[k]]$D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Prediction of D
+      pred[[k]]$I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Total cases
+      pred[[k]]$beta <- parK$beta #Prediction of beta
+      pred[[k]]$meanTi <- parK$meanTi #Prediction of mean infection time
+      pred[[k]]$Rt <- parK$Rt #Prediction of Rt
+      
       kgood <- kgood + 1
       minDK <- ifelse(min(1 + D$dif[D$D_drs > 50]) < 1,min(1 + D$dif[D$D_drs > 50]),1)
       maxDK <- ifelse(max(1 + D$dif[D$D_drs > 50]) > 1,max(1 + D$dif[D$D_drs > 50]),1)
-      minIK <- ifelse(min(1 + I$dif[I$I_drs > 500]) < 1,min(1 + I$dif[I$I_drs > 500]),1)
-      maxIK <- ifelse(max(1 + I$dif[I$I_drs > 500]) > 1,max(1 + I$dif[I$I_drs > 500]),1)
+      minIK <- ifelse(min(1 + I$dif[I$I_drs > 1000]) < 1,min(1 + I$dif[I$I_drs > 1000]),1)
+      maxIK <- ifelse(max(1 + I$dif[I$I_drs > 1000]) > 1,max(1 + I$dif[I$I_drs > 1000]),1)
       parK$minDK <- minDK
       parK$minIK <- minIK
       parK$maxDK <- maxDK
@@ -668,7 +668,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     I[[d]] <- merge(I[[d]],tmp,all = T)
     
     #Plot
-    if(max(I[[d]]$I) > 500 | max(D[[d]]$D) > 50){
+    if(max(I[[d]]$I) > 1000 | max(D[[d]]$D) > 50){
       tmp <- D[[d]]
       pD <- ggplot(tmp,aes(x = date)) + theme_solarized(light = FALSE) + geom_line(aes(y = D),color = "red") + 
         geom_line(aes(y = Dpred),linetype = "dashed",color = "red") +
