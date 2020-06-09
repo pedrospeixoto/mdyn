@@ -549,7 +549,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   rc_cont <- colorRampPalette(colors = c("white","orange","red"))(100)
   
   #Rt
-  pRt <- lapply(Rt,function(x) data.frame(rbind(x)))
+  pRt <- lapply(Rt,function(x) data.frame(rbind(as.vector(x))))
   pRt <- bind_rows(pRt)
   colnames(pRt) <- par$names
   pRt <- apply(pRt,2,median)
