@@ -462,12 +462,12 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
       pred[[k]]$beta <- parK$beta #Prediction of beta
       
       #Mean infected time and Rt
-      S <- par$pop - parK$upE*par$obs$E[[as.character(7)]] - (1+parK$upI)*par$obs$Is[[as.character(7)]] - par$obs$R[[as.character(7)]] - 
+      Sobs <- par$pop - parK$upE*par$obs$E[[as.character(7)]] - (1+parK$upI)*par$obs$Is[[as.character(7)]] - par$obs$R[[as.character(7)]] - 
         par$obs$D[[as.character(7)]]
-      D <- par$obs$D[[as.character(7)]]
+      Dobs <- par$obs$D[[as.character(7)]]
       parK$meanTi <- (parK$upI/(parK$upI + 1)) * parK$Ta + (1/(parK$upI + 1)) * (1-par$delta) * parK$Ts + (1/(parK$upI + 1)) * par$delta * parK$Td 
-      parK$Rt <- parK$beta*S/(par$pop - D) + t(par$mob[[as.character(end_validate)]] - diag(diag(par$mob[[as.character(end_validate)]])))%*%
-        cbind(parK$beta*S/(par$pop - D))
+      parK$Rt <- parK$beta*Sobs/(par$pop - Dobs) + t(par$mob[[as.character(end_validate)]] - diag(diag(par$mob[[as.character(end_validate)]])))%*%
+        cbind(parK$beta*Sobs/(par$pop - Dobs))
       parK$Rt <- parK$Rt*parK$meanTi
       
       pred[[k]]$meanTi <- parK$meanTi #Prediction of mean infection time
