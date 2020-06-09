@@ -415,12 +415,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     
     #Result
     if(good == 1){#Store good models
-      #Delete unecessary parameters
-      parK$day <- NULL #Days of validation
-      parK$val <- NULL #Is validation
-      parK$mob <- NULL #Mobility matrix
-      parK$pop <- NULL #Population
-      
+      #Prediction
       pred[[k]]$E <- mod[,1:parK$sites] #Prediction of E
       pred[[k]]$Ia <- mod[,(parK$sites + 1):(2*parK$sites)] #Prediction of Ia
       pred[[k]]$Is <- mod[,(2*parK$sites + 1):(3*parK$sites)] #Prediction of Is
@@ -437,8 +432,8 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
                                                                                                 log(parK$gammaA * parK$upE * 
                                                                                                       (1+par$obs_DRS$E[[as.character(6)]]))) #Growth rate
       num <- ((lambdaE + gammaS + parK$gammaA) * parK$upE * par$obs_DRS$E[[as.character(6)]] * (par$pop - par$obs_DRS$D[[as.character(6)]])) #Numerator
-      den <- Sobs * (parK$s*((parK$mob[[as.character(init_validate-1)]]-
-                                diag(diag(parK$mob[[as.character(init_validate-1)]]))) %*% 
+      den <- Sobs * (parK$s*((parK$mob[[as.character(end_validate-1)]]-
+                                diag(diag(parK$mob[[as.character(end_validate-1)]]))) %*% 
                                cbind(par$obs_DRS$Is[[as.character(6)]] + parK$upI*par$obs_DRS$Is[[as.character(6)]])) + 
                        (parK$upI+1)*par$obs_DRS$Is[[as.character(6)]]) #Denominator
       if(min(den) == 0) #Correct zero denominator
@@ -454,8 +449,8 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
                                                                                             log(parK$gammaA * parK$upE * 
                                                                                                   (1+par$obs$E[[as.character(6)]]))) #Growth rate
       num <- ((lambdaE + gammaS + parK$gammaA) * parK$upE * par$obs$E[[as.character(6)]] * (par$pop - par$obs$D[[as.character(6)]])) #Numerator
-      den <- Sobs * (parK$s*((parK$mob[[as.character(init_validate-1)]]-
-                                diag(diag(parK$mob[[as.character(init_validate-1)]]))) %*% 
+      den <- Sobs * (parK$s*((parK$mob[[as.character(end_validate-1)]]-
+                                diag(diag(parK$mob[[as.character(end_validate-1)]]))) %*% 
                                cbind(par$obs$Is[[as.character(6)]] + parK$upI*par$obs$Is[[as.character(6)]])) + 
                        (parK$upI+1)*par$obs$Is[[as.character(6)]]) #Denominator
       if(min(den) == 0) #Correct zero denominator
@@ -471,7 +466,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
         par$obs$D[[as.character(7)]]
       D <- par$obs$D[[as.character(7)]]
       parK$meanTi <- (parK$upI/(parK$upI + 1)) * parK$Ta + (1/(parK$upI + 1)) * (1-par$delta) * parK$Ts + (1/(parK$upI + 1)) * par$delta * parK$Td 
-      parK$Rt <- parK$beta*S/(par$pop - D) + t(par$mob[[as.character(init_validate)]] - diag(diag(par$mob[[as.character(init_validate)]])))*
+      parK$Rt <- parK$beta*S/(par$pop - D) + t(par$mob[[as.character(end_validate)]] - diag(diag(par$mob[[as.character(end_validate)]])))%*%
         cbind(parK$beta*S/(par$pop - D))
       parK$Rt <- parK$Rt*parK$meanTi
       
@@ -487,6 +482,13 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
       parK$minIK <- minIK
       parK$maxDK <- maxDK
       parK$maxIK <- maxIK
+      
+      #Delete unecessary parameters
+      parK$day <- NULL #Days of validation
+      parK$val <- NULL #Is validation
+      parK$mob <- NULL #Mobility matrix
+      parK$pop <- NULL #Population
+      
       results$models[[kgood]] <- parK
       if(minDK < minD)
         minD <- minDK
