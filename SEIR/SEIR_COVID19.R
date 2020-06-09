@@ -583,9 +583,9 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
   }
   
   #Save Rt
-  pRt <- data.frame("Municipio" = par$names,"Minimo" = apply(bind_rows(lapply(Rt,function(x) data.frame(rbind(x)))),2,min),
-                   "Mediana" = apply(bind_rows(lapply(Rt,function(x) data.frame(rbind(x)))),2,median),
-                   "Máximo" = apply(bind_rows(lapply(Rt,function(x) data.frame(rbind(x)))),2,max))
+  pRt <- data.frame("Municipio" = par$names,"Minimo" = apply(bind_rows(lapply(Rt,function(x) data.frame(rbind(as.vector(x))))),2,min),
+                   "Mediana" = apply(bind_rows(lapply(Rt,function(x) data.frame(rbind(as.vector(x))))),2,median),
+                   "Máximo" = apply(bind_rows(lapply(Rt,function(x) data.frame(rbind(as.vector(x))))),2,max))
   pRt <- merge(drs %>% select(Municipio,Regiao),pRt)
   names(pRt)[2] <- "DRS"
   pRt <- pRt[order(pRt$Mediana,decreasing = T),]
