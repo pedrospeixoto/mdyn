@@ -371,10 +371,6 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     
     #Model
     mod <- solve_seir(y = initK,times = 1:7,derivatives = derivatives,parms = parK)[,-1] #Simulate model k
-    
-    #Mean infected time and Rt
-    parK$meanTi <- (parK$upI/(parK$upI + 1)) * parK$Ta + (1/(parK$upI + 1)) * (1-parK$delta*parK$Td) * parK$Ts + (1/(parK$upI + 1)) * parK$delta * parK$Td 
-    parK$Rt <- parK$meanTi * parK$beta
       
     #Result
     D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Predicted death for testing
@@ -431,7 +427,53 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
       pred[[k]]$R <- mod[,(3*parK$sites + 1):(4*parK$sites)] #Prediction of R
       pred[[k]]$D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Prediction of D
       pred[[k]]$I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Total cases
+      
+      #Prediction of beta t0-1
+      Sobs <- drs$N - parK$upE*par$obs_DRS$E[[as.character(6)]] - (1+parK$upI)*par$obs_DRS$Is[[as.character(6)]] - par$obs_DRS$R[[as.character(6)]] - 
+        par$obs_DRS$D[[as.character(6)]]
+      lambdaE <- 0.5*(log(par$lambda + nuS + parK$delta) + log(1+par$obs_DRS$Is[[as.character(7)]]) -
+                        log(gammaS * parK$upE * (1+par$obs_DRS$E[[as.character(6)]]))) + 0.5*(log(par$lambda + nuA) + 
+                                                                                                log(1+parK$upI*par$obs_DRS$Is[[as.character(7)]]) -
+                                                                                                log(parK$gammaA * parK$upE * 
+                                                                                                      (1+par$obs_DRS$E[[as.character(6)]]))) #Growth rate
+      num <- ((lambdaE + gammaS + parK$gammaA) * parK$upE * par$obs_DRS$E[[as.character(6)]] * (par$pop - par$obs_DRS$D[[as.character(6)]])) #Numerator
+      den <- Sobs * (parK$s*((parK$mob[[as.character(init_validate-1)]]-
+                                diag(diag(parK$mob[[as.character(init_validate-1)]]))) %*% 
+                               cbind(par$obs_DRS$Is[[as.character(6)]] + parK$upI*par$obs_DRS$Is[[as.character(6)]])) + 
+                       (parK$upI+1)*par$obs_DRS$Is[[as.character(6)]]) #Denominator
+      if(min(den) == 0) #Correct zero denominator
+        den[den == 0] <- min(den[den > 0])
+      parK$beta <- as.vector(num/den) #Beta
+      
+      #Cities with 100+ cases
+      Sobs <- par$pop - parK$upE*par$obs$E[[as.character(6)]] - (1+parK$upI)*par$obs$Is[[as.character(6)]] - par$obs$R[[as.character(6)]] - 
+        par$obs$D[[as.character(6)]]
+      lambdaE <- 0.5*(log(par$lambda + nuS + parK$delta) + log(1+par$obs$Is[[as.character(7)]]) -
+                        log(gammaS * parK$upE * (1+par$obs$E[[as.character(6)]]))) + 0.5*(log(par$lambda + nuA) + 
+                                                                                            log(1+parK$upI*par$obs$Is[[as.character(7)]]) -
+                                                                                            log(parK$gammaA * parK$upE * 
+                                                                                                  (1+par$obs$E[[as.character(6)]]))) #Growth rate
+      num <- ((lambdaE + gammaS + parK$gammaA) * parK$upE * par$obs$E[[as.character(6)]] * (par$pop - par$obs$D[[as.character(6)]])) #Numerator
+      den <- Sobs * (parK$s*((parK$mob[[as.character(init_validate-1)]]-
+                                diag(diag(parK$mob[[as.character(init_validate-1)]]))) %*% 
+                               cbind(par$obs$Is[[as.character(6)]] + parK$upI*par$obs$Is[[as.character(6)]])) + 
+                       (parK$upI+1)*par$obs$Is[[as.character(6)]]) #Denominator
+      if(min(den) == 0) #Correct zero denominator
+        den[den == 0] <- min(den[den > 0])
+      b <- num/den
+      parK$beta[par$names %in% c_100] <- b[par$names %in% c_100]
+      if(min(parK$beta) < 0)
+        parK$beta[parK$beta < 0] <- min(parK$beta[parK$beta > 0])
       pred[[k]]$beta <- parK$beta #Prediction of beta
+      
+      #Mean infected time and Rt
+      S <- par$pop - parK$upE*par$obs$E[[as.character(7)]] - (1+parK$upI)*par$obs$Is[[as.character(7)]] - par$obs$R[[as.character(7)]] - 
+        par$obs$D[[as.character(7)]]
+      D <- par$obs$D[[as.character(7)]]
+      parK$meanTi <- (parK$upI/(parK$upI + 1)) * parK$Ta + (1/(parK$upI + 1)) * (1-par$delta) * parK$Ts + (1/(parK$upI + 1)) * par$delta * parK$Td 
+      parK$Rt <- parK$beta*S/(par$pop - D) + t(par$mob[[as.character(init_validate)]])*cbind(parK$beta*S/(par$pop - D))
+      parK$Rt <- parK$Rt*parK$meanTi
+      
       pred[[k]]$meanTi <- parK$meanTi #Prediction of mean infection time
       pred[[k]]$Rt <- parK$Rt #Prediction of Rt
       
