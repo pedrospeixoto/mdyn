@@ -43,11 +43,11 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     
     #States at time t
     E <- Y[1:parK$sites] #Exposed
-    Ia <- Y[(parK$sites + 1):(2*parK$sites)] #Asymptomatic
-    Is <- Y[(2*parK$sites + 1):(3*parK$sites)] #Symptomatic
+    I <- Y[(parK$sites + 1):(2*parK$sites)] #Infected
+    Is <- Y[(2*parK$sites + 1):(3*parK$sites)] #Statistics
     R <- Y[(3*parK$sites + 1):(4*parK$sites)] #Recovered
     D <- Y[(4*parK$sites + 1):(5*parK$sites)] #Deaths
-    S <- parK$pop - E - Ia - Is - R - D #Susceptibles
+    S <- parK$pop - E - I - Is - R - D #Susceptibles
     
     #Parameters
     if(parK$val) #If in validation period, take mobility matrix of the day
@@ -60,25 +60,28 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     }
     N <- parK$pop #Population
     Te <- parK$Te #Time exposed
-    Ta <- parK$Ta #Time assymptomatic
-    Td <- parK$Td #Time symptomatic until death
-    Ts <- parK$Ts #Time symptomatic until recover
+    Ti <- parK$Ti #Time infected before recovering
+    Ts <- parK$Ts #Time infected until statistics
+    Tsr <- parK$Tsr #Time in statistics until recovering
+    Td <- parK$Td #Time in statistics until death
     delta <- parK$delta #Death rate
-    gammaA <- parK$gammaA #Rate from Exposed to Asymptomatic
-    gammaS <- (1 - Te*gammaA)/Te #Rate of Exposed to Symptomatic
-    nuA <- 1/Ta #Rate from Asymptomatic to Recovered
-    nuS <- (1-delta*Td)/Ts #Rate from Symptomatic to Recovered
+    pS <- parK$pS #Proportion in statistics
+    gammaI <- 1/Te #Rate from Exposed to Infected
+    gammaS <- pS/Ts #Rate from Infected to Statistics
+    nuI <- (1-pS)/Ti #Rate from Infected to Recovered
+    nuS <- (1-delta)/Tsr #Rate from Statistics to Recovered
+    delta <- parK$delta/Td #Rate from Statistics to Death
     s <- parK$s #Intensity of mobility
     beta <- parK$beta #beta
     
     #Derivatives
     dY <- vector(length = 6*parK$sites) #Vector of derivatives
-    dY[1:parK$sites] <- -(gammaS + gammaA)*E + beta*(S/(N-D))*(s*((mob-diag(diag(mob))) %*% cbind(Is+Ia)) + Is + Ia) #E
-    dY[(parK$sites + 1):(2*parK$sites)] <- gammaA*E - nuA*Ia #Ia
-    dY[(2*parK$sites + 1):(3*parK$sites)] <- -nuS*Is + gammaS*E - delta*Is #Is
-    dY[(3*parK$sites + 1):(4*parK$sites)] <- nuA*Ia + nuS*Is #R
+    dY[1:parK$sites] <- -gammaI*E + beta*(S/(N-D))*(s*((mob-diag(diag(mob))) %*% cbind(I)) + I) #E
+    dY[(parK$sites + 1):(2*parK$sites)] <- gammaI*E - nuI*I - gammaS*I #I
+    dY[(2*parK$sites + 1):(3*parK$sites)] <- -nuS*Is + gammaS*I - delta*Is #Is
+    dY[(3*parK$sites + 1):(4*parK$sites)] <- nuI*I + nuS*Is #R
     dY[(4*parK$sites + 1):(5*parK$sites)] <- delta*Is #D
-    dY[(5*parK$sites + 1):(6*parK$sites)] <- gammaS*E #Add new cases to total
+    dY[(5*parK$sites + 1):(6*parK$sites)] <- gammaS*I #Add new cases to total
     
     return(list(dY)) #Return
   }
@@ -86,6 +89,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   #####DRS#####
   drs <- readRDS(file = "mdyn/SEIR/dados/drs.rds")
   drs <- drs[match(par$names,drs$Municipio),]
+  drs$N[drs$Municipio == "SÃO PAULO"] <- par$pop[par$names == "SÃO PAULO"]
   
   #####mkdir#####
   system(paste("mkdir /storage/SEIR/",pos,sep = ""))
@@ -116,7 +120,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   rate <- sum(lift$last_available_deaths)/sum(lift$last_available_confirmed) #death rate state
   lift$lift <- lift$rate/rate #lift
   lift$lift[is.na(lift$lift)] <- 1 #fill NA with 1
-  lift$lift[lift$last_available_deaths < 10] <- 1 #if not enough data, fill with one
+  lift$lift[lift$last_available_deaths < 5] <- 1 #if not enough data, fill with one
   par$lift <- lift$lift #attribute to par
   
   #Obs by DRS
@@ -143,28 +147,38 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   tmp <- obs %>% filter(date == ymd(init_validate))
   tmp <- tmp[match(x = par$names,table = tmp$city),]
   init[1:par$sites] <- tmp$new_infected_mean #E
-  init[(par$sites + 1):(2*par$sites)] <- tmp$infected #Ia
+  init[(par$sites + 1):(2*par$sites)] <- tmp$infected #I
   init[(2*par$sites + 1):(3*par$sites)] <- tmp$infected #Is
   init[(3*par$sites + 1):(4*par$sites)] <- tmp$recovered #R
   init[(4*par$sites + 1):(5*par$sites)] <- tmp$deaths_corrected #D
   init[(5*par$sites + 1):(6*par$sites)] <- tmp$confirmed_corrected #prevalence
   I <- tmp$infected
-    
+  
+  init1f <- vector()
+  tmp <- obs %>% filter(date == ymd(init_validate)+1)
+  tmp <- tmp[match(x = par$names,table = tmp$city),]
+  init1f[1:par$sites] <- tmp$new_infected_mean #E
+  
+  init2f <- vector()
+  tmp <- obs %>% filter(date == ymd(init_validate)+2)
+  tmp <- tmp[match(x = par$names,table = tmp$city),]
+  init2f[1:par$sites] <- tmp$new_infected_mean #E
+  
   #Obs each day around week of validation
   par$obs <- list()
   par$obs_DRS <- list()
-  for(t in 0:8){
+  for(t in 0:9){
     tmp <- obs %>% filter(date == ymd(init_validate) + t - 1)
     tmp <- tmp[match(x = par$names,table = tmp$city),]
     tmp1 <- obs_drs %>% filter(date == ymd(init_validate) + t - 1)
     tmp1 <- tmp1[match(x = par$names,table = tmp1$city),]
     par$obs$E[[as.character(t)]] <- tmp$new_infected_mean #E
-    par$obs$Ia[[as.character(t)]] <- tmp$infected #Ia
+    par$obs$I[[as.character(t)]] <- tmp$infected #I
     par$obs$Is[[as.character(t)]] <- tmp$infected #Is
     par$obs$R[[as.character(t)]] <- tmp$recovered #R
     par$obs$D[[as.character(t)]] <- tmp$deaths_corrected #D
     par$obs_DRS$E[[as.character(t)]] <- tmp1$new_infected_mean #E
-    par$obs_DRS$Ia[[as.character(t)]] <- tmp1$infected #Ia
+    par$obs_DRS$I[[as.character(t)]] <- tmp1$infected #I
     par$obs_DRS$Is[[as.character(t)]] <- tmp1$infected #Is
     par$obs_DRS$R[[as.character(t)]] <- tmp1$recovered #R
     par$obs_DRS$D[[as.character(t)]] <- tmp1$deaths_corrected #D
@@ -197,8 +211,17 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   par$lambda <- vector()
   
   #For each DRS
+  gI <- teste %>% dplyr::select(date,city,infected) %>% 
+    spread(key = city,value = infected) #Select only infected and spread
+  gI <- gI[,c(1,match(par$names,names(gI)))] #Order cities
+  gI <- gI %>% gather("Municipio","I",-date) #Gather
+  gI <- merge(gI,drs) #Merge to find DRSs
+  gI$key <- paste(gI$date,gI$DRS) #Key
+  gI <- data.table(gI) #Data table
+  gI <- gI[,I_drs := sum(I),by = key] #Death by DRS
+  gI <- gI %>% select(date,DRS,I_drs,key) %>% unique() %>% data.frame() #Clean
   for(d in unique(drs$DRS)){
-    tmp <- teste_I %>% filter(DRS == d) #Data of DRS
+    tmp <- gI %>% filter(DRS == d) #Data of DRS
     tmp <- data.frame("t" = 0:6,"y" = tmp$I_drs) #Data
     mod <- lm(log(y) ~ t,data = tmp) #lm
     par$lambda[par$names %in% drs$Municipio[drs$DRS == d]] <- mod$coefficients[2] #Lambda
@@ -232,7 +255,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   c_100 <- c_100$city
   for(c in c_100){
     tmp <- obs %>% filter(city == c & date >= ymd(init_validate) & date <= ymd(end_validate)) #Data of DRS
-    tmp <- data.frame("t" = 0:6,"y" = tmp$confirmed_corrected) #Data
+    tmp <- data.frame("t" = 0:6,"y" = tmp$infected) #Data
     mod <- lm(log(y) ~ t,data = tmp) #lm
     par$lambda[par$names == c] <- mod$coefficients[2] #Lambda
     p <- ggplot(tmp,aes(x = t,y = y)) + geom_point(color = "white") + 
@@ -268,10 +291,10 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     par$delta[match(drs$Municipio[drs$DRS == d],par$names)] <- dr #Attribute death rate of DRS to each city
   }
     
-  #Calculate death rate for each city with 10+ deaths
-  C_10 <- obs %>% filter(date == init_validate & deaths_corrected >= 10) %>% unique() #Data of cities with 10+ deaths in last day of validation
-  C_10 <- C_10$city #Get city name
-  for(c in C_10){ #For each city with 50+ deaths by last_validation
+  #Calculate death rate for each city with 5+ deaths
+  C_5 <- obs %>% filter(date == end_validate & deaths_corrected >= 5) %>% unique() #Data of cities with 5+ deaths in last day of validation
+  C_5 <- C_5$city #Get city name
+  for(c in C_5){ #For each city with 5+ deaths by end_validate
     tmp <- obs %>% filter(city == c & date == end_validate) #Get data of city is last day of validation
     dr <- tmp$deaths_corrected/tmp$confirmed_corrected #Death rate
     par$delta[match(c,par$names)] <- dr #Attribute death rate
@@ -315,59 +338,58 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     parK$mob <- par$mob #Mobility matrix
     parK$pop <- par$pop #Population
     parK$Te <- sample(x = par$Te,size = 1) #Te
-    parK$Ta <- sample(x = par$Ta,size = 1) #Ta
+    parK$Ti <- sample(x = par$Ti,size = 1) #Ti
     parK$Ts <- sample(x = par$Ts,size = 1) #Ts
+    parK$Tsr <- sample(x = par$Ts,size = 1) #Tsr
     parK$Td <- sample(x = par$Td,size = 1) #Td
-    parK$delta <- par$delta/parK$Td #delta
+    parK$pS <- sample(x = par$pS,size = 1) #Td
+    parK$delta <- par$delta #delta
     parK$sites <- par$sites #Number of sites
     parK$s <- sample(x = par$s,size = 1) #s
-    parK$upI <- par$lift*sample(x = c(6:10,15,20,25,30,35,40),size = 1) #Asymptomatic initial condition
-    parK$gammaA <- parK$upI/((1+parK$upI)*parK$Te) #GammaA
-    gammaS <- (1 - parK$Te*parK$gammaA)/parK$Te #Rate of Exposed to Symptomatic
-    nuA <- 1/parK$Ta #Rate from Asymptomatic to Recovered
-    nuS <- (1-parK$delta*parK$Td)/parK$Ts #Rate from Symptomatic to Recovered
-    parK$upE <- par$lift/gammaS #To multiply number of new infected to get exposed
+    parK$upI <- par$lift*(1-parK$pS)/parK$pS #Number of missed cases for each one in statistics
+    
+    #Parameters
+    gammaI <- 1/parK$Te #Rate from Exposed to Infected
+    gammaS <- parK$pS/parK$Ts #Rate from Infected to Statistics
+    nuI <- (1-parK$pS)/parK$Ti #Rate from Infected to Recovered
+    nuS <- (1-parK$delta)/parK$Tsr #Rate from Statistics to Recovered
+    delta <- parK$deta/parK$Td #Rate from Statistics to Death
+    
+    #Initial condition
     initK <- init #Initial condition
-    initK[1:par$sites] <- parK$upE*init[1:par$sites] #Correct E
-    initK[(par$sites + 1):(2*par$sites)] <- parK$upI*initK[(par$sites + 1):(2*par$sites)] #Assymptomatics
+    initK[1:par$sites] <- par$lift*(1/(gammaS*gammaI))*(init2f[1:par$sites]-init1f[1:par$sites]+(nuI+gammaS)*init1f[1:par$sites]) #Correct E
+    initK[1:par$sites] <- ifelse(initK[1:par$sites] < 0,0,initK[1:par$sites])
+    initK[(par$sites + 1):(2*par$sites)] <- (parK$upI+1)*initK[(par$sites + 1):(2*par$sites)] #Infected
     initK[(3*par$sites + 1):(4*par$sites)] <- (parK$upI+1)*initK[(3*par$sites + 1):(4*par$sites)] #Correct R
     
     #Beta by DRS
-    Sobs <- drs$N - parK$upE*par$obs_DRS$E[[as.character(0)]] - (1+parK$upI)*par$obs_DRS$Is[[as.character(0)]] - par$obs_DRS$R[[as.character(0)]] - 
+    par$obs_DRS$E[[as.character(0)]] <- par$lift*(1/(gammaS*gammaI))*(par$obs_DRS$E[[as.character(2)]]-
+                                                                        par$obs_DRS$E[[as.character(1)]]+(nuI+gammaS)*par$obs_DRS$E[[as.character(1)]])
+    Sobs <- drs$N - par$obs_DRS$E[[as.character(0)]] - (2+parK$upI)*par$obs_DRS$Is[[as.character(0)]] - (parK$upI+1)*par$obs_DRS$R[[as.character(0)]] - 
       par$obs_DRS$D[[as.character(0)]]
-    lambdaE <- 0.5*(log(par$lambda + nuS + parK$delta) + log(1+par$obs_DRS$Is[[as.character(1)]]) -
-                      log(gammaS * parK$upE * (1+par$obs_DRS$E[[as.character(0)]]))) + 0.5*(log(par$lambda + nuA) + 
-                                                                                          log(1+parK$upI*par$obs_DRS$Is[[as.character(0+1)]]) -
-                                                                                          log(parK$gammaA * parK$upE * 
-                                                                                                (1+par$obs_DRS$E[[as.character(0)]]))) #Growth rate
-    num <- ((lambdaE + gammaS + parK$gammaA) * parK$upE * par$obs_DRS$E[[as.character(0)]] * (par$pop - par$obs_DRS$D[[as.character(0)]])) #Numerator
+    lambdaE <- log(par$lambda + nuI + gammaS) + log((1+parK$upI)*par$obs_DRS$Is[[as.character(1)]]) -
+                      log(gammaI * (par$obs_DRS$E[[as.character(0)]])) #Growth rate
+    num <- ((lambdaE + gammaI) * par$obs_DRS$E[[as.character(0)]] * (drs$N - par$obs_DRS$D[[as.character(0)]])) #Numerator
     den <- Sobs * (parK$s*((parK$mob[[as.character(init_validate-1)]]-
                                                       diag(diag(parK$mob[[as.character(init_validate-1)]]))) %*% 
                                                      cbind(par$obs_DRS$Is[[as.character(0)]] + parK$upI*par$obs_DRS$Is[[as.character(0)]])) + 
                                                (parK$upI+1)*par$obs_DRS$Is[[as.character(0)]]) #Denominator
-    if(min(den) == 0) #Correct zero denominator
-      den[den == 0] <- min(den[den > 0])
     parK$beta <- as.vector(num/den) #Beta
     
     #Cities with 100+ cases
-    Sobs <- par$pop - parK$upE*par$obs$E[[as.character(0)]] - (1+parK$upI)*par$obs$Is[[as.character(0)]] - par$obs$R[[as.character(0)]] - 
+    par$obs$E[[as.character(0)]] <- par$lift*(1/(gammaS*gammaI))*(par$obs$E[[as.character(2)]]-
+                                                                        par$obs$E[[as.character(1)]]+(nuI+gammaS)*par$obs$E[[as.character(1)]])
+    Sobs <- par$pop - par$obs$E[[as.character(0)]] - (2+parK$upI)*par$obs$Is[[as.character(0)]] - (parK$upI+1)*par$obs$R[[as.character(0)]] - 
       par$obs$D[[as.character(0)]]
-    lambdaE <- 0.5*(log(par$lambda + nuS + parK$delta) + log(1+par$obs$Is[[as.character(1)]]) -
-                      log(gammaS * parK$upE * (1+par$obs$E[[as.character(0)]]))) + 0.5*(log(par$lambda + nuA) + 
-                                                                                              log(1+parK$upI*par$obs$Is[[as.character(0+1)]]) -
-                                                                                              log(parK$gammaA * parK$upE * 
-                                                                                                    (1+par$obs$E[[as.character(0)]]))) #Growth rate
-    num <- ((lambdaE + gammaS + parK$gammaA) * parK$upE * par$obs$E[[as.character(0)]] * (par$pop - par$obs$D[[as.character(0)]])) #Numerator
+    lambdaE <- log(par$lambda + nuI + gammaS) + log((1+parK$upI)*par$obs$Is[[as.character(1)]]) -
+      log(gammaI * (par$obs$E[[as.character(0)]])) #Growth rate
+    num <- ((lambdaE + gammaI) * par$obs$E[[as.character(0)]] * (par$pop - par$obs$D[[as.character(0)]])) #Numerator
     den <- Sobs * (parK$s*((parK$mob[[as.character(init_validate-1)]]-
                               diag(diag(parK$mob[[as.character(init_validate-1)]]))) %*% 
                              cbind(par$obs$Is[[as.character(0)]] + parK$upI*par$obs$Is[[as.character(0)]])) + 
                      (parK$upI+1)*par$obs$Is[[as.character(0)]]) #Denominator
-    if(min(den) == 0) #Correct zero denominator
-      den[den == 0] <- min(den[den > 0])
-    b <- num/den
+    b <- as.vector(num/den) #Beta
     parK$beta[par$names %in% c_100] <- b[par$names %in% c_100]
-    if(min(parK$beta) < 0)
-      parK$beta[parK$beta < 0] <- min(parK$beta[parK$beta > 0])
     
     #Model
     mod <- solve_seir(y = initK,times = 1:7,derivatives = derivatives,parms = parK)[,-1] #Simulate model k
@@ -417,61 +439,55 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     if(good == 1){#Store good models
       #Prediction
       pred[[k]]$E <- mod[,1:parK$sites] #Prediction of E
-      pred[[k]]$Ia <- mod[,(parK$sites + 1):(2*parK$sites)] #Prediction of Ia
+      pred[[k]]$I <- mod[,(parK$sites + 1):(2*parK$sites)] #Prediction of I
       pred[[k]]$Is <- mod[,(2*parK$sites + 1):(3*parK$sites)] #Prediction of Is
       pred[[k]]$R <- mod[,(3*parK$sites + 1):(4*parK$sites)] #Prediction of R
       pred[[k]]$D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Prediction of D
       pred[[k]]$I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Total cases
       
       #Prediction of beta t0-1
-      Sobs <- drs$N - parK$upE*par$obs_DRS$E[[as.character(6)]] - (1+parK$upI)*par$obs_DRS$Is[[as.character(6)]] - par$obs_DRS$R[[as.character(6)]] - 
+      par$obs_DRS$E[[as.character(6)]] <- par$lift*(1/(gammaS*gammaI))*(par$obs_DRS$E[[as.character(8)]]-
+                                                                          par$obs_DRS$E[[as.character(7)]]+(nuI+gammaS)*par$obs_DRS$E[[as.character(7)]])
+      Sobs <- drs$N - par$obs_DRS$E[[as.character(6)]] - (2+parK$upI)*par$obs_DRS$Is[[as.character(6)]] - (parK$upI+1)*par$obs_DRS$R[[as.character(6)]] - 
         par$obs_DRS$D[[as.character(6)]]
-      lambdaE <- 0.5*(log(par$lambda + nuS + parK$delta) + log(1+par$obs_DRS$Is[[as.character(7)]]) -
-                        log(gammaS * parK$upE * (1+par$obs_DRS$E[[as.character(6)]]))) + 0.5*(log(par$lambda + nuA) + 
-                                                                                                log(1+parK$upI*par$obs_DRS$Is[[as.character(7)]]) -
-                                                                                                log(parK$gammaA * parK$upE * 
-                                                                                                      (1+par$obs_DRS$E[[as.character(6)]]))) #Growth rate
-      num <- ((lambdaE + gammaS + parK$gammaA) * parK$upE * par$obs_DRS$E[[as.character(6)]] * (par$pop - par$obs_DRS$D[[as.character(6)]])) #Numerator
+      lambdaE <- log(par$lambda + nuI + gammaS) + log((1+parK$upI)*par$obs_DRS$Is[[as.character(7)]]) -
+        log(gammaI * (par$obs_DRS$E[[as.character(6)]])) #Growth rate
+      num <- ((lambdaE + gammaI) * par$obs_DRS$E[[as.character(6)]] * (drs$N - par$obs_DRS$D[[as.character(6)]])) #Numerator
       den <- Sobs * (parK$s*((parK$mob[[as.character(end_validate-1)]]-
                                 diag(diag(parK$mob[[as.character(end_validate-1)]]))) %*% 
                                cbind(par$obs_DRS$Is[[as.character(6)]] + parK$upI*par$obs_DRS$Is[[as.character(6)]])) + 
                        (parK$upI+1)*par$obs_DRS$Is[[as.character(6)]]) #Denominator
-      if(min(den) == 0) #Correct zero denominator
-        den[den == 0] <- min(den[den > 0])
       parK$beta <- as.vector(num/den) #Beta
       
       #Cities with 100+ cases
-      Sobs <- par$pop - parK$upE*par$obs$E[[as.character(6)]] - (1+parK$upI)*par$obs$Is[[as.character(6)]] - par$obs$R[[as.character(6)]] - 
+      par$obs$E[[as.character(6)]] <- par$lift*(1/(gammaS*gammaI))*(par$obs$E[[as.character(8)]]-
+                                                                      par$obs$E[[as.character(7)]]+(nuI+gammaS)*par$obs$E[[as.character(7)]])
+      Sobs <- par$pop - par$obs$E[[as.character(6)]] - (2+parK$upI)*par$obs$Is[[as.character(6)]] - (parK$upI+1)*par$obs$R[[as.character(6)]] - 
         par$obs$D[[as.character(6)]]
-      lambdaE <- 0.5*(log(par$lambda + nuS + parK$delta) + log(1+par$obs$Is[[as.character(7)]]) -
-                        log(gammaS * parK$upE * (1+par$obs$E[[as.character(6)]]))) + 0.5*(log(par$lambda + nuA) + 
-                                                                                            log(1+parK$upI*par$obs$Is[[as.character(7)]]) -
-                                                                                            log(parK$gammaA * parK$upE * 
-                                                                                                  (1+par$obs$E[[as.character(6)]]))) #Growth rate
-      num <- ((lambdaE + gammaS + parK$gammaA) * parK$upE * par$obs$E[[as.character(6)]] * (par$pop - par$obs$D[[as.character(6)]])) #Numerator
+      lambdaE <- log(par$lambda + nuI + gammaS) + log((1+parK$upI)*par$obs$Is[[as.character(7)]]) -
+        log(gammaI * (par$obs$E[[as.character(6)]])) #Growth rate
+      num <- ((lambdaE + gammaI) * par$obs$E[[as.character(6)]] * (par$pop - par$obs$D[[as.character(6)]])) #Numerator
       den <- Sobs * (parK$s*((parK$mob[[as.character(end_validate-1)]]-
                                 diag(diag(parK$mob[[as.character(end_validate-1)]]))) %*% 
                                cbind(par$obs$Is[[as.character(6)]] + parK$upI*par$obs$Is[[as.character(6)]])) + 
                        (parK$upI+1)*par$obs$Is[[as.character(6)]]) #Denominator
-      if(min(den) == 0) #Correct zero denominator
-        den[den == 0] <- min(den[den > 0])
-      b <- num/den
+      b <- as.vector(num/den) #Beta
       parK$beta[par$names %in% c_100] <- b[par$names %in% c_100]
-      if(min(parK$beta) < 0)
-        parK$beta[parK$beta < 0] <- min(parK$beta[parK$beta > 0])
       pred[[k]]$beta <- parK$beta #Prediction of beta
       
       #Mean infected time and Rt
-      Sobs <- par$pop - parK$upE*par$obs$E[[as.character(7)]] - (1+parK$upI)*par$obs$Is[[as.character(7)]] - par$obs$R[[as.character(7)]] - 
+      par$obs$E[[as.character(7)]] <- par$lift*(1/(gammaS*gammaI))*(par$obs$E[[as.character(9)]]-
+                                                                      par$obs$E[[as.character(8)]]+(nuI+gammaS)*par$obs$E[[as.character(8)]])
+      Sobs <- par$pop - par$obs$E[[as.character(7)]] - (2+parK$upI)*par$obs$Is[[as.character(7)]] - par$obs$R[[as.character(7)]] - 
         par$obs$D[[as.character(7)]]
       Dobs <- par$obs$D[[as.character(7)]]
-      parK$meanTi <- (parK$upI/(parK$upI + 1)) * parK$Ta + (1/(parK$upI + 1)) * (1-par$delta) * parK$Ts + (1/(parK$upI + 1)) * par$delta * parK$Td 
-      parK$Rt <- parK$beta*Sobs/(par$pop - Dobs) + t(par$mob[[as.character(end_validate)]] - diag(diag(par$mob[[as.character(end_validate)]])))%*%
-        cbind(parK$beta*Sobs/(par$pop - Dobs))
+      parK$meanTi <- parK$pS*parK$Ts + (1-parK$pS)*parK$Ti 
+      parK$Rt <- parK$beta*Sobs/(par$pop - Dobs)*(1 + parK$s*((par$mob[[as.character(end_validate)]] - diag(diag(par$mob[[as.character(end_validate)]])))%*%
+        cbind((1+parK$upI) * par$obs$Is[[as.character(7)]]))/(1+(1+parK$upI) * par$obs$Is[[as.character(7)]]))
       parK$Rt <- parK$Rt*parK$meanTi
       
       pred[[k]]$meanTi <- parK$meanTi #Prediction of mean infection time
-      pred[[k]]$Rt <- parK$Rt #Prediction of Rt
+      pred[[k]]$Rt <- as.vector(parK$Rt) #Prediction of Rt
       
       kgood <- kgood + 1
       minDK <- ifelse(min(1 + D$dif[D$D_drs > 50]) < 1,min(1 + D$dif[D$D_drs > 50]),1)
@@ -501,7 +517,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       if(kgood == max_models)
         break
     }
-    rm(parK,D,I,dif_D,dif_I,mod,good,initK,gammaS,nuA,nuS)
+    rm(parK,D,I,dif_D,dif_I,mod,good,initK,gammaI,gammaS,nuI,nuS)
   }
   cat("\n")
   cat(paste("Good models: ",kgood," (",round(100*kgood/sample_size,2),"%)\n",sep = ""))
