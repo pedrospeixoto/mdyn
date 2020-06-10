@@ -54,7 +54,7 @@ par$Ts <- c(1:14)
 par$Td <- c(7:21)
 par$s <- c(0.01,0.5,1,1.5,2,2.5,3)
 
-sample_size <- 100000
+sample_size <- 2000
 max_models <- 200
 source("mdyn/SEIR/SEIR_COVID19.R")
 SEIR_covid(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models)

@@ -131,7 +131,7 @@ get_data_SP <- function(){
       tmp$confirmed_corrected <- cumsum(tmp$new_infected_cor) #Confirmed cases corrected
       tmp$deaths_corrected <- cumsum(tmp$new_death_cor) #Confirmed deaths corrected
       if(i > 7){ #Estimating recovered
-        tmp$recovered[i] <- tmp$recovered[i-1] + tmp$new_infected_cor[i-7] #New corrected confirmed cases 15 days ago are recovered
+        tmp$recovered[i] <- tmp$recovered[i-1] + tmp$new_infected_cor[i-7] #New corrected confirmed cases 7 days ago are recovered
         tmp$infected[i] <- tmp$confirmed_corrected[i] - tmp$recovered[i] #Delete recovered from infected
       }
       else{ #Correct for first 16 days
