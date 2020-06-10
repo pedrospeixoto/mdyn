@@ -24,7 +24,7 @@ library(gridExtra)
 source("mdyn/SEIR/utils.R")
 source("mdyn/ShinyApps/preprocessing/preprocess_SEIR_output.R")
 
-SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
+SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models){
   
   cat("\n")
   cat("Welcome to Covid SEIR Mobility Model estimation!")
@@ -328,7 +328,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     nuS <- (1-parK$delta*parK$Td)/parK$Ts #Rate from Symptomatic to Recovered
     parK$upE <- par$lift/gammaS #To multiply number of new infected to get exposed
     initK <- init #Initial condition
-    initK[1:par$sites] <- parK$upE*init[1:par$sites] #Correct
+    initK[1:par$sites] <- parK$upE*init[1:par$sites] #Correct E
     initK[(par$sites + 1):(2*par$sites)] <- parK$upI*initK[(par$sites + 1):(2*par$sites)] #Assymptomatics
     initK[(3*par$sites + 1):(4*par$sites)] <- (parK$upI+1)*initK[(3*par$sites + 1):(4*par$sites)] #Correct R
     
@@ -405,7 +405,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
     dif_I <- max(abs(I$dif)[I$I_drs > 1000])
       
     #Is good
-    good <- as.numeric(dif_I <= 0.05 & dif_D <= 0.05)
+    good <- as.numeric(dif_I <= 0.045 & dif_D <= 0.045)
     is.good[k] <- good
     error[k] <- dif_D
     if(dif_I < mI)
@@ -498,6 +498,8 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max){
         maxD <- maxDK
       if(maxIK > maxI)
         maxI <- maxIK
+      if(kgood == max_models)
+        break
     }
     rm(parK,D,I,dif_D,dif_I,mod,good,initK,gammaS,nuA,nuS)
   }

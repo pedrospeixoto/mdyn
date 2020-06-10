@@ -8,7 +8,7 @@ library(lubridate)
 
 #Parameters
 cores <- 24 #Number   of cores to use in parallel computation
-pos <- "JUN09" #What to add at the end of all output files
+pos <- "teste" #What to add at the end of all output files
 seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
 d_max <- "2020-06-03"
@@ -49,14 +49,15 @@ for(i in 1:length(par$mob)){
 #Cadidate parameters  
 par$gammaA <-0.9
 par$Te <- c(5,5.5,6)
-par$Ta <- c(7:14)
+par$Ta <- c(7:21)
 par$Ts <- c(14:28)
-par$Td <- c(10:18)
+par$Td <- 14
 par$s <- c(0.01,0.5,1,1.5,2,2.5,3)
 
 sample_size <- 100000
+max_models <- 200
 source("mdyn/SEIR/SEIR_COVID19.R")
-SEIR_covid(cores,par,pos,seed,sample_size,simulate_length,d_max)
+SEIR_covid(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models)
 
 #####Sample Size#####
 # log_choose <- function(n,k){
