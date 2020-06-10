@@ -405,7 +405,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     dif_I <- max(abs(I$dif)[I$I_drs > 1000])
       
     #Is good
-    good <- as.numeric(dif_I <= 0.045 & dif_D <= 0.045)
+    good <- as.numeric(dif_I <= 0.045 & dif_D <= 0.05)
     is.good[k] <- good
     error[k] <- dif_D
     if(dif_I < mI)
