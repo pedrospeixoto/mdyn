@@ -321,7 +321,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     parK$delta <- par$delta/parK$Td #delta
     parK$sites <- par$sites #Number of sites
     parK$s <- sample(x = par$s,size = 1) #s
-    parK$upI <- par$lift*sample(x = c(6:10),size = 1) #Asymptomatic initial condition
+    parK$upI <- par$lift*sample(x = c(6:10,15,20,25,30,35,40),size = 1) #Asymptomatic initial condition
     parK$gammaA <- parK$upI/((1+parK$upI)*parK$Te) #GammaA
     gammaS <- (1 - parK$Te*parK$gammaA)/parK$Te #Rate of Exposed to Symptomatic
     nuA <- 1/parK$Ta #Rate from Asymptomatic to Recovered
