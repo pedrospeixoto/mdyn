@@ -1,5 +1,37 @@
 #Util functions for fitting and simulating the SEIR metapopulation model for COVID-19
 
+#Libraries
+library(tidyverse)
+library(lubridate)
+library(readxl)
+library(doParallel)
+library(foreach)
+library(rgdal)
+library(rgeos)
+library(geosphere)
+library(svMisc)
+library(data.table)
+library(ggplot2)
+library(ggthemes)
+library(readODS)
+library(doSNOW)
+library(progress)
+library(gridExtra)
+
+#Source scripts
+source("mdyn/ShinyApps/preprocessing/preprocess_SEIR_output.R")
+source("mdyn/ShinyApps/preprocessing/model.R")
+source("mdyn/ShinyApps/preprocessing/EPI_curve.R")
+source("mdyn/ShinyApps/preprocessing/get_data_SP.R")
+source("mdyn/ShinyApps/preprocessing/lift_death.R")
+source("mdyn/ShinyApps/preprocessing/data_drs.R")
+source("mdyn/ShinyApps/preprocessing/initial_condition.R")
+source("mdyn/ShinyApps/preprocessing/obs_around_init.R")
+source("mdyn/ShinyApps/preprocessing/growth_rate.R")
+source("mdyn/ShinyApps/preprocessing/death_rate.R")
+source("mdyn/ShinyApps/preprocessing/set_progress_bar.R")
+source("mdyn/ShinyApps/preprocessing/sample_parameters.R")
+
 #Plot themes
 titles <- theme(strip.text = element_text(size = 12), axis.text = element_text(size = 12,color = "black"),
                 axis.title = element_text(size = 14), legend.text = element_text(size = 14),
@@ -67,6 +99,9 @@ solve_seir <- function(y,times,derivatives,parms){
 }
 
 #Get drs data
+drs <- readRDS(file = "mdyn/SEIR/dados/drs.rds")
+drs <- drs[match(par$names,drs$Municipio),]
+drs$N[drs$Municipio == "SÃO PAULO"] <- par$pop[par$names == "SÃO PAULO"]
 # drs <- read.csv("/home/dmarcondes/mdyn/SEIR/dados/DRS.csv",sep = ";") #Read drs table
 # drs$Municipio <- gsub("'","",drs$Municipio) #Correct names 
 # drs <- drs[match(par$names,drs$Municipio),] #Order cities
@@ -82,105 +117,6 @@ solve_seir <- function(y,times,derivatives,parms){
 #                             "XIII","XIV","XV","XVI","XVII")) #DRS to factor
 # drs$Regiao <- factor(drs$Regiao) #Regiao to factor
 # saveRDS(object = drs,"drs.rds")
-
-#Get notification data state of SP
-get_data_SP <- function(){
-  file <- gzcon(url("https://github.com/seade-R/dados-covid-sp/raw/master/data/dados_covid_sp.csv")) #Data path
-  txt <- readLines(file) #Read lines
-  obs <- read.csv(textConnection(txt),sep = ";") #Get data
-  names(obs)[c(5,1,6,10)] <- c("date","city","last_available_confirmed","last_available_deaths")
-  obs <- obs %>% 
-    select(city,date,last_available_confirmed,last_available_deaths) %>% na.omit() %>% filter(city != "Ignorado") #Only confirmed cases and death
-  obs$city <- toupper(gsub(pattern = "'",replacement = "",x = obs$city)) #Correct names
-  obs$city[obs$city == "ITAÓCA"] <- "ITAOCA" #Correct names
-  obs$city[obs$city == "BIRITIBA MIRIM"] <- "BIRITIBA-MIRIM" #Correct names
-  obs$date <- ymd(obs$date) #Date
-  for(d in unique(as.character(obs$date))){ #Add zero to cities where and when no cases/deaths were confirmed
-    tmp <- par$names[!(par$names %in% obs$city[obs$date == d])]
-    tmp <- data.frame("city" = tmp,"date" = ymd(d),"last_available_confirmed" = 0,"last_available_deaths" = 0)
-    obs <- rbind.data.frame(obs,tmp)
-  }
-  obs$key <- paste(obs$city,obs$date) #Set key
-  obs_new <- obs[1,] #Create new dataframe
-  obs_new$recovered <- 0 #Initialize new variables
-  obs_new$infected <- 0 #Initialize new variables
-  obs_new$new_infected <- 0 #Initialize new variables
-  obs_new$new_death <- 0 #Initialize new variables
-  obs_new$new_infected_cor <- 0 #Initialize new variables
-  obs_new$new_death_cor <- 0 #Initialize new variables
-  obs_new$confirmed_corrected <- 0 #Initialize new variables
-  obs_new$deaths_corrected <- 0 #Initialize new variables
-  obs_new$new_infected_mean <- 0 #Initialize new variables
-  for(c in unique(obs$city)){ #For each city
-    tmp <- data.frame(obs %>% filter(city == c)) #Get data from the city
-    tmp <- tmp[order(tmp$date),] #Order by date
-    tmp$recovered <- 0 #Initialize new variables
-    tmp$infected <- 0 #Initialize new variables
-    tmp$new_infected <- c(tmp$last_available_confirmed[1],diff(tmp$last_available_confirmed)) #Incidence of infection
-    tmp$new_death <- c(tmp$last_available_deaths[1],diff(tmp$last_available_deaths)) #Incidence death
-    tmp$new_infected_cor <- 0
-    tmp$new_infected_cor[1:3] <- tmp$new_infected[1:3] #Initialize new variables
-    tmp$new_death_cor <- 0
-    tmp$new_death_cor[1:3] <- tmp$new_death[1:3] #Initialize new variables
-    tmp$confirmed_corrected <- 0 #Initialize new variables
-    tmp$deaths_corrected <- 0 #Initialize new variables
-    tmp$new_infected_mean #Initialize new variables
-    for(i in 4:(nrow(tmp)-3)){
-      tmp$new_infected_cor[i] <- mean(tmp$new_infected[(i-3):(i+3)]) #New cases corrected
-      tmp$new_death_cor[i] <- mean(tmp$new_death[(i-3):(i+3)]) #New deaths corrected
-      tmp$confirmed_corrected <- cumsum(tmp$new_infected_cor) #Confirmed cases corrected
-      tmp$deaths_corrected <- cumsum(tmp$new_death_cor) #Confirmed deaths corrected
-      if(i > 15){ #Estimating recovered
-        tmp$recovered[i] <- tmp$recovered[i-1] + tmp$new_infected_cor[i-15] #New corrected confirmed cases 15 days ago are recovered
-        tmp$infected[i] <- tmp$confirmed_corrected[i] - tmp$recovered[i] #Delete recovered from infected
-      }
-      else{ #Correct for first 16 days
-        tmp$recovered[i] <- 0
-        tmp$infected[i] <- tmp$confirmed_corrected[i]
-      }
-    }
-    for(i in 1:(nrow(tmp)-2))
-      tmp$new_infected_mean[i] <- mean(tmp$new_infected_cor[i:(i+2)]) #Mean of new cases corrected
-    obs_new <- rbind.data.frame(obs_new,tmp[-c(nrow(tmp)-1,nrow(tmp)),]) #Bind
-  }
-  obs <- obs_new[-1,] #Erase first extra row
-  obs$recovered <- obs$recovered - obs$deaths_corrected #Delete deaths from recovered
-  obs[obs < 0] <- 0 #Correct
-  
-  return(obs)
-}
-
-#Epidemiological curve
-EPI_curve <- function(obs,end_validate,pos){
-  dplot <- data.frame("date" = unique(obs$date),
-                      "R" = 1+tapply(X = obs$recovered,INDEX = obs$date,FUN = sum),
-                      "I" = 1+tapply(X = obs$infected,INDEX = obs$date,FUN = sum),
-                      "TI" = 1+tapply(X = obs$confirmed_corrected,INDEX = obs$date,FUN = sum),
-                      "TD" = 1+tapply(X = obs$deaths_corrected,INDEX = obs$date,FUN = sum)) #Get data
-  dplot <- dplot %>% gather("var","values",-date) %>% filter(date <= end_validate & date >= ymd("2020-04-01")) #Gather
-  dplot$date <- ymd(dplot$date)
-  p <- ggplot(dplot,aes(x = ymd(date),y = values,color = var)) + geom_line() +
-    theme_solarized(light = FALSE) +  
-    theme(legend.title = element_text(face = "bold"),legend.position = "bottom") + ylab("Confirmed Cases Corrected") +
-    xlab("Date") + scale_colour_discrete("",labels = c("Infected","Recovered","Deaths",
-                                                       "Total Confirmed")) +
-    theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
-          axis.text.x = element_text(size = 15,face = "bold",color = "white"),
-          legend.text = element_text(size = 15,face = "bold",color = "white"),
-          axis.text.y = element_text(size = 15,face = "bold",color = "white"),
-          legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
-          panel.grid.minor.y = element_blank(),
-          axis.title = element_text(color = "white",size = 20),
-          plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
-    theme(plot.margin = unit(c(1,1,1,1), "lines")) +
-    theme(strip.background = element_blank(),
-          strip.text = element_text(size = 20,face = "bold",color = "white")) +
-    labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
-    ggtitle(paste("Epidemiological Curve for State of São Paulo until",end_validate))
-  pdf(file = paste("/storage/SEIR/",pos,"/EPCurve_",end_validate,".pdf",sep = ""),width = 15,height = 10)
-  suppressWarnings(suppressMessages(print(p))) #Save plot
-  dev.off()
-}
 
 #Get data API
 get_data_API <- function(){
@@ -206,3 +142,6 @@ get_data_API <- function(){
   }
   return(dados)
 }
+
+#Positive log
+logP <- function(x){ifelse(x>0,log(x),0)}
