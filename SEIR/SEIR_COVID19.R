@@ -104,7 +104,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     initK <- initial_condition_corrected(init,init1f,init2f,parK)
     
     #Calculate beta
-    parK$beta <- beta(parK,t = 6,par$lambda,drs,end_validate,obs)#beta(parK,t = 0,lambda = par$lambda,drs,day = init_validate,obs)
+    parK$beta <- beta(parK,t = 0,lambda = par$lambda,drs,day = init_validate,obs)
     
     if(is.null(parK$beta)){
       is.good[k] <- 0
@@ -134,12 +134,12 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     if(good == 1){#Store good models
       
       #Prediction of beta t0-1
-      #parK$beta <- beta(parK,t = 6,par$lambda,drs,end_validate,obs)
-      #if(is.null(parK$beta)){
-      #  is.good[k] <- 0
-      #  rm(initK,parK)
-      #  next
-      #}
+      parK$beta <- beta(parK,t = 6,par$lambda,drs,end_validate,obs)
+      if(is.null(parK$beta)){
+        is.good[k] <- 0
+        rm(initK,parK)
+        next
+      }
       pred[[k]]$beta <- parK$beta
       
       #Prediction
@@ -153,7 +153,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       
       #Mean infected time and Rt
       parK$Rt <- Rt(parK,end_validate,7)
-      parK$menaTi <- parK$Rt$meanTi
+      parK$meanTi <- parK$Rt$meanTi
       parK$Rt <- parK$Rt$Rt
       pred[[k]]$meanTi <- parK$menaTi #Prediction of mean infection time
       pred[[k]]$Rt <- parK$Rt #Prediction of Rt
@@ -225,316 +225,25 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   betasave <- unlist(lapply(beta,median)) #Beta
   Rt <- lapply(results$models,function(x) x$Rt) #Rt
   Rtsave <- unlist(lapply(Rt,median)) #Rt
+  
   pred <- pred[is.good == 1] #Prediction of only good models
   saveRDS(object = results,file = paste("/storage/SEIR/",pos,"/result_",pos,".rds",sep = "")) #Save results
   saveRDS(object = pred,file = paste("/storage/SEIR/",pos,"/prediction_",pos,".rds",sep = "")) #Save predictions
-  #results <- readRDS(paste("/storage/SEIR/",pos,"/result_",pos,".rds",sep = "")) #Save results
-  #pred <- readRDS(paste("/storage/SEIR/",pos,"/prediction_",pos,".rds",sep = "")) #Save predictions
   
   param <- data.frame("Model" = 1:kgood,Te,Ti,Ts,Tsr,Td,s,"MedianBeta" = betasave,"MedianRt" = Rtsave,"MedianAssymptomatic" = assymptomatic,
                       cinfD,csupD,cinfI,csupI) #Parameters
   fwrite(param,paste("/storage/SEIR/",pos,"/parameters_",pos,".csv",sep = "")) #Write parameters of good models
   
   cat("Plotting maps of parameters which are city dependent...\n")
-    
-  #Mapas
-  shp <- readOGR(dsn = "~/mdyn/maps/sp_municipios/35MUE250GC_SIR.shp",stringsAsFactors = F,verbose = F) #Shapefiles
-  shp$NM_MUNICIP <- gsub("'","",shp$NM_MUNICIP) #Correct names
-  shp$NM_MUNICIP[shp$NM_MUNICIP == "BIRITIBA MIRIM"] <- "BIRITIBA-MIRIM"  #Correct names
-  shp <- fortify(shp,region = "NM_MUNICIP") #Fortify
-  rc_cont <- colorRampPalette(colors = c("white","orange","red"))(100)
   
-  #Rt
-  pRt <- lapply(Rt,function(x) data.frame(rbind(as.vector(x))))
-  pRt <- bind_rows(pRt)
-  colnames(pRt) <- par$names
-  pRt <- apply(pRt,2,median)
-  pRt <- data.frame("id" = names(pRt),"Rt" = pRt)
-  pRt <- merge(pRt,drs %>% select(Municipio,Regiao),by.y = "Municipio",by.x = "id")
-  pRt$Regiao <- as.character(pRt$Regiao)
-  pRt$Regiao[pRt$Regiao == "Cidade de São Paulo"] <- "Grande São Paulo"
-  pRt <- merge(pRt,shp)
-  pRt <- pRt[order(pRt$order),]
+  plot_maps_summary(Rt,par,drs,obs,end_validate)  
   
-  p <- ggplot(pRt,aes(long, lat,group=group,fill = log(1+Rt,2))) + theme_bw() + geom_polygon(colour='gray30') +
-    xlab("") + ylab("") + scale_fill_gradientn("",colours = rc_cont,breaks = c(seq(1.1*min(log(1+pRt$Rt,2)),0.95*max(log(1+pRt$Rt,2)),length.out = 4)),
-                                               labels = round(2^(seq(1.1*min(log(1+pRt$Rt,2)),0.95*max(log(1+pRt$Rt,2)),length.out = 4))-1,2),
-                                               limits = c(min(log(1+pRt$Rt,2)),max(log(1+pRt$Rt,2)))) + titles_Map +
-    ggtitle("Mediana do Rt estimado")
-  pdf(file = paste("/storage/SEIR/",pos,"/SP_Rt_",pos,".pdf",sep = ""),width = 15,height = 10)
-  suppressWarnings(suppressMessages(print(p)))
-  dev.off()
-  
-  for(d in unique(pRt$Regiao)){
-    tmp <- pRt %>% filter(Regiao == d)
-    p <- ggplot(tmp,aes(long, lat,group=group,fill = log(1+Rt,2))) + theme_bw() + geom_polygon(colour='gray30') +
-      xlab("") + ylab("") + scale_fill_gradientn("",colours = rc_cont,breaks = c(seq(1.1*min(log(1+pRt$Rt,2)),0.95*max(log(1+pRt$Rt,2)),length.out = 4)),
-                                                 labels = round(2^(seq(1.1*min(log(1+pRt$Rt,2)),0.95*max(log(1+pRt$Rt,2)),length.out = 4))-1,2),
-                                                 limits = c(min(log(1+pRt$Rt,2)),max(log(1+pRt$Rt,2)))) + 
-      titles_Map +
-      ggtitle(paste("Mediana do Rt estimado na DRS -",d))
-    pdf(file = paste("/storage/SEIR/",pos,"/",gsub(" ","",d),"_Rt_",pos,".pdf",sep = ""),width = 15,height = 10)
-    suppressWarnings(suppressMessages(print(p)))
-    dev.off()
-  }
-  
-  #Save Rt
-  pRt <- data.frame("Municipio" = par$names,"Minimo" = apply(bind_rows(lapply(Rt,function(x) data.frame(rbind(as.vector(x))))),2,min),
-                   "Mediana" = apply(bind_rows(lapply(Rt,function(x) data.frame(rbind(as.vector(x))))),2,median),
-                   "Máximo" = apply(bind_rows(lapply(Rt,function(x) data.frame(rbind(as.vector(x))))),2,max))
-  pRt <- merge(drs %>% select(Municipio,Regiao),pRt)
-  names(pRt)[2] <- "DRS"
-  pRt <- pRt[order(pRt$Mediana,decreasing = T),]
-  write.csv(pRt,file = paste("/storage/SEIR/",pos,"/SP_Rt_",pos,".csv",sep = ""),row.names = F)
-  
-  #Assintomáticos
-  pupI <- lapply(upI,function(x) data.frame(rbind(x)))
-  pupI <- bind_rows(pupI)
-  for(j in 1:ncol(pupI))
-    pupI[,j] <- pupI[,j]/(1+pupI[,j])
-  colnames(pupI) <- par$names
-  pupI <- apply(pupI,2,median)
-  pupI <- data.frame("id" = names(pupI),"upI" = pupI)
-  pupI <- merge(pupI,drs %>% select(Municipio,Regiao),by.y = "Municipio",by.x = "id")
-  pupI$Regiao <- as.character(pupI$Regiao)
-  pupI$Regiao[pupI$Regiao == "Cidade de São Paulo"] <- "Grande São Paulo"
-  pupI <- merge(pupI,shp)
-  pupI <- pupI[order(pupI$order),]
-  rc_ass <- colorRampPalette(colors = c("orange","red"))(100)
-  
-  p <- ggplot(pupI,aes(long, lat,group=group,fill = log(1+upI,2))) + theme_bw() + geom_polygon(colour='gray30') +
-    xlab("") + ylab("") + 
-    scale_fill_gradientn("",colours = rc_ass,breaks = c(seq(1.01*min(log(1+pupI$upI,2)),0.99*max(log(1+pupI$upI,2)),length.out = 4)),
-                                               labels = round(2^(seq(1.01*min(log(1+pupI$upI,2)),0.99*max(log(1+pupI$upI,2)),length.out = 4))-1,2),
-                         limits = c(min(log(1+pupI$upI,2)),max(log(1+pupI$upI,2)))) + 
-    titles_Map +
-    ggtitle("Mediana da proporção estimada de assintomáticos")
-   pdf(file = paste("/storage/SEIR/",pos,"/SP_assymptomatics_",pos,".pdf",sep = ""),width = 15,height = 10)
-   suppressWarnings(suppressMessages(print(p)))
-   dev.off()
-    
-  for(d in unique(pupI$Regiao)){
-   tmp <- pupI %>% filter(Regiao == d)
-   p <- ggplot(tmp,aes(long, lat,group=group,fill = log(1+upI,2))) + theme_bw() + geom_polygon(colour='gray30') +
-     xlab("") + ylab("") + 
-     scale_fill_gradientn("",colours = rc_ass,breaks = c(seq(1.01*min(log(1+pupI$upI,2)),0.99*max(log(1+pupI$upI,2)),length.out = 4)),
-                          labels = round(2^(seq(1.01*min(log(1+pupI$upI,2)),0.99*max(log(1+pupI$upI,2)),length.out = 4))-1,2),
-                          limits = c(min(log(1+pupI$upI,2)),max(log(1+pupI$upI,2)))) + 
-     titles_Map +
-     ggtitle("Mediana da proporção estimada de assintomáticos")
-   pdf(file = paste("/storage/SEIR/",pos,"/",gsub(" ","",d),"_assymptomatics_",pos,".pdf",sep = ""),width = 15,height = 10)
-   suppressWarnings(suppressMessages(print(p)))
-   dev.off()
-  }
-   
-  #Save assymptomatics
-  pA <- data.frame("Municipio" = par$names,"Minimo" = apply(bind_rows(lapply(upI,function(x) data.frame(rbind(x)))),2,min),
-                  "Mediana" = apply(bind_rows(lapply(upI,function(x) data.frame(rbind(x)))),2,median),
-                  "Máximo" = apply(bind_rows(lapply(upI,function(x) data.frame(rbind(x)))),2,max))
-  pA <- merge(drs %>% select(Municipio,Regiao),pA)
-  names(pA)[2] <- "DRS"
-  for(j in 3:5)
-    pA[,j] <- 100*pA[,j]/(1+pA[,j])
-  pA <- pA[order(pA$Mediana,decreasing = T),]
-  write.csv(pA,file = paste("/storage/SEIR/",pos,"/SP_assymptomatics_",pos,".csv",sep = ""),row.names = F)
-    
   #######Plot by DRS#####
   cat("Plot observed and predicted number of deaths for each DRS...\n")
   system(paste("mkdir /storage/SEIR/",pos,"/validate",sep = ""))
   
-  #For each DRS
-  D <- vector("list",length(levels(drs$DRS)))
-  names(D) <- levels(drs$DRS)
-  for(k in 1:length(pred)){
-    D_mod <- pred[[k]]$D
-    colnames(D_mod) <- par$names
-    D_mod$date <- seq.Date(ymd(init_validate),ymd(end_validate),1) 
-    D_mod <- D_mod %>% gather("Municipio","D",-date)
-    D_mod <- merge(D_mod,drs)
-    D_mod$key <- paste(D_mod$date,D_mod$DRS)
-    D_mod <- data.table(D_mod)
-    D_mod <- D_mod[,D_pred := sum(D),by = key]
-    D_mod <- D_mod %>% select(DRS,date,D_pred,key) %>% unique() %>% data.frame()
-    names(D_mod)[3] <- paste("M",k,sep = "")
-    for(d in unique(drs$DRS)){
-      tmp <- D_mod %>% filter(DRS == d) %>% select(-DRS)
-      if(is.null(D[[d]]))
-        D[[d]] <- tmp 
-      else
-        D[[d]] <- merge(D[[d]],tmp %>% select(-date))
-    }
-  }
-    
-  #For each DRS cases
-  I <- vector("list",length(levels(drs$DRS)))
-  names(I) <- levels(drs$DRS)
-  for(k in 1:length(pred)){
-    I_mod <- pred[[k]]$I
-    colnames(I_mod) <- par$names
-    I_mod$date <- seq.Date(ymd(init_validate),ymd(end_validate),1) 
-    I_mod <- I_mod %>% gather("Municipio","I",-date)
-    I_mod <- merge(I_mod,drs)
-    I_mod$key <- paste(I_mod$date,I_mod$DRS)
-    I_mod <- data.table(I_mod)
-    I_mod <- I_mod[,I_pred := sum(I),by = key]
-    I_mod <- I_mod %>% select(DRS,date,I_pred,key) %>% unique() %>% data.frame()
-    names(I_mod)[3] <- paste("M",k,sep = "")
-    for(d in unique(drs$DRS)){
-      tmp <- I_mod %>% filter(DRS == d) %>% select(-DRS)
-      if(is.null(I[[d]]))
-        I[[d]] <- tmp 
-      else
-        I[[d]] <- merge(I[[d]],tmp %>% select(-date))
-    }
-  }
-    
-  for(d in unique(drs$DRS)){
-    D[[d]]$Dpred <- apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = median)
-    D[[d]]$DpredInf <- minD*apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = min)
-    D[[d]]$DpredInf[1] <- D[[d]]$DpredInf[1]/minD
-    D[[d]]$DpredSup <- maxD*apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = max)
-    D[[d]]$DpredSup[1] <- D[[d]]$DpredSup[1]/maxD
-    I[[d]]$Ipred <- apply(X = I[[d]] %>% select(-date,-key),MARGIN = 1,FUN = median)
-    I[[d]]$IpredInf <- minI*apply(X = I[[d]] %>% select(-date,-key),MARGIN = 1,FUN = min)
-    I[[d]]$IpredInf[1] <- I[[d]]$IpredInf[1]/minI
-    I[[d]]$IpredSup <- maxI*apply(X = I[[d]] %>% select(-date,-key),MARGIN = 1,FUN = max)
-    I[[d]]$IpredSup[1] <- I[[d]]$IpredSup[1]/maxI
-    tmp <- obs_drs %>% filter(ymd(date) >= ymd(end_validate)-31 & ymd(date) <= ymd(end_validate))
-    tmp$key <- paste(tmp$date,tmp$DRS)
-    tmp <- tmp[tmp$DRS == d,c(2,13)]
-    names(tmp)[2] <- "D"
-    D[[d]] <- merge(D[[d]],tmp,all = T)
-    tmp <- obs_drs %>% filter(ymd(date) >= ymd(end_validate)-31 & ymd(date) <= ymd(end_validate))
-    tmp$key <- paste(tmp$date,tmp$DRS)
-    tmp <- tmp[tmp$DRS == d,c(2,12)]
-    names(tmp)[2] <- "I"
-    I[[d]] <- merge(I[[d]],tmp,all = T)
-    
-    #Plot
-    if(max(I[[d]]$I) > 1000 | max(D[[d]]$D) > 50){
-      tmp <- D[[d]]
-      pD <- ggplot(tmp,aes(x = date)) + theme_solarized(light = FALSE) + geom_line(aes(y = D),color = "red") + 
-        geom_line(aes(y = Dpred),linetype = "dashed",color = "red") +
-        geom_ribbon(aes(ymin = DpredInf,ymax = DpredSup),fill = "red",alpha = 0.5) + xlab("Data") + ylab("Mortes confirmadas") +
-        scale_x_date(breaks = seq.Date(from = min(ymd(tmp$date),na.rm = T),to = max(ymd(tmp$date),na.rm = T),by = 3),
-                     labels = paste(day(seq.Date(from = min(ymd(tmp$date),na.rm = T),to = max(ymd(tmp$date),na.rm = T),by = 3)),"/0",
-                                    month(seq.Date(from = min(ymd(tmp$date),na.rm = T),to = max(ymd(tmp$date),na.rm = T),by = 3)),sep = "")) +
-        theme(legend.title = element_text(face = "bold"),legend.position = "none") +
-        theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
-              axis.text.x = element_text(size = 15,face = "bold",color = "white"),
-              axis.text.y = element_text(size = 15,face = "bold",color = "white"),
-              legend.box.margin = unit(x=c(20,0,0,0),units="mm"),
-              legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
-              panel.grid.minor.y = element_blank(),
-              axis.title = element_text(color = "white",size = 20),
-              plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
-        theme(plot.margin = unit(c(1,1,1,1), "lines")) +
-        theme(strip.background = element_blank(),
-              strip.text = element_text(size = 20,face = "bold",color = "white")) +
-        labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
-      ggtitle(paste("Mortes confirmadas COVID-19 na DRS",d,"-",unique(drs$Regiao[drs$DRS == d])))
-      pdf(file = paste("/storage/SEIR/",pos,"/validate/",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_mortes.pdf",sep = ""),width = 15,height = 10)
-     suppressWarnings(suppressMessages(print(pD)))
-      dev.off()
-    
-      tmp <- I[[d]]
-      pI <- ggplot(tmp,aes(x = date)) + theme_solarized(light = FALSE) + geom_line(aes(y = I),color = "red") + 
-        geom_line(aes(y = Ipred),linetype = "dashed",color = "red") +
-        geom_ribbon(aes(ymin = IpredInf,ymax = IpredSup),fill = "red",alpha = 0.5) + xlab("Data") + ylab("Casos confirmados") +
-        scale_x_date(breaks = seq.Date(from = min(ymd(tmp$date)),to = max(ymd(tmp$date)),by = 3),
-                     labels = paste(day(seq.Date(from = min(ymd(tmp$date),na.rm = T),to = max(ymd(tmp$date),na.rm = T),by = 3)),"/0",
-                                    month(seq.Date(from = min(ymd(tmp$date),na.rm = T),to = max(ymd(tmp$date),na.rm = T),by = 3)),sep = "")) +
-        theme(legend.title = element_text(face = "bold"),legend.position = "none") +
-        theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
-              axis.text.x = element_text(size = 15,face = "bold",color = "white"),
-              axis.text.y = element_text(size = 15,face = "bold",color = "white"),
-              legend.box.margin = unit(x=c(20,0,0,0),units="mm"),
-              legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
-              panel.grid.minor.y = element_blank(),
-              axis.title = element_text(color = "white",size = 20),
-              plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
-        theme(plot.margin = unit(c(1,1,1,1), "lines")) +
-        theme(strip.background = element_blank(),
-              strip.text = element_text(size = 20,face = "bold",color = "white")) +
-        labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
-        ggtitle(paste("Casos confirmados COVID-19 na DRS",d,"-",unique(drs$Regiao[drs$DRS == d])))
-      pdf(file = paste("/storage/SEIR/",pos,"/validate/",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_casos.pdf",sep = ""),width = 15,height = 10)
-      suppressWarnings(suppressMessages(print(pI)))
-      dev.off()
-    }
-  }
-   
-  #Plot state
-  tmp <- data.table(obs %>% filter(ymd(date) >= ymd(end_validate)-31 & ymd(date) <= ymd(end_validate))) #Notifications in validation period
-  tmp <- tmp[,TD := sum(deaths_corrected),by = date] #Sum of deaths each day
-  tmp <- tmp[,TI := sum(confirmed_corrected),by = date] #Sum of deaths each day
-  tmp <- tmp %>% select(date,TD,TI) %>% unique()
+  plot_validate() #AQUI!!
   
-  #Agregate predicted data
-  c_pred <- data.frame("date" = seq.Date(from = ymd(init_validate),to = ymd(end_validate),by = 1),
-                     "Ipred" = apply(rbindlist(lapply(lapply(X = pred,FUN = function(x) x$I),function(x) data.frame(rbind(rowSums(x))))),2,median),
-                     "IpredInf" = minI*apply(rbindlist(lapply(lapply(X = pred,FUN = function(x) x$I),function(x) data.frame(rbind(rowSums(x))))),2,min),
-                     "IpredSup" = maxI*apply(rbindlist(lapply(lapply(X = pred,FUN = function(x) x$I),function(x) data.frame(rbind(rowSums(x))))),2,max),
-                     "Dpred" = apply(rbindlist(lapply(lapply(X = pred,FUN = function(x) x$D),function(x) data.frame(rbind(rowSums(x))))),2,median),
-                     "DpredInf" = minD*apply(rbindlist(lapply(lapply(X = pred,FUN = function(x) x$D),function(x) data.frame(rbind(rowSums(x))))),2,min),
-                     "DpredSup" = maxD*apply(rbindlist(lapply(lapply(X = pred,FUN = function(x) x$D),function(x) data.frame(rbind(rowSums(x))))),2,max))
-  c_pred$DpredInf[1] <- c_pred$DpredInf[1]/minD
-  c_pred$DpredSup[1] <- c_pred$DpredSup[1]/maxD
-  c_pred$IpredInf[1] <- c_pred$IpredInf[1]/minI
-  c_pred$IpredSup[1] <- c_pred$IpredSup[1]/maxI
-  tmp <- merge(tmp,c_pred,all = TRUE) #Merge with observed data
-
-  #D
-  pD <- ggplot(tmp,aes(x = date)) + theme_solarized(light = FALSE) + geom_line(aes(y = TD),color = "red") + geom_line(aes(y = Dpred),
-                                                                                                                      linetype = "dashed",
-                                                                                                                      color = "red") +
-      geom_ribbon(aes(ymin = DpredInf,ymax = DpredSup),fill = "red",alpha = 0.5) + xlab("Data") + ylab("Mortes confirmadas") +
-      scale_x_date(breaks = seq.Date(from = min(ymd(tmp$date)),to = max(ymd(tmp$date)),by = 3),
-                   labels = paste(day(seq.Date(from = min(ymd(tmp$date)),to = max(ymd(tmp$date)),by = 3)),"/0",
-                                  month(seq.Date(from = min(ymd(tmp$date)),to = max(ymd(tmp$date)),by = 3)),sep = "")) +
-      theme(legend.title = element_text(face = "bold"),legend.position = "none") +
-      theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
-            axis.text.x = element_text(size = 15,face = "bold",color = "white"),
-            axis.text.y = element_text(size = 15,face = "bold",color = "white"),
-            legend.box.margin = unit(x=c(20,0,0,0),units="mm"),
-            legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
-            panel.grid.minor.y = element_blank(),
-            axis.title = element_text(color = "white",size = 20),
-            plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
-      theme(plot.margin = unit(c(1,1,1,1), "lines")) +
-      theme(strip.background = element_blank(),
-            strip.text = element_text(size = 20,face = "bold",color = "white")) +
-      labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
-      ggtitle("Mortes confirmadas COVID-19 no Estado de São Paulo")
-  pdf(file = paste("/storage/SEIR/",pos,"/SP_mortes_",pos,".pdf",sep = ""),width = 15,height = 10)
-  suppressWarnings(suppressMessages(print(pD)))
-  dev.off()
-  
-  #I
-  pI <- ggplot(tmp,aes(x = date)) + theme_solarized(light = FALSE) + geom_line(aes(y = TI),color = "red") + geom_line(aes(y = Ipred),
-                                                                                                                      linetype = "dashed",
-                                                                                                                      color = "red") +
-    geom_ribbon(aes(ymin = IpredInf,ymax = IpredSup),fill = "red",alpha = 0.5) + xlab("Data") + ylab("Casos confirmados") +
-    scale_x_date(breaks = seq.Date(from = min(ymd(tmp$date)),to = max(ymd(tmp$date)),by = 3),
-                 labels = paste(day(seq.Date(from = min(ymd(tmp$date)),to = max(ymd(tmp$date)),by = 3)),"/0",
-                                month(seq.Date(from = min(ymd(tmp$date)),to = max(ymd(tmp$date)),by = 3)),sep = "")) +
-    theme(legend.title = element_text(face = "bold"),legend.position = "none") +
-    theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
-          axis.text.x = element_text(size = 15,face = "bold",color = "white"),
-          axis.text.y = element_text(size = 15,face = "bold",color = "white"),
-          legend.box.margin = unit(x=c(20,0,0,0),units="mm"),
-          legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
-          panel.grid.minor.y = element_blank(),
-          axis.title = element_text(color = "white",size = 20),
-          plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
-    theme(plot.margin = unit(c(1,1,1,1), "lines")) +
-    theme(strip.background = element_blank(),
-          strip.text = element_text(size = 20,face = "bold",color = "white")) +
-    labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
-    ggtitle("Casos confirmados COVID-19 no Estado de São Paulo")
-  pdf(file = paste("/storage/SEIR/",pos,"/SP_casos_",pos,".pdf",sep = ""),width = 15,height = 10)
-  suppressWarnings(suppressMessages(print(pI)))
-  dev.off()
 
   #######Simulation of scenarios########
   cat("Simulating scenarios...\n")
