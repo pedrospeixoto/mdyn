@@ -1,4 +1,7 @@
 #!/bin/bash
+source ~/anaconda3/etc/profile.d/conda.sh
+conda activate mdyn
+cd /home/pedrosp/mdyn
 dir=`pwd`
 echo $dir
 echo "Cities:"
