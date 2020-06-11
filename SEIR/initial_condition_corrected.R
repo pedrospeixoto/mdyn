@@ -3,14 +3,15 @@ initial_condition_corrected <- function(init,init1f,init2f,parK){
   initK <- init
   
   #Correct Infected
-  initK[(par$sites + 1):(2*par$sites)] <- (parK$upI+1)*initK[(par$sites + 1):(2*par$sites)]
+  initK[(parK$sites + 1):(2*parK$sites)] <- (parK$upI+1)*initK[(parK$sites + 1):(2*parK$sites)]
   
   #Correct recovered
-  initK[(3*par$sites + 1):(4*par$sites)] <- (parK$upI+1)*initK[(3*par$sites + 1):(4*par$sites)]
+  initK[(3*parK$sites + 1):(4*parK$sites)] <- (parK$upI+1)*initK[(3*parK$sites + 1):(4*parK$sites)]
   
   #Exposed
-  initK[1:par$sites] <- par$lift*(1/(gammaS*gammaI))*(init2f[1:par$sites] - init1f[1:par$sites] + (nuI+gammaS)*init1f[1:par$sites]) #Correct E
-  initK[1:par$sites] <- ifelse(initK[1:par$sites] < 0,0,initK[1:par$sites])
+  initK[1:parK$sites] <- (parK$upI+1)*(1/(parK$gammaS*parK$gammaI))*(init2f[1:parK$sites] + (parK$nuI+parK$gammaS-1)*init1f[1:parK$sites]) #Correct E
+  initK[1:parK$sites] <- ifelse(initK[1:parK$sites] < 0,0,initK[1:parK$sites])
   
-  
+  return(initK)
 }
+

@@ -26,11 +26,16 @@ source("mdyn/ShinyApps/preprocessing/get_data_SP.R")
 source("mdyn/ShinyApps/preprocessing/lift_death.R")
 source("mdyn/ShinyApps/preprocessing/data_drs.R")
 source("mdyn/ShinyApps/preprocessing/initial_condition.R")
+source("mdyn/ShinyApps/preprocessing/initial_condition_corrected.R")
 source("mdyn/ShinyApps/preprocessing/obs_around_init.R")
 source("mdyn/ShinyApps/preprocessing/growth_rate.R")
 source("mdyn/ShinyApps/preprocessing/death_rate.R")
 source("mdyn/ShinyApps/preprocessing/set_progress_bar.R")
 source("mdyn/ShinyApps/preprocessing/sample_parameters.R")
+source("mdyn/ShinyApps/preprocessing/beta.R")
+source("mdyn/ShinyApps/preprocessing/seir_solver.R")
+source("mdyn/ShinyApps/preprocessing/test_model.R")
+source("mdyn/ShinyApps/preprocessing/Rt.R")
 
 #Plot themes
 titles <- theme(strip.text = element_text(size = 12), axis.text = element_text(size = 12,color = "black"),
@@ -84,18 +89,6 @@ rm_accent <- function(str,pattern="all") {
   for(i in which(accentTypes%in%pattern))
     str <- chartr(symbols[i],nudeSymbols[i], str)
   return(str)
-}
-
-#SEIR solver
-solve_seir <- function(y,times,derivatives,parms){
-  mod <- data.frame("t" = 1,rbind(y))
-  if(length(names(y)) > 0)
-    names(mod)[-1] <- names(y)
-  for(t in times[-1]){
-    y <- y + unlist(derivatives(t = t-1,Y = y,parK = parms))
-    mod[t,] <- c(t,y)
-  }
-  return(mod)
 }
 
 #Get drs data
