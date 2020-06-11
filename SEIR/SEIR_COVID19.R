@@ -6,7 +6,7 @@
 
 source("mdyn/SEIR/utils.R")
 
-SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models){
+SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models,error_I,error_D){
   
   cat("\n")
   cat("Welcome to Covid SEIR Mobility Model estimation!")
@@ -59,10 +59,12 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   teste_D <- obs_drs %>% filter(date %in% seq.Date(from = ymd(init_validate),to = ymd(end_validate),1)) %>%
     select(date,DRS,deaths_corrected) %>% unique()
   names(teste_D)[3] <- "D_drs"
+  teste_D$key <- paste(teste_D$date,teste_D$DRS)
   
   teste_I <- obs_drs %>% filter(date %in% seq.Date(from = ymd(init_validate),to = ymd(end_validate),1)) %>%
     select(date,DRS,confirmed_corrected) %>% unique()
   names(teste_I)[3] <- "I_drs"
+  teste_I$key <- paste(teste_I$date,teste_I$DRS)
   
   #Calculate growth rate
   system(paste("mkdir /storage/SEIR/",pos,"/AjusteRate/",sep = ""))
@@ -76,7 +78,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   #Choosing models
   pred <- vector("list",sample_size) #Store predicted values
   pb <- set_progress_bar(sample_size)[[1]] 
-  progress_letters <- set_progress_bar(sample_size)[[2]] 
+  progress_letter <- set_progress_bar(sample_size)[[2]] 
   
   #Objects to store results
   results <- list()
@@ -101,42 +103,14 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     #Initial condition
     initK <- initial_condition_corrected(init,init1f,init2f,parK)
     
+    #Calculate beta
+    parK$beta <- beta(parK,t = 6,par$lambda,drs,end_validate,obs)#beta(parK,t = 0,lambda = par$lambda,drs,day = init_validate,obs)
     
-    #Correct R
-    parK$obs <- par$obs
-    parK$obs_DRS <- par$obs_DRS
-    
-    #Beta by DRS
-    parK$obs_DRS$E[[as.character(0)]] <- par$lift*(1/(gammaS*gammaI))*(parK$obs_DRS$E[[as.character(2)]]-parK$obs_DRS$E[[as.character(1)]]+
-                                                                         (nuI+gammaS)*parK$obs_DRS$E[[as.character(1)]])
-    parK$obs_DRS$E[[as.character(0)]] <- ifelse(parK$obs_DRS$E[[as.character(0)]]<0,0,parK$obs_DRS$E[[as.character(0)]])
-    Sobs <- drs$N - parK$obs_DRS$E[[as.character(0)]] - (2+parK$upI)*parK$obs_DRS$Is[[as.character(0)]] - (parK$upI+1)*parK$obs_DRS$R[[as.character(0)]] - 
-      parK$obs_DRS$D[[as.character(0)]]
-    lambdaE <- logP(par$lambda + nuI + gammaS) + logP((1+parK$upI)*parK$obs_DRS$Is[[as.character(1)]]) -
-                      logP(gammaI * (parK$obs_DRS$E[[as.character(0)]])) #Growth rate
-    num <- ((lambdaE + gammaI) * parK$obs_DRS$E[[as.character(0)]] * (drs$N - parK$obs_DRS$D[[as.character(0)]])) #Numerator
-    den <- Sobs * (parK$s*((parK$mob[[as.character(init_validate-1)]]-
-                                                      diag(diag(parK$mob[[as.character(init_validate-1)]]))) %*% 
-                                                     cbind(parK$obs_DRS$Is[[as.character(0)]] + parK$upI*parK$obs_DRS$Is[[as.character(0)]])) + 
-                                               (parK$upI+1)*parK$obs_DRS$Is[[as.character(0)]]) #Denominator
-    parK$beta <- as.vector(num/den) #Beta
-    
-    #Cities with 100+ cases
-    parK$obs$E[[as.character(0)]] <- par$lift*(1/(gammaS*gammaI))*(parK$obs$E[[as.character(2)]]-parK$obs$E[[as.character(1)]]+
-                                                                         (nuI+gammaS)*parK$obs$E[[as.character(1)]])
-    parK$obs$E[[as.character(0)]] <- ifelse(parK$obs$E[[as.character(0)]] < 0,0,parK$obs$E[[as.character(0)]])
-    Sobs <- par$pop - parK$obs$E[[as.character(0)]] - (2+parK$upI)*parK$obs$Is[[as.character(0)]] - (parK$upI+1)*parK$obs$R[[as.character(0)]] - 
-      parK$obs$D[[as.character(0)]]
-    lambdaE <- logP(par$lambda + nuI + gammaS) + logP((1+parK$upI)*parK$obs$Is[[as.character(1)]]) -
-      logP(gammaI * (parK$obs$E[[as.character(0)]])) #Growth rate
-    num <- ((lambdaE + gammaI) * parK$obs$E[[as.character(0)]] * (par$pop - parK$obs$D[[as.character(0)]])) #Numerator
-    den <- Sobs * (parK$s*((parK$mob[[as.character(init_validate-1)]]-
-                              diag(diag(parK$mob[[as.character(init_validate-1)]]))) %*% 
-                             cbind(parK$obs$Is[[as.character(0)]] + parK$upI*parK$obs$Is[[as.character(0)]])) + 
-                     (parK$upI+1)*parK$obs$Is[[as.character(0)]]) #Denominator
-    b <- as.vector(num/den) #Beta
-    parK$beta[par$names %in% c_100] <- b[par$names %in% c_100]
-    parK$beta[parK$beta <= 0] <- min(parK$beta[parK$beta > 0])
+    if(is.null(parK$beta)){
+      is.good[k] <- 0
+      rm(initK,parK)
+      next
+    }
     
     #Model
     mod <- solve_seir(y = initK,times = 1:7,derivatives = derivatives,parms = parK)[,-1] #Simulate model k
@@ -146,44 +120,28 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Predicted cases for testing
       
     #Test if model predicted well
-    
-    #Deaths
-    colnames(D) <- par$names
-    D$date <- seq.Date(ymd(init_validate),ymd(end_validate),1) 
-    D <- D %>% gather("Municipio","D",-date)
-    D <- merge(D,drs)
-    D$key <- paste(D$date,D$DRS)
-    D <- data.table(D)
-    D <- D[,D_pred := sum(D),by = key]
-    D <- D %>% select(D_pred,key) %>% unique() %>% data.frame()
-    D <- merge(D,teste_D)
-    D$dif <- (D$D_pred - D$D_drs)/D$D_drs
-    dif_D <- max(abs(D$dif)[D$D_drs > 50])
-    
-    #Cases
-    colnames(I) <- par$names
-    I$date <- seq.Date(ymd(init_validate),ymd(end_validate),1) 
-    I <- I %>% gather("Municipio","I",-date)
-    I <- merge(I,drs)
-    I$key <- paste(I$date,I$DRS)
-    I <- data.table(I)
-    I <- I[,I_pred := sum(I),by = key]
-    I <- I %>% select(I_pred,key) %>% unique() %>% data.frame()
-    I <- merge(I,teste_I)
-    I$dif <- (I$I_pred - I$I_drs)/I$I_drs
-    dif_I <- max(abs(I$dif)[I$I_drs > 1000])
-      
+    test <- test_model(D,I,teste_D,teste_I,drs)
+
     #Is good
-    good <- as.numeric(dif_I <= 0.075 & dif_D <= 0.04)
-    is.good[k] <- good
-    error[k] <- dif_D
-    if(dif_I < mI)
-      mI <- dif_I
-    if(dif_D < mD)
-      mD <- dif_D
+    good <- as.numeric(test$dif_I <= error_I & test$dif_D <= error_D) #Test if is good
+    is.good[k] <- good #Store
+    if(test$dif_I < mI) #If is minimum error so far
+      mI <- test$dif_I
+    if(test$dif_D < mD) #If is minimum error so far
+      mD <- test$dif_D
     
     #Result
     if(good == 1){#Store good models
+      
+      #Prediction of beta t0-1
+      #parK$beta <- beta(parK,t = 6,par$lambda,drs,end_validate,obs)
+      #if(is.null(parK$beta)){
+      #  is.good[k] <- 0
+      #  rm(initK,parK)
+      #  next
+      #}
+      pred[[k]]$beta <- parK$beta
+      
       #Prediction
       pred[[k]]$E <- mod[,1:parK$sites] #Prediction of E
       pred[[k]]$I <- mod[,(parK$sites + 1):(2*parK$sites)] #Prediction of I
@@ -191,64 +149,27 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       pred[[k]]$R <- mod[,(3*parK$sites + 1):(4*parK$sites)] #Prediction of R
       pred[[k]]$D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Prediction of D
       pred[[k]]$I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Total cases
-      parK$obs <- par$obs
-      parK$obs_DRS <- par$obs_DRS
       
-      #Prediction of beta t0-1
-      parK$obs_DRS$E[[as.character(6)]] <- par$lift*(1/(gammaS*gammaI))*(parK$obs_DRS$E[[as.character(8)]]-parK$obs_DRS$E[[as.character(7)]]+
-                                                                           (nuI+gammaS)*parK$obs_DRS$E[[as.character(7)]])
-      parK$obs_DRS$E[[as.character(6)]] <- ifelse(parK$obs_DRS$E[[as.character(6)]]<0,0,parK$obs_DRS$E[[as.character(6)]])
-      Sobs <- drs$N - parK$obs_DRS$E[[as.character(6)]] - (2+parK$upI)*parK$obs_DRS$Is[[as.character(6)]] - (parK$upI+1)*parK$obs_DRS$R[[as.character(6)]] - 
-        parK$obs_DRS$D[[as.character(6)]]
-      lambdaE <- logP(par$lambda + nuI + gammaS) + logP((1+parK$upI)*parK$obs_DRS$Is[[as.character(7)]]) -
-        logP(gammaI * (parK$obs_DRS$E[[as.character(6)]])) #Growth rate
-      num <- ((lambdaE + gammaI) * parK$obs_DRS$E[[as.character(6)]] * (drs$N - parK$obs_DRS$D[[as.character(6)]])) #Numerator
-      den <- Sobs * (parK$s*((parK$mob[[as.character(end_validate-1)]]-
-                                diag(diag(parK$mob[[as.character(end_validate-1)]]))) %*% 
-                               cbind(parK$obs_DRS$Is[[as.character(6)]] + parK$upI*parK$obs_DRS$Is[[as.character(6)]])) + 
-                       (parK$upI+1)*parK$obs_DRS$Is[[as.character(6)]]) #Denominator
-      parK$beta <- as.vector(num/den) #Beta
-      
-      #Cities with 100+ cases
-      parK$obs$E[[as.character(6)]] <- par$lift*(1/(gammaS*gammaI))*(parK$obs$E[[as.character(8)]]-parK$obs$E[[as.character(7)]]+
-                                                                           (nuI+gammaS)*parK$obs$E[[as.character(7)]])
-      parK$obs$E[[as.character(6)]] <- ifelse(parK$obs$E[[as.character(6)]]<0,0,parK$obs$E[[as.character(6)]])
-      Sobs <- par$pop - parK$obs$E[[as.character(6)]] - (2+parK$upI)*parK$obs$Is[[as.character(6)]] - (parK$upI+1)*parK$obs$R[[as.character(6)]] - 
-        parK$obs$D[[as.character(6)]]
-      lambdaE <- logP(par$lambda + nuI + gammaS) + logP(1+(1+parK$upI)*parK$obs$Is[[as.character(7)]]) -
-        logP(1+gammaI * (parK$obs$E[[as.character(6)]])) #Growth rate
-      num <- ((lambdaE + gammaI) * parK$obs$E[[as.character(6)]] * (par$pop - parK$obs$D[[as.character(6)]])) #Numerator
-      den <- Sobs * (parK$s*((parK$mob[[as.character(end_validate-1)]]-
-                                diag(diag(parK$mob[[as.character(end_validate-1)]]))) %*% 
-                               cbind(parK$obs$Is[[as.character(6)]] + parK$upI*parK$obs$Is[[as.character(6)]])) + 
-                       (parK$upI+1)*parK$obs$Is[[as.character(6)]]) #Denominator
-      b <- as.vector(num/den) #Beta
-      parK$beta[par$names %in% c_100] <- b[par$names %in% c_100]
-      parK$beta[parK$beta <= 0] <- min(parK$beta[parK$beta > 0])
-      pred[[k]]$beta <- parK$beta #Prediction of beta
       
       #Mean infected time and Rt
-      parK$obs <- par$obs
-      parK$obs_DRS <- par$obs_DRS
-      parK$obs$E[[as.character(7)]] <- par$lift*(1/(gammaS*gammaI))*(parK$obs$E[[as.character(9)]]-
-                                                                      parK$obs$E[[as.character(8)]]+(nuI+gammaS)*parK$obs$E[[as.character(8)]])
-      parK$obs$E[[as.character(7)]] <- ifelse(parK$obs$E[[as.character(7)]]<0,0,parK$obs$E[[as.character(7)]])
-      Sobs <- par$pop - parK$obs$E[[as.character(7)]] - (2+parK$upI)*parK$obs$Is[[as.character(7)]] - parK$obs$R[[as.character(7)]] - 
-        parK$obs$D[[as.character(7)]]
-      Dobs <- parK$obs$D[[as.character(7)]]
-      parK$meanTi <- parK$pS*parK$Ts + (1-parK$pS)*parK$Ti 
-      parK$Rt <- parK$beta*Sobs/(par$pop - Dobs)*(1 + parK$s*((par$mob[[as.character(end_validate)]] - diag(diag(par$mob[[as.character(end_validate)]])))%*%
-        cbind((1+parK$upI) * parK$obs$Is[[as.character(7)]]))/(1+(1+parK$upI) * parK$obs$Is[[as.character(7)]]))
-      parK$Rt <- parK$Rt*parK$meanTi
+      parK$Rt <- Rt(parK,end_validate,7)
+      parK$menaTi <- parK$Rt$meanTi
+      parK$Rt <- parK$Rt$Rt
+      pred[[k]]$meanTi <- parK$menaTi #Prediction of mean infection time
+      pred[[k]]$Rt <- parK$Rt #Prediction of Rt
       
-      pred[[k]]$meanTi <- parK$meanTi #Prediction of mean infection time
-      pred[[k]]$Rt <- as.vector(parK$Rt) #Prediction of Rt
-      
+      #Number of good models
       kgood <- kgood + 1
-      minDK <- ifelse(min(1 + D$dif[D$D_drs > 50]) < 1,min(1 + D$dif[D$D_drs > 50]),1)
-      maxDK <- ifelse(max(1 + D$dif[D$D_drs > 50]) > 1,max(1 + D$dif[D$D_drs > 50]),1)
-      minIK <- ifelse(min(1 + I$dif[I$I_drs > 1000]) < 1,min(1 + I$dif[I$I_drs > 1000]),1)
-      maxIK <- ifelse(max(1 + I$dif[I$I_drs > 1000]) > 1,max(1 + I$dif[I$I_drs > 1000]),1)
+      
+      #Error of this
+      minDK <- ifelse(min(1 + test$error_D$dif[test$error_D$D_drs > 50]) < 1,
+                      min(1 + test$error_D$dif[test$error_D$D_drs > 50]),1)
+      maxDK <- ifelse(max(1 + test$error_D$dif[test$error_D$D_drs > 50]) > 1,
+                      max(1 + test$error_D$dif[test$error_D$D_drs > 50]),1)
+      minIK <- ifelse(min(1 + test$error_I$dif[test$error_I$I_drs > 1000]) < 1,
+                      min(1 + test$error_I$dif[test$error_I$I_drs > 1000]),1)
+      maxIK <- ifelse(max(1 + test$error_I$dif[test$error_I$I_drs > 1000]) > 1,
+                      max(1 + test$error_I$dif[test$error_I$I_drs > 1000]),1)
       parK$minDK <- minDK
       parK$minIK <- minIK
       parK$maxDK <- maxDK
@@ -261,6 +182,8 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       parK$pop <- NULL #Population
       parK$obs <- NULL
       parK$obs_DRS <- NULL
+      parK$sites <- NULL
+      parK$lift <- NULL
       
       results$models[[kgood]] <- parK
       if(minDK < minD)
@@ -274,7 +197,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       if(kgood == max_models)
         break
     }
-    rm(parK,D,I,dif_D,dif_I,mod,good,initK,gammaI,gammaS,nuI,nuS)
+    rm(parK,D,I,test,mod,good,initK)
   }
   cat("\n")
   cat(paste("Good models: ",kgood," (",round(100*kgood/sample_size,2),"%)\n",sep = ""))

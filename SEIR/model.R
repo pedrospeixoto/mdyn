@@ -28,11 +28,11 @@ derivatives <- function(t,Y,parK){
   Tsr <- parK$Tsr #Time in statistics until recovering
   Td <- parK$Td #Time in statistics until death
   pS <- parK$pS #Proportion in statistics
-  gammaI <- 1/Te #Rate from Exposed to Infected
-  gammaS <- pS/Ts #Rate from Infected to Statistics
-  nuI <- (1-pS)/Ti #Rate from Infected to Recovered
-  nuS <- (1-delta)/Tsr #Rate from Statistics to Recovered
-  delta <- parK$delta/Td #Rate from Statistics to Death
+  gammaI <- parK$gammaI #Rate from Exposed to Infected
+  gammaS <- parK$gammaS #Rate from Infected to Statistics
+  nuI <- parK$nuI #Rate from Infected to Recovered
+  nuS <- parK$nuI #Rate from Statistics to Recovered
+  delta <- parK$deltaRate #Rate from Statistics to Death
   s <- parK$s #Intensity of mobility
   beta <- parK$beta #beta
   

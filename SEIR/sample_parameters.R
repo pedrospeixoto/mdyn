@@ -1,5 +1,6 @@
 #Sample parameters for a model
 sample_parameters <- function(par,day_validate){
+  
   parK <- list()
   
   #Parameters
@@ -13,10 +14,12 @@ sample_parameters <- function(par,day_validate){
   parK$Tsr <- sample(x = par$Tsr,size = 1) #Tsr
   parK$Td <- sample(x = par$Td,size = 1) #Td
   parK$pS <- sample(x = par$pS,size = 1) #Td
+  parK$exp <- sample(x = par$exp,size = 1) #exp
   parK$delta <- par$delta #delta
   parK$sites <- par$sites #Number of sites
   parK$s <- sample(x = par$s,size = 1) #s
-  parK$upI <- par$lift*(1-parK$pS)/parK$pS #Number of missed cases for each one in statistics
+  parK$lift <- par$lift
+  parK$upI <- parK$lift*(1-parK$pS)/parK$pS #Number of missed cases for each one in statistics
   
   #Parameters
   parK$gammaI <- 1/parK$Te #Rate from Exposed to Infected
@@ -24,6 +27,9 @@ sample_parameters <- function(par,day_validate){
   parK$nuI <- (1-parK$pS)/parK$Ti #Rate from Infected to Recovered
   parK$nuS <- (1-parK$delta)/parK$Tsr #Rate from Statistics to Recovered
   parK$deltaRate <- parK$delta/parK$Td #Rate from Statistics to Death
+  parK$obs <- par$obs
+  parK$obs_DRS <- par$obs_DRS
+  parK$names <- par$names
   
   return(parK)
 }
