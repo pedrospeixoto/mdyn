@@ -105,13 +105,17 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     
     #Calculate beta
     parK$beta <- list()
+    prox <- F
     for(t in 1:7){
       parK$beta[[t]] <- beta(parK,t = t,lambda = par$lambda,drs,day = init_validate,obs)
       if(min(parK$beta[[t]]) < 0){
         is.good[k] <- 0
-        rm(initK,parK)
-        next
+        prox <- T
       }
+    }
+    if(prox){
+      rm(initK,parK)
+      next
     }
     
     #Model
