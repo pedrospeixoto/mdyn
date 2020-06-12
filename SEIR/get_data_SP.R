@@ -43,11 +43,11 @@ get_data_SP <- function(){
       tmp$new_death_cor[i] <- mean(tmp$new_death[(i-3):(i+3)]) #New deaths corrected
       tmp$confirmed_corrected <- cumsum(tmp$new_infected_cor) #Confirmed cases corrected
       tmp$deaths_corrected <- cumsum(tmp$new_death_cor) #Confirmed deaths corrected
-      if(i > 21){ #Estimating recovered
-        tmp$recovered[i] <- tmp$recovered[i-1] + tmp$new_infected_cor[i-21] #New corrected confirmed cases 21 days ago are recovered
+      if(i > 15){ #Estimating recovered
+        tmp$recovered[i] <- tmp$recovered[i-1] + tmp$new_infected_cor[i-15] #New corrected confirmed cases 28 days ago are recovered
         tmp$infected[i] <- tmp$confirmed_corrected[i] - tmp$recovered[i] #Delete recovered from infected
       }
-      else{ #Correct for first 21 days
+      else{ #Correct for first 28 days
         tmp$recovered[i] <- 0
         tmp$infected[i] <- tmp$confirmed_corrected[i]
       }

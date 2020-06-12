@@ -36,7 +36,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   EPI_curve(obs,end_validate,pos)
   
   #Calculate lift
-  par$lift <- lift_death(obs,end_validate,par)
+  #par$lift <- lift_death(obs,end_validate,par)
 
   #Obs by DRS
   obs_drs <- data_drs(obs,drs)
@@ -83,7 +83,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   par$lambda <- growth_rate(obs,obs_drs,drs,par,pos)
 
   #Calculate death rate for each DRS
-  par$delta <- death_rate(teste_D,teste_I,obs,end_validate,drs,par)
+  par$delta <- death_rate(teste_D$DRS,teste_I$DRS,obs,end_validate,drs,par)
   
   cat("Estimatimating the model...\n")
   
@@ -152,12 +152,13 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     if(good == 1){#Store good models
       
       #Prediction of beta t0-1
-      parK$beta <- beta(parK,t = 6,par$lambda,drs,end_validate,obs)
-      if(is.null(parK$beta)){
-        is.good[k] <- 0
-        rm(initK,parK)
-        next
-      }
+      #parK$beta <- beta(parK,t = 6,par$lambda,drs,end_validate,obs)
+      #if(is.null(parK$beta)){
+      #  is.good[k] <- 0
+      #  rm(initK,parK)
+      #  next
+      #}
+      parK$beta <- as.vector(apply(bind_rows(lapply(parK$beta,function(x) data.frame(rbind(x)))),2,median))
       pred[[k]]$beta <- parK$beta
       
       #Prediction
