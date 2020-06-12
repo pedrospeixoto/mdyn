@@ -49,7 +49,7 @@ for(i in 1:length(par$mob)){
 }
 
 #Cadidate parameters  
-par$pS <- 1/c(5:10,15,20,30,40,50)
+par$pS <- 1/c(5:10,15,20)
 par$Te <- c(3:6)
 par$Ti <- c(4:10)
 par$Ts <- 7:14

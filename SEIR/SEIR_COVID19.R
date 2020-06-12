@@ -295,7 +295,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     predSIM[[k]]$R <- mod[,(3*parK$sites + 1):(4*parK$sites)] #R
     predSIM[[k]]$D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #D
     predSIM[[k]]$It <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Total Infected
-    predSIM[[k]]$S <- par$pop - pred[[k]]$E - pred[[k]]$I - pred[[k]]$Is - pred[[k]]$R - pred[[k]]$D
+    #predSIM[[k]]$S <- par$pop - pred[[k]]$E - pred[[k]]$I - pred[[k]]$Is - pred[[k]]$R - pred[[k]]$D
   }
   
   cat("Storing results of simulation...\n")

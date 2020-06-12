@@ -1,5 +1,5 @@
 #Store the results of the simulation
-store_simulation <- function(par,simulate_length,pos){
+store_simulation <- function(predSIM,par,simulate_length,pos){
   
   #Create objects
   peak <- data.frame("Municipio" = NA,"TMinimo" = NA,"TMediana" = NA,"TMaximo" = NA,"MMinimo" = NA,"MMediana" = NA,"MMaximo" = NA)
@@ -34,6 +34,7 @@ store_simulation <- function(par,simulate_length,pos){
     
     #data for plot
     position <- match(x = c,table = par$names)
+    rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$Is[,position]))))
     
     #Get simulated data
     c_pred <- data.frame("date" = seq.Date(from = ymd(end_validate),to = ymd(end_validate)+simulate_length-1,by = 1),
@@ -43,12 +44,12 @@ store_simulation <- function(par,simulate_length,pos){
                          "Ispred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$Is[,position])))),2,median),
                          "IspredInf" = minI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$Is[,position])))),2,min),
                          "IspredSup" = maxI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$Is[,position])))),2,max),
-                         "Iapred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$I[,position])))),2,median),
-                         "IapredInf" = minI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$I[,position])))),2,min),
-                         "IapredSup" = maxI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$I[,position])))),2,max),
                          "Ipred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$I[,position])))),2,median),
                          "IpredInf" = minI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$I[,position])))),2,min),
                          "IpredSup" = maxI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$I[,position])))),2,max),
+                         "Itpred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$It[,position])))),2,median),
+                         "ItpredInf" = minI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$It[,position])))),2,min),
+                         "ItpredSup" = maxI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$It[,position])))),2,max),
                          "Rpred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$R[,position])))),2,median),
                          "RpredInf" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$R[,position])))),2,min),
                          "RpredSup" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$R[,position])))),2,max),
