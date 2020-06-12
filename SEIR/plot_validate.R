@@ -1,5 +1,5 @@
 #Plot validate curves
-plot_validate <- function(drs,par,pred){
+plot_validate <- function(drs,par,pred,day){
   
   #For each DRS deaths
   D <- vector("list",length(levels(drs$DRS)))
@@ -28,7 +28,7 @@ plot_validate <- function(drs,par,pred){
   I <- vector("list",length(levels(drs$DRS)))
   names(I) <- levels(drs$DRS)
   for(k in 1:length(pred)){
-    I_mod <- pred[[k]]$I
+    I_mod <- pred[[k]]$It
     colnames(I_mod) <- par$names
     I_mod$date <- seq.Date(ymd(init_validate),ymd(end_validate),1) 
     I_mod <- I_mod %>% gather("Municipio","I",-date)
@@ -48,10 +48,17 @@ plot_validate <- function(drs,par,pred){
   }
   
   for(d in unique(drs$DRS)){
-    D[[d]]$Dpred <- apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = median)
-    D[[d]]$DpredInf <- minD*apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = min)
-    D[[d]]$DpredInf[1] <- D[[d]]$DpredInf[1]/minD
-    D[[d]]$DpredSup <- maxD*apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = max)
+    D <- data.frame()
+    I <- data.frame()
+    tmp <- data.frame()
+    for(k in 1:length(pred)){
+      D <- bind_rows(D,data.frame(rbind(pred[[k]]$D[,position])))
+      I <- bind_rows(I,data.frame(rbind(pred[[k]]$It[,position])))
+    }
+    tmp$Dpred <- apply(X = ,MARGIN = 1,FUN = median)
+    tmp$DpredInf <- minD*apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = min)
+    tmp$DpredInf[1] <- D[[d]]$DpredInf[1]/minD
+    tmp$DpredSup <- maxD*apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = max)
     D[[d]]$DpredSup[1] <- D[[d]]$DpredSup[1]/maxD
     I[[d]]$Ipred <- apply(X = I[[d]] %>% select(-date,-key),MARGIN = 1,FUN = median)
     I[[d]]$IpredInf <- minI*apply(X = I[[d]] %>% select(-date,-key),MARGIN = 1,FUN = min)
@@ -120,6 +127,35 @@ plot_validate <- function(drs,par,pred){
       pdf(file = paste("/storage/SEIR/",pos,"/validate/",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_casos.pdf",sep = ""),width = 15,height = 10)
       suppressWarnings(suppressMessages(print(pI)))
       dev.off()
+    }
+  }
+  
+  #Plotcity
+  for(c in par$names){
+    tmp <- obs %>% filter(date == ymd(day) & city == c)
+    if(tmp$confirmed_corrected > 1000 | tmp$confirmed_deaths > 50){
+      position <- match(c,par$names)
+      tmp <- data.frame()
+      tmp$Dpred <- apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = median)
+      D[[d]]$DpredInf <- minD*apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = min)
+      D[[d]]$DpredInf[1] <- D[[d]]$DpredInf[1]/minD
+      D[[d]]$DpredSup <- maxD*apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = max)
+      D[[d]]$DpredSup[1] <- D[[d]]$DpredSup[1]/maxD
+      I[[d]]$Ipred <- apply(X = I[[d]] %>% select(-date,-key),MARGIN = 1,FUN = median)
+      I[[d]]$IpredInf <- minI*apply(X = I[[d]] %>% select(-date,-key),MARGIN = 1,FUN = min)
+      I[[d]]$IpredInf[1] <- I[[d]]$IpredInf[1]/minI
+      I[[d]]$IpredSup <- maxI*apply(X = I[[d]] %>% select(-date,-key),MARGIN = 1,FUN = max)
+      I[[d]]$IpredSup[1] <- I[[d]]$IpredSup[1]/maxI
+      tmp <- obs_drs %>% filter(ymd(date) >= ymd(end_validate)-31 & ymd(date) <= ymd(end_validate))
+      tmp$key <- paste(tmp$date,tmp$DRS)
+      tmp <- tmp[tmp$DRS == d,c(2,13)]
+      names(tmp)[2] <- "D"
+      D[[d]] <- merge(D[[d]],tmp,all = T)
+      tmp <- obs_drs %>% filter(ymd(date) >= ymd(end_validate)-31 & ymd(date) <= ymd(end_validate))
+      tmp$key <- paste(tmp$date,tmp$DRS)
+      tmp <- tmp[tmp$DRS == d,c(2,12)]
+      names(tmp)[2] <- "I"
+      I[[d]] <- merge(I[[d]],tmp,all = T)
     }
   }
   
