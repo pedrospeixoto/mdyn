@@ -50,4 +50,3 @@ derivatives <- function(t,Y,parK){
   
   return(list(dY)) #Return
 }
-
