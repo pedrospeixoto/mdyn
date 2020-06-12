@@ -176,14 +176,14 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       kgood <- kgood + 1
       
       #Error of this
-      minDK <- ifelse(min(1 + test$error_D$dif[test$error_D$D_drs > 50]) < 1,
-                      min(1 + test$error_D$dif[test$error_D$D_drs > 50]),1)
-      maxDK <- ifelse(max(1 + test$error_D$dif[test$error_D$D_drs > 50]) > 1,
-                      max(1 + test$error_D$dif[test$error_D$D_drs > 50]),1)
-      minIK <- ifelse(min(1 + test$error_I$dif[test$error_I$I_drs > 1000]) < 1,
-                      min(1 + test$error_I$dif[test$error_I$I_drs > 1000]),1)
-      maxIK <- ifelse(max(1 + test$error_I$dif[test$error_I$I_drs > 1000]) > 1,
-                      max(1 + test$error_I$dif[test$error_I$I_drs > 1000]),1)
+      minDK <- ifelse(min(1 + test$error_D) < 1,
+                      min(1 + test$error_D),1)
+      maxDK <- ifelse(max(1 + test$error_D) > 1,
+                      max(1 + test$error_D),1)
+      minIK <- ifelse(min(1 + test$error_I) < 1,
+                      min(1 + test$error_I),1)
+      maxIK <- ifelse(max(1 + test$error_I) > 1,
+                      max(1 + test$error_I),1)
       parK$minDK <- minDK
       parK$minIK <- minIK
       parK$maxDK <- maxDK

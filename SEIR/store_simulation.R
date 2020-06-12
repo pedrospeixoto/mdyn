@@ -34,7 +34,8 @@ store_simulation <- function(predSIM,par,simulate_length,pos){
     
     #data for plot
     position <- match(x = c,table = par$names)
-    rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$Is[,position]))))
+    for(i in 2:50)
+      print(paste(i,min(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$It[2:i,])))))))
     
     #Get simulated data
     c_pred <- data.frame("date" = seq.Date(from = ymd(end_validate),to = ymd(end_validate)+simulate_length-1,by = 1),
