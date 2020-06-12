@@ -1,5 +1,5 @@
 #Store the results of the simulation
-store_simulation <- function(predSIM,par,simulate_length,pos){
+store_simulation <- function(predSIM,par,simulate_length,pos,drs){
   
   #Create objects
   peak <- data.frame("Municipio" = NA,"TMinimo" = NA,"TMediana" = NA,"TMaximo" = NA,"MMinimo" = NA,"MMediana" = NA,"MMaximo" = NA)
@@ -34,8 +34,6 @@ store_simulation <- function(predSIM,par,simulate_length,pos){
     
     #data for plot
     position <- match(x = c,table = par$names)
-    for(i in 2:50)
-      print(paste(i,min(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$It[2:i,])))))))
     
     #Get simulated data
     c_pred <- data.frame("date" = seq.Date(from = ymd(end_validate),to = ymd(end_validate)+simulate_length-1,by = 1),
@@ -63,14 +61,14 @@ store_simulation <- function(predSIM,par,simulate_length,pos){
     c_pred$IpredSup[1] <- c_pred$IpredSup[1]/maxI
     c_pred$IspredInf[1] <- c_pred$IspredInf[1]/minI
     c_pred$IspredSup[1] <- c_pred$IspredSup[1]/maxI
-    c_pred$IpredInf[1] <- c_pred$IpredInf[1]/minI
-    c_pred$IpredSup[1] <- c_pred$IpredSup[1]/maxI
+    c_pred$ItpredInf[1] <- c_pred$ItpredInf[1]/minI
+    c_pred$ItpredSup[1] <- c_pred$ItpredSup[1]/maxI
     deaths$inf[,position] <- c_pred$DpredInf #Dinf
     deaths$sup[,position] <- c_pred$DpredSup #Dsup
     deaths$median[,position] <- c_pred$Dpred #Dpred
-    cases$inf[,position] <- c_pred$IpredInf #Iinf
-    cases$sup[,position] <- c_pred$IpredSup #Isup
-    cases$median[,position] <- c_pred$Ipred #Ipred
+    cases$inf[,position] <- c_pred$ItpredInf #Itinf
+    cases$sup[,position] <- c_pred$ItpredSup #Itsup
+    cases$median[,position] <- c_pred$Itpred #Itpred
     pd <- unlist(lapply(predSIM,function(x) which(diff(x$D[,position]) == max(diff(x$D[,position]),na.rm = T)))) #Peak
     mpd <- unlist(lapply(predSIM,function(x) max(diff(x$D[,position])))) #Peak
     peak <- rbind.data.frame(peak,data.frame("Municipio" = c,"TMinimo" = as.character(ymd(end_validate)+min(pd)),
@@ -86,7 +84,7 @@ store_simulation <- function(predSIM,par,simulate_length,pos){
     deaths_all <- rbind.data.frame(deaths_all,tmp)
     
     #Store all predicted cases
-    tmp <- unlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$I[,position]))))
+    tmp <- unlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$It[,position]))))
     tmp <- data.frame("Municipio" = c,expand.grid(1:simulate_length,1:length(predSIM)),"Casos" = tmp)
     names(tmp)[2:3] <- c("Data","Modelo")
     tmp$Data <- as.character(ymd(end_validate) + tmp$Data - 1)
@@ -193,6 +191,7 @@ store_simulation <- function(predSIM,par,simulate_length,pos){
   for(i in 2:4)
     peak[,i] <- ymd(peak[,i])
   fwrite(peak,paste("/storage/SEIR/",pos,"/peak_",pos,".csv",sep = ""))
+  peakM <- peak
   
   cat("Just one more moment, while I calculate some thins for the DRSs...\n")
   
@@ -210,7 +209,7 @@ store_simulation <- function(predSIM,par,simulate_length,pos){
   for(d in unique(drs$DRS)){
     position <- match(drs$Municipio[drs$DRS == d],par$names)
     c_pred <- list()
-    for(v in c("E","Is","Ia","I","R","D")){
+    for(v in c("E","I","Is","It","R","D")){
       tmp <- list()
       for(k in 1:length(position))
         tmp[[k]] <- lapply(X = predSIM,FUN = function(x) data.frame(rbind(x[[v]][,position[k]])))
@@ -232,12 +231,12 @@ store_simulation <- function(predSIM,par,simulate_length,pos){
                           "Ispred" = apply(c_pred$Is,2,median),
                           "IspredInf" = minI*apply(c_pred$Is,2,min),
                           "IspredSup" = maxI*apply(c_pred$Is,2,max),
-                          "Iapred" = apply(c_pred$I,2,median),
-                          "IapredInf" = minI*apply(c_pred$I,2,min),
-                          "IapredSup" = maxI*apply(c_pred$I,2,max),
                           "Ipred" = apply(c_pred$I,2,median),
                           "IpredInf" = minI*apply(c_pred$I,2,min),
                           "IpredSup" = maxI*apply(c_pred$I,2,max),
+                          "Itpred" = apply(c_pred$It,2,median),
+                          "ItpredInf" = minI*apply(c_pred$It,2,min),
+                          "ItpredSup" = maxI*apply(c_pred$It,2,max),
                           "Rpred" = apply(c_pred$R,2,median),
                           "RpredInf" = apply(c_pred$R,2,min),
                           "RpredSup" = apply(c_pred$R,2,max),
@@ -250,17 +249,17 @@ store_simulation <- function(predSIM,par,simulate_length,pos){
     c_pred$IpredSup[1] <- c_pred$IpredSup[1]/maxI
     c_pred$IspredInf[1] <- c_pred$IspredInf[1]/minI
     c_pred$IspredSup[1] <- c_pred$IspredSup[1]/maxI
-    c_pred$IpredInf[1] <- c_pred$IpredInf[1]/minI
-    c_pred$IpredSup[1] <- c_pred$IpredSup[1]/maxI
+    c_pred$ItpredInf[1] <- c_pred$ItpredInf[1]/minI
+    c_pred$ItpredSup[1] <- c_pred$ItpredSup[1]/maxI
     
     #Save
     position <- match(d,unique(drs$DRS))
     deaths$inf[,position] <- c_pred$DpredInf #Dinf
     deaths$sup[,position] <- c_pred$DpredSup #Dsup
     deaths$median[,position] <- c_pred$Dpred #Dpred
-    cases$inf[,position] <- c_pred$IpredInf #Iinf
-    cases$sup[,position] <- c_pred$IpredSup #Isup
-    cases$median[,position] <- c_pred$Ipred #Ipred
+    cases$inf[,position] <- c_pred$ItpredInf #Iinf
+    cases$sup[,position] <- c_pred$ItpredSup #Isup
+    cases$median[,position] <- c_pred$Itpred #Ipred
     peak <- rbind.data.frame(peak,data.frame("DRS" = d,"TMinimo" = as.character(ymd(end_validate)+min(pd)),
                                              "TMediana" = as.character(ymd(end_validate)+median(pd)),
                                              "TMaximo" = as.character(ymd(end_validate)+max(pd)),
@@ -371,12 +370,12 @@ store_simulation <- function(predSIM,par,simulate_length,pos){
                        "Ispred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$Is))))),2,median),
                        "IspredInf" = minI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$Is))))),2,min),
                        "IspredSup" = maxI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$Is))))),2,max),
-                       "Iapred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$I))))),2,median),
-                       "IapredInf" = minI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$I))))),2,min),
-                       "IapredSup" = maxI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$I))))),2,max),
                        "Ipred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$I))))),2,median),
                        "IpredInf" = minI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$I))))),2,min),
                        "IpredSup" = maxI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$I))))),2,max),
+                       "Itpred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$It))))),2,median),
+                       "ItpredInf" = minI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$It))))),2,min),
+                       "ItpredSup" = maxI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$It))))),2,max),
                        "Rpred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$R))))),2,median),
                        "RpredInf" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$R))))),2,min),
                        "RpredSup" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$R))))),2,max),
@@ -410,4 +409,6 @@ store_simulation <- function(predSIM,par,simulate_length,pos){
       width = 15,height = 10)
   suppressWarnings(suppressMessages(print(p))) #Save plot
   dev.off()
+  
+  return(list(Dsim,Isim,peakM))
 }
