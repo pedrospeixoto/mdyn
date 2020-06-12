@@ -1,5 +1,5 @@
 #Plot validate curves
-plot_validate <- function(drs,par,pred,day){
+plot_validate <- function(drs,par,pred,init_validate,end_validate,pos){
   
   #For each DRS deaths
   D <- vector("list",length(levels(drs$DRS)))
@@ -48,17 +48,10 @@ plot_validate <- function(drs,par,pred,day){
   }
   
   for(d in unique(drs$DRS)){
-    D <- data.frame()
-    I <- data.frame()
-    tmp <- data.frame()
-    for(k in 1:length(pred)){
-      D <- bind_rows(D,data.frame(rbind(pred[[k]]$D[,position])))
-      I <- bind_rows(I,data.frame(rbind(pred[[k]]$It[,position])))
-    }
-    tmp$Dpred <- apply(X = ,MARGIN = 1,FUN = median)
-    tmp$DpredInf <- minD*apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = min)
-    tmp$DpredInf[1] <- D[[d]]$DpredInf[1]/minD
-    tmp$DpredSup <- maxD*apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = max)
+    D[[d]]$Dpred <- apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = median)
+    D[[d]]$DpredInf <- minD*apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = min)
+    D[[d]]$DpredInf[1] <- D[[d]]$DpredInf[1]/minD
+    D[[d]]$DpredSup <- maxD*apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = max)
     D[[d]]$DpredSup[1] <- D[[d]]$DpredSup[1]/maxD
     I[[d]]$Ipred <- apply(X = I[[d]] %>% select(-date,-key),MARGIN = 1,FUN = median)
     I[[d]]$IpredInf <- minI*apply(X = I[[d]] %>% select(-date,-key),MARGIN = 1,FUN = min)
@@ -99,7 +92,7 @@ plot_validate <- function(drs,par,pred,day){
               strip.text = element_text(size = 20,face = "bold",color = "white")) +
         labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
         ggtitle(paste("Mortes confirmadas COVID-19 na DRS",d,"-",unique(drs$Regiao[drs$DRS == d])))
-      pdf(file = paste("/storage/SEIR/",pos,"/validate/",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_mortes.pdf",sep = ""),width = 15,height = 10)
+      pdf(file = paste("/storage/SEIR/",pos,"/validate/DRS_",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_mortes.pdf",sep = ""),width = 15,height = 10)
       suppressWarnings(suppressMessages(print(pD)))
       dev.off()
       
@@ -124,38 +117,87 @@ plot_validate <- function(drs,par,pred,day){
               strip.text = element_text(size = 20,face = "bold",color = "white")) +
         labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
         ggtitle(paste("Casos confirmados COVID-19 na DRS",d,"-",unique(drs$Regiao[drs$DRS == d])))
-      pdf(file = paste("/storage/SEIR/",pos,"/validate/",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_casos.pdf",sep = ""),width = 15,height = 10)
+      pdf(file = paste("/storage/SEIR/",pos,"/validate/DRS_",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_casos.pdf",sep = ""),width = 15,height = 10)
       suppressWarnings(suppressMessages(print(pI)))
       dev.off()
     }
   }
   
-  #Plotcity
+  #Plot city
   for(c in par$names){
-    tmp <- obs %>% filter(date == ymd(day) & city == c)
-    if(tmp$confirmed_corrected > 1000 | tmp$confirmed_deaths > 50){
+    tmp <- obs %>% filter(date == ymd(end_validate) & city == c)
+    if(tmp$confirmed_corrected > 1000 | tmp$deaths_corrected > 50){
       position <- match(c,par$names)
-      tmp <- data.frame()
-      tmp$Dpred <- apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = median)
-      D[[d]]$DpredInf <- minD*apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = min)
-      D[[d]]$DpredInf[1] <- D[[d]]$DpredInf[1]/minD
-      D[[d]]$DpredSup <- maxD*apply(X = D[[d]] %>% select(-date,-key),MARGIN = 1,FUN = max)
-      D[[d]]$DpredSup[1] <- D[[d]]$DpredSup[1]/maxD
-      I[[d]]$Ipred <- apply(X = I[[d]] %>% select(-date,-key),MARGIN = 1,FUN = median)
-      I[[d]]$IpredInf <- minI*apply(X = I[[d]] %>% select(-date,-key),MARGIN = 1,FUN = min)
-      I[[d]]$IpredInf[1] <- I[[d]]$IpredInf[1]/minI
-      I[[d]]$IpredSup <- maxI*apply(X = I[[d]] %>% select(-date,-key),MARGIN = 1,FUN = max)
-      I[[d]]$IpredSup[1] <- I[[d]]$IpredSup[1]/maxI
-      tmp <- obs_drs %>% filter(ymd(date) >= ymd(end_validate)-31 & ymd(date) <= ymd(end_validate))
-      tmp$key <- paste(tmp$date,tmp$DRS)
-      tmp <- tmp[tmp$DRS == d,c(2,13)]
-      names(tmp)[2] <- "D"
-      D[[d]] <- merge(D[[d]],tmp,all = T)
-      tmp <- obs_drs %>% filter(ymd(date) >= ymd(end_validate)-31 & ymd(date) <= ymd(end_validate))
-      tmp$key <- paste(tmp$date,tmp$DRS)
-      tmp <- tmp[tmp$DRS == d,c(2,12)]
-      names(tmp)[2] <- "I"
-      I[[d]] <- merge(I[[d]],tmp,all = T)
+      D <- data.frame()
+      I <- data.frame()
+      tmp <- data.frame("Dpred" = rep(NA,as.numeric(ymd(end_validate)-ymd(init_validate))+1),"DpredInf" = NA,"DpredSup" = NA,
+                        "Ipred" = NA,"IpredInf" = NA,"IpredSup" = NA)
+      for(k in 1:length(pred)){
+        D <- bind_rows(D,data.frame(rbind(pred[[k]]$D[,position])))
+        I <- bind_rows(I,data.frame(rbind(pred[[k]]$It[,position])))
+      }
+      tmp$Dpred <- apply(X = D,MARGIN = 2,FUN = median)
+      tmp$DpredInf <- minD*apply(X = D,MARGIN = 2,FUN = min)
+      tmp$DpredInf[1] <- tmp$DpredInf[1]/minD
+      tmp$DpredSup <- maxD*apply(X = D,MARGIN = 2,FUN = max)
+      tmp$DpredSup[1] <- tmp$DpredSup[1]/maxD
+      tmp$Ipred <- apply(X = I,MARGIN = 2,FUN = median)
+      tmp$IpredInf <- minI*apply(X = I,MARGIN = 2,FUN = min)
+      tmp$IpredInf[1] <- tmp$IpredInf[1]/minI
+      tmp$IpredSup <- maxI*apply(X = I,MARGIN = 2,FUN = max)
+      tmp$IpredSup[1] <- tmp$IpredSup[1]/maxI
+      tmp$date <- seq.Date(ymd(init_validate),ymd(end_validate),1) 
+      tmp1 <- obs %>% filter(date >= ymd(end_validate)-31 & date <= ymd(end_validate) & city == c) %>% select(date,confirmed_corrected,deaths_corrected)
+      names(tmp1)[2:3] <- c("I","D")
+      tmp <- merge(tmp,tmp1,all = T)
+      
+      pD <- ggplot(tmp,aes(x = date)) + theme_solarized(light = FALSE) + geom_line(aes(y = D),color = "red") + 
+        geom_line(aes(y = Dpred),linetype = "dashed",color = "red") +
+        geom_ribbon(aes(ymin = DpredInf,ymax = DpredSup),fill = "red",alpha = 0.5) + xlab("Data") + ylab("Mortes confirmadas") +
+        scale_x_date(breaks = seq.Date(from = min(ymd(tmp$date),na.rm = T),to = max(ymd(tmp$date),na.rm = T),by = 3),
+                     labels = paste(day(seq.Date(from = min(ymd(tmp$date),na.rm = T),to = max(ymd(tmp$date),na.rm = T),by = 3)),"/0",
+                                    month(seq.Date(from = min(ymd(tmp$date),na.rm = T),to = max(ymd(tmp$date),na.rm = T),by = 3)),sep = "")) +
+        theme(legend.title = element_text(face = "bold"),legend.position = "none") +
+        theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
+              axis.text.x = element_text(size = 15,face = "bold",color = "white"),
+              axis.text.y = element_text(size = 15,face = "bold",color = "white"),
+              legend.box.margin = unit(x=c(20,0,0,0),units="mm"),
+              legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
+              panel.grid.minor.y = element_blank(),
+              axis.title = element_text(color = "white",size = 20),
+              plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
+        theme(plot.margin = unit(c(1,1,1,1), "lines")) +
+        theme(strip.background = element_blank(),
+              strip.text = element_text(size = 20,face = "bold",color = "white")) +
+        labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
+        ggtitle(paste("Mortes confirmadas COVID-19 em",c,"- SP"))
+      pdf(file = paste("/storage/SEIR/",pos,"/validate/",gsub(" ","",c),"_mortes.pdf",sep = ""),width = 15,height = 10)
+      suppressWarnings(suppressMessages(print(pD)))
+      dev.off()
+      
+      pI <- ggplot(tmp,aes(x = date)) + theme_solarized(light = FALSE) + geom_line(aes(y = I),color = "red") + 
+        geom_line(aes(y = Ipred),linetype = "dashed",color = "red") +
+        geom_ribbon(aes(ymin = IpredInf,ymax = IpredSup),fill = "red",alpha = 0.5) + xlab("Data") + ylab("Casos confirmados") +
+        scale_x_date(breaks = seq.Date(from = min(ymd(tmp$date)),to = max(ymd(tmp$date)),by = 3),
+                     labels = paste(day(seq.Date(from = min(ymd(tmp$date),na.rm = T),to = max(ymd(tmp$date),na.rm = T),by = 3)),"/0",
+                                    month(seq.Date(from = min(ymd(tmp$date),na.rm = T),to = max(ymd(tmp$date),na.rm = T),by = 3)),sep = "")) +
+        theme(legend.title = element_text(face = "bold"),legend.position = "none") +
+        theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
+              axis.text.x = element_text(size = 15,face = "bold",color = "white"),
+              axis.text.y = element_text(size = 15,face = "bold",color = "white"),
+              legend.box.margin = unit(x=c(20,0,0,0),units="mm"),
+              legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
+              panel.grid.minor.y = element_blank(),
+              axis.title = element_text(color = "white",size = 20),
+              plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
+        theme(plot.margin = unit(c(1,1,1,1), "lines")) +
+        theme(strip.background = element_blank(),
+              strip.text = element_text(size = 20,face = "bold",color = "white")) +
+        labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
+        ggtitle(paste("Casos confirmados COVID-19 em",c,"- SP"))
+      pdf(file = paste("/storage/SEIR/",pos,"/validate/",gsub(" ","",c),"_casos.pdf",sep = ""),width = 15,height = 10)
+      suppressWarnings(suppressMessages(print(pI)))
+      dev.off()
     }
   }
   
@@ -167,9 +209,9 @@ plot_validate <- function(drs,par,pred,day){
   
   #Agregate predicted data
   c_pred <- data.frame("date" = seq.Date(from = ymd(init_validate),to = ymd(end_validate),by = 1),
-                       "Ipred" = apply(rbindlist(lapply(lapply(X = pred,FUN = function(x) x$I),function(x) data.frame(rbind(rowSums(x))))),2,median),
-                       "IpredInf" = minI*apply(rbindlist(lapply(lapply(X = pred,FUN = function(x) x$I),function(x) data.frame(rbind(rowSums(x))))),2,min),
-                       "IpredSup" = maxI*apply(rbindlist(lapply(lapply(X = pred,FUN = function(x) x$I),function(x) data.frame(rbind(rowSums(x))))),2,max),
+                       "Ipred" = apply(rbindlist(lapply(lapply(X = pred,FUN = function(x) x$It),function(x) data.frame(rbind(rowSums(x))))),2,median),
+                       "IpredInf" = minI*apply(rbindlist(lapply(lapply(X = pred,FUN = function(x) x$It),function(x) data.frame(rbind(rowSums(x))))),2,min),
+                       "IpredSup" = maxI*apply(rbindlist(lapply(lapply(X = pred,FUN = function(x) x$It),function(x) data.frame(rbind(rowSums(x))))),2,max),
                        "Dpred" = apply(rbindlist(lapply(lapply(X = pred,FUN = function(x) x$D),function(x) data.frame(rbind(rowSums(x))))),2,median),
                        "DpredInf" = minD*apply(rbindlist(lapply(lapply(X = pred,FUN = function(x) x$D),function(x) data.frame(rbind(rowSums(x))))),2,min),
                        "DpredSup" = maxD*apply(rbindlist(lapply(lapply(X = pred,FUN = function(x) x$D),function(x) data.frame(rbind(rowSums(x))))),2,max))

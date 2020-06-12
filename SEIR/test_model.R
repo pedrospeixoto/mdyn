@@ -3,8 +3,10 @@ test_model <- function(D,I,teste_D,teste_I,drs){
   
   #Error in cities
   Dcity <- abs(D - teste_D$city[,-1])/teste_D$city[,-1]
+  Dcity <- Dcity[,-match("SÃO PAULO",par$names)]
   Dcity <- (Dcity[teste_D$city[,-1] > 100])
   Icity <- abs(I - teste_I$city[,-1])/teste_I$city[,-1]
+  Icity <- Icity[,-match("SÃO PAULO",par$names)]
   Icity <- (Icity[teste_I$city[,-1] > 1000])
 
   #Deaths in DRSs

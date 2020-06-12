@@ -1,5 +1,5 @@
 #Build maps with models parameters
-plot_maps_summary <- function(Rt,par,drs,obs,day){
+plot_maps_summary <- function(Rt,par,drs,obs,day,pos){
   
   #Mapas
   shp <- readOGR(dsn = "~/mdyn/maps/sp_municipios/35MUE250GC_SIR.shp",stringsAsFactors = F,verbose = F) #Shapefiles

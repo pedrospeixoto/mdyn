@@ -151,13 +151,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     #Result
     if(good == 1){#Store good models
       
-      #Prediction of beta t0-1
-      #parK$beta <- beta(parK,t = 6,par$lambda,drs,end_validate,obs)
-      #if(is.null(parK$beta)){
-      #  is.good[k] <- 0
-      #  rm(initK,parK)
-      #  next
-      #}
+      #Mediana of beta
       parK$beta <- as.vector(apply(bind_rows(lapply(parK$beta,function(x) data.frame(rbind(x)))),2,median))
       pred[[k]]$beta <- parK$beta
       
@@ -202,7 +196,6 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       parK$obs <- NULL
       parK$obs_DRS <- NULL
       parK$sites <- NULL
-      parK$lift <- NULL
       
       results$models[[kgood]] <- parK
       if(minDK < minD)
@@ -233,6 +226,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   Ts <- unlist(lapply(results$models,function(x) x$Ts)) #Ts
   Tsr <- unlist(lapply(results$models,function(x) x$Tsr)) #Tsr
   Td <- unlist(lapply(results$models,function(x) x$Td)) #Td
+  meanTi <- unlist(lapply(results$models,function(x) x$meanTi)) #meanTi
   cinfD <- unlist(lapply(results$models,function(x) x$minDK)) #cinfD
   cinfI <- unlist(lapply(results$models,function(x) x$minIK)) #cinfI
   csupD <- unlist(lapply(results$models,function(x) x$maxDK)) #cinfD
@@ -249,492 +243,64 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   saveRDS(object = results,file = paste("/storage/SEIR/",pos,"/result_",pos,".rds",sep = "")) #Save results
   saveRDS(object = pred,file = paste("/storage/SEIR/",pos,"/prediction_",pos,".rds",sep = "")) #Save predictions
   
-  param <- data.frame("Model" = 1:kgood,Te,Ti,Ts,Tsr,Td,s,"MedianBeta" = betasave,"MedianRt" = Rtsave,"MedianAssymptomatic" = assymptomatic,
+  param <- data.frame("Model" = 1:kgood,Te,Ti,Ts,Tsr,Td,meanTi,s,"MedianBeta" = betasave,"MedianRt" = Rtsave,"MedianAssymptomatic" = assymptomatic,
                       cinfD,csupD,cinfI,csupI) #Parameters
   fwrite(param,paste("/storage/SEIR/",pos,"/parameters_",pos,".csv",sep = "")) #Write parameters of good models
   
   cat("Plotting maps of parameters which are city dependent...\n")
   
-  plot_maps_summary(Rt,par,drs,obs,end_validate)  
+  plot_maps_summary(Rt,par,drs,obs,end_validate,pos)  
   
-  #######Plot by DRS#####
+  #######Plot Validation#####
   cat("Plot observed and predicted number of deaths for each DRS...\n")
   system(paste("mkdir /storage/SEIR/",pos,"/validate",sep = ""))
   
-  plot_validate() #AQUI!!
-  
+  plot_validate(drs,par,pred,init_validate,end_validate,pos)
 
   #######Simulation of scenarios########
   cat("Simulating scenarios...\n")
-  init <- vector()
-  tmp <- obs %>% filter(date == ymd(end_validate))
-  tmp <- tmp[match(x = par$names,table = tmp$city),]
-  init[1:par$sites] <- tmp$new_infected_mean #E
-  init[(par$sites + 1):(2*par$sites)] <- tmp$infected #Ia
-  init[(2*par$sites + 1):(3*par$sites)] <- tmp$infected #Is
-  init[(3*par$sites + 1):(4*par$sites)] <- tmp$recovered #R
-  init[(4*par$sites + 1):(5*par$sites)] <- tmp$deaths_corrected #D
-  init[(5*par$sites + 1):(6*par$sites)] <- tmp$confirmed_corrected #prevalence
-
+  init <- initial_condition(obs,end_validate,par) #Initial condition
+  init1f <- initial_condition(obs,end_validate+1,par) #Data one day after initial
+  init1p <- initial_condition(obs,end_validate-1,par) #Data one day before initial
+  init2f <- initial_condition(obs,end_validate+2,par) #Data two days after initial
+  
   #Simulate scenario everything is as week after end validation
   good_models <- length(pred) #number of good models
   predSIM <- vector("list",good_models) #To store the predicted values of the simulation
-  pb <- progress_bar$new(
-    format = "Iterations = :letter [:bar] :elapsed | eta: :eta",
-    total = good_models,    # 100 
-    width = 60)
-  progress_letter <- paste(round(100*c(1:good_models)/good_models,2),"%")
-  progress <- function(n){
-    pb$tick(tokens = list(letter = progress_letter[n]))
-  } 
-  opts <- list(progress = progress)
+  pb <- set_progress_bar(good_models)[[1]] 
+  progress_letter <- set_progress_bar(good_models)[[2]] 
 
   for(k in 1:good_models){
     pb$tick(tokens = list(letter = progress_letter[k]))
     
     #Parameters of model k
-    parK <- list()
+    parK <- results$models[[k]]
     parK$day <- seq.Date(from = ymd(init_simulate),to = ymd(init_simulate) + simulate_length - 1,by = 1) #Days of validation
     parK$val <- F #Is validation
     parK$mob <- par$mob #Mobility matrix
     parK$pop <- par$pop #Population
-    parK$Te <-  results$models[[k]]$Te#Te
-    parK$Ta <- results$models[[k]]$Ta #Ta
-    parK$Ts <- results$models[[k]]$Ts #Ts
-    parK$Td <- results$models[[k]]$Ts #Td
-    parK$delta <- results$models[[k]]$delta #delta
-    parK$sites <- par$sites #Number of sites
-    parK$s <- results$models[[k]]$s #s
-    parK$upI <- results$models[[k]]$upI #Asymptomatic initial condition
-    parK$gammaA <- results$models[[k]]$gammaA #GammaA
-    parK$upE <- results$models[[k]]$upE #To multiply number of new infected to get exposed
-    initK <- init #Initial condition
-    initK[1:par$sites] <- parK$upE*init[1:par$sites] #Correct
-    initK[(par$sites + 1):(2*par$sites)] <- parK$upI*initK[(par$sites + 1):(2*par$sites)] #Assymptomatics
-    initK[(3*par$sites + 1):(4*par$sites)] <- (parK$upI+1)*initK[(3*par$sites + 1):(4*par$sites)] #Correct R
-    parK$beta <- results$models[[k]]$beta #Beta
+    parK$sites <- par$sites #Sites
+    
+    #Initial condition
+    initK <- initial_condition_corrected(init,init1f,init2f,parK)
     
     #Model
     mod <- solve_seir(y = initK,times = 1:simulate_length,derivatives = derivatives,parms = parK)[,-1]
   
     #Result
     predSIM[[k]]$E <- mod[,1:parK$sites] #E
-    predSIM[[k]]$Ia <- mod[,(parK$sites + 1):(2*parK$sites)] #Ia
+    predSIM[[k]]$I <- mod[,(parK$sites + 1):(2*parK$sites)] #I
     predSIM[[k]]$Is <- mod[,(2*parK$sites + 1):(3*parK$sites)] #Is
     predSIM[[k]]$R <- mod[,(3*parK$sites + 1):(4*parK$sites)] #R
     predSIM[[k]]$D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #D
-    predSIM[[k]]$I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Total Infected
-    predSIM[[k]]$S <- par$pop - pred[[k]]$E - pred[[k]]$Ia - pred[[k]]$Is - pred[[k]]$R - pred[[k]]$D
+    predSIM[[k]]$It <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Total Infected
+    predSIM[[k]]$S <- par$pop - pred[[k]]$E - pred[[k]]$I - pred[[k]]$Is - pred[[k]]$R - pred[[k]]$D
   }
   
   cat("Storing results of simulation...\n")
   
   #####Results of simulation#####
-  peak <- data.frame("Municipio" = NA,"TMinimo" = NA,"TMediana" = NA,"TMaximo" = NA,"MMinimo" = NA,"MMediana" = NA,"MMaximo" = NA)
-  deaths <- list()
-  deaths$inf <- matrix(nrow = simulate_length,ncol = par$sites)
-  deaths$sup <- matrix(nrow = simulate_length,ncol = par$sites)
-  deaths$median <- matrix(nrow = simulate_length,ncol = par$sites)
-  deaths_all <- data.frame("Municipio" = NA,"Data" = NA,"Modelo" = NA,"Mortes" = NA)
-  cases <- list()
-  cases$inf <- matrix(nrow = simulate_length,ncol = par$sites)
-  cases$sup <- matrix(nrow = simulate_length,ncol = par$sites)
-  cases$median <- matrix(nrow = simulate_length,ncol = par$sites)
-  cases_all <- data.frame("Municipio" = NA,"Data" = NA,"Modelo" = NA,"Casos" = NA)
   
-  #mkdir
-  system(paste("mkdir /storage/SEIR/",pos,"/EPCurve/",sep = ""))
-  
-  pb <- progress_bar$new(
-    format = "Iterations = :letter [:bar] :elapsed | eta: :eta",
-    total = par$sites,    # 100 
-    width = 60)
-  progress_letter <- paste(round(100*c(1:par$sites)/par$sites,2),"%")
-  progress <- function(n){
-    pb$tick(tokens = list(letter = progress_letter[n]))
-  } 
-  opts <- list(progress = progress)
-  i <- 1
-  for(c in par$names){
-    pb$tick(tokens = list(letter = progress_letter[i]))
-    i <- i + 1
-    
-    #data for plot
-    position <- match(x = c,table = par$names)
-    
-    #Get simulated data
-    c_pred <- data.frame("date" = seq.Date(from = ymd(end_validate),to = ymd(end_validate)+simulate_length-1,by = 1),
-                         "Epred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$E[,position])))),2,median),
-                         "EpredInf" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$E[,position])))),2,min),
-                         "EpredSup" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$E[,position])))),2,max),
-                         "Ispred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$Is[,position])))),2,median),
-                         "IspredInf" = minI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$Is[,position])))),2,min),
-                         "IspredSup" = maxI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$Is[,position])))),2,max),
-                         "Iapred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$Ia[,position])))),2,median),
-                         "IapredInf" = minI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$Ia[,position])))),2,min),
-                         "IapredSup" = maxI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$Ia[,position])))),2,max),
-                         "Ipred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$I[,position])))),2,median),
-                         "IpredInf" = minI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$I[,position])))),2,min),
-                         "IpredSup" = maxI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$I[,position])))),2,max),
-                         "Rpred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$R[,position])))),2,median),
-                         "RpredInf" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$R[,position])))),2,min),
-                         "RpredSup" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$R[,position])))),2,max),
-                         "Dpred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$D[,position])))),2,median),
-                         "DpredInf" = minD*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$D[,position])))),2,min),
-                         "DpredSup" = maxD*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$D[,position])))),2,max))
-    c_pred$DpredInf[1] <- c_pred$DpredInf[1]/minD
-    c_pred$DpredSup[1] <- c_pred$DpredSup[1]/maxD
-    c_pred$IapredInf[1] <- c_pred$IapredInf[1]/minI
-    c_pred$IapredSup[1] <- c_pred$IapredSup[1]/maxI
-    c_pred$IspredInf[1] <- c_pred$IspredInf[1]/minI
-    c_pred$IspredSup[1] <- c_pred$IspredSup[1]/maxI
-    c_pred$IpredInf[1] <- c_pred$IpredInf[1]/minI
-    c_pred$IpredSup[1] <- c_pred$IpredSup[1]/maxI
-    deaths$inf[,position] <- c_pred$DpredInf #Dinf
-    deaths$sup[,position] <- c_pred$DpredSup #Dsup
-    deaths$median[,position] <- c_pred$Dpred #Dpred
-    cases$inf[,position] <- c_pred$IpredInf #Iinf
-    cases$sup[,position] <- c_pred$IpredSup #Isup
-    cases$median[,position] <- c_pred$Ipred #Ipred
-    pd <- unlist(lapply(predSIM,function(x) which(diff(x$D[,position]) == max(diff(x$D[,position]),na.rm = T)))) #Peak
-    mpd <- unlist(lapply(predSIM,function(x) max(diff(x$D[,position])))) #Peak
-    peak <- rbind.data.frame(peak,data.frame("Municipio" = c,"TMinimo" = as.character(ymd(end_validate)+min(pd)),
-                                             "TMediana" = as.character(ymd(end_validate)+median(pd)),
-                                             "TMaximo" = as.character(ymd(end_validate)+max(pd)),
-                                             "MMinimo" = min(mpd),"MMediana" = median(mpd),"MMaximo" = max(mpd))) #Peak
-    
-    #Store all predicted deaths
-    tmp <- unlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$D[,position]))))
-    tmp <- data.frame("Municipio" = c,expand.grid(1:simulate_length,1:length(predSIM)),"Mortes" = tmp)
-    names(tmp)[2:3] <- c("Data","Modelo")
-    tmp$Data <- as.character(ymd(end_validate) + tmp$Data - 1)
-    deaths_all <- rbind.data.frame(deaths_all,tmp)
-    
-    #Store all predicted cases
-    tmp <- unlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$I[,position]))))
-    tmp <- data.frame("Municipio" = c,expand.grid(1:simulate_length,1:length(predSIM)),"Casos" = tmp)
-    names(tmp)[2:3] <- c("Data","Modelo")
-    tmp$Data <- as.character(ymd(end_validate) + tmp$Data - 1)
-    cases_all <- rbind.data.frame(cases_all,tmp)
-    
-    #Epidemiological curve
-    if(c_pred$Ipred[1] > 100){
-      tmp <- c_pred
-      p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
-                                                                    linetype = "dashed") + 
-        geom_line(aes(y = Ispred, color = "a")) + geom_ribbon(aes(ymin = IspredInf,ymax = IspredSup,fill = "a"),alpha = 0.25) +
-        geom_line(aes(y = Dpred, color = "c")) + geom_ribbon(aes(ymin = DpredInf,ymax = DpredSup,fill = "c"),alpha = 0.25) + 
-        theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length,length.out = 12),
-                                                       labels = strftime(seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length,length.out = 12),
-                                                                         format="%d/%m/%y")) + 
-        scale_y_continuous(breaks = round(seq(min(c(tmp$DpredInf,tmp$IspredInf)),max(c(tmp$DpredSup,tmp$IspredSup)),length.out = 10))) +
-        theme(legend.title = element_text(face = "bold"),legend.position = "bottom") + ylab("Indivíduos") +
-        xlab("Data") + scale_colour_discrete("",labels = c("Infectados","Total de Óbitos")) +
-        theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
-              axis.text.x = element_text(size = 15,face = "bold",color = "white"),
-              legend.text = element_text(size = 15,face = "bold",color = "white"),
-              axis.text.y = element_text(size = 15,face = "bold",color = "white"),
-              legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
-              panel.grid.minor.y = element_blank(),
-              axis.title = element_text(color = "white",size = 20),
-              plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
-        theme(plot.margin = unit(c(1,1,1,1), "lines")) + scale_fill_discrete(guide = FALSE) + 
-        theme(strip.background = element_blank(),
-              strip.text = element_text(size = 20,face = "bold",color = "white")) +
-        labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
-        ggtitle(paste("Curva epidemiológica prevista para a cidade de",c,"- SP"))
-        pdf(file = paste("/storage/SEIR/",pos,"/EPCurve/",gsub(" ","",c),"_EPCurve_",pos,".pdf",sep = ""),width = 15,height = 10)
-        suppressWarnings(suppressMessages(print(p))) #Save plot
-        dev.off()
-    }
-  }
-  
-  #Saving deaths
-  tmpI <- data.frame(deaths$inf)
-  colnames(tmpI) <- par$names
-  tmpI$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
-  tmpI <- tmpI %>% gather("Municipio","Infimo",-Date)
-  tmpI$key <- paste(tmpI$Municipio,tmpI$Date)
-  
-  tmpm <- data.frame(deaths$median)
-  colnames(tmpm) <- par$names
-  tmpm$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
-  tmpm <- tmpm %>% gather("Municipio","Mediana",-Date)
-  tmpm$key <- paste(tmpm$Municipio,tmpm$Date)
-  tmpm$Municipio <- NULL
-  tmpm$Date <- NULL
-  
-  tmpS <- data.frame(deaths$sup)
-  colnames(tmpS) <- par$names
-  tmpS$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
-  tmpS <- tmpS %>% gather("Municipio","Sup",-Date)
-  tmpS$key <- paste(tmpS$Municipio,tmpS$Date)
-  tmpS$Municipio <- NULL
-  tmpS$Date <- NULL
-  
-  tmp <- merge(tmpI,tmpm)
-  tmp <- merge(tmp,tmpS)
-  tmp$key <- NULL
-  Dsim <- tmp
-  fwrite(tmp,paste("/storage/SEIR/",pos,"/deaths_",pos,".csv",sep = ""))
-  
-  #Saving Cases
-  tmpI <- data.frame(cases$inf)
-  colnames(tmpI) <- par$names
-  tmpI$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
-  tmpI <- tmpI %>% gather("Municipio","Infimo",-Date)
-  tmpI$key <- paste(tmpI$Municipio,tmpI$Date)
-  
-  tmpm <- data.frame(cases$median)
-  colnames(tmpm) <- par$names
-  tmpm$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
-  tmpm <- tmpm %>% gather("Municipio","Mediana",-Date)
-  tmpm$key <- paste(tmpm$Municipio,tmpm$Date)
-  tmpm$Municipio <- NULL
-  tmpm$Date <- NULL
-  
-  tmpS <- data.frame(cases$sup)
-  colnames(tmpS) <- par$names
-  tmpS$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
-  tmpS <- tmpS %>% gather("Municipio","Sup",-Date)
-  tmpS$key <- paste(tmpS$Municipio,tmpS$Date)
-  tmpS$Municipio <- NULL
-  tmpS$Date <- NULL
-  
-  tmp <- merge(tmpI,tmpm)
-  tmp <- merge(tmp,tmpS)
-  tmp$key <- NULL
-  Isim <- tmp
-  fwrite(tmp,paste("/storage/SEIR/",pos,"/cases_",pos,".csv",sep = ""))
-  
-  #Saving all predictions
-  deaths_all <- na.omit(deaths_all)
-  cases_all <- na.omit(cases_all)
-  fwrite(deaths_all,paste("/storage/SEIR/",pos,"/deaths_all_",pos,".csv",sep = "")) #Save all predicted deaths
-  fwrite(cases_all,paste("/storage/SEIR/",pos,"/cases_all_",pos,".csv",sep = "")) #Save all predicted cases
-  
-  #Peak
-  peak <- na.omit(peak)
-  for(i in 2:4)
-    peak[,i] <- ymd(peak[,i])
-  fwrite(peak,paste("/storage/SEIR/",pos,"/peak_",pos,".csv",sep = ""))
-  
-  cat("Just one more moment, while I calculate some thins for the DRSs...\n")
-  
-  #DRS
-  peak <- data.frame("DRS" = NA,"TMinimo" = NA,"TMediana" = NA,"TMaximo" = NA,"MMinimo" = NA,"MMediana" = NA,"MMaximo" = NA)
-  deaths <- list()
-  deaths$inf <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
-  deaths$sup <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
-  deaths$median <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
-  cases <- list()
-  cases$inf <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
-  cases$sup <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
-  cases$median <- matrix(nrow = simulate_length,ncol = length(unique(drs$DRS)))
-  
-  for(d in unique(drs$DRS)){
-    position <- match(drs$Municipio[drs$DRS == d],par$names)
-    c_pred <- list()
-    for(v in c("E","Is","Ia","I","R","D")){
-      tmp <- list()
-      for(k in 1:length(position))
-        tmp[[k]] <- lapply(X = predSIM,FUN = function(x) data.frame(rbind(x[[v]][,position[k]])))
-      if(length(position) >= 2){
-        for(i in 1:length(tmp[[1]]))
-          for(k in 2:length(position))
-            tmp[[1]][[i]] <- tmp[[1]][[i]] + tmp[[k]][[i]]
-      }
-      if(v == "D"){
-        pd <- unlist(lapply(tmp[[1]],function(x) which(diff(as.vector(t(x[1,]))) == max(diff(as.vector(t(x[1,]))),na.rm = T)))) #Peak
-        mpd <- unlist(lapply(tmp[[1]],function(x) max(diff(as.vector(t(x[1,])))))) #Peak
-      }
-      c_pred[[v]] <- rbindlist(tmp[[1]])
-    }
-    c_pred <-  data.frame("date" = seq.Date(from = ymd(end_validate),to = ymd(end_validate)+simulate_length-1,by = 1),
-                           "Epred" = apply(c_pred$E,2,median),
-                           "EpredInf" = apply(c_pred$E,2,min),
-                           "EpredSup" = apply(c_pred$E,2,max),
-                           "Ispred" = apply(c_pred$Is,2,median),
-                           "IspredInf" = minI*apply(c_pred$Is,2,min),
-                           "IspredSup" = maxI*apply(c_pred$Is,2,max),
-                           "Iapred" = apply(c_pred$Ia,2,median),
-                           "IapredInf" = minI*apply(c_pred$Ia,2,min),
-                           "IapredSup" = maxI*apply(c_pred$Ia,2,max),
-                           "Ipred" = apply(c_pred$I,2,median),
-                           "IpredInf" = minI*apply(c_pred$I,2,min),
-                           "IpredSup" = maxI*apply(c_pred$I,2,max),
-                           "Rpred" = apply(c_pred$R,2,median),
-                           "RpredInf" = apply(c_pred$R,2,min),
-                           "RpredSup" = apply(c_pred$R,2,max),
-                           "Dpred" = apply(c_pred$D,2,median),
-                           "DpredInf" = minD*apply(c_pred$D,2,min),
-                           "DpredSup" = maxD*apply(c_pred$D,2,max))
-    c_pred$DpredInf[1] <- c_pred$DpredInf[1]/minD
-    c_pred$DpredSup[1] <- c_pred$DpredSup[1]/maxD
-    c_pred$IapredInf[1] <- c_pred$IapredInf[1]/minI
-    c_pred$IapredSup[1] <- c_pred$IapredSup[1]/maxI
-    c_pred$IspredInf[1] <- c_pred$IspredInf[1]/minI
-    c_pred$IspredSup[1] <- c_pred$IspredSup[1]/maxI
-    c_pred$IpredInf[1] <- c_pred$IpredInf[1]/minI
-    c_pred$IpredSup[1] <- c_pred$IpredSup[1]/maxI
-    
-    #Save
-    position <- match(d,unique(drs$DRS))
-    deaths$inf[,position] <- c_pred$DpredInf #Dinf
-    deaths$sup[,position] <- c_pred$DpredSup #Dsup
-    deaths$median[,position] <- c_pred$Dpred #Dpred
-    cases$inf[,position] <- c_pred$IpredInf #Iinf
-    cases$sup[,position] <- c_pred$IpredSup #Isup
-    cases$median[,position] <- c_pred$Ipred #Ipred
-    peak <- rbind.data.frame(peak,data.frame("DRS" = d,"TMinimo" = as.character(ymd(end_validate)+min(pd)),
-                                             "TMediana" = as.character(ymd(end_validate)+median(pd)),
-                                             "TMaximo" = as.character(ymd(end_validate)+max(pd)),
-                                             "MMinimo" = min(mpd),"MMediana" = median(mpd),"MMaximo" = max(mpd))) #Peak
-    #Epidemiological curve
-    tmp <- c_pred
-    p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
-                                                                    linetype = "dashed") +
-        geom_line(aes(y = Ispred, color = "a")) + geom_ribbon(aes(ymin = IspredInf,ymax = IspredSup,fill = "a"),alpha = 0.25) +
-        geom_line(aes(y = Dpred, color = "c")) + geom_ribbon(aes(ymin = DpredInf,ymax = DpredSup,fill = "c"),alpha = 0.25) + 
-        theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length,length.out = 12),
-                                                       labels = strftime(seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length,length.out = 12),
-                                                                         format="%d/%m/%y")) + 
-      scale_y_continuous(breaks = round(seq(min(tmp$Dpred),max(tmp$IspredSup),length.out = 10))) +
-        theme(legend.title = element_text(face = "bold"),legend.position = "bottom") + ylab("Indivíduos") +
-        xlab("Data") + scale_colour_discrete("",labels = c("Infectados","Total de Óbitos")) +
-        theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
-              axis.text.x = element_text(size = 15,face = "bold",color = "white"),
-              legend.text = element_text(size = 15,face = "bold",color = "white"),
-              axis.text.y = element_text(size = 15,face = "bold",color = "white"),
-              legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
-              panel.grid.minor.y = element_blank(),
-              axis.title = element_text(color = "white",size = 20),
-              plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
-        theme(plot.margin = unit(c(1,1,1,1), "lines")) + scale_fill_discrete(guide = FALSE) + 
-        theme(strip.background = element_blank(),
-              strip.text = element_text(size = 20,face = "bold",color = "white")) +
-        labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
-        ggtitle(paste("Curva epidemiológica prevista para DRS",unique(drs$Regiao[drs$DRS == d])))
-        pdf(file = paste("/storage/SEIR/",pos,"/EPCurve/DRS_",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_EPCurve_",pos,".pdf",sep = ""),
-            width = 15,height = 10)
-        suppressWarnings(suppressMessages(print(p))) #Save plot
-        dev.off()
-  } 
-  
-  #Saving deaths
-  tmpI <- data.frame(deaths$inf)
-  colnames(tmpI) <- unique(drs$DRS)
-  tmpI$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
-  tmpI <- tmpI %>% gather("DRS","Infimo",-Date)
-  tmpI$key <- paste(tmpI$DRS,tmpI$Date)
-  
-  tmpm <- data.frame(deaths$median)
-  colnames(tmpm) <- unique(drs$DRS)
-  tmpm$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
-  tmpm <- tmpm %>% gather("DRS","Mediana",-Date)
-  tmpm$key <- paste(tmpm$DRS,tmpm$Date)
-  tmpm$DRS <- NULL
-  tmpm$Date <- NULL
-  
-  tmpS <- data.frame(deaths$sup)
-  colnames(tmpS) <- unique(drs$DRS)
-  tmpS$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
-  tmpS <- tmpS %>% gather("DRS","Sup",-Date)
-  tmpS$key <- paste(tmpS$DRS,tmpS$Date)
-  tmpS$DRS <- NULL
-  tmpS$Date <- NULL
-  
-  tmp <- merge(tmpI,tmpm)
-  tmp <- merge(tmp,tmpS)
-  tmp$key <- NULL
-  Dsim_drs <- tmp
-  tmp <- merge(tmp,unique(drs %>% select(DRS,Regiao)))
-  fwrite(tmp,paste("/storage/SEIR/",pos,"/deaths_DRS_",pos,".csv",sep = ""))
-  
-  #Saving Cases
-  tmpI <- data.frame(cases$inf)
-  colnames(tmpI) <- unique(drs$DRS)
-  tmpI$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
-  tmpI <- tmpI %>% gather("DRS","Infimo",-Date)
-  tmpI$key <- paste(tmpI$DRS,tmpI$Date)
-  
-  tmpm <- data.frame(cases$median)
-  colnames(tmpm) <- unique(drs$DRS)
-  tmpm$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
-  tmpm <- tmpm %>% gather("DRS","Mediana",-Date)
-  tmpm$key <- paste(tmpm$DRS,tmpm$Date)
-  tmpm$DRS <- NULL
-  tmpm$Date <- NULL
-  
-  tmpS <- data.frame(cases$sup)
-  colnames(tmpS) <- unique(drs$DRS)
-  tmpS$Date <- seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length-1,1)
-  tmpS <- tmpS %>% gather("DRS","Sup",-Date)
-  tmpS$key <- paste(tmpS$DRS,tmpS$Date)
-  tmpS$DRS <- NULL
-  tmpS$Date <- NULL
-  
-  tmp <- merge(tmpI,tmpm)
-  tmp <- merge(tmp,tmpS)
-  tmp$key <- NULL
-  Isim_drs <- tmp
-  tmp <- merge(tmp,unique(drs %>% select(DRS,Regiao)))
-  fwrite(tmp,paste("/storage/SEIR/",pos,"/cases_DRS_",pos,".csv",sep = ""))
-  
-  #Peak
-  peak <- na.omit(peak)
-  for(i in 2:4)
-    peak[,i] <- ymd(peak[,i])
-  peak <- merge(peak,unique(drs %>% select(DRS,Regiao)))
-  fwrite(peak,paste("/storage/SEIR/",pos,"/peak_DRS_",pos,".csv",sep = ""))
-  
-  #Curve for state
-  c_pred <- data.frame("date" = seq.Date(from = ymd(end_validate),to = ymd(end_validate)+simulate_length-1,by = 1),
-                         "Epred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$E))))),2,median),
-                         "EpredInf" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$E))))),2,min),
-                         "EpredSup" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$E))))),2,max),
-                         "Ispred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$Is))))),2,median),
-                         "IspredInf" = minI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$Is))))),2,min),
-                         "IspredSup" = maxI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$Is))))),2,max),
-                         "Iapred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$Ia))))),2,median),
-                         "IapredInf" = minI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$Ia))))),2,min),
-                         "IapredSup" = maxI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$Ia))))),2,max),
-                         "Ipred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$I))))),2,median),
-                         "IpredInf" = minI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$I))))),2,min),
-                         "IpredSup" = maxI*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$Ia))))),2,max),
-                         "Rpred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$R))))),2,median),
-                         "RpredInf" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$R))))),2,min),
-                         "RpredSup" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$R))))),2,max),
-                         "Dpred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$D))))),2,median),
-                         "DpredInf" = minD*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$D))))),2,min),
-                         "DpredSup" = maxD*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$D))))),2,max))
-  p <- ggplot(c_pred,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
-                                                                    linetype = "dashed") +
-        geom_line(aes(y = Ispred, color = "a")) + geom_ribbon(aes(ymin = IspredInf,ymax = IspredSup,fill = "a"),alpha = 0.25) +
-        geom_line(aes(y = Dpred, color = "c")) + geom_ribbon(aes(ymin = DpredInf,ymax = DpredSup,fill = "c"),alpha = 0.25) + 
-        theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length,length.out = 12),
-                                                       labels = strftime(seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length,length.out = 12),
-                                                                         format="%d/%m/%y")) + 
-      scale_y_continuous(breaks = round(seq(min(c_pred$Dpred),max(c_pred$IspredSup),length.out = 10))) +
-        theme(legend.title = element_text(face = "bold"),legend.position = "bottom") + ylab("Indivíduos") +
-        xlab("Data") + scale_colour_discrete("",labels = c("Infectados","Total de Óbitos")) +
-        theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
-              axis.text.x = element_text(size = 15,face = "bold",color = "white"),
-              legend.text = element_text(size = 15,face = "bold",color = "white"),
-              axis.text.y = element_text(size = 15,face = "bold",color = "white"),
-              legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
-              panel.grid.minor.y = element_blank(),
-              axis.title = element_text(color = "white",size = 20),
-              plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
-        theme(plot.margin = unit(c(1,1,1,1), "lines")) + scale_fill_discrete(guide = FALSE) + 
-        theme(strip.background = element_blank(),
-              strip.text = element_text(size = 20,face = "bold",color = "white")) +
-        labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
-        ggtitle(paste("Curva epidemiológica prevista para o Estado de São Paulo"))
-  pdf(file = paste("/storage/SEIR/",pos,"/SP_EPcurve_predicted_",pos,".pdf",sep = ""),
-      width = 15,height = 10)
-  suppressWarnings(suppressMessages(print(p))) #Save plot
-  dev.off()
   
   cat("Building maps...\n")
   drs$DRS <- as.character(drs$DRS)
