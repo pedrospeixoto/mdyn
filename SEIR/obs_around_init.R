@@ -7,12 +7,12 @@ obs_around_init <- function(obs,obs_drs,par,day_init,start,end){
     tmp <- tmp[match(x = par$names,table = tmp$city),]
     tmp1 <- obs_drs %>% filter(date == ymd(day_init) + t - 1)
     tmp1 <- tmp1[match(x = par$names,table = tmp1$city),]
-    r$E[[as.character(t)]] <- tmp$new_infected_cor #E
+    r$E[[as.character(t)]] <- tmp$infected #E
     r$I[[as.character(t)]] <- tmp$infected #I
     r$Is[[as.character(t)]] <- tmp$infected #Is
     r$R[[as.character(t)]] <- tmp$recovered #R
     r$D[[as.character(t)]] <- tmp$deaths_corrected #D
-    r_DRS$E[[as.character(t)]] <- tmp1$new_infected_cor #E
+    r_DRS$E[[as.character(t)]] <- tmp1$infected #E
     r_DRS$I[[as.character(t)]] <- tmp1$infected #I
     r_DRS$Is[[as.character(t)]] <- tmp1$infected #Is
     r_DRS$R[[as.character(t)]] <- tmp1$recovered #R

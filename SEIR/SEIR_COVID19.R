@@ -36,7 +36,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   EPI_curve(obs,end_validate,pos)
   
   #Calculate lift
-  #par$lift <- lift_death(obs,end_validate,par)
+  par$lift <- lift_death(obs,end_validate,par)
 
   #Obs by DRS
   obs_drs <- data_drs(obs,drs)
