@@ -4,10 +4,10 @@ beta <- function(parK,t,lambda,drs,day,obs){
   #####Beta by DRS#####
   
   #Calculate exposed
-  parK$obs_DRS$E[[as.character(t)]] <- parK$upI*(1/(parK$gammaI))*(parK$obs_DRS$E[[as.character(t+2)]]+
+  parK$obs_DRS$E[[as.character(t)]] <- parK$upI*(1/(parK$gammaI*parK$gammaS))*(parK$obs_DRS$E[[as.character(t+2)]]+
                                                                                   (parK$nuI + parK$gammaS - 1)*parK$obs_DRS$E[[as.character(t+1)]])
   parK$obs_DRS$E[[as.character(t)]] <- ifelse(parK$obs_DRS$E[[as.character(t)]] < 0,0,parK$obs_DRS$E[[as.character(t)]])
-  parK$obs$E[[as.character(t)]] <- parK$upI*(1/(parK$gammaI))*(parK$obs$E[[as.character(t+2)]]+
+  parK$obs$E[[as.character(t)]] <- parK$upI*(1/(parK$gammaI*parK$gammaS))*(parK$obs$E[[as.character(t+2)]]+
                                                                               (parK$nuI + parK$gammaS - 1)*parK$obs$E[[as.character(t+1)]])
   parK$obs$E[[as.character(t)]] <- ifelse(parK$obs$E[[as.character(t)]] < 0,0,parK$obs$E[[as.character(t)]])
   #parK$obs$E[[as.character(t)]] <- ifelse(parK$obs$E[[as.character(t)]] > 0.1*parK$pop,0.1*parK$pop,parK$obs$E[[as.character(t)]])
