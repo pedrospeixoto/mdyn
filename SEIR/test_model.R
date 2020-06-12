@@ -3,10 +3,8 @@ test_model <- function(D,I,teste_D,teste_I,drs){
   
   #Error in cities
   Dcity <- abs(D - teste_D$city[,-1])/teste_D$city[,-1]
-  Dcity <- Dcity[,-match("SÃO PAULO",par$names)]
   Dcity <- (Dcity[teste_D$city[,-1] > 100])
   Icity <- abs(I - teste_I$city[,-1])/teste_I$city[,-1]
-  Icity <- Icity[,-match("SÃO PAULO",par$names)]
   Icity <- (Icity[teste_I$city[,-1] > 1000])
 
   #Deaths in DRSs
@@ -20,6 +18,7 @@ test_model <- function(D,I,teste_D,teste_I,drs){
   D <- D %>% select(D_pred,key) %>% unique() %>% data.frame()
   D <- merge(D,teste_D$DRS)
   D$dif <- (D$D_pred - D$D_drs)/D$D_drs
+  D <- D %>% filter(DRS != "0")
   dif_D <- quantile(c(abs(D$dif)[D$D_drs > 100],Dcity),0.95)
 
   #Cases in DRSs
@@ -33,6 +32,7 @@ test_model <- function(D,I,teste_D,teste_I,drs){
   I <- I %>% select(I_pred,key) %>% unique() %>% data.frame()
   I <- merge(I,teste_I$DRS)
   I$dif <- (I$I_pred - I$I_drs)/I$I_drs
+  I <- I %>% filter(DRS != "0")
   dif_I <- quantile(c(abs(I$dif)[I$I_drs > 1000],Icity),0.95)
   
   return(list("dif_D" = dif_D,"dif_I" = dif_I,"error_D" = D,"error_I" = I))
