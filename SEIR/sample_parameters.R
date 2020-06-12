@@ -14,7 +14,6 @@ sample_parameters <- function(par,day_validate){
   parK$Tsr <- sample(x = par$Tsr,size = 1) #Tsr
   parK$Td <- sample(x = par$Td,size = 1) #Td
   parK$pS <- sample(x = par$pS,size = 1) #Td
-  parK$exp <- sample(x = par$exp,size = 1) #exp
   parK$delta <- par$delta #delta
   parK$sites <- par$sites #Number of sites
   parK$s <- sample(x = par$s,size = 1) #s
