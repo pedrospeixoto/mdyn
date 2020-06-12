@@ -34,7 +34,10 @@ derivatives <- function(t,Y,parK){
   nuS <- parK$nuI #Rate from Statistics to Recovered
   delta <- parK$deltaRate #Rate from Statistics to Death
   s <- parK$s #Intensity of mobility
-  beta <- parK$beta[[t]] #beta
+  if(parK$val)
+    beta <- parK$beta[[t]] #beta
+  else
+    beta <- parK$beta[[weekdays(parK$day[t])]]
   
   #Derivatives
   dY <- vector(length = 6*parK$sites) #Vector of derivatives

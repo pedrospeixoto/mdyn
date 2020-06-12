@@ -53,11 +53,11 @@ par$pS <- 1/c(5:10,15,20,30,40,50)
 par$Te <- c(3:6)
 par$Ti <- c(4:10)
 par$Ts <- 7:14
-par$Tsr <- 21:28
-par$Td <- c(7:14)
+par$Tsr <- 14:28
+par$Td <- c(1:14)
 par$s <- c(1,1.5,2,2.5,3)
 
-sample_size <- 500
+sample_size <- 1000
 max_models <- 200
 source("mdyn/SEIR/SEIR_COVID19.R")
 SEIR_covid(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models,error_I,error_D)

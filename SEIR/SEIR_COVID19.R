@@ -152,8 +152,9 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     if(good == 1){#Store good models
       
       #Mediana of beta
-      parK$beta <- as.vector(apply(bind_rows(lapply(parK$beta,function(x) data.frame(rbind(x)))),2,median))
-      pred[[k]]$beta <- parK$beta
+      parK$betaMedian <- as.vector(apply(bind_rows(lapply(parK$beta,function(x) data.frame(rbind(x)))),2,median))
+      pred[[k]]$beta <- parK$betaMedian
+      names(parK$beta) <- weekdays(seq.Date(from = ymd(init_validate),to = ymd(end_validate),1))
       
       #Prediction
       pred[[k]]$E <- mod[,1:parK$sites] #Prediction of E
@@ -234,7 +235,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   s <- unlist(lapply(results$models,function(x) x$s)) #s
   pS <- lapply(results$models,function(x) x$pS) #Missed cases
   assymptomatic <- 1-unlist(lapply(pS,median)) #Missed cases
-  beta <- lapply(results$models,function(x) x$beta) #Beta
+  beta <- lapply(results$models,function(x) x$betaMedian) #Beta
   betasave <- unlist(lapply(beta,median)) #Beta
   Rt <- lapply(results$models,function(x) x$Rt) #Rt
   Rtsave <- unlist(lapply(Rt,median)) #Rt
