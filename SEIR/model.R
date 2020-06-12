@@ -37,7 +37,7 @@ derivatives <- function(t,Y,parK){
   if(parK$val)
     beta <- parK$beta[[t]] #beta
   else
-    beta <- parK$beta[[weekdays(parK$day[t])]]
+    beta <- parK$betaMedian #[[weekdays(parK$day[t])]]
   
   #Derivatives
   dY <- vector(length = 6*parK$sites) #Vector of derivatives
@@ -46,7 +46,7 @@ derivatives <- function(t,Y,parK){
   dY[(2*parK$sites + 1):(3*parK$sites)] <- -nuS*Is + gammaS*I - delta*Is #Is
   dY[(3*parK$sites + 1):(4*parK$sites)] <- nuI*I + nuS*Is #R
   dY[(4*parK$sites + 1):(5*parK$sites)] <- delta*Is #D
-  dY[(5*parK$sites + 1):(6*parK$sites)] <- -Y[(5*parK$sites + 1):(6*parK$sites)] + (S/(N-D))#*beta*(s*((mob-diag(diag(mob))) %*% cbind(I))) #gammaS*I #Add new cases to total
+  dY[(5*parK$sites + 1):(6*parK$sites)] <- gammaS*I #Add new cases to total
   
   return(list(dY)) #Return
 }
