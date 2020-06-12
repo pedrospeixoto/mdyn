@@ -167,7 +167,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       pred[[k]]$Is <- mod[,(2*parK$sites + 1):(3*parK$sites)] #Prediction of Is
       pred[[k]]$R <- mod[,(3*parK$sites + 1):(4*parK$sites)] #Prediction of R
       pred[[k]]$D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Prediction of D
-      pred[[k]]$I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Total cases
+      pred[[k]]$It <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Total cases
       
       
       #Mean infected time and Rt
