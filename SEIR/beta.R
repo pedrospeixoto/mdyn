@@ -51,9 +51,9 @@ beta <- function(parK,t,lambda,drs,day,obs){
   beta[par$names %in% c$city] <- b[par$names %in% c$city]
   
   #If negative forget parameters
-  if(min(beta) < 0)
-    return(NULL)
-  else{
-    return(beta)
-  }
+  #if(min(beta) < 0)
+  #  return(NULL)
+  #else{
+  return(beta)
+  #}
 }
