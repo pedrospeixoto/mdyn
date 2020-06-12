@@ -37,6 +37,7 @@ source("mdyn/SEIR/seir_solver.R")
 source("mdyn/SEIR/test_model.R")
 source("mdyn/SEIR/Rt.R")
 source("mdyn/SEIR/plot_map_summary.R")
+source("mdyn/SEIR/plot_validate.R")
 
 #Plot themes
 titles <- theme(strip.text = element_text(size = 12), axis.text = element_text(size = 12,color = "black"),
