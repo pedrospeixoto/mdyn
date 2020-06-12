@@ -1,5 +1,5 @@
 #Observed data by city and DRS around the week of validation
-obs_around_init <- function(obs,obs_drs,par,day_init,start = 0,end = 9){
+obs_around_init <- function(obs,obs_drs,par,day_init,start,end){
   r <- list()
   r_DRS <- list()
   for(t in start:end){
