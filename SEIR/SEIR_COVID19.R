@@ -56,16 +56,28 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   par$obs <- par$obs[[1]]
       
   #Test data by DRS
-  teste_D <- obs_drs %>% filter(date %in% seq.Date(from = ymd(init_validate),to = ymd(end_validate),1)) %>%
+  teste_D <- list()
+  teste_D$DRS <- obs_drs %>% filter(date %in% seq.Date(from = ymd(init_validate),to = ymd(end_validate),1)) %>%
     select(date,DRS,deaths_corrected) %>% unique()
-  names(teste_D)[3] <- "D_drs"
-  teste_D$key <- paste(teste_D$date,teste_D$DRS)
+  names(teste_D$DRS)[3] <- "D_drs"
+  teste_D$DRS$key <- paste(teste_D$DRS$date,teste_D$DRS$DRS)
   
-  teste_I <- obs_drs %>% filter(date %in% seq.Date(from = ymd(init_validate),to = ymd(end_validate),1)) %>%
+  teste_D$city <- obs %>% filter(date %in% seq.Date(from = ymd(init_validate),to = ymd(end_validate),1)) %>%
+    select(date,city,deaths_corrected)
+  teste_D$city <- spread(data = teste_D$city,key = "city",value = "deaths_corrected")
+  teste_D$city <- teste_D$city[,c(1,match(par$names,colnames(teste_D$city)))]
+  
+  teste_I <- list()
+  teste_I$DRS <- obs_drs %>% filter(date %in% seq.Date(from = ymd(init_validate),to = ymd(end_validate),1)) %>%
     select(date,DRS,confirmed_corrected) %>% unique()
-  names(teste_I)[3] <- "I_drs"
-  teste_I$key <- paste(teste_I$date,teste_I$DRS)
+  names(teste_I$DRS)[3] <- "I_drs"
+  teste_I$DRS$key <- paste(teste_I$DRS$date,teste_I$DRS$DRS)
   
+  teste_I$city <- obs %>% filter(date %in% seq.Date(from = ymd(init_validate),to = ymd(end_validate),1)) %>%
+    select(date,city,confirmed_corrected)
+  teste_I$city <- spread(data = teste_I$city,key = "city",value = "confirmed_corrected")
+  teste_I$city <- teste_I$city[,c(1,match(par$names,colnames(teste_I$city)))]
+
   #Calculate growth rate
   system(paste("mkdir /storage/SEIR/",pos,"/AjusteRate/",sep = ""))
   par$lambda <- growth_rate(obs,obs_drs,drs,par,pos)
