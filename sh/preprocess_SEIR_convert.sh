@@ -4,6 +4,12 @@ echo "Converting pdf to png..."
 
 cd /storage/SEIR/$1
 
+#Clear ShinyApps
+find /storage/ShinyApps/seircovid19 -type f -iname '*.png' -delete;
+find /storage/ShinyApps/seircovid19 -type f -iname '*.csv' -delete;
+find /storage/ShinyApps/seircovid19 -type f -iname '*.rds' -delete;
+find /storage/ShinyApps/seircovid19 -type f -iname '*.mp4' -delete;
+
 #Convert files in main directory and delete pdf
 mogrify -density 100 -format png ./*.pdf;
 find . -maxdepth 1 -type f -iname "*.pdf" -delete;
@@ -64,10 +70,6 @@ done;
 countdown 600;
 
 #Copy video files to ShinyApp
-find /storage/ShinyApps/seircovid19 -type f -iname '*.png' -delete;
-find /storage/ShinyApps/seircovid19 -type f -iname '*.csv' -delete;
-find /storage/ShinyApps/seircovid19 -type f -iname '*.rds' -delete;
-find /storage/ShinyApps/seircovid19 -type f -iname '*.mp4' -delete;
 cd /storage/SEIR/$1
 find . -maxdepth 1 -type f -iname "*.mp4" -exec cp {} /storage/ShinyApps/seircovid19/www/ \;
 cd /storage/SEIR/$1/Videos/Estado
