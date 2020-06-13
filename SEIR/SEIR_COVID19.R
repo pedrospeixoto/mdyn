@@ -252,9 +252,9 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   cat("Plot observed and predicted number of deaths for each DRS...\n")
   system(paste("mkdir /storage/SEIR/",pos,"/validate",sep = ""))
   
-  plot_validate(drs,obs_drs,par,pred,init_validate,end_validate,pos,minI,maxI,minD,maxD)
+  plot_validate(drs,obs,obs_drs,par,pred,init_validate,end_validate,pos,minI,maxI,minD,maxD)
 
-  #######Simulation of scenarios########
+  #######Simulation of scenarios########  
   cat("Simulating scenarios...\n")
   init <- initial_condition(obs,end_validate,par) #Initial condition
   init1f <- initial_condition(obs,end_validate+1,par) #Data one day after initial
