@@ -45,7 +45,7 @@ function countdown(){
 }
 
 countdown 1800;
-#!/bin/bash
+
 echo "Creating videos..."
 
 cd /storage/SEIR/$1/Videos
