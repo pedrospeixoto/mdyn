@@ -9,9 +9,7 @@ source("mdyn/SEIR/utils.R")
 SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models,error_I,error_D){
   
   cat("\n")
-  cat("Welcome to Covid SEIR Mobility Model estimation!")
-  cat("\n")
-  cat("One moment and I will be right there with you...")
+  cat("Welcome to Covid SEIR Mobility Model estimation!\n")
   cat("\n")
   
   #Seed
@@ -300,13 +298,13 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   dataSim <- store_simulation(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,maxD,end_validate)
   
   cat("Building maps...\n")
-  build_maps(dataSim,drs,par)
+  build_maps(dataSim,drs,par,end_validate)
   
   cat("\n")
   cat("We are done fitting the model! I will starting preprocessing the data in a moment...\n")
   preprocess_SEIR_output(param,drs,pos,obs,init_validate)
   
   cat("\n")
-  cat("And that is it! You can create the videos. Please come back more often.\n")
+  cat("And that is it! Please come back more often.\n")
 }
   
