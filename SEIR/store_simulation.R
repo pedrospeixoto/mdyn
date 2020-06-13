@@ -1,5 +1,5 @@
 #Store the results of the simulation
-store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,max){
+store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,max,end_validate){
   
   #Create objects
   peak <- data.frame("Municipio" = NA,"TMinimo" = NA,"TMediana" = NA,"TMaximo" = NA,"MMinimo" = NA,"MMediana" = NA,"MMaximo" = NA)
