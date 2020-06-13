@@ -44,7 +44,7 @@ function countdown(){
    done
 }
 
-countdown 1800;
+countdown 60;
 
 echo "Creating videos..."
 
