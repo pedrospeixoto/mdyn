@@ -19,8 +19,8 @@ test_model <- function(D,I,teste_D,teste_I,drs){
   D <- merge(D,teste_D$DRS)
   D$dif <- (D$D_pred - D$D_drs)/D$D_drs
   D <- D %>% filter(DRS != "0")
-  dif_D <- max(c(max(abs(D$dif)[D$D_drs > 100]),quantile(Dcity,0.95)))
-  D <- c(D$dif[D$D_drs > 100],Dcity,)
+  dif_D <- max(c(max(abs(D$dif)[D$D_drs > 100]),quantile(Dcity,0.9)))
+  D <- c(D$dif[D$D_drs > 100],Dcity[Dcity < quantile(Dcity,0.9)])
 
   #Cases in DRSs
   colnames(I) <- par$names
@@ -34,8 +34,8 @@ test_model <- function(D,I,teste_D,teste_I,drs){
   I <- merge(I,teste_I$DRS)
   I$dif <- (I$I_pred - I$I_drs)/I$I_drs
   I <- I %>% filter(DRS != "0")
-  dif_I <- max(c(max(abs(I$dif)[I$I_drs > 1000]),quantile(Dcity,0.95)))
-  I <- c(I$dif[I$I_drs > 1000],Icity)
+  dif_I <- max(c(max(abs(I$dif)[I$I_drs > 1000]),quantile(Icity,0.9)))
+  I <- c(I$dif[I$I_drs > 1000],Icity[Icity < quantile(Icity,0.9)])
   
   return(list("dif_D" = dif_D,"dif_I" = dif_I,"error_D" = D,"error_I" = I))
 }

@@ -410,5 +410,5 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs){
   suppressWarnings(suppressMessages(print(p))) #Save plot
   dev.off()
   
-  return(list(Dsim,Isim,peakM))
+  return(list("Dsim" = Dsim,"Isim" = Isim,"peakM" = peakM))
 }

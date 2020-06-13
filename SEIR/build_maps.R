@@ -32,15 +32,13 @@ build_maps <- function(dataSim,drs,par){
   #Peak
   tmp <- peak
   tmp$tmedian <- as.numeric(ymd(tmp$TMediana) - ymd(end_validate)+1)
-  tmp <- tmp %>% select(DRS,tmedian)
-  tmp$DRS[tmp$DRS == "0"] <- "I"
-  tmp$DRS <- factor(tmp$DRS)
-  tmp <- merge(shp,tmp)
+  tmp <- tmp %>% select(Municipio,tmedian)
+  tmp <- merge(shp,tmp,by.x = "id",by.y = "Municipio")
   tmp <- tmp[order(tmp$order),]
   rc_cont_inv <- colorRampPalette(colors = c("red","darkgoldenrod1","white"))(simulate_length+1)
   p <- ggplot(tmp,aes(long, lat, group=group,fill = log(1+tmedian))) + theme_bw() + geom_polygon(colour='gray30') +
     xlab("") + ylab("") + titles_Map + scale_fill_gradientn("",colours = rc_cont_inv,limits = log(1+c(0,simulate_length)),
-                                                            breaks = c(1,log(1+simulate_length)),
+                                                            breaks = c(0.25,log(1+simulate_length)),
                                                             labels = c("Pico próximo","Pico distante")) +
     theme(legend.background = element_blank()) + ggtitle("Distância até o pico por Município")
   pdf(file = paste("/storage/SEIR/",pos,"/risk_peak_",pos,".pdf",sep = ""),width = 15,height = 10)

@@ -36,7 +36,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   EPI_curve(obs,end_validate,pos)
   
   #Calculate lift
-  par$lift <- lift_death(obs,end_validate,par)
+  #par$lift <- lift_death(obs,end_validate,par)
 
   #Obs by DRS
   obs_drs <- data_drs(obs,drs)
@@ -96,7 +96,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   results <- list()
   results$models <- vector("list",sample_size) #Store parameters of models
   kgood <- 0 #Number of good models
-  is.good <- vector() #Track good models
+  is.good <- rep(0,sample_size) #Track good models
   
   #Track error
   minI <- 1
@@ -151,7 +151,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     #Result
     if(good == 1){#Store good models
       
-      #Mediana of beta
+      #Median of beta
       parK$betaMedian <- as.vector(apply(bind_rows(lapply(parK$beta,function(x) data.frame(rbind(x)))),2,median))
       pred[[k]]$beta <- parK$betaMedian
       names(parK$beta) <- weekdays(seq.Date(from = ymd(init_validate),to = ymd(end_validate),1))
@@ -169,21 +169,17 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       parK$Rt <- Rt(parK,end_validate,7)
       parK$meanTi <- parK$Rt$meanTi
       parK$Rt <- parK$Rt$Rt
-      pred[[k]]$meanTi <- parK$menaTi #Prediction of mean infection time
+      pred[[k]]$meanTi <- parK$meanTi #Prediction of mean infection time
       pred[[k]]$Rt <- parK$Rt #Prediction of Rt
       
       #Number of good models
       kgood <- kgood + 1
       
       #Error of this
-      minDK <- ifelse(min(1 + test$error_D) < 1,
-                      min(1 + test$error_D),1)
-      maxDK <- ifelse(max(1 + test$error_D) > 1,
-                      max(1 + test$error_D),1)
-      minIK <- ifelse(min(1 + test$error_I) < 1,
-                      min(1 + test$error_I),1)
-      maxIK <- ifelse(max(1 + test$error_I) > 1,
-                      max(1 + test$error_I),1)
+      minDK <- ifelse(min(1 + test$error_D) < 1,min(1 + test$error_D),1)
+      maxDK <- ifelse(max(1 + test$error_D) > 1,max(1 + test$error_D),1)
+      minIK <- ifelse(min(1 + test$error_I) < 1,min(1 + test$error_I),1)
+      maxIK <- ifelse(max(1 + test$error_I) > 1,max(1 + test$error_I),1)
       parK$minDK <- minDK
       parK$minIK <- minIK
       parK$maxDK <- maxDK
@@ -194,9 +190,9 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       parK$val <- NULL #Is validation
       parK$mob <- NULL #Mobility matrix
       parK$pop <- NULL #Population
-      parK$obs <- NULL
-      parK$obs_DRS <- NULL
-      parK$sites <- NULL
+      parK$obs <- NULL #Obs
+      parK$obs_DRS <- NULL #Obs_DRS
+      parK$sites <- NULL #Sites
       
       results$models[[kgood]] <- parK
       if(minDK < minD)
@@ -305,11 +301,11 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   dataSim <- store_simulation(predSIM,par,simulate_length,pos,drs)
   
   cat("Building maps...\n")
-  build_maps(dataSim)
+  build_maps(dataSim,drs,par)
   
   cat("\n")
   cat("We are done fitting the model! I will starting preprocessing the data in a moment...\n")
-  preprocess_SEIR_output(drs,pos,obs,init_validate)
+  preprocess_SEIR_output(param,drs,pos,obs,init_validate)
   
   cat("\n")
   cat("And that is it! You can create the videos. Please come back more often.\n")
