@@ -1,5 +1,5 @@
 #build maps of simulation
-build_maps <- function(dataSim,drs,par){
+build_maps <- function(dataSim,drs,par,end_validate){
   
   #Data
   Dsim <- dataSim$Dsim
