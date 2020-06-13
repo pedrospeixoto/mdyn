@@ -1,5 +1,5 @@
 #Calculate Growth Rate of DRSs and cities with 1000+ cases
-growth_rate <- function(obs,obs_drs,drs,par,pos){
+growth_rate <- function(obs,obs_drs,drs,par,pos,init_validate,end_validate){
   lambda <- vector()
   
   #For each DRS
