@@ -1,5 +1,5 @@
 #Plot validate curves
-plot_validate <- function(drs,par,pred,init_validate,end_validate,pos){
+plot_validate <- function(drs,par,pred,init_validate,end_validate,pos,minI,maxI,minD,max){
   
   #For each DRS deaths
   D <- vector("list",length(levels(drs$DRS)))
