@@ -297,7 +297,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   
   #####Results of simulation#####
   
-  dataSim <- store_simulation(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,max,end_validate)
+  dataSim <- store_simulation(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,maxD,end_validate)
   
   cat("Building maps...\n")
   build_maps(dataSim,drs,par)
