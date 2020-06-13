@@ -8,7 +8,7 @@ preprocess_SEIR_output <- function(param,drs,pos,obs,end_validate){
   wd <- paste("/storage/SEIR/",pos,sep = "")
     
   ######Convert to png and create video######
-  system(paste("./mdyn/sh/preprocess_SEIR_convert.sh",pos))
+  system(paste("./mdyn/sh/preprocess_SEIR_convert.sh",pos,"&"))
     
   #####Create rds files for shiny#####
   cat("Creating files for ShinyApp...\n")
