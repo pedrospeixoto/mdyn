@@ -44,7 +44,7 @@ function countdown(){
    done
 }
 
-countdown 60;
+countdown 600;
 
 echo "Creating videos..."
 
@@ -61,6 +61,8 @@ do
   ffmpeg -framerate 5 -i "./$d/mortes/%03d".png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p /storage/SEIR/$1/mortes_$d.mp4 &
 done;
 
+countdown 600;
+
 #Copy video files to ShinyApp
 cd /storage/SEIR/$1
 find . -maxdepth 1 -type f -iname "*.mp4" -exec cp {} /storage/ShinyApps/seircovid19/www/ \;
@@ -70,5 +72,11 @@ cp -r mortes/ /storage/ShinyApps/seircovid19/www/
 
 echo "Syncing with Shiny server..."
 
+ssh -p 2223 dmarcondes@shiny.ime.usp.br "{
+  find ./ShinyApps/seircovid19 -type f -iname '*.png' -delete;
+  find ./ShinyApps/seircovid19 -type f -iname '*.csv' -delete;
+  find ./ShinyApps/seircovid19 -type f -iname '*.rds' -delete;
+  find ./ShinyApps/seircovid19 -type f -iname '*.mp4' -delete;
+}"
 rsync -u -avz -e "ssh -p 2223" dmarcondes@shiny.ime.usp.br:ShinyApps /storage/
 rsync -u -avz -e "ssh -p 2223" /storage/ShinyApps dmarcondes@shiny.ime.usp.br:
