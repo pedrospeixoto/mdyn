@@ -37,7 +37,7 @@ derivatives <- function(t,Y,parK){
   if(parK$val)
     beta <- parK$beta[[t]] #beta
   else
-    beta <- parK$betaMedian #[[weekdays(parK$day[t])]]
+    beta <- parK$betaMedian
   
   #Derivatives
   dY <- vector(length = 6*parK$sites) #Vector of derivatives

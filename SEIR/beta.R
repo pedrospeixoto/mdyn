@@ -10,7 +10,6 @@ beta <- function(parK,t,lambda,drs,day,obs){
   parK$obs$E[[as.character(t)]] <- parK$upI*(1/(parK$gammaI))*(parK$obs$E[[as.character(t+2)]]+
                                                                               (parK$nuI + parK$gammaS - 1)*parK$obs$E[[as.character(t+1)]])
   parK$obs$E[[as.character(t)]] <- ifelse(parK$obs$E[[as.character(t)]] < 0,0,parK$obs$E[[as.character(t)]])
-  #parK$obs$E[[as.character(t)]] <- ifelse(parK$obs$E[[as.character(t)]] > 0.1*parK$pop,0.1*parK$pop,parK$obs$E[[as.character(t)]])
   
   #Calculate susceptibles
   Sobs <- parK$pop - parK$obs$E[[as.character(t)]] - (1+parK$upI)*parK$obs$Is[[as.character(t)]] - (parK$upI+1)*parK$obs$R[[as.character(t)]] - 
@@ -50,10 +49,5 @@ beta <- function(parK,t,lambda,drs,day,obs){
   c <- obs %>% filter(date == ymd(day) & confirmed_corrected >= 1000) 
   beta[par$names %in% c$city] <- b[par$names %in% c$city]
   
-  #If negative forget parameters
-  #if(min(beta) < 0)
-  #  return(NULL)
-  #else{
   return(beta)
-  #}
 }
