@@ -7,7 +7,6 @@ cd /storage/SEIR/$1
 #Clear ShinyApps
 find /storage/ShinyApps/seircovid19 -type f -iname '*.png' -delete;
 find /storage/ShinyApps/seircovid19 -type f -iname '*.csv' -delete;
-find /storage/ShinyApps/seircovid19 -type f -iname '*.rds' -delete;
 find /storage/ShinyApps/seircovid19 -type f -iname '*.mp4' -delete;
 
 #Convert files in main directory and delete pdf
