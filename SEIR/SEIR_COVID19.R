@@ -302,7 +302,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   
   cat("\n")
   cat("We are done fitting the model! I will starting preprocessing the data in a moment...\n")
-  preprocess_SEIR_output(param,drs,pos,obs,init_validate)
+  preprocess_SEIR_output(param,drs,pos,obs,end_validate)
   
   cat("\n")
   cat("And that is it! Please come back more often.\n")
