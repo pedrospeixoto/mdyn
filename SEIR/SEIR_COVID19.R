@@ -138,7 +138,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Predicted cases for testing
       
     #Test if model predicted well
-    test <- test_model(D,I,teste_D,teste_I,drs)
+    test <- test_model(D,I,teste_D,teste_I,drs,init_validate,end_validate)
 
     #Is good
     good <- as.numeric(test$dif_I <= error_I & test$dif_D <= error_D) #Test if is good
