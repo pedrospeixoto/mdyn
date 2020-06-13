@@ -13,8 +13,8 @@ seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
 d_max <- "2020-06-03"
 simulate_length <- 90 #as.numeric(ymd("2020-12-31") - ymd(d_max)) #Number of days to simulate
-error_I <- 0.06
-error_D <- 0.06
+error_I <- 0.075
+error_D <- 0.075
 
 #Set mobility matrix
 par$mob <- list()
@@ -57,7 +57,7 @@ par$Tsr <- 14:28
 par$Td <- c(1:14)
 par$s <- c(1,1.5,2,2.5,3)
 
-sample_size <- 1000
+sample_size <- 200
 max_models <- 200
 source("mdyn/SEIR/SEIR_COVID19.R")
 SEIR_covid(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models,error_I,error_D)
