@@ -64,6 +64,10 @@ done;
 countdown 600;
 
 #Copy video files to ShinyApp
+find /storage/ShinyApps/seircovid19 -type f -iname '*.png' -delete;
+find /storage/ShinyApps/seircovid19 -type f -iname '*.csv' -delete;
+find /storage/ShinyApps/seircovid19 -type f -iname '*.rds' -delete;
+find /storage/ShinyApps/seircovid19 -type f -iname '*.mp4' -delete;
 cd /storage/SEIR/$1
 find . -maxdepth 1 -type f -iname "*.mp4" -exec cp {} /storage/ShinyApps/seircovid19/www/ \;
 cd /storage/SEIR/$1/Videos/Estado
