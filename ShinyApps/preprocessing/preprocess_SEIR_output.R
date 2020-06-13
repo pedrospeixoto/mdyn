@@ -7,9 +7,6 @@ preprocess_SEIR_output <- function(param,drs,pos,obs,end_validate){
   #wd
   wd <- paste("/storage/SEIR/",pos,sep = "")
     
-  ######Convert to png and create video######
-  system(paste("./mdyn/sh/preprocess_SEIR_convert.sh",pos,"&"))
-    
   #####Create rds files for shiny#####
   cat("Creating files for ShinyApp...\n")
   
@@ -97,5 +94,8 @@ preprocess_SEIR_output <- function(param,drs,pos,obs,end_validate){
   
   #drs
   saveRDS(drs,"/storage/ShinyApps/seircovid19/www/drs.rds")
+  
+  ######Convert to png and create video######
+  system(paste("./mdyn/sh/preprocess_SEIR_convert.sh",pos))
   
 }
