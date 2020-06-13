@@ -8,13 +8,13 @@ library(lubridate)
 
 #Parameters
 cores <- 24 #Number   of cores to use in parallel computation
-pos <- "teste" #What to add at the end of all output files
+pos <- Sys.Date() #"teste" #What to add at the end of all output files
 seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
 d_max <- "2020-06-03"
 simulate_length <- 90 #as.numeric(ymd("2020-12-31") - ymd(d_max)) #Number of days to simulate
-error_I <- 0.075
-error_D <- 0.075
+error_I <- 0.06
+error_D <- 0.05
 
 #Set mobility matrix
 par$mob <- list()
