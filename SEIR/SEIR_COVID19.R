@@ -80,7 +80,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
 
   #Calculate growth rate
   system(paste("mkdir /storage/SEIR/",pos,"/AjusteRate/",sep = ""))
-  par$lambda <- growth_rate(obs,obs_drs,drs,par,pos,init_validate,end_validate)
+  par$lambda <- growth_rate(obs,obs_drs,drs,par,pos,init_validate,end_validate,day_validate)
 
   #Calculate death rate for each DRS
   par$delta <- death_rate(teste_D$DRS,teste_I$DRS,obs,end_validate,drs,par)
