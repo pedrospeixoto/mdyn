@@ -1,5 +1,5 @@
 #Test if model fit
-test_model <- function(D,I,teste_D,teste_I,drs){
+test_model <- function(D,I,teste_D,teste_I,drs,init_validate,end_validate){
   
   #Error in cities
   Dcity <- abs(D - teste_D$city[,-1])/teste_D$city[,-1]
