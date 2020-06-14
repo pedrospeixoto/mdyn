@@ -13,7 +13,7 @@ seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
 d_max <- "2020-06-03"
 simulate_length <- as.numeric(ymd("2020-12-31") - ymd(d_max)) #Number of days to simulate
-error_I <- 0.055
+error_I <- 0.06
 error_D <- 0.045
 
 #Set mobility matrix
