@@ -49,7 +49,7 @@ function countdown(){
    done
 }
 
-countdown 300;
+countdown 1800;
 
 echo "Creating videos..."
 
@@ -66,7 +66,7 @@ do
   ffmpeg -framerate 5 -i "./$d/mortes/%03d".png -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p /storage/SEIR/$1/mortes_$d.mp4 &
 done;
 
-countdown 300;
+countdown 900;
 
 #Copy video files to ShinyApp
 cd /storage/SEIR/$1
