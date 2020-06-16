@@ -17,7 +17,8 @@ sample_parameters <- function(par,day_validate){
   parK$delta <- par$delta #delta
   parK$sites <- par$sites #Number of sites
   parK$s <- sample(x = par$s,size = 1) #s
-  parK$upI <- (1-parK$pS)/parK$pS #Number of missed cases for each one in statistics
+  parK$lift <- par$lift #lift
+  parK$upI <- par$lift*(1-parK$pS)/parK$pS #Number of missed cases for each one in statistics
   
   #Parameters
   parK$gammaI <- 1/parK$Te #Rate from Exposed to Infected
