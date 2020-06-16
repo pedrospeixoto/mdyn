@@ -51,10 +51,10 @@ for(i in 1:length(par$mob)){
 #Cadidate parameters  
 par$pS <- 1/c(5:10,15,20)
 par$Te <- c(3:6)
-par$Ti <- c(7:14)
-par$Ts <- 10:12
-par$Tsr <- 21:28
-par$Td <- c(12:21)
+par$Ti <- c(7:21)
+par$Ts <- 7:21
+par$Tsr <- 7:28
+par$Td <- c(7:28)
 par$s <- c(1,1.5,2,2.5,3)
 
 sample_size <- 100000
