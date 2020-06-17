@@ -11,10 +11,10 @@ cores <- 24 #Number   of cores to use in parallel computation
 pos <- Sys.Date() #"teste" #What to add at the end of all output files
 seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
-d_max <- ymd(Sys.Date())-4
+d_max <- ymd(Sys.Date())-5
 simulate_length <- as.numeric(ymd("2020-12-31") - ymd(d_max)) #Number of days to simulate
-error_I <- 0.06
-error_D <- 0.05
+error_I <- 0.07
+error_D <- 0.07
 
 #Set mobility matrix
 par$mob <- list()
@@ -59,7 +59,7 @@ par$Tsr <- 7:28
 par$Td <- c(7:28)
 par$s <- c(1,1.5,2,2.5,3)
 
-sample_size <- 100000
+sample_size <- 1000
 max_models <- 100
 source("mdyn/SEIR/SEIR_COVID19.R")
 SEIR_covid(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models,error_I,error_D)
