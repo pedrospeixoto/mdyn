@@ -25,7 +25,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     stop("There is a problem with the notifications dataset. Please fix it.")
   
   #####Days of validation#####
-  end_validate <- min(max(ymd(na.omit(obs)$date)),ymd(d_max))
+  end_validate <- min(max(ymd(na.omit(obs)$date))-3,ymd(d_max))
   init_validate <- end_validate - 6
   init_simulate <- end_validate
   day_validate <- seq.Date(from = ymd(init_validate),to = ymd(end_validate),by = 1) #Days to validate
