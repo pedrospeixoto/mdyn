@@ -11,7 +11,7 @@ cores <- 24 #Number   of cores to use in parallel computation
 pos <- Sys.Date() #"teste" #What to add at the end of all output files
 seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
-d_max <- "2020-06-03"
+d_max <- ymd(Sys.Date())-4
 simulate_length <- as.numeric(ymd("2020-12-31") - ymd(d_max)) #Number of days to simulate
 error_I <- 0.06
 error_D <- 0.05
@@ -33,6 +33,8 @@ for(i in 0:6){
                                                    sep = " ",
                                                    header = F))[1:645,1:645]
 }
+for(d in as.character(seq.Date(ymd(d_max)-10,ymd(d_max),1)))
+  par$mob[[as.character(ymd(d))]] <- par$mob[[as.character(weekdays(ymd(d)))]]
 par$names <- as.vector(read.table("mdyn/SEIR/dados/move_mat_SÃO PAULO_Municip_reg_names.txt",sep = ";")[1:645,1]) #Sites name
 par$sites <- length(par$names) #Number of sites
 
