@@ -11,7 +11,7 @@ cores <- 24 #Number   of cores to use in parallel computation
 pos <- Sys.Date() #"teste" #What to add at the end of all output files
 seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
-d_max <- ymd(Sys.Date())-5
+d_max <- ymd(Sys.Date())-6
 simulate_length <- as.numeric(ymd("2020-12-31") - ymd(d_max)) #Number of days to simulate
 error_I <- 0.07
 error_D <- 0.07
