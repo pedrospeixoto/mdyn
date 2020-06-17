@@ -33,8 +33,6 @@ for(i in 0:6){
                                                    sep = " ",
                                                    header = F))[1:645,1:645]
 }
-for(d in as.character(seq.Date(ymd(d_max)-10,ymd(d_max),1)))
-  par$mob[[as.character(ymd(d))]] <- par$mob[[as.character(weekdays(ymd(d)))]]
 par$names <- as.vector(read.table("mdyn/SEIR/dados/move_mat_SÃO PAULO_Municip_reg_names.txt",sep = ";")[1:645,1]) #Sites name
 par$sites <- length(par$names) #Number of sites
 
@@ -49,6 +47,8 @@ for(i in 1:length(par$mob)){
   for(j in 1:ncol(par$mob[[i]]))
     par$mob[[i]][,j] <- par$mob[[i]][,j]/par$pop[j]
 }
+for(d in as.character(seq.Date(ymd(d_max)-10,ymd(d_max),1)))
+  par$mob[[as.character(ymd(d))]] <- par$mob[[as.character(weekdays(ymd(d)))]]
 
 #Cadidate parameters  
 par$pS <- 1/c(5:10,15,20)
