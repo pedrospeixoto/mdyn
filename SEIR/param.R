@@ -11,18 +11,18 @@ cores <- 24 #Number   of cores to use in parallel computation
 pos <- Sys.Date() #"teste" #What to add at the end of all output files
 seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
-d_max <- ymd(Sys.Date())-6
+d_max <- "2020-06-14"
 simulate_length <- as.numeric(ymd("2020-12-31") - ymd(d_max)) #Number of days to simulate
 error_I <- 0.06
 error_D <- 0.045
 
 #Set mobility matrix
 par$mob <- list()
-day <- seq.Date(from = ymd("2020-05-20"),to = ymd("2020-06-03"),1)
+day <- seq.Date(from = ymd("2020-06-01"),to = ymd("2020-06-14"),1)
 for(d in as.character(day)){
   cat(d)
   cat("\n")
-  par$mob[[as.character(d)]] <- as.matrix(read.csv(paste("/storage/inloco/data/mobility_br_2020/date0=",d,"/move_mat_SÃO PAULO_Municip.csv",sep = ""),
+  par$mob[[as.character(d)]] <- as.matrix(read.csv(paste("/storage/inloco/data/mobility_br_2020_new/date0=",d,"/move_mat_SÃO PAULO_Municip.csv",sep = ""),
                                                    sep = " ",
                                                    header = F))[1:645,1:645]
 }
@@ -47,8 +47,8 @@ for(i in 1:length(par$mob)){
   for(j in 1:ncol(par$mob[[i]]))
     par$mob[[i]][,j] <- par$mob[[i]][,j]/par$pop[j]
 }
-for(d in as.character(seq.Date(ymd(d_max)-10,ymd(d_max),1)))
-  par$mob[[as.character(ymd(d))]] <- par$mob[[as.character(weekdays(ymd(d)))]]
+#for(d in as.character(seq.Date(ymd(d_max)-10,ymd(d_max),1)))
+#  par$mob[[as.character(ymd(d))]] <- par$mob[[as.character(weekdays(ymd(d)))]]
 
 #Cadidate parameters  
 par$pS <- 1/c(5:10,15,20)
