@@ -14,14 +14,14 @@ preprocess_SEIR_output <- function(param,drs,pos,obs,end_validate){
   cases_city <- fread(paste(wd,"/cases_",pos,".csv",sep = ""),sep = ",")
   c_1000 <- obs %>% filter(date == ymd(end_validate) & (confirmed_corrected >= 1000 | deaths_corrected >= 100))
   c_1000 <- c_1000$city
-  cases_city <- cases_city %>% filter(Municipio %in% c_1000)
+  cases_city$c_1000 <- cases_city$Municipio %in% c_1000
   cases_city$Date <- ymd(cases_city$Date)
   cases_city$Municipio <- factor(cases_city$Municipio)
   saveRDS(cases_city,"/storage/ShinyApps/seircovid19/www/cases_city.rds")
   
   #Deaths cities
   deaths_city <- fread(paste(wd,"/deaths_",pos,".csv",sep = ""),sep = ",")
-  deaths_city <- deaths_city %>% filter(Municipio %in% c_1000)
+  deaths_city$c_1000 <- deaths_city$Municipio %in% c_1000
   deaths_city$Date <- ymd(deaths_city$Date)
   deaths_city$Municipio <- factor(deaths_city$Municipio)
   saveRDS(deaths_city,"/storage/ShinyApps/seircovid19/www/deaths_city.rds")
