@@ -36,9 +36,9 @@ drs <- readRDS("./www/drs.rds")
 dmin <- min(ymd(cases_city$Date))
 dmax <- dmin+20
 l_drs <- levels(cases_DRS$DRS)
-l_city <- levels(cases_city$Municipio)
-l_drs2 <- c(l_drs,levels(cases_city$Municipio))
-names(l_drs2) <- c(paste("DRS",l_drs),paste("Cidade de",stri_trans_totitle(tolower(as.character(levels(cases_city$Municipio))))))
+l_city <- unique(cases_city$Municipio[as.numeric(cases_city$c_1000) == 1])
+l_drs2 <- c(l_drs,l_city)
+names(l_drs2) <- c(paste("DRS",l_drs),paste("Cidade de",stri_trans_totitle(tolower(as.character(l_city)))))
 l_drs2 <- l_drs2[order(names(l_drs2))]
 l_drs2 <- c("SP",l_drs2)
 names(l_drs2)[1] <- "Estado de São Paulo"
