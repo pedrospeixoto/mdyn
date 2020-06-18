@@ -1,5 +1,5 @@
 #Test if model fit
-test_model <- function(D,I,teste_D,teste_I,drs){
+test_model <- function(D,I,teste_D,teste_I,drs,init_validate,end_validate){
   
   #Error in cities
   Dcity <- abs(D - teste_D$city[,-1])/teste_D$city[,-1]
@@ -19,8 +19,9 @@ test_model <- function(D,I,teste_D,teste_I,drs){
   D <- merge(D,teste_D$DRS)
   D$dif <- (D$D_pred - D$D_drs)/D$D_drs
   D <- D %>% filter(DRS != "0")
-  dif_D <- quantile(c(abs(D$dif)[D$D_drs > 100],Dcity),0.95)
-  D <- c(D$dif[D$D_drs > 100],Dcity)
+  dif_D <- max(c(quantile(abs(D$dif)[D$D_drs > 100],0.9),quantile(Dcity,0.9)))
+  D <- D %>% filter(D_drs > 100)
+  D <- c(quantile(D$dif,0.9),Dcity[Dcity < quantile(Dcity,0.9)])
 
   #Cases in DRSs
   colnames(I) <- par$names
@@ -34,8 +35,9 @@ test_model <- function(D,I,teste_D,teste_I,drs){
   I <- merge(I,teste_I$DRS)
   I$dif <- (I$I_pred - I$I_drs)/I$I_drs
   I <- I %>% filter(DRS != "0")
-  dif_I <- quantile(c(abs(I$dif)[I$I_drs > 1000],Icity),0.95)
-  I <- c(I$dif[I$I_drs > 100],Icity)
+  dif_I <- max(c(quantile(abs(I$dif)[I$I_drs > 1000],0.9),quantile(Icity,0.9)))
+  I <- I %>% filter(I_drs > 100)
+  I <- c(quantile(I$dif,0.9),Icity[Icity < quantile(Icity,0.9)])
   
   return(list("dif_D" = dif_D,"dif_I" = dif_I,"error_D" = D,"error_I" = I))
 }

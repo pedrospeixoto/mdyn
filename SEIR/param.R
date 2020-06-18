@@ -8,28 +8,28 @@ library(lubridate)
 
 #Parameters
 cores <- 24 #Number   of cores to use in parallel computation
-pos <- "teste" #What to add at the end of all output files
+pos <- Sys.Date() #"teste" #What to add at the end of all output files
 seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
-d_max <- "2020-06-03"
-simulate_length <- 90#as.numeric(ymd("2020-12-31") - ymd(d_max)) #Number of days to simulate
+d_max <- "2020-06-14"
+simulate_length <- as.numeric(ymd("2020-12-31") - ymd(d_max)) #Number of days to simulate
 error_I <- 0.05
 error_D <- 0.05
 
 #Set mobility matrix
 par$mob <- list()
-day <- seq.Date(from = ymd("2020-05-20"),to = ymd("2020-06-03"),1)
+day <- seq.Date(from = ymd("2020-06-01"),to = ymd("2020-06-14"),1)
 for(d in as.character(day)){
   cat(d)
   cat("\n")
-  par$mob[[as.character(d)]] <- as.matrix(read.csv(paste("/storage/inloco/data/mobility_br_2020/date0=",d,"/move_mat_SÃO PAULO_Municip.csv",sep = ""),
+  par$mob[[as.character(d)]] <- as.matrix(read.csv(paste("/storage/inloco/data/mobility_br_2020_new/date0=",d,"/move_mat_SÃO PAULO_Municip.csv",sep = ""),
                                                    sep = " ",
                                                    header = F))[1:645,1:645]
 }
 for(i in 0:6){
   w <- unique(weekdays(day))[length(unique(weekdays(day)))-i]
   d <- as.character(day[length(day)-i])
-  par$mob[[as.character(w)]] <- as.matrix(read.csv(paste("/storage/inloco/data/mobility_br_2020/date0=",d,"/move_mat_SÃO PAULO_Municip.csv",sep = ""),
+  par$mob[[as.character(w)]] <- as.matrix(read.csv(paste("/storage/inloco/data/mobility_br_2020_new/date0=",d,"/move_mat_SÃO PAULO_Municip.csv",sep = ""),
                                                    sep = " ",
                                                    header = F))[1:645,1:645]
 }
@@ -47,18 +47,20 @@ for(i in 1:length(par$mob)){
   for(j in 1:ncol(par$mob[[i]]))
     par$mob[[i]][,j] <- par$mob[[i]][,j]/par$pop[j]
 }
+#for(d in as.character(seq.Date(ymd(d_max)-10,ymd(d_max),1)))
+#  par$mob[[as.character(ymd(d))]] <- par$mob[[as.character(weekdays(ymd(d)))]]
 
 #Cadidate parameters  
-par$pS <- 1/c(5:10,15,20)
+par$pS <- 1/c(5:10,15,20,30,40,50)
 par$Te <- c(3:6)
-par$Ti <- c(4:10)
+par$Ti <- c(7:14)
 par$Ts <- 7:14
-par$Tsr <- 14:28
-par$Td <- c(1:14)
+par$Tsr <- 14:21
+par$Td <- c(10:20)
 par$s <- c(1,1.5,2,2.5,3)
 
-sample_size <- 1000
-max_models <- 200
+sample_size <- 100000
+max_models <- 50
 source("mdyn/SEIR/SEIR_COVID19.R")
 SEIR_covid(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models,error_I,error_D)
 

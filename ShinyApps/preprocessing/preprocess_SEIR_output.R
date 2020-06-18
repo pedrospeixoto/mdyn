@@ -1,37 +1,42 @@
 #Preprocess the output of SEIR model
 
-preprocess_SEIR_output <- function(drs,pos,obs,init_validate){
+preprocess_SEIR_output <- function(param,drs,pos,obs,end_validate){
   library(data.table)
   library(lubridate)
   
   #wd
   wd <- paste("/storage/SEIR/",pos,sep = "")
     
-  ######Convert to png and create video######
-  system(paste("./mdyn/sh/preprocess_SEIR_convert.sh",pos,"&> log_teste1.txt"))# ./mdyn/sh/preprocess_SEIR_video.sh",pos,"teste &> log_teste2.txt &"))
-  #system(paste("./mdyn/sh/preprocess_SEIR_video.sh",pos))
-    
   #####Create rds files for shiny#####
   cat("Creating files for ShinyApp...\n")
   
   #Cases city
   cases_city <- fread(paste(wd,"/cases_",pos,".csv",sep = ""),sep = ",")
-  c_100 <- obs %>% filter(date == ymd(init_validate) & confirmed_corrected >= 100)
-  c_100 <- c_100$city
-  cases_city <- cases_city %>% filter(Municipio %in% c_100)
+  c_1000 <- obs %>% filter(date == ymd(end_validate) & (confirmed_corrected >= 1000 | deaths_corrected >= 100))
+  c_1000 <- c_1000$city
+  cases_city$c_1000 <- cases_city$Municipio %in% c_1000
   cases_city$Date <- ymd(cases_city$Date)
   cases_city$Municipio <- factor(cases_city$Municipio)
   saveRDS(cases_city,"/storage/ShinyApps/seircovid19/www/cases_city.rds")
   
   #Deaths cities
   deaths_city <- fread(paste(wd,"/deaths_",pos,".csv",sep = ""),sep = ",")
-  deaths_city <- deaths_city %>% filter(Municipio %in% c_100)
+  deaths_city$c_1000 <- deaths_city$Municipio %in% c_1000
   deaths_city$Date <- ymd(deaths_city$Date)
   deaths_city$Municipio <- factor(deaths_city$Municipio)
   saveRDS(deaths_city,"/storage/ShinyApps/seircovid19/www/deaths_city.rds")
   
-  #Cases DRS
+  #Which DRS
   cases_DRS <- data.frame(fread(paste(wd,"/cases_DRS_",pos,".csv",sep = ""),sep = ","))
+  deaths_DRS <- fread(paste(wd,"/deaths_DRS_",pos,".csv",sep = ""),sep = ",")
+  DRS_1000_C <- cases_DRS %>% filter(Date == ymd(end_validate) & Mediana >= 1000)
+  DRS_100_D <- deaths_DRS %>% filter(Date == ymd(end_validate) & Mediana >= 100)
+  DRS_which <- unique(c(DRS_1000_C$DRS,DRS_100_D$DRS))  
+  DRS_which <- DRS_which[DRS_which != "0"]
+  cases_DRS <- cases_DRS %>% filter(DRS %in% DRS_which)
+  deaths_DRS <- deaths_DRS %>% filter(DRS %in% DRS_which)
+  
+  #Cases DRS
   cases_DRS$DRS <- NULL
   cases_DRS <- cases_DRS[,c(1,5,2,3,4)]
   names(cases_DRS)[2] <- "DRS"
@@ -40,7 +45,6 @@ preprocess_SEIR_output <- function(drs,pos,obs,init_validate){
   saveRDS(cases_DRS,"/storage/ShinyApps/seircovid19/www/cases_DRS.rds")
   
   #Deaths cities
-  deaths_DRS <- fread(paste(wd,"/deaths_DRS_",pos,".csv",sep = ""),sep = ",")
   deaths_DRS$DRS <- NULL
   deaths_DRS <- deaths_DRS[,c(1,5,2,3,4)]
   names(deaths_DRS)[2] <- "DRS"
@@ -55,10 +59,12 @@ preprocess_SEIR_output <- function(drs,pos,obs,init_validate){
   peak_city$TMaximo <- ymd(peak_city$TMaximo)
   peak_city <- peak_city[order(peak_city$MMediana),]
   peak_city$Municipio <- factor(peak_city$Municipio)
+  peak_city <- peak_city %>% filter(Municipio %in% c_1000)
   saveRDS(peak_city,"/storage/ShinyApps/seircovid19/www/peak_city.rds")
   
   #peak DRS
   peak_DRS <- data.frame(fread(paste(wd,"/peak_DRS_",pos,".csv",sep = ""),sep = ","))
+  peak_DRS <- peak_DRS %>% filter(DRS %in% DRS_which)
   peak_DRS$DRS <- NULL
   peak_DRS <- peak_DRS[,c(7,1:6)]
   names(peak_DRS)[1] <- "DRS"
@@ -75,11 +81,8 @@ preprocess_SEIR_output <- function(drs,pos,obs,init_validate){
   Rt$DRS <- factor(Rt$DRS)
   saveRDS(Rt,"/storage/ShinyApps/seircovid19/www/Rt.rds")
   
-  #Assymptomatics
-  ass <- data.frame(fread(paste(wd,"/SP_assymptomatics_",pos,".csv",sep = ""),sep = ","))
-  ass$Municipio <- factor(ass$Municipio)
-  ass$DRS <- factor(ass$DRS)
-  saveRDS(ass,"/storage/ShinyApps/seircovid19/www/assymptomatics.rds")
+  #Parameters
+  saveRDS(param,"/storage/ShinyApps/seircovid19/www/param.rds")
   
   #pos
   saveRDS(pos,"/storage/ShinyApps/seircovid19/www/pos.rds")
@@ -91,4 +94,8 @@ preprocess_SEIR_output <- function(drs,pos,obs,init_validate){
   
   #drs
   saveRDS(drs,"/storage/ShinyApps/seircovid19/www/drs.rds")
+  
+  ######Convert to png and create video######
+  system(paste("./mdyn/sh/preprocess_SEIR_convert.sh",pos))
+  
 }

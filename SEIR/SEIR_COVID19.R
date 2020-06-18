@@ -9,9 +9,7 @@ source("mdyn/SEIR/utils.R")
 SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models,error_I,error_D){
   
   cat("\n")
-  cat("Welcome to Covid SEIR Mobility Model estimation!")
-  cat("\n")
-  cat("One moment and I will be right there with you...")
+  cat("Welcome to Covid SEIR Mobility Model estimation!\n")
   cat("\n")
   
   #Seed
@@ -27,7 +25,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     stop("There is a problem with the notifications dataset. Please fix it.")
   
   #####Days of validation#####
-  end_validate <- min(max(ymd(na.omit(obs)$date)),ymd(d_max))
+  end_validate <- min(max(ymd(na.omit(obs)$date))-3,ymd(d_max))
   init_validate <- end_validate - 6
   init_simulate <- end_validate
   day_validate <- seq.Date(from = ymd(init_validate),to = ymd(end_validate),by = 1) #Days to validate
@@ -80,7 +78,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
 
   #Calculate growth rate
   system(paste("mkdir /storage/SEIR/",pos,"/AjusteRate/",sep = ""))
-  par$lambda <- growth_rate(obs,obs_drs,drs,par,pos)
+  par$lambda <- growth_rate(obs,obs_drs,drs,par,pos,init_validate,end_validate,day_validate)
 
   #Calculate death rate for each DRS
   par$delta <- death_rate(teste_D$DRS,teste_I$DRS,obs,end_validate,drs,par)
@@ -96,7 +94,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   results <- list()
   results$models <- vector("list",sample_size) #Store parameters of models
   kgood <- 0 #Number of good models
-  is.good <- vector() #Track good models
+  is.good <- rep(0,sample_size) #Track good models
   
   #Track error
   minI <- 1
@@ -138,7 +136,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Predicted cases for testing
       
     #Test if model predicted well
-    test <- test_model(D,I,teste_D,teste_I,drs)
+    test <- test_model(D,I,teste_D,teste_I,drs,init_validate,end_validate)
 
     #Is good
     good <- as.numeric(test$dif_I <= error_I & test$dif_D <= error_D) #Test if is good
@@ -151,7 +149,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     #Result
     if(good == 1){#Store good models
       
-      #Mediana of beta
+      #Median of beta
       parK$betaMedian <- as.vector(apply(bind_rows(lapply(parK$beta,function(x) data.frame(rbind(x)))),2,median))
       pred[[k]]$beta <- parK$betaMedian
       names(parK$beta) <- weekdays(seq.Date(from = ymd(init_validate),to = ymd(end_validate),1))
@@ -169,21 +167,17 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       parK$Rt <- Rt(parK,end_validate,7)
       parK$meanTi <- parK$Rt$meanTi
       parK$Rt <- parK$Rt$Rt
-      pred[[k]]$meanTi <- parK$menaTi #Prediction of mean infection time
+      pred[[k]]$meanTi <- parK$meanTi #Prediction of mean infection time
       pred[[k]]$Rt <- parK$Rt #Prediction of Rt
       
       #Number of good models
       kgood <- kgood + 1
       
       #Error of this
-      minDK <- ifelse(min(1 + test$error_D) < 1,
-                      min(1 + test$error_D),1)
-      maxDK <- ifelse(max(1 + test$error_D) > 1,
-                      max(1 + test$error_D),1)
-      minIK <- ifelse(min(1 + test$error_I) < 1,
-                      min(1 + test$error_I),1)
-      maxIK <- ifelse(max(1 + test$error_I) > 1,
-                      max(1 + test$error_I),1)
+      minDK <- ifelse(min(1 + test$error_D) < 1,min(1 + test$error_D),1)
+      maxDK <- ifelse(max(1 + test$error_D) > 1,max(1 + test$error_D),1)
+      minIK <- ifelse(min(1 + test$error_I) < 1,min(1 + test$error_I),1)
+      maxIK <- ifelse(max(1 + test$error_I) > 1,max(1 + test$error_I),1)
       parK$minDK <- minDK
       parK$minIK <- minIK
       parK$maxDK <- maxDK
@@ -194,9 +188,9 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       parK$val <- NULL #Is validation
       parK$mob <- NULL #Mobility matrix
       parK$pop <- NULL #Population
-      parK$obs <- NULL
-      parK$obs_DRS <- NULL
-      parK$sites <- NULL
+      parK$obs <- NULL #Obs
+      parK$obs_DRS <- NULL #Obs_DRS
+      parK$sites <- NULL #Sites
       
       results$models[[kgood]] <- parK
       if(minDK < minD)
@@ -216,7 +210,6 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   cat(paste("Good models: ",kgood," (",round(100*kgood/sample_size,2),"%)\n",sep = ""))
   cat("\n")
 
-  cat("\n")
   cat("Saving parameters of good models...\n")
   
   #Saving parameters
@@ -256,9 +249,9 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   cat("Plot observed and predicted number of deaths for each DRS...\n")
   system(paste("mkdir /storage/SEIR/",pos,"/validate",sep = ""))
   
-  plot_validate(drs,par,pred,init_validate,end_validate,pos)
+  plot_validate(drs,obs,obs_drs,par,pred,init_validate,end_validate,pos,minI,maxI,minD,maxD)
 
-  #######Simulation of scenarios########
+  #######Simulation of scenarios########  
   cat("Simulating scenarios...\n")
   init <- initial_condition(obs,end_validate,par) #Initial condition
   init1f <- initial_condition(obs,end_validate+1,par) #Data one day after initial
@@ -302,16 +295,118 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   
   #####Results of simulation#####
   
-  dataSim <- store_simulation(predSIM,par,simulate_length,pos,drs)
+  dataSim <- store_simulation(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,maxD,end_validate)
   
   cat("Building maps...\n")
-  build_maps(dataSim)
+  build_maps(dataSim,drs,par,end_validate,pos)
   
   cat("\n")
   cat("We are done fitting the model! I will starting preprocessing the data in a moment...\n")
-  preprocess_SEIR_output(drs,pos,obs,init_validate)
+  preprocess_SEIR_output(param,drs,pos,obs,end_validate)
   
   cat("\n")
-  cat("And that is it! You can create the videos. Please come back more often.\n")
+  cat("And that is it! Please come back more often.\n")
+  cat("\n")
+  cat("                                                                                                                                                     
+                                                                                                                                                      
+                                                                  ..,*//((((((//*,..                                                                  
+                                                         *%@&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&@%*                                                         
+                                                   (&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&(                                                   
+                                              *&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&*                                              
+                                          ,&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&,                                          
+                                       (&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&(                                       
+                                    *@&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&%(#%&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&*                                    
+                                 .&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&%/,(#//(,(,.##.,#&%/(*%@&&&&&&&&&&&&&&&&&&&&&&&&&.                                 
+                               ,&&&&&&&&&&&&&&&&&&&&&&&&&&&(/((//#%#//****/,((((/*,,.(**,,*, #&&&&&&&&&&&&&&&&&&&&&&&&.                               
+                              &&&&&&&&&&&&&&&&&&&&&&&&&&%.#,,*,%(*#/*#,*((/.**. /*./**/(&%%*.   ,&&&&&&&&&&&&&&&&&&&&&&&                              
+                            &&&&&&&&&&&&&&&&&&&&&&&&@/,/*,&&* /((*&(//*.*#/**(/(/%/#&&.,#/#( #/,***(&&&&&&&&&&&&&&&&&&&&&&                            
+                          /&&&&&&&&&&&&&&&&&&&&&&&,*/((.(%*/%//(*/#(*.,%./*#((.##,.*%%#,*,*,#**  /./*&&&&&&&&&&&&&&&&&&&&&&*                          
+                         %&&&&&&&&&&&&&&&&&&&&&&&*&(/*/(*.*,(,,(% /,///*((/%%  (%(&/(.%*(,*,       ./#&&&&&&&&&&&&&&&&&&&&&&%                         
+                       .&&&&&&&&&&&&&&&&&&&&&&&&&*@,*/*%(@.&,,/(,&,**(,(&*./,%,/%.&*%*#.(/           *&&&&&&&&&&&&&&&&&&&&&&&&.                       
+                      .&&&&&&&&&&&&&&&&&&&&&&&#((&/*.(#( %*/&./,%.***&*,/&*,%.&,&.#(*(((, .           &&&&&&&&&&&&&&&&&&&&&&&&&.                      
+                      &&&&&&&&&&&&&&&&&&&&&&@ ((,*#**...@(.%####*&(#./#%.#/(.,# ,*/##%(** . .         %&&&&&&&&&&&&&&&&&&&&&&&&&                      
+                     @&&&&&&&&&&&&&&&&&&&&&&*&,#//.&*,(%*&,/#/#%#,*&&/(/*%((/(#/,(*&&&%/#(*,, .%&&&&& /&&&&&&&&&&&&&&&&&&&&&&&&&@                     
+                    (&&&&&&&&&&&&&&&&&&&&&&&%%/#,&,/@*//,/*(*/,./    ,&&%(.,* (.%#/#&&&&&* *#* .((%&& /&&&&&&&&&&&&&&&&&&&&&&&&&&(                    
+                   .@&&&&&&&&&&&&&&&&&&&&&&&&(%/(% *%&*(*&(**.&( &.,(#/ ,  .#,/,*%&&&%# *@&#& /* ,.#/  %&&&&&&&&&&&&&&&&&&&&&&&&&@.                   
+                   (&&&&&&&&&&&&&&&&&&&&&&&&&%*#///,(#/#,&*/(&% @..,%&%.(/,/**,**&&&&&&&#,  (&, .,, %#, *&&&&&&&&&&&&&&&&&&&&&&&&&(                   
+                   &&&&&&&&&&&&&&&&&&&&&&&&&&&*//&# &/*@( %*/&,./ %@( ,@.//..*# #&&&&&&&&(*.*        ... ,@&&&&&&&&&&&&&&&&&&&&&&&&                   
+                  .@&&&&&&&&&&&&&&&&&&&&&&&&&&&%/&/%/@. #@,/#%% %((.&&#/%(%*#% ((%&&&&&&&&*...*      ,##   @&&&&&&&&&&&&&&&&&&&&&&@.                  
+                  ,&&&&&&&&&&&&&&&&&&&&&&&&&&&&&%#&(@(,&(((/,%(&*..(&&* (##(*#/,/,//&&&&&&&#(/* , .@   ...  &&&&&&&&&&&&&&&&&&&&&&@,                  
+                  ,@&&&&&&&&&&&&&&&&&&&&&&&&&&&&&%(/*./%**,,/./,&&#,.  ,..&/.*(.,(,(,.,/&&&&,/*(. &/*(%&&&&@&&&&&&&&&&&&&&&&&&&&&&@,                  
+                  .&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&#(*/&,,(&* //&&&#(,   ,#(*/,,,*,*../#.%&#&,  (./.   ,&&&&&&&&&&&&&&&&&&&&&&&&&@.                  
+                   %&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&*(,( */,/(//,/%&&&&%%(#*%*/,//#(.@*#%/(,&&%(*/**,**#&&&&&&&&&&&&&&&&&&&&&&&&&&%                   
+                   /&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&/./ .%/*#.&@&%@&*/&&&&&..#*@,*(&.@//,(%/ *.(*/*(*,/&&&&&&&&&&&&&&&&&&&&&&&&&&&/                   
+                   .@&&&&&&&&&&&&&&&&&&&&&&&&&&&&&*&*#/((*/%.#%%&&%(*,&&&&%(/#*&&,%(&/%&(//(& &,&...  . %&&&&&&&&&&&&&&&&&&&&&&&&@.                   
+                    /&&&&&&&&&&&&&&&&&&&&&&&&&&&&&@,(&&***/,*&&&&%*/(.#&&&&*@./((&&(#&**##,,##(%%(&,,.(  %&&&&&&&&&&&&&&&&&&&&&&&/                    
+                     &&&&&&&&&&&&&&&&&&&&&&&&&&&(#&&&&&&&&&&&&&&&&%(*,.,&&&&/(&*&,&&&.&.%&(%*#*(.*( ,@. ,@&&&&&&&&&&&&&&&&&&&&&&&                     
+                      @&&&&&&&&&&&&&&&&&&&&&&,%&**&&&&&&&&&&&&&&/,##//   ..%&&/&#%&&%.**/,/&& %##*/.@//*/(&&&&&&&&&&&&&&&&&&&&&&                      
+                       &&&&&&&&&&&&&&&&&&&&./&&&& *&&&&&&&&&&&&(*///,*..   .%%@.&&&%&/&(#//(%%&%%&*.%*,(* &&&&&&&&&&&&&&&&&&&&&                       
+                        &&&&&&&&&&&&&&&&&&%/&&&&&& ,&&&&&&&&(#&*,(,, .*         #%(&#*&*,&&&( %/(**& .*,, (&&&&&&&&&&&&&&&&&&%                        
+                         #&&&&&&&&&&(&&&&&%&&&&&&%%,*(&&&&&%&(,(,,                *&,//((&%&##.&/*../ *//(#&&&&&&&&&&&&&&&&&#                         
+                          ,&&&&&&&&&*&&&#%**/&&&&*..&(./&&%**(*.                    /@&&&&/@&%.%&&*#/.(#&&&&&&&&&&&&&&&&&&@,                          
+                            #&&&&&%.//&&(#(*.#&&&&(/  ,%. /&&*#*                     %@&&#,*&&& %(&&/,&&&&&&&&&&&&&&&&&&&#                            
+                              &&&&%,.**%&&%(./&&&&&(*   .(,    (*                   #/(&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&%                              
+                                %&&* ,//*//*/.#&&&%*(*.    ,(   #/(,.             *#( /@/#&&&&&&&&&&&&&&&&&&&&&&&&&&&%                                
+                                  (&#, /,(/ #.,&&&/,./,*       *  **/(%(/          ,&#/ ,&,,(&&&&&&&&&&&&&&&&&&&&&@(                                  
+                                    ./,*,@&#/.,.&%(#*  .*     /,  . .///&&&@,         ((/*.#,/#/&&&&&&&&&&&&&&&&&.                                    
+                                        *. #&&### ,(..*   ,*   /(//* ,  #%&&/            /**.*/*/((&&&&&&&&&&&,                                       
+                                            **&&%**  *( .(    .   .///* .                ,/,@ ***%./#,(%&&#                                           
+                                              .*#&#(/.  /  ,*,       ,**/**/.             *(*#.//*.# *,.                                              
+                                                   .#&#,*(.. */         ,*#%&#/.          .(@,( (,.                                                   
+                                                          ,(#(//    /*.     *%@#/,         .                                                          
+                                                                         ..                                                                           
+                                                                                                                                                      
+                                                                                                                                                      
+       .***************      .*************                                      .*************.     ,***************************************,        
+       /&&&&&&&&&&&&&&@.     /&&&&&&&&&&&&&&&                                   &&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&%        
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&&&%                              .@&&&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&%        
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&&&&&%                          .&&&&&&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&%        
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&&&&&&&&                       &&&&&&&&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&%        
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&&&&&&&&&%                   &&&&&&&&&&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&/                                 
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&&&&&&&&&&&%              .&&&&&&&&&&&&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&/                                 
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&&&&&&&&&&&&&&           &&&&&&&&&&&&&&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&/                                 
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&&&&&&&&&&&&&&&%       &&&&&&&&&&&&&&&&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&/                                 
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&#   @&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&/                                 
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&/.&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&@.#&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&#         
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&/  .&&&&&&&&&&&&&&&&&&&&&&&&&&&&&   (&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&#         
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&/     @&&&&&&&&&&&&&&&&&&&&&&&&     (&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&#         
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&/       &&&&&&&&&&&&&&&&&&&&&       (&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&#         
+       /&&&&&&&&&&&&&&@.     /&&&&&&&&&&&&&&/        .&&&&&&&&&&&&&&&&%         (&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&(************************         
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&/           &&&&&&&&&&&&%           (&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&/                                 
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&/             &&&&&&&&#             (&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&/                                 
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&/               %&&&#               (&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&/                                 
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&/                 #                 (&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&/                                 
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&/                                   (&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&/                                 
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&/                                   (&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&&&@&&&&&&&&&&&&&&&&&&&&&&@/       
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&/                                   (&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&/       
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&/                                   (&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&/       
+       /&&&&&&&&&&&&&&@.     (&&&&&&&&&&&&&&/                                   (&&&&&&&&&&&&&&,     %&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&/       
+       /@&&&&&&&&&&&&&@.     (@&&&&&&&&&&&&&/                                   #@&&&&&&&&&&&&@,     &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&@/       
+                                                                                                                                                      
+                                                                                                                                                      
+        &#  .&@       #@.    #&@&@&,   #&&&&&&&&&&% .@# .@&&&&&&&&&&, &&       (@* #&&&&&&&&&&#    (@&&&&*           %&&&&&&%*    *&&&&&&&&&&         
+        &#  .@&&#     #@.  %&.     #&,      &&      .&%      *&/      &@       (@*      &&      *@%      ,&@.        %&      ,&&  *&(                 
+        &#  .@% %&*   #@.  *&&*.            &&      .&#      *@/      &@       (@*      &%     ,@#         &@.       %&       .@@ *&(                 
+        &#  .@%  .&&  #@.      ./&@&&.      &&      .&#      *&/      &@       /@*      &%     /@/         %@,       %&        &@ ,&#*******,         
+        &#  .@%    /&%#@. *@(       &&.     &&      .&%      *@/      %@       %@,      &%      %&.       ,&%        %&       /&( *&(                 
+        &#  .@%      &&@.  .@&%/**#@@.      &&      .&%      *&/       &&&/**#&@,       &%       ,&&#*,*%&&          %&((((#&&&.  *&%(((((((#,        
+                                                                                                                                                      
+                                                                                      &&.                                                             
+       /%&,       *%%       .%%.    (%%%%%%%%%%#  *%%%%%%%%%%   *%%*       ,&&.       &&.      %%%%%%%%%%%*  /&*      ,#@@@%*         /%#             
+       (@#@,     *&%&      .@*%&.        %&       *&*           *&#@*     ,@%&.     .@#(@,          &#       (@*    &&,     *&&      /& &%            
+       (@.#&    .@*(&     .@%  %&.       %&       *&*           *&,(&.    &//&.    .&&  #&,         @#       (@*   &&.              /@*  &%           
+       (@, %%   &* #&    .@%    %&       %&       *&#/((((((,   *&* #&   &( /&.    &%    #&,        @#       (@*   &%              *@/   .&%          
+       (@, .&% &(  (&   .&%,,,,,,&&.     %&       *&*           *&*  %& &#  /&.   &&,,,,,,%&.       @#       (@*   #&*       (&/  *&(,,,,,*&%         
+       (@.  .@&#   #&   &&        &&.    %&       *&#///////(.  *&*  .@&&   /&.  %&.       %&.      @%       (@*    ,&&#,,,#&&.  ,&(       ,&&        
+                                                                                                                                                      
+                                                                                    .@#                                                               
+       *#########(         .##########.   /%&&%/.  /##########(   ##,   #####(#####*.#/   ./%&&%/.  (##########/.##     ,#&&%(.       *#(             
+       /&*                 .&(          %&      &&      &@       &%/@*      ,@%     .&(  &&     .&&     .@&     .@&  ,@&      #&(    *& &%            
+       /&*                 .@#          #&#,            &@      &@. (&*     ,@%     .@(  %&(.           .&&     .@& ,&%             *&/ .&#           
+       /&##(#####,         .&%#####(#*     ,(%&&@#      &@     %@    (&,    .@%     .@(     ,(%&&@(      &&     .@& *&(            *@/   .&%          
+       /&*                 .@#         (@*       &&     &@    #&,,,,,,#&*   ,@%     .@( #@.      .@%    .&&     .@&  &&        &@.*&#,,,,,*&%         
+       /&(////////.        .@%////////. /&&(,,,(&&.     &@   #&,       %&*  ,@%     .@(  (&&/,,*#&&     .&&     .@&   (&&/,.*%&& ,&#       ,&&        
+                                                                                                                                                      
+                                                                                  ")
 }
   
