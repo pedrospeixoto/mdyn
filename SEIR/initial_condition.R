@@ -9,6 +9,5 @@ initial_condition <- function(obs,day,par){
   init[(3*par$sites + 1):(4*par$sites)] <- tmp$recovered #R
   init[(4*par$sites + 1):(5*par$sites)] <- tmp$deaths_corrected #D
   init[(5*par$sites + 1):(6*par$sites)] <- tmp$confirmed_corrected #prevalence
-  
   return(init)
 }
