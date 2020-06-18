@@ -14,7 +14,7 @@ par <- list() #Candidate values of model parameters
 d_max <- "2020-06-14"
 simulate_length <- as.numeric(ymd("2020-12-31") - ymd(d_max)) #Number of days to simulate
 error_I <- 0.06
-error_D <- 0.045
+error_D <- 0.05
 
 #Set mobility matrix
 par$mob <- list()
@@ -51,12 +51,12 @@ for(i in 1:length(par$mob)){
 #  par$mob[[as.character(ymd(d))]] <- par$mob[[as.character(weekdays(ymd(d)))]]
 
 #Cadidate parameters  
-par$pS <- 1/c(5:10,15,20)
+par$pS <- 1/c(5:10,15,20,30,40,50)
 par$Te <- c(3:6)
-par$Ti <- c(7:21)
-par$Ts <- 7:21
-par$Tsr <- 7:28
-par$Td <- c(7:28)
+par$Ti <- c(7:14)
+par$Ts <- 7:14
+par$Tsr <- 14:21
+par$Td <- c(10:20)
 par$s <- c(1,1.5,2,2.5,3)
 
 sample_size <- 100000
