@@ -19,7 +19,7 @@ test_model <- function(D,I,teste_D,teste_I,drs,init_validate,end_validate){
   D <- merge(D,teste_D$DRS)
   D$dif <- (D$D_pred - D$D_drs)/D$D_drs
   D <- D %>% filter(DRS != "0")
-  dif_D <- max(c(max(abs(D$dif)[D$D_drs > 100]),quantile(abs(Dcity),0.9)))
+  dif_D <- max(c(quantile(abs(D$dif)[D$D_drs > 100],0.95),quantile(abs(Dcity),0.9)))
   D <- D %>% filter(D_drs > 100)
   D <- c(D$dif,Dcity[Dcity < quantile(Dcity,0.9)])
 
