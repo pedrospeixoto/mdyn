@@ -1,5 +1,5 @@
 #!/bin/bash
-date=2020-06-03
+date=2020-06-14
 
 ../../sh/network_anim.sh Brasil_Municip_Network_ 2020-03-01 $date || { echo 'falhou' ; exit 1; }
 ../../sh/network_anim.sh Brasil_Municip_Network_Flux_ 2020-03-01 $date || { echo 'falhou' ; exit 1; }
