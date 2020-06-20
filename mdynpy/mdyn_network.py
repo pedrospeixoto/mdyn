@@ -1146,3 +1146,109 @@ class Network:
             self.reg_pop[i] = pop
 
         print("Done.")
+
+    def fix_transition_matrix(self, mat, orig_names, dest_names):
+
+        print()
+        print("Fixing transition matrices...", end="")
+
+        #reg0 = table.columns
+        #print(reg0)
+        #reg1 = table.index
+        #mat = table.as_matrix(columns=None)
+
+        #print(list(reg0))
+        #print(list(self.regions.keys()))
+        #Check if we lost a region
+        n_orig=len(list(orig_names))
+        n_dest=len(list(dest_names))
+        nreg=len(self.regions)
+        reg = list(self.regions.values())
+        ireg = list(self.regions.keys())
+        reg_dict = {y:x for x,y in self.regions.items()}
+        #print(reg_dict)
+        #print(self.regions)
+        n , m = mat.shape
+        #print( orig_names, n, m, n_dest, n_orig, self.nreg_in, nreg)
+        #sys.exit()
+        if n_orig==nreg:
+            print("Matrix check origin: ok!...", end="")
+        elif nreg>n_orig:
+            print("Missing columns..", end="")
+            missing_col=list(set(reg)-set(orig_names))
+            missing_col.sort()
+            print(missing_col, end="")
+            for icode in missing_col:
+                i = reg_dict.get(icode)
+                #print("adding col", icode, " in col ", i)
+                col = np.zeros((n,1))
+                mat = np.hstack((mat[:,:i], col, mat[:,i:]))
+                #print(mat.shape)
+                orig_names = np.hstack((orig_names[:i], [icode], orig_names[i:]))
+            print("..fixed!", end="")
+        else:
+            print("Something is wrong with your region data...and I don't know what it is...")
+            sys.exit(1)
+
+        #re-set mat sizes
+        n , m = mat.shape
+        #print(reg0)
+        if n_dest==nreg:
+            print("Matrix check destination: ok!...", end="")
+        elif nreg>n_dest:
+            print("..Missing row:", end="")
+            missing_row=(list(set(reg)-set(dest_names)))
+            missing_row.sort()
+            print(missing_row, end="")
+            for icode in missing_row:
+                i = reg_dict.get(icode)
+                row = np.zeros((1,m))
+                #print("adding row ", icode, " in row ", i)
+                #print(mat[:i,:].shape, row.shape, mat[i:,:].shape)
+                mat = np.vstack((mat[:i,:], row, mat[i:,:]))
+                dest_names = np.hstack((dest_names[:i], [icode], dest_names[i:]))
+            print("..fixed!", end="")
+        else:
+            print("Something is wrong with your region data...and I don't know what it is...")
+            sys.exit(1)
+
+        n , m = mat.shape
+        if n!=m:
+            print("Matrix not square!!!")
+            sys.exit(1)
+
+        #Fix diagonal be one where zero, just to avoid null divisions
+        for i in  range(n):
+            if mat[i,i] == 0.0:
+                mat[i,i] = 1.0
+
+        #print(reg1)
+        #matprint(mat)
+
+        #np.fill_diagonal(mat, mat.diagonal() + steady_users_per_reg)
+        #print(mat)
+        if self.nregions < 10:
+            print("Transition matrix including steady users")
+            mex.matprint(mat)
+            print()
+
+        #Normalize
+        mat_normed = mat / mat.sum(axis=0)
+        if self.nregions<10:
+            print("Normalized transition matrix (transition probability)")
+            matprint(mat_normed)
+
+
+        #check consistency
+        mat_tmp=np.copy(mat_normed)
+        for i in  range(n):
+            mat_tmp[i,i] = 0.0
+        #matprint(mat_tmp)
+        moving = mat_tmp.max(axis=0)
+        
+        print(moving)
+
+        if self.nregions > 10:
+            print("..done")
+
+        return mat, mat_normed, orig_names, dest_names
