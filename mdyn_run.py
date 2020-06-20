@@ -19,8 +19,7 @@ import mdynpy.mdyn_move_mats as mmat
 import mdynpy.mdyn_isol_index as isol
 import mdynpy.mdyn_fixed_users as fx
 import mdynpy.mdyn_seir as seir
-
-
+import mdynpy.mdyn_datalake as lake
 
 #Input parameters
 #-----------------------------
@@ -97,3 +96,8 @@ if run_opt == 31:
     time_end = time.time()
     print("Execution time "+str(time_end-time_start)+" seconds")
     
+if run_opt == 41:
+    time_start = time.time()
+    data=lake.datalake(network, ipar)
+    time_end = time.time()
+    print("Execution time "+str(time_end-time_start)+" seconds")
