@@ -31,8 +31,8 @@ data_dir = "datalake/data_city_extract2020-06-20/"
 #data_file = "OD_BR_oneday2020-05-22.csv"
 #data_dir = "data/triples_br_2020_04_17_date/all/"
 #data_dir = "data/triples_br_2020_04_17_date/"
-date_ini = "2020-06-06"
-date_end = "2020-06-06"
+date_ini = "2020-05-01"
+date_end = "2020-06-14"
 #date_end = "2020-03-01"
 load_data = True
 
