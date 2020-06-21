@@ -22,14 +22,14 @@ day <- seq.Date(from = ymd("2020-06-01"),to = ymd("2020-06-14"),1)
 for(d in as.character(day)){
   cat(d)
   cat("\n")
-  par$mob[[as.character(d)]] <- as.matrix(read.csv(paste("/storage/inloco/data/mobility_br_2020_new/date0=",d,"/move_mat_SÃO PAULO_Municip.csv",sep = ""),
+  par$mob[[as.character(d)]] <- as.matrix(read.csv(paste("/storage/inloco/data/mobility_br_2020/date0=",d,"/move_mat_SÃO PAULO_Municip.csv",sep = ""),
                                                    sep = " ",
                                                    header = F))[1:645,1:645]
 }
 for(i in 0:6){
   w <- unique(weekdays(day))[length(unique(weekdays(day)))-i]
   d <- as.character(day[length(day)-i])
-  par$mob[[as.character(w)]] <- as.matrix(read.csv(paste("/storage/inloco/data/mobility_br_2020_new/date0=",d,"/move_mat_SÃO PAULO_Municip.csv",sep = ""),
+  par$mob[[as.character(w)]] <- as.matrix(read.csv(paste("/storage/inloco/data/mobility_br_2020/date0=",d,"/move_mat_SÃO PAULO_Municip.csv",sep = ""),
                                                    sep = " ",
                                                    header = F))[1:645,1:645]
 }
