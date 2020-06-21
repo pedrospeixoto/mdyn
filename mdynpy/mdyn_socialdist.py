@@ -28,10 +28,10 @@ import gc
 class socialdist:
     #social distancing class
      def __init__(self, filename, network):
-        
+        print("Fetching social distancing data...")
         last_date = filename[-14:-4]
         df = pd.read_csv(filename)
-        print(df)
+        #print(df)
         
         #Check states names
         df['state_abrv'] = df['state_name'].map(mex.state_name2abrv)
@@ -116,14 +116,15 @@ class socialdist:
         ndates=len(df['day'].unique())
         cities = df['reg_name'].unique()
         df_cities=df['reg_name'].value_counts().to_frame().reset_index().rename(columns={'index':'name', 'reg_name':'count'})
-        print(df_cities)
+        #print(df_cities)
 
         print("Filtering buggy cities from isolation index...")
         for city in cities:
             ncity = df_cities.loc[df_cities['name'] == city, 'count'].values[0] 
-            if ncity < ndates-20 :
-                print("Removing city:", city, ncity)
+            if ncity < ndates-40 :
+                #print("Removing city:", city, ncity)
                 df = df[df['reg_name'] != city]      
+        print("...done.")
         
         self.df = df            
 

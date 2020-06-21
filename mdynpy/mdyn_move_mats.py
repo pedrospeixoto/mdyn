@@ -82,14 +82,14 @@ def map_move_mats(mdyn, network, ipar):
                 title = title + day.strftime("%Y-%m-%d")+" "+dow
                 filename = filename + day.strftime("%Y-%m-%d")+".jpg"
 
-                map=Map(network, zoom)
-                map.map_network_data(reg_iso, mat, regions, title, filename)
+                #map=Map(network, zoom)
+                #map.map_network_data(reg_iso, mat, regions, title, filename)
         
                 map=Map(network, zoom)
                 map.map_network_flux(mat, regions, title, filename.replace("Network", "Network_Flux"))
 
-                map=Map(network, zoom)
-                map.map_data_on_network(reg_iso, mat, regions, title, filename.replace("Network", "Network_Iso"))
+                #map=Map(network, zoom)
+                #map.map_data_on_network(reg_iso, mat, regions, title, filename.replace("Network", "Network_Iso"))
         else:
             if ipar.zoom[0]:
                 title = network.domain+" "+network.subdomains+" Network Zoom "+ipar.zoom[6]+" "
