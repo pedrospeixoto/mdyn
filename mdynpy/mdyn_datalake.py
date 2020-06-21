@@ -67,19 +67,25 @@ class datalake:
         print("Reading data from latest data file available in datalake dir: " , self.data_file)
 
         df = dd.read_csv(self.data_dir+self.data_file)
-        print(df.columns)
-
+        print("Data columns:", df.columns)
+        print()
         #Loop over folders with days 
         for day in mex.daterange(self.date_ini_obj, self.date_end_obj+timedelta(days=1)):
-            print(day)
             day_str=day.strftime("%Y-%m-%d")
-            day_dir = self.data_dir+"date0="+day_str+"/"
-            if not os.path.exists(day_dir):
-                os.makedirs(day_dir)
+            print("Extracting day: ", day_str)
+            
             # define filtering logic
             df_day = df[df['date'] == day_str]
             df_day = df_day.compute()
-            print(df_day)
+            if df_day.empty:
+                print("no data for this day, skipping")
+                print()
+                continue
+
+            day_dir = self.data_dir+"date0="+day_str+"/"
+            if not os.path.exists(day_dir):
+                os.makedirs(day_dir)
+            #print(df_day)
 
         #df_city = df.groupby(['home_state', 'home_city', 'home_city_code', 
         #    'dest_state', 'dest_city', 'dest_city_code']).sum()
@@ -90,12 +96,10 @@ class datalake:
             dest_names = table.index
             mat = table.as_matrix(columns=None)
 
-            print(mat)
+            #print(mat)
             mat, mat_normed, orig_names, dest_names = network.fix_transition_matrix(mat, orig_names, dest_names)
 
             #now add fixed users to diagonal
-            
-
             name = "move_mat_"+network.domain+"_"+network.subdomains
         
             np.savetxt( day_dir+name+".csv", mat)
@@ -105,3 +109,5 @@ class datalake:
                 for r in reg:
                     output.write("%s\n" % r)
 
+            print("Created matrices and saved them here: " , day_dir)
+            print()
