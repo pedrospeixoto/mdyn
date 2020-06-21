@@ -162,6 +162,11 @@ class MobileDynamics:
                 local_dir = self.data_dir+"dt="+sday+"/"
             elif self.data_format == "Parquet":
                 local_dir = self.data_dir+"date0="+sday+"/"
+            elif self.data_format == "datalake":
+                local_dir = self.data_dir+"date0="+sday+"/"
+            else:
+                print("Can't figure out this kind of data file system", self.data_dir, self.data_format)
+                sys.exit()
 
             movemat, movemat_norm, names = network.collect_move_mat(local_dir) 
             self.movemats.append(movemat)

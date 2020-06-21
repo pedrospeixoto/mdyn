@@ -27,12 +27,12 @@ load_domain = True #Load precomp structures
 
 #Initialize mobile data and load data to dataframe
 data_format = "datalake" #"ORC"
-data_dir = "datalake/"
+data_dir = "datalake/data_city_extract2020-06-20/"
 #data_file = "OD_BR_oneday2020-05-22.csv"
 #data_dir = "data/triples_br_2020_04_17_date/all/"
 #data_dir = "data/triples_br_2020_04_17_date/"
-date_ini = "2020-05-06"
-date_end = "2020-05-06"
+date_ini = "2020-06-06"
+date_end = "2020-06-06"
 #date_end = "2020-03-01"
 load_data = True
 
@@ -40,8 +40,8 @@ load_data = True
 num_source = 2
 
 #Isolation index
-isoind_file = "data/isol_br/Social Distancing Index by Cities2020-06-03.csv"
-#isoind_file = "inloco/Social Distancing Index by Cities2020-05-23.csv"
+isoind_file = "data/isol_br/Social Distancing Index by Cities2020-06-20.csv"
+#isoind_file = "inloco/Social Distancing Index by Cities2020-06-20.csv"
 
 #-----------------------------
 # Slicing/Zoom
