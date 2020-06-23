@@ -11,7 +11,7 @@ cores <- 24 #Number   of cores to use in parallel computation
 pos <- Sys.Date() #"teste" #What to add at the end of all output files
 seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
-d_max <- "2020-06-14"
+d_max <- Sys.Date()
 simulate_length <- as.numeric(ymd("2020-12-31") - ymd(d_max)) #Number of days to simulate
 error_I <- 0.05
 error_D <- 0.05
@@ -47,8 +47,8 @@ for(i in 1:length(par$mob)){
   for(j in 1:ncol(par$mob[[i]]))
     par$mob[[i]][,j] <- par$mob[[i]][,j]/par$pop[j]
 }
-#for(d in as.character(seq.Date(ymd(d_max)-10,ymd(d_max),1)))
-#  par$mob[[as.character(ymd(d))]] <- par$mob[[as.character(weekdays(ymd(d)))]]
+for(d in as.character(seq.Date(ymd(d_max)-10,ymd(d_max),1)))
+  par$mob[[as.character(ymd(d))]] <- par$mob[[as.character(weekdays(ymd(d)))]]
 
 #Cadidate parameters  
 par$pS <- 1/c(5:10,15,20,30,40,50)
