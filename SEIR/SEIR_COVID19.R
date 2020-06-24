@@ -34,8 +34,8 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   EPI_curve(obs,end_validate,pos)
   
   #Calculate lift
-  par$lift <- testagem() #lift_death(obs,end_validate,par)
-
+  par$lift <- lift_death(obs,end_validate,par)#testagem()
+  
   #Obs by DRS
   obs_drs <- data_drs(obs,drs)
 
@@ -108,7 +108,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     pb$tick(tokens = list(letter = paste(progress_letter[k],kgood,"D =",round(mD,5),"I =",round(mI,5)))) #Update progress bar
     
     #Parameters of model k
-    parK <- sample_parameters(par,day_validate,drs)
+    parK <- sample_parameters(par,day_validate)
     
     #Initial condition
     initK <- initial_condition_corrected(init,init1f,init2f,parK)
@@ -211,6 +211,11 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   cat("\n")
 
   cat("Saving parameters of good models...\n")
+  
+  minI <- 1
+  maxI <- 1
+  minD <- 1
+  maxD <- 1
   
   #Saving parameters
   results$models <- results$models[unlist(lapply(results$models,function(x) ifelse(is.null(x),F,T)))] #Clean
