@@ -21,7 +21,7 @@ sample_parameters <- function(par,day_validate,drs){
   #for(d in par$lift$DRS)
   #  parK$lift[match(drs$Municipio[drs$Regiao == d],par$names)] <- par$lift$lift[par$lift$DRS == d]
   #parK$lift[269] <- par$lift$lift[par$lift$DRS == "Grande São Paulo"]
-  parK$upI <- ((par$lift)^(0))*(1-parK$pS)/parK$pS #Number of missed cases for each one in statistics
+  parK$upI <- ((par$lift)^(1))*(1-parK$pS)/parK$pS #Number of missed cases for each one in statistics
   
   #Parameters
   parK$gammaI <- 1/parK$Te #Rate from Exposed to Infected
