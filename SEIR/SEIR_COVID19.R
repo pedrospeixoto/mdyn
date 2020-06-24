@@ -116,12 +116,12 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     #Calculate beta
     parK$beta <- list()
     prox <- F
-    for(t in 1:7){
+    for(t in 1:7)
       parK$beta[[t]] <- beta(parK,t = t,lambda = par$lambda,drs,day = init_validate,obs)
-      if(min(parK$beta[[t]]) < 0){
-        is.good[k] <- 0
-        prox <- T
-      }
+    parK$beta <- as.vector(apply(bind_rows(lapply(parK$beta,function(x) data.frame(rbind(x)))),2,median))
+    if(min(parK$beta) < 0){
+      is.good[k] <- 0
+      prox <- T
     }
     if(prox){
       rm(initK,parK)
