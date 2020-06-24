@@ -19,7 +19,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   system(paste("mkdir /storage/SEIR/",pos,sep = ""))
   
   #####Notifications#####
-  cat("Downloading data about confirmed cases and deaths and plot epidemiological curve...\n")
+  cat("Downloading data about confirmed cases and deaths and ploting epidemiological curve...\n")
   obs <- get_data_SP()
   if(nrow(obs)/par$sites-round(nrow(obs)/par$sites) > 0)
     stop("There is a problem with the notifications dataset. Please fix it.")
