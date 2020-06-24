@@ -52,11 +52,11 @@ for(d in as.character(seq.Date(ymd("2020-06-15"),ymd(d_max),1)))
 
 #Cadidate parameters  
 par$pS <- 1/c(2:10,15,20,30,40,50)
-par$Te <- c(3:6)
-par$Ti <- c(7:14)
-par$Ts <- 7:14
-par$Tsr <- 14:21
-par$Td <- c(10:20)
+par$Te <- c(2:6)
+par$Ti <- c(7:21)
+par$Ts <- 7:21
+par$Tsr <- 7:21
+par$Td <- c(7:28)
 par$s <- c(0.25,0.5,1,1.5,2,2.5,3)
 
 sample_size <- 10e6
