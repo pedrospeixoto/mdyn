@@ -212,11 +212,6 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
 
   cat("Saving parameters of good models...\n")
   
-  minI <- 1
-  maxI <- 1
-  minD <- 1
-  maxD <- 1
-  
   #Saving parameters
   results$models <- results$models[unlist(lapply(results$models,function(x) ifelse(is.null(x),F,T)))] #Clean
   results$Vgood <- results$Vgood[unlist(lapply(results$Vgood,function(x) ifelse(is.null(x),F,T)))] #Clean
