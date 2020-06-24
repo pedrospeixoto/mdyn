@@ -213,54 +213,21 @@ server <- function(input, output) {
    
    #Download
    output$download <- downloadHandler(
-     filename = function() paste(input$filename,".html",sep = ""),
+     filename = function() paste(input$filename,".csv",sep = ""),
      content = function(file) {
-       withProgress(message = 'Salvando mapa...',value = 0,{
+       withProgress(message = 'Salvando dados...',value = 0,{
          tmp <- obs %>% filter(state == input$state) %>% droplevels()
          tmp$rate <- ifelse(tmp$last_available_confirmed > 0,tmp$last_available_deaths/tmp$last_available_confirmed,0)
          tmp$rate[tmp$last_available_deaths < 2] <- NA
          rate <- sum(tmp$last_available_deaths)/sum(tmp$last_available_confirmed)
          tmp$lift <- tmp$rate/rate
-         tmp$lift[tmp$lift < 1] <- 1 
-         tmp$lift[tmp$lift > 2] <- 2 
-         
-         #Shapes
-         shp_tmp <- shp[shp$UF == input$state,]
-         shp_tmp <- merge(shp_tmp,tmp,by.x = "CD_GEOCMU",by.y = "city_ibge_code",all = T)
-         for(j in 1:ncol(shp_tmp))
-           if(is.numeric(shp_tmp[[names(shp_tmp)[j]]]))
-             shp_tmp[is.na(shp_tmp[[names(shp_tmp)[j]]]),j] <- 0
-         nomes <- vector()
-         nomes[shp_tmp$lift == 1] <- "Propensão < 0"
-         nomes[shp_tmp$last_available_deaths < 2] <- "Sem dados suficientes"
-         nomes[shp_tmp$lift == 2] <- "Propensão > 1"
-         nomes[is.na(nomes)] <- paste("Propensão:",round(shp_tmp$lift[is.na(nomes)]-1,2))
-         shp_tmp$lift <- shp_tmp$lift - 1
-         shp_tmp$lift[shp_tmp$last_available_deaths < 2] <- -0.01
-         
-         # Make vector of colors for values smaller than 0 (20 colors)
-         rc <- c("white",colorRampPalette(colors = c("orange","red"), space = "Lab")(10))
-         
-         #Palete
-         mypal <- colorNumeric(palette = rc, domain = c(shp_tmp$lift,1.05))
-         cor <- vector()
-         cor <- ifelse(nomes != "Sem dados suficientes","black","gray")
-         w <- ifelse(nomes != "Sem dados suficientes",1,0.5)
-         
-         map <- leaflet() %>% addProviderTiles(providers$CartoDB.Positron) %>% 
-             addTiles(urlTemplate = "", attribution = "©IME - USP. Design: Diego Marcondes.") %>%
-             addControl(title, position = "topright", className="map-title") %>%
-             addEasyButton(easyButton(
-               icon="fa-crosshairs", title="Locate Me",
-               onClick=JS("function(btn, map){ map.locate({setView: true}); }"))) %>%
-             addPolygons(data = shp_tmp,weight = w,fillColor = mypal(shp_tmp$lift),fillOpacity = 0.75,color = cor,
-                         label = shp_tmp$Nome_Munic,
-                         labelOptions = labelOptions(textsize = "15px"),
-                         popup = nomes) %>%
-             addLegend(position = "bottomright", pal = mypal,values = c(shp_tmp$lift,1.05),
-                       title = "Propensão",opacity = 0.8,labFormat = )     
+         tab <- tmp %>% select(city,lift,last_available_deaths)
+         tab$lift <- round(tab$lift - 1,2)
+         names(tab) <- c("Município","Propensão Relativa","Número de Mortes")
+         tab <- tab[order(tab[,2],decreasing = T),]
+         tab <- na.omit(tab)
        incProgress(1/2, detail = "Só mais um instante...")
-       saveWidget(map,file = file)
+       write.csv(tab,file = file,row.names = F)
        incProgress(1, detail = "Feito!")
        })
      })   

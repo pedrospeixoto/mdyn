@@ -40,6 +40,7 @@ source("mdyn/SEIR/plot_map_summary.R")
 source("mdyn/SEIR/plot_validate.R")
 source("mdyn/SEIR/store_simulation.R")
 source("mdyn/SEIR/build_maps.R")
+source("mdyn/SEIR/testagem.R")
 
 #Plot themes
 titles <- theme(strip.text = element_text(size = 12), axis.text = element_text(size = 12,color = "black"),
