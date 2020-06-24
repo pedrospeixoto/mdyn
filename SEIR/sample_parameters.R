@@ -20,6 +20,7 @@ sample_parameters <- function(par,day_validate,drs){
   parK$lift <- vector() #lift
   for(d in par$lift$DRS)
     parK$lift[match(drs$Municipio[drs$Regiao == d],par$names)] <- par$lift$lift[par$lift$DRS == d]
+  parK$lift[269] <- par$lift$lift[par$lift$DRS == "Grande São Paulo"]
   parK$upI <- parK$lift*(1-parK$pS)/parK$pS #Number of missed cases for each one in statistics
   
   #Parameters
