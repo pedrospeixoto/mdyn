@@ -35,7 +35,7 @@ derivatives <- function(t,Y,parK){
   delta <- parK$deltaRate #Rate from Statistics to Death
   s <- parK$s #Intensity of mobility
   if(parK$val)
-    beta <- parK$beta #[[t]] #beta
+    beta <- parK$beta[[t]] #beta
   else
     beta <- parK$betaMedian
   

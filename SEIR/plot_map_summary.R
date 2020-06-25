@@ -8,7 +8,7 @@ plot_maps_summary <- function(Rt,par,drs,obs,day,pos){
   shp <- fortify(shp,region = "NM_MUNICIP") #Fortify
   rc_cont <- colorRampPalette(colors = c("white","orange","red"))(100)
   
-  c_100 <- obs %>% filter(date == ymd(day) & confirmed_corrected >= 1000) %>% select(city)
+  c_100 <- obs %>% filter(date == ymd(day) & confirmed_corrected >= 50) %>% select(city)
   
   #Rt
   pRt <- lapply(Rt,function(x) data.frame(rbind(as.vector(x))))
