@@ -34,7 +34,7 @@ pos <- readRDS("./www/pos.rds")
 nmodels <- readRDS("./www/nmodels.rds")
 drs <- readRDS("./www/drs.rds")
 dmin <- min(ymd(cases_city$Date))
-dmax <- dmin+20
+dmax <- dmin+30
 l_drs <- levels(cases_DRS$DRS)
 l_city <- as.character(unique(cases_city$Municipio[as.numeric(cases_city$c_1000) == 1]))
 l_drs2 <- c(l_drs,l_city)
