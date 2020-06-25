@@ -11,7 +11,7 @@ cores <- 24 #Number   of cores to use in parallel computation
 pos <- Sys.Date() #"teste" #What to add at the end of all output files
 seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
-d_max <- Sys.Date() #"2020-06-14"
+d_max <- "2020-06-14"#Sys.Date() #"2020-06-14"
 simulate_length <- as.numeric(ymd("2020-12-31") - ymd(d_max)) #Number of days to simulate
 error_I <- 0.06
 error_D <- 0.06
@@ -59,7 +59,7 @@ for(d in as.character(seq.Date(from = ymd("2020-05-18"),to = d_max,1)))
 #Cadidate parameters  
 par$pS <- 1/c(2:10,15,20,30,40,50)
 par$Te <- c(3:6)
-par$Ti <- c(7:21)
+par$Ti <- c(5:21)
 par$Ts <- 7:21
 par$Tsr <- 7:21
 par$Td <- c(7:28)
