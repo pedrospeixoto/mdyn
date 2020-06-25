@@ -150,7 +150,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     if(good == 1){#Store good models
       
       #Median of beta
-      parK$betaMedian <- as.vector(apply(bind_rows(lapply(parK$beta,function(x) data.frame(rbind(x)))),2,median))
+      parK$betaMedian <- parK$beta #as.vector(apply(bind_rows(lapply(parK$beta,function(x) data.frame(rbind(x)))),2,median))
       pred[[k]]$beta <- parK$betaMedian
       names(parK$beta) <- weekdays(seq.Date(from = ymd(init_validate),to = ymd(end_validate),1))
       
