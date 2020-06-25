@@ -38,7 +38,7 @@ growth_rate <- function(obs,obs_drs,drs,par,pos,init_validate,end_validate,day_v
   }
   
   #For each city with 1000+ cases in init_validate
-  c_1000 <- obs %>% filter(date == ymd(init_validate) & confirmed_corrected >= 500)
+  c_1000 <- obs %>% filter(date == ymd(init_validate) & confirmed_corrected >= 250)
   c_1000 <- c_1000$city
   for(c in c_1000){
     tmp <- obs %>% filter(city == c & date >= ymd(init_validate) & date <= ymd(end_validate)) #Data of city
