@@ -12,7 +12,7 @@ preprocess_SEIR_output <- function(param,drs,pos,obs,end_validate){
   
   #Cases city
   cases_city <- fread(paste(wd,"/cases_",pos,".csv",sep = ""),sep = ",")
-  c_1000 <- obs %>% filter(date == ymd(end_validate) & (confirmed_corrected >= 1000 | deaths_corrected >= 100))
+  c_1000 <- obs %>% filter(date == ymd(end_validate) & (confirmed_corrected >= 100 | deaths_corrected >= 50))
   c_1000 <- c_1000$city
   cases_city$c_1000 <- cases_city$Municipio %in% c_1000
   cases_city$Date <- ymd(cases_city$Date)
@@ -29,8 +29,8 @@ preprocess_SEIR_output <- function(param,drs,pos,obs,end_validate){
   #Which DRS
   cases_DRS <- data.frame(fread(paste(wd,"/cases_DRS_",pos,".csv",sep = ""),sep = ","))
   deaths_DRS <- fread(paste(wd,"/deaths_DRS_",pos,".csv",sep = ""),sep = ",")
-  DRS_1000_C <- cases_DRS %>% filter(Date == ymd(end_validate) & Mediana >= 1000)
-  DRS_100_D <- deaths_DRS %>% filter(Date == ymd(end_validate) & Mediana >= 100)
+  DRS_1000_C <- cases_DRS %>% filter(Date == ymd(end_validate) & Mediana >= 100)
+  DRS_100_D <- deaths_DRS %>% filter(Date == ymd(end_validate) & Mediana >= 50)
   DRS_which <- unique(c(DRS_1000_C$DRS,DRS_100_D$DRS))  
   DRS_which <- DRS_which[DRS_which != "0"]
   cases_DRS <- cases_DRS %>% filter(DRS %in% DRS_which)

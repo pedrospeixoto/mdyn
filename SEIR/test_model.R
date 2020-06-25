@@ -3,9 +3,9 @@ test_model <- function(D,I,teste_D,teste_I,drs,init_validate,end_validate){
   
   #Error in cities
   Dcity <- (D - teste_D$city[,-1])/teste_D$city[,-1]
-  Dcity <- (Dcity[teste_D$city[,-1] > 100])
+  Dcity <- (Dcity[teste_D$city[,-1] > 50])
   Icity <- (I - teste_I$city[,-1])/teste_I$city[,-1]
-  Icity <- (Icity[teste_I$city[,-1] > 1000])
+  Icity <- (Icity[teste_I$city[,-1] > 100])
 
   #Deaths in DRSs
   colnames(D) <- par$names
@@ -19,8 +19,8 @@ test_model <- function(D,I,teste_D,teste_I,drs,init_validate,end_validate){
   D <- merge(D,teste_D$DRS)
   D$dif <- (D$D_pred - D$D_drs)/D$D_drs
   D <- D %>% filter(DRS != "0")
-  dif_D <- max(c(quantile(abs(D$dif)[D$D_drs > 100],0.9),quantile(abs(Dcity),0.9)))
-  D <- D %>% filter(D_drs > 100)
+  dif_D <- max(c(quantile(abs(D$dif)[D$D_drs > 50],0.9),quantile(abs(Dcity),0.9)))
+  D <- D %>% filter(D_drs > 50)
   D <- c(D$dif[D$dif < quantile(D$dif,0.9)],Dcity[Dcity < quantile(Dcity,0.9)])
 
   #Cases in DRSs
@@ -35,7 +35,7 @@ test_model <- function(D,I,teste_D,teste_I,drs,init_validate,end_validate){
   I <- merge(I,teste_I$DRS)
   I$dif <- (I$I_pred - I$I_drs)/I$I_drs
   I <- I %>% filter(DRS != "0")
-  dif_I <- max(c(quantile(abs(I$dif)[I$I_drs > 1000],0.9),quantile(abs(Icity),0.9)))
+  dif_I <- max(c(quantile(abs(I$dif)[I$I_drs > 100],0.9),quantile(abs(Icity),0.9)))
   I <- I %>% filter(I_drs > 100)
   I <- c(I$dif[I$dif < quantile(I$dif,0.9)],Icity[Icity < quantile(Icity,0.9)])
   
