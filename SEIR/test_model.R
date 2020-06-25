@@ -3,7 +3,7 @@ test_model <- function(D,I,teste_D,teste_I,drs,init_validate,end_validate){
   
   #Error in cities
   Dcity <- (D - teste_D$city[,-1])/teste_D$city[,-1]
-  Dcity <- (Dcity[teste_D$city[,-1] > 50])
+  Dcity <- (Dcity[teste_D$city[,-1] > 100])
   Icity <- (I - teste_I$city[,-1])/teste_I$city[,-1]
   Icity <- (Icity[teste_I$city[,-1] > 500])
 
@@ -19,8 +19,8 @@ test_model <- function(D,I,teste_D,teste_I,drs,init_validate,end_validate){
   D <- merge(D,teste_D$DRS)
   D$dif <- (D$D_pred - D$D_drs)/D$D_drs
   D <- D %>% filter(DRS != "0")
-  dif_D <- max(c(quantile(abs(D$dif)[D$D_drs > 50],1),quantile(abs(Dcity),1)))
-  D <- D %>% filter(D_drs > 50)
+  dif_D <- max(c(quantile(abs(D$dif)[D$D_drs > 100],1),quantile(abs(Dcity),1)))
+  D <- D %>% filter(D_drs > 100)
   D <- c(D$dif[D$dif < quantile(D$dif,1)],Dcity[Dcity < quantile(Dcity,1)])
 
   #Cases in DRSs
