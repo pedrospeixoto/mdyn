@@ -91,7 +91,7 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
     cases_all <- rbind.data.frame(cases_all,tmp)
     
     #Epidemiological curve
-    if(c_pred$Ipred[1] > 100 | c_pred$Dpred[1] > 50){
+    if(c_pred$Ipred[1] > 500 | c_pred$Dpred[1] > 50){
       tmp <- c_pred
       p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                                                                  linetype = "dashed") + 
