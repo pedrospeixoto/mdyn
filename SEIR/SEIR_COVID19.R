@@ -4,7 +4,7 @@
 #####dmarcondes@ime.usp.br#####
 ###############################
 
-source("mdyn/SEIR/utils.R")
+suppressMessages(source("mdyn/SEIR/utils.R"))
 
 SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models,error_I,error_D){
   
@@ -19,7 +19,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   system(paste("mkdir /storage/SEIR/",pos,sep = ""))
   
   #####Notifications#####
-  cat("Downloading data about confirmed cases and deaths and plot epidemiological curve...\n")
+  cat("Downloading data about confirmed cases and deaths and ploting epidemiological curve...\n")
   obs <- get_data_SP()
   if(nrow(obs)/par$sites-round(nrow(obs)/par$sites) > 0)
     stop("There is a problem with the notifications dataset. Please fix it.")
@@ -34,8 +34,8 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   EPI_curve(obs,end_validate,pos)
   
   #Calculate lift
-  par$lift <- lift_death(obs,end_validate,par)
-
+  par$lift <- lift_death(obs,end_validate,par)#testagem()
+  
   #Obs by DRS
   obs_drs <- data_drs(obs,drs)
 
@@ -116,17 +116,18 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     #Calculate beta
     parK$beta <- list()
     prox <- F
-    for(t in 1:7){
+    for(t in 1:7)
       parK$beta[[t]] <- beta(parK,t = t,lambda = par$lambda,drs,day = init_validate,obs)
-      if(min(parK$beta[[t]]) < 0){
-        is.good[k] <- 0
-        prox <- T
-      }
+    parK$beta <- as.vector(apply(bind_rows(lapply(parK$beta,function(x) data.frame(rbind(x)))),2,median))
+    if(min(parK$beta) < 0){
+      is.good[k] <- 0
+      prox <- T
     }
     if(prox){
       rm(initK,parK)
       next
     }
+    parK$beta[parK$beta < 0.01] <- 0.01
     
     #Model
     mod <- solve_seir(y = initK,times = 1:7,derivatives = derivatives,parms = parK)[,-1] #Simulate model k
@@ -150,7 +151,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     if(good == 1){#Store good models
       
       #Median of beta
-      parK$betaMedian <- as.vector(apply(bind_rows(lapply(parK$beta,function(x) data.frame(rbind(x)))),2,median))
+      parK$betaMedian <- parK$beta #as.vector(apply(bind_rows(lapply(parK$beta,function(x) data.frame(rbind(x)))),2,median))
       pred[[k]]$beta <- parK$betaMedian
       names(parK$beta) <- weekdays(seq.Date(from = ymd(init_validate),to = ymd(end_validate),1))
       

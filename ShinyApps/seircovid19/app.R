@@ -34,9 +34,9 @@ pos <- readRDS("./www/pos.rds")
 nmodels <- readRDS("./www/nmodels.rds")
 drs <- readRDS("./www/drs.rds")
 dmin <- min(ymd(cases_city$Date))
-dmax <- dmin+20
+dmax <- dmin+30
 l_drs <- levels(cases_DRS$DRS)
-l_city <- unique(cases_city$Municipio[as.numeric(cases_city$c_1000) == 1])
+l_city <- as.character(unique(cases_city$Municipio[as.numeric(cases_city$c_1000) == 1]))
 l_drs2 <- c(l_drs,l_city)
 names(l_drs2) <- c(paste("DRS",l_drs),paste("Cidade de",stri_trans_totitle(tolower(as.character(l_city)))))
 l_drs2 <- l_drs2[order(names(l_drs2))]
@@ -103,7 +103,7 @@ server <- function(input, output) {
                fluidRow(column(3,myDownloadButton("videoMortesSP","Baixar animação com a previsão de mortes")),
                         column(3,myDownloadButton("videoCasosSP","Baixar animação com a previsão de casos"))),
                br(),
-               HTML("<p> <span style='color: red'><strong>*As animações acima APENAS ilustram o comportamento do espalhamento espaço-temporal da COVID-19 APENAS, sendo que os valores exatos de casos e mortes confirmadas projetados NÃO DEVEM SER CONSIDERADOS.</strong></span></p>"),
+               HTML("<p> <span style='color: red'><strong>*As animações acima APENAS ilustram o comportamento do espalhamento espaço-temporal da COVID-19, sendo que os valores exatos de casos e mortes confirmadas projetados NÃO DEVEM SER CONSIDERADOS.</strong></span></p>"),
                br(),
                tags$p("Aplicação desenvolvida por ", 
                       tags$a(href="https://www.linkedin.com/in/diego-marcondes-87a1218b/","Diego Marcondes ")," com ",
@@ -415,8 +415,8 @@ server <- function(input, output) {
     if(!is.null(input$date)){
       tmpC_DRS <- cases_DRS %>% filter(Date == input$date)
       tmpM_DRS <- deaths_DRS %>% filter(Date == input$date)
-      tmpC_city <- cases_city %>% filter(Date == input$date)
-      tmpM_city <- deaths_city %>% filter(Date == input$date)
+      tmpC_city <- cases_city %>% filter(Date == input$date & c_1000) %>% droplevels()
+      tmpM_city <- deaths_city %>% filter(Date == input$date & c_1000) %>% droplevels()
       
       tmpM_DRS <- tmpM_DRS[order(tmpM_DRS$Mediana,decreasing = T),c(2:5)]
       names(tmpM_DRS) <- c("DRS","Mínimo","Mediana","Máximo")
@@ -426,12 +426,12 @@ server <- function(input, output) {
       names(tmpC_DRS) <- c("DRS","Mínimo","Mediana","Máximo")
       tmpC_DRS[,2:4] <- sapply(tmpC_DRS[,2:4], FUN=function(x) prettyNum(round(x),decimal.mark = ",",big.mark="."))
       
-      tmpM_city <- tmpM_city[order(tmpM_city$Mediana,decreasing = T),-1]
+      tmpM_city <- tmpM_city[order(tmpM_city$Mediana,decreasing = T),-c(1,6)]
       names(tmpM_city) <- c("Município","Mínimo","Mediana","Máximo")
       tmpM_city[,2:4] <- sapply(tmpM_city[,2:4], FUN=function(x) prettyNum(round(x),decimal.mark = ",",big.mark="."))
       tmpM_city[,1] <- factor(stri_trans_totitle(tolower(as.character(tmpM_city[,1]))))
       
-      tmpC_city <- tmpC_city[order(tmpC_city$Mediana,decreasing = T),-1]
+      tmpC_city <- tmpC_city[order(tmpC_city$Mediana,decreasing = T),-c(1,6)]
       names(tmpC_city) <- c("Município","Mínimo","Mediana","Máximo")
       tmpC_city[,2:4] <- sapply(tmpC_city[,2:4], FUN=function(x) prettyNum(round(x),decimal.mark = ",",big.mark="."))
       tmpC_city[,1] <- factor(stri_trans_totitle(tolower(as.character(tmpC_city[,1]))))
@@ -487,15 +487,15 @@ server <- function(input, output) {
   
   observe({
     if(!is.null(input$dateDRS)){
-      tmpC_city <- cases_city %>% filter(Date == input$dateDRS & Municipio %in% drs$Municipio[drs$Regiao == input$DRS])
-      tmpM_city <- deaths_city %>% filter(Date == input$dateDRS & Municipio %in% drs$Municipio[drs$Regiao == input$DRS])
+      tmpC_city <- cases_city %>% filter(Date == input$dateDRS & Municipio %in% drs$Municipio[drs$Regiao == input$DRS] & c_1000)
+      tmpM_city <- deaths_city %>% filter(Date == input$dateDRS & Municipio %in% drs$Municipio[drs$Regiao == input$DRS] & c_1000)
       
-      tmpM_city <- tmpM_city[order(tmpM_city$Mediana,decreasing = T),-1]
+      tmpM_city <- tmpM_city[order(tmpM_city$Mediana,decreasing = T),-c(1,6)]
       names(tmpM_city) <- c("Município","Mínimo","Mediana","Máximo")
       tmpM_city[,2:4] <- sapply(tmpM_city[,2:4], FUN=function(x) prettyNum(round(x),decimal.mark = ",",big.mark="."))
       tmpM_city[,1] <- factor(stri_trans_totitle(tolower(as.character(tmpM_city[,1]))))
       
-      tmpC_city <- tmpC_city[order(tmpC_city$Mediana,decreasing = T),-1]
+      tmpC_city <- tmpC_city[order(tmpC_city$Mediana,decreasing = T),-c(1,6)]
       names(tmpC_city) <- c("Município","Mínimo","Mediana","Máximo")
       tmpC_city[,2:4] <- sapply(tmpC_city[,2:4], FUN=function(x) prettyNum(round(x),decimal.mark = ",",big.mark="."))
       tmpC_city[,1] <- factor(stri_trans_totitle(tolower(as.character(tmpC_city[,1]))))

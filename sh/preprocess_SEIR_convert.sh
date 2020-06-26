@@ -75,6 +75,9 @@ cd /storage/SEIR/$1/Videos/Estado
 cp -r casos/ /storage/ShinyApps/seircovid19/www/
 cp -r mortes/ /storage/ShinyApps/seircovid19/www/
 
+#Render sobre
+Rscript -e "rmarkdown::render('/storage/ShinyApps/seircovid19/www/sobre.rmd')"
+
 echo "Syncing with Shiny server..."
 
 ssh -p 2223 dmarcondes@shiny.ime.usp.br "{

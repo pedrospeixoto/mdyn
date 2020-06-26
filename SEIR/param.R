@@ -11,14 +11,14 @@ cores <- 24 #Number   of cores to use in parallel computation
 pos <- Sys.Date() #"teste" #What to add at the end of all output files
 seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
-d_max <- "2020-06-14"
+d_max <- Sys.Date() #"2020-06-14"
 simulate_length <- as.numeric(ymd("2020-12-31") - ymd(d_max)) #Number of days to simulate
-error_I <- 0.05
-error_D <- 0.05
+error_I <- 0.07
+error_D <- 0.06
 
 #Set mobility matrix
 par$mob <- list()
-day <- seq.Date(from = ymd("2020-06-01"),to = ymd("2020-06-14"),1)
+day <- seq.Date(from = ymd("2020-05-27"),to = ymd("2020-06-23"),1)
 for(d in as.character(day)){
   cat(d)
   cat("\n")
@@ -26,12 +26,16 @@ for(d in as.character(day)){
                                                    sep = " ",
                                                    header = F))[1:645,1:645]
 }
-for(i in 0:6){
-  w <- unique(weekdays(day))[length(unique(weekdays(day)))-i]
-  d <- as.character(day[length(day)-i])
-  par$mob[[as.character(w)]] <- as.matrix(read.csv(paste("/storage/inloco/data/mobility_br_2020/date0=",d,"/move_mat_SÃO PAULO_Municip.csv",sep = ""),
-                                                   sep = " ",
-                                                   header = F))[1:645,1:645]
+for(d in as.character(day)){
+  w <- weekdays(ymd(d))
+  if(is.null(par$mob[[as.character(w)]]))
+    par$mob[[as.character(w)]] <- as.matrix(read.csv(paste("/storage/inloco/data/mobility_br_2020/date0=",d,"/move_mat_SÃO PAULO_Municip.csv",sep = ""),
+                                                     sep = " ",
+                                                     header = F))[1:645,1:645]
+  else
+    par$mob[[as.character(w)]] <- par$mob[[as.character(w)]] + as.matrix(read.csv(paste("/storage/inloco/data/mobility_br_2020/date0=",d,
+                                                                                        "/move_mat_SÃO PAULO_Municip.csv",sep = ""),sep = " ",
+                                                     header = F))[1:645,1:645]
 }
 par$names <- as.vector(read.table("mdyn/SEIR/dados/move_mat_SÃO PAULO_Municip_reg_names.txt",sep = ";")[1:645,1]) #Sites name
 par$sites <- length(par$names) #Number of sites
@@ -47,20 +51,22 @@ for(i in 1:length(par$mob)){
   for(j in 1:ncol(par$mob[[i]]))
     par$mob[[i]][,j] <- par$mob[[i]][,j]/par$pop[j]
 }
-#for(d in as.character(seq.Date(ymd(d_max)-10,ymd(d_max),1)))
-#  par$mob[[as.character(ymd(d))]] <- par$mob[[as.character(weekdays(ymd(d)))]]
+for(w in unique(weekdays(day)))
+  par$mob[[as.character(w)]] <- 0.25*par$mob[[as.character(w)]]
+for(d in as.character(seq.Date(from = ymd("2020-05-27"),to = d_max,1)))
+  par$mob[[as.character(ymd(d))]] <- par$mob[[as.character(weekdays(ymd(d)))]]
 
 #Cadidate parameters  
 par$pS <- 1/c(5:10,15,20,30,40,50)
-par$Te <- c(3:6)
-par$Ti <- c(7:14)
-par$Ts <- 7:14
-par$Tsr <- 14:21
-par$Td <- c(10:20)
-par$s <- c(1,1.5,2,2.5,3)
+par$Te <- c(5:6)
+par$Ti <- c(7:21)
+par$Ts <- 7:21
+par$Tsr <- 7:21
+par$Td <- c(7:28)
+par$s <- c(0.25,0.5,1,1.5,2,2.5,3)
 
-sample_size <- 100000
-max_models <- 50
+sample_size <- 10e6
+max_models <- 20
 source("mdyn/SEIR/SEIR_COVID19.R")
 SEIR_covid(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models,error_I,error_D)
 

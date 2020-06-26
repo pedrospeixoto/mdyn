@@ -1,5 +1,5 @@
 #Sample parameters for a model
-sample_parameters <- function(par,day_validate){
+sample_parameters <- function(par,day_validate,drs){
   
   parK <- list()
   
@@ -17,8 +17,11 @@ sample_parameters <- function(par,day_validate){
   parK$delta <- par$delta #delta
   parK$sites <- par$sites #Number of sites
   parK$s <- sample(x = par$s,size = 1) #s
-  parK$lift <- par$lift #lift
-  parK$upI <- (1-parK$pS)/parK$pS #Number of missed cases for each one in statistics
+  parK$lift <- par$lift#vector() #lift
+  #for(d in par$lift$DRS)
+  #  parK$lift[match(drs$Municipio[drs$Regiao == d],par$names)] <- par$lift$lift[par$lift$DRS == d]
+  #parK$lift[269] <- par$lift$lift[par$lift$DRS == "Grande São Paulo"]
+  parK$upI <- ((par$lift)^(1/10))*(1-parK$pS)/parK$pS #Number of missed cases for each one in statistics
   
   #Parameters
   parK$gammaI <- 1/parK$Te #Rate from Exposed to Infected
