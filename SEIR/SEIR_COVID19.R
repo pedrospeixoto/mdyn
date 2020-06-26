@@ -127,6 +127,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       rm(initK,parK)
       next
     }
+    parK$beta[parK$beta < 0.01] <- 0.01
     
     #Model
     mod <- solve_seir(y = initK,times = 1:7,derivatives = derivatives,parms = parK)[,-1] #Simulate model k
