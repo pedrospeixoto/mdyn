@@ -56,12 +56,12 @@ for(w in unique(weekdays(day)))
 for(d in as.character(seq.Date(from = ymd("2020-05-18"),to = d_max,1)))
   par$mob[[as.character(ymd(d))]] <- par$mob[[as.character(weekdays(ymd(d)))]]
 
-#Cadidate parameters    
+#Cadidate parameters  
 par$pS <- 1/c(5:10,15,20,30,40,50)
-par$Te <- c(5:6)
-par$Ti <- c(7:21)
-par$Ts <- 7:21
-par$Tsr <- 7:21
+par$Te <- c(4:6)
+par$Ti <- c(5:28)
+par$Ts <- 5:28
+par$Tsr <- 5:28
 par$Td <- c(7:28)
 par$s <- c(0.25,0.5,1,1.5,2,2.5,3)
 
