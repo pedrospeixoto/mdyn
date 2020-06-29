@@ -27,11 +27,11 @@ load_domain = True #Load precomp structures
 
 #Initialize mobile data and load data to dataframe
 data_format = "datalake" #"ORC"
-data_dir = "datalake/data_city_extract2020-06-20/"
+data_dir = "datalake/data_city_extract_2020_06_26/"
 #data_file = "OD_BR_oneday2020-05-22.csv"
 #data_dir = "data/triples_br_2020_04_17_date/all/"
 #data_dir = "data/triples_br_2020_04_17_date/"
-date_ini = "2020-05-01"
+date_ini = "2020-05-15"
 date_end = "2020-06-14"
 #date_end = "2020-03-01"
 load_data = True

@@ -1,0 +1,10 @@
+lon # vetor de longitudes de milhoes de pings de raw data
+lat # vetor de latitudes de milhoes de pings de raw data
+lonnan=np.isnan(lon) # tira os problemas
+latnan=np.isnan(lat) #tira os problemas
+nan = lonnan*latnan #mapa cruzado de problemas
+ilon=((lon[~nan]-dom.minlons)/dom.dlon).astype(int) #acha indice da matriz de longitude
+ilat=((lat[~nan]-dom.minlats)/dom.dlat).astype(int) # acha indice da matriz de latidute
+reg = np.zeros(n).astype(int) # inicializa vetor do tamanho dos dados com vetores para guardar "regioes" (indice do geocoding)
+reg[nan] = -1  #se nan atribui -1
+reg[~nan]=region_grid[ilat, ilon] # region_grid é a mtriz pre-processada do geocoding, com esse comando ele classifica todos os pings do raw data em segundos.
