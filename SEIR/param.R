@@ -58,7 +58,7 @@ for(d in as.character(seq.Date(from = ymd("2020-05-18"),to = d_max,1)))
 
 #Cadidate parameters  
 par$pS <- 1/c(5:10,15,20,30,40,50)
-par$Te <- c(5:6)
+par$Te <- c(4:6)
 par$Ti <- c(5:28)
 par$Ts <- 5:28
 par$Tsr <- 5:28
