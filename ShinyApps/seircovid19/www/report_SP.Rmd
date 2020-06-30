@@ -55,7 +55,9 @@ header-includes:
 
 ```{r,echo=FALSE}
 deaths_city <- params$deaths_city
+deaths_city$c_1000 <- NULL
 cases_city <- params$cases_city
+cases_city$c_1000  <- NULL
 deaths_DRS <- params$deaths_DRS
 cases_DRS <- params$cases_DRS
 data_rel <- ymd(params$input$date)
@@ -75,7 +77,6 @@ tmpM_DRS <- deaths_DRS %>% filter(Date == data_rel)
 \end{figure}
 
 # Previsão de Casos por DRS em `r format(params$input$date,"%d/%m/%Y")`
-\small Apenas para DRSs com mais de 1,000 casos ou 100 mortes confirmadas em `r params$data`
 
 ```{r,echo=FALSE,warning=FALSE}
 tmpC_DRS <- tmpC_DRS[order(tmpC_DRS$Mediana,decreasing = T),c(2:5)]
@@ -85,7 +86,6 @@ kable(tmpC_DRS,row.names = F,format = "latex",align = "lccc",digits = 0,
 ```
 
 # Previsão de Mortes por DRS em `r format(params$input$date,"%d/%m/%Y")`
-\small Apenas para DRSs com mais de 1,000 casos ou 100 mortes confirmadas em `r params$data`
 
 ```{r,echo=FALSE,warning=FALSE}
 tmpM_DRS <- tmpM_DRS[order(tmpM_DRS$Mediana,decreasing = T),c(2:5)]
@@ -96,7 +96,7 @@ kable(tmpM_DRS,row.names = F,format = "latex",align = "lccc",digits = 0,
 
 
 # Previsão de Casos por Município em `r format(params$input$date,"%d/%m/%Y")`
-\small Apenas para Municípios com mais de 1,000 casos ou 100 mortes confirmadas em `r params$data`
+\small Apenas para Municípios com mais de 250 casos ou 100 mortes confirmadas em `r params$data`
 
 ```{r,echo=FALSE,warning=FALSE}
 tmpC <- tmpC[order(tmpC$Mediana,decreasing = T),-1]
@@ -114,7 +114,7 @@ kable(tmpC,row.names = F,format = "latex",align = "lccc",digits = 0,
 
 
 # Previsão de Mortes por Município em `r format(params$input$date,"%d/%m/%Y")`
-\small Apenas para Municípios com mais de 1,000 casos ou 100 mortes confirmadas em `r params$data`
+\small Apenas para Municípios com mais de 250 casos ou 100 mortes confirmadas em `r params$data`
 
 ```{r,echo=FALSE,warning=FALSE}
 tmpM <- tmpM[order(tmpM$Mediana,decreasing = T),-1]
@@ -131,7 +131,7 @@ kable(tmpM,row.names = F,format = "latex",align = "lccc",digits = 0,
 \end{figure}
 
 # Previsão do Pico de Mortes por Município
-\small Apenas para Municípios com mais de 1,000 casos ou 100 mortes confirmadas em `r params$data`
+\small Apenas para Municípios com mais de 250 casos ou 100 mortes confirmadas em `r params$data`
 
 \begin{figure}
 \centering
@@ -142,7 +142,7 @@ kable(tmpM,row.names = F,format = "latex",align = "lccc",digits = 0,
 \small
 \noindent As projeções foram realizadas através da simulação de `r params$nmodels` Modelos SEIR Metapopulacionais, em que a mobilidade entre as cidades do Estado, mensurada por dados anônimos de geolocalização de celulares, é acoplada à um modelo epidemiológico de compartimentos
 
-\noindent Os modelos foram escolhidos dentre dezenas de milhares de modelos candidatos, pois se aderiram bem aos dados observados. A aderência foi mensurada pela diferença entre o número de mortes e o número de casos confirmados nos DRSs e Municípios com mais de 100 mortes ou 1,000 casos, respectivamente, durante a semana terminando em `r params$data`
+\noindent Os modelos foram escolhidos dentre dezenas de milhares de modelos candidatos, pois se aderiram bem aos dados observados. A aderência foi mensurada pela diferença entre o número de mortes e o número de casos confirmados nos DRSs e Municípios com mais de 100 mortes ou 250 casos, respectivamente, durante a semana terminando em `r params$data`
 
 \noindent As projeções desses modelos, que leva em consideração a transmissão do vírus entre as cidades, só pode ser realizada com maior confiança pelo período de um mês e supõe que a evolução da doença se manterá da mesma forma que na semana terminando em `r params$data`. Além disso, também podemos estimar através deles quando será o pico de mortes pela doença (dia com mais mortes). As bandas superior e inferior das estimativas dizem respeito ao pior e melhor caso simulados pelos modelos escolhidos
 
