@@ -1,5 +1,5 @@
 #Store the results of the simulation
-store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,maxD,end_validate){
+store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,maxD,end_validate,obs,obs_drs){
   
   #Create objects
   peak <- data.frame("Municipio" = NA,"TMinimo" = NA,"TMediana" = NA,"TMaximo" = NA,"MMinimo" = NA,"MMediana" = NA,"MMaximo" = NA)
@@ -92,7 +92,12 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
     
     #Epidemiological curve
     if(c_pred$Ipred[1] > 500 | c_pred$Dpred[1] > 100){
-      tmp <- c_pred
+      tmp2 <- obs %>% filter(city == c & confirmed_corrected >= 100 & date <= min(c_pred$date))
+      tmp <- rbind.data.frame(data.frame("date" = tmp2$date,"Epred" = NA,"EpredInf" = NA,"EpredSup" = NA,"Ispred" = tmp2$infected,"IspredInf" = NA,
+                                         "IspredSup" = NA,"Ipred" = NA,"IpredInf" = NA,"IpredSup" = NA,"Itpred" = tmp2$confirmed_corrected,
+                                         "ItpredInf" = NA,"ItpredSup" = NA,"Rpred" = NA,"RpredInf" = NA,"RpredSup" = NA,"Dpred" = tmp2$deaths_corrected,
+                                         "DpredInf" = NA,"DpredSup" = NA),c_pred)
+      
       p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                                                                  linetype = "dashed") + 
         geom_line(aes(y = Ispred, color = "a")) + geom_ribbon(aes(ymin = IspredInf,ymax = IspredSup,fill = "a"),alpha = 0.25) +
@@ -265,7 +270,11 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
                                              "TMaximo" = as.character(ymd(end_validate)+max(pd)),
                                              "MMinimo" = min(mpd),"MMediana" = median(mpd),"MMaximo" = max(mpd))) #Peak
     #Epidemiological curve
-    tmp <- c_pred
+    tmp2 <- obs_drs %>% select(-city) %>% filter(DRS == d & confirmed_corrected >= 100 & date <= min(c_pred$date)) %>% unique() %>% data.frame()
+    tmp <- rbind.data.frame(data.frame("date" = tmp2$date,"Epred" = NA,"EpredInf" = NA,"EpredSup" = NA,"Ispred" = tmp2$infected,"IspredInf" = NA,
+                                       "IspredSup" = NA,"Ipred" = NA,"IpredInf" = NA,"IpredSup" = NA,"Itpred" = tmp2$confirmed_corrected,
+                                       "ItpredInf" = NA,"ItpredSup" = NA,"Rpred" = NA,"RpredInf" = NA,"RpredSup" = NA,"Dpred" = tmp2$deaths_corrected,
+                                       "DpredInf" = NA,"DpredSup" = NA),c_pred)
     p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                                                                linetype = "dashed") +
       geom_line(aes(y = Ispred, color = "a")) + geom_ribbon(aes(ymin = IspredInf,ymax = IspredSup,fill = "a"),alpha = 0.25) +
