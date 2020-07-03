@@ -91,7 +91,7 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
     cases_all <- rbind.data.frame(cases_all,tmp)
     
     #Epidemiological curve
-    if(c_pred$Ipred[1] > 500 | c_pred$Dpred[1] > 100){
+    if(c_pred$Ispred[1] > 500 | c_pred$Dpred[1] > 100){
       tmp2 <- obs %>% filter(city == c & confirmed_corrected >= 100 & date <= min(c_pred$date))
       tmp <- rbind.data.frame(data.frame("date" = tmp2$date,"Epred" = NA,"EpredInf" = NA,"EpredSup" = NA,"Ispred" = tmp2$infected,"IspredInf" = NA,
                                          "IspredSup" = NA,"Ipred" = NA,"IpredInf" = NA,"IpredSup" = NA,"Itpred" = tmp2$confirmed_corrected,
