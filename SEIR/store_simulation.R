@@ -102,7 +102,7 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
                                                                  linetype = "dashed") + 
         geom_line(aes(y = Ispred, color = "a")) + geom_ribbon(aes(ymin = IspredInf,ymax = IspredSup,fill = "a"),alpha = 0.25) +
         geom_line(aes(y = Dpred, color = "c")) + geom_ribbon(aes(ymin = DpredInf,ymax = DpredSup,fill = "c"),alpha = 0.25) + 
-        theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(min(c_pred$date)),ymd(end_validate)+simulate_length,length.out = 12),
+        theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(min(tmp$date)),ymd(end_validate)+simulate_length,length.out = 12),
                                                        labels = strftime(seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length,length.out = 12),
                                                                          format="%d/%m/%y")) + 
         scale_y_continuous(breaks = round(seq(min(c(tmp$DpredInf,tmp$IspredInf),na.rm = T),
@@ -280,7 +280,7 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
                                                                linetype = "dashed") +
       geom_line(aes(y = Ispred, color = "a")) + geom_ribbon(aes(ymin = IspredInf,ymax = IspredSup,fill = "a"),alpha = 0.25) +
       geom_line(aes(y = Dpred, color = "c")) + geom_ribbon(aes(ymin = DpredInf,ymax = DpredSup,fill = "c"),alpha = 0.25) + 
-      theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(min(c_pred$date)),ymd(end_validate)+simulate_length,length.out = 12),
+      theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(min(tmp$date)),ymd(end_validate)+simulate_length,length.out = 12),
                                                      labels = strftime(seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length,length.out = 12),
                                                                        format="%d/%m/%y")) + 
       scale_y_continuous(breaks = round(seq(min(tmp$Dpred,na.rm = T),max(tmp$IspredSup,na.rm = T),length.out = 10))) +
@@ -396,7 +396,7 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
                                                                 linetype = "dashed") +
     geom_line(aes(y = Ispred, color = "a")) + geom_ribbon(aes(ymin = IspredInf,ymax = IspredSup,fill = "a"),alpha = 0.25) +
     geom_line(aes(y = Dpred, color = "c")) + geom_ribbon(aes(ymin = DpredInf,ymax = DpredSup,fill = "c"),alpha = 0.25) + 
-    theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(min(c_pred$date)),ymd(end_validate)+simulate_length,length.out = 12),
+    theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(min(tmp$date)),ymd(end_validate)+simulate_length,length.out = 12),
                                                    labels = strftime(seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length,length.out = 12),
                                                                      format="%d/%m/%y")) + 
     scale_y_continuous(breaks = round(seq(min(c_pred$Dpred,na.rm = T),max(c_pred$IspredSup,na.rm = T),length.out = 10))) +
