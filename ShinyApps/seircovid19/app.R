@@ -28,6 +28,7 @@ deaths_DRS <- readRDS("./www/deaths_DRS.rds")
 peak_city <- readRDS("./www/peak_city.rds")
 peak_DRS <- readRDS("./www/peak_DRS.rds")
 Rt <- readRDS("./www/Rt.rds")
+Rt <- Rt %>% filter(Minimo > 0.1)
 Rt$Municipio <- factor(stri_trans_totitle(tolower(as.character(Rt$Municipio))))
 param <- readRDS("./www/param.rds")
 pos <- readRDS("./www/pos.rds")
@@ -98,7 +99,7 @@ server <- function(input, output) {
                fluidRow(column(6,rHandsontableOutput("mortes_city")),
                         column(6,rHandsontableOutput("casos_city")),
                         tags$style(type="text/css", "#tabela th {font-weight:bold;}")),
-               p("*Os valores nas tabelas dizem respeito à data escolhida. O modelo projeta casos e mortes apenas para os DRSs e Municípios com mais de 1,000 casos confirmados ou 100 mortes confirmadas quando o modelo foi ajustado. Municípios e DRSs que não satisfazem essa condição foram omitidos."),
+               p("*Os valores nas tabelas dizem respeito à data escolhida. O modelo projeta casos e mortes para todos os DRSs e apenas para Municípios com mais de 500 casos confirmados ou 100 mortes confirmadas quando o modelo foi ajustado. Municípios que não satisfazem essa condição foram omitidos.  Os valores do DRS Grande São Paulo não contemplam a Cidade de São Paulo."),
                              br(),
                fluidRow(column(3,myDownloadButton("videoMortesSP","Baixar animação com a previsão de mortes")),
                         column(3,myDownloadButton("videoCasosSP","Baixar animação com a previsão de casos"))),
@@ -143,7 +144,7 @@ server <- function(input, output) {
                  fluidRow(column(6,rHandsontableOutput("mortes_city_DRS")),
                           column(6,rHandsontableOutput("casos_city_DRS")),
                           tags$style(type="text/css", "#tabela th {font-weight:bold;}")),
-                 p("*Os valores nas tabelas dizem respeito à data escolhida. O modelo projeta casos e mortes apenas para os DRSs e Municípios com mais de 1,000 casos confirmados ou 100 mortes confirmadas quando o modelo foi ajustado. Municípios e DRSs que não satisfazem essa condição foram omitidos."),
+                 p("*Os valores nas tabelas dizem respeito à data escolhida. O modelo projeta casos e mortes para todos os DRSs e apenas para Municípios com mais de 500 casos confirmados ou 100 mortes confirmadas quando o modelo foi ajustado. Municípios que não satisfazem essa condição foram omitidos."),
                  br(),
                  fluidRow(column(3,myDownloadButton("videoMortesDRS","Baixar animação com a previsão de mortes")),
                           column(3,myDownloadButton("videoCasosDRS","Baixar animação com a previsão de casos"))),
@@ -176,7 +177,7 @@ server <- function(input, output) {
                                       tags$style(type='text/css', ".irs-grid-text { font-size: 10pt; }")))),
                  fluidRow(column(8,uiOutput("EPCity")),
                           column(4,uiOutput("resCity"),style = "background-color:#F5F5F5;")),
-                 p("*A linha e banda vermelha dizem respeito ao número de indivíduos que estão infectados simultâneamente na data. As linhas tracejadas são as estimativas (mediana, pior caso e melhor caso) para o pico de mortes pela doença (dia com mais mortes). O modelo projeta casos e mortes para todas os DRSs e apenas para Municípios com mais de 100 casos confirmados quando o modelo foi ajustado."),
+                 p("*A linha e banda vermelha dizem respeito ao número de indivíduos que estão infectados simultâneamente na data. As linhas tracejadas são as estimativas (mediana, pior caso e melhor caso) para o pico de mortes pela doença (dia com mais mortes). O modelo projeta casos e mortes para todos os DRSs e apenas para Municípios com mais de 500 casos confirmados ou 100 mortes confirmadas quando o modelo foi ajustado."),
                  br(),
                  tags$p("Aplicação desenvolvida por ", 
                         tags$a(href="https://www.linkedin.com/in/diego-marcondes-87a1218b/","Diego Marcondes ")," com ",
@@ -198,8 +199,8 @@ server <- function(input, output) {
                  fluidRow(column(6,img(src=paste('SP_Rt_',pos,'.png',sep = ""),height = 468,width = 702,align = "center")),
                           column(6,rHandsontableOutput("tableRt"))),
                  br(),
-                 p(paste("*O Número Reprodutivo Efetivo foi calculado apenas para os Municípios com mais de 1,000 casos ou 100 mortes na semana terminando em ",
-                         format(dmin,"%d/%m/%Y"))),
+                 p(paste("*O Número Reprodutivo Efetivo foi calculado apenas para certos Municípios com mais de 50 casos confirmados na semana terminando em ",
+                         format(dmin,"%d/%m/%Y"),".",sep = "")),
                  br(),
                  tags$p("Aplicação desenvolvida por ", 
                         tags$a(href="https://www.linkedin.com/in/diego-marcondes-87a1218b/","Diego Marcondes ")," com ",
@@ -220,7 +221,7 @@ server <- function(input, output) {
                              fluidRow(column(12,uiOutput("textGOF"),slign = "center")))),
                  fluidRow(column(6,uiOutput("aderiMortes")),column(6,uiOutput("aderiCasos"))),
                  br(),
-                 p(paste("*A aderência foi testada apenas para os DRSs e Municípios com mais de 1,000 casos ou 100 mortes na semana terminando em ",
+                 p(paste("*A aderência foi testada apenas para os DRSs e Municípios com mais de 500 casos ou 100 mortes na semana terminando em ",
                          format(dmin,"%d/%m/%Y"))),
                  br(),
                  tags$p("Aplicação desenvolvida por ", 
@@ -335,8 +336,8 @@ server <- function(input, output) {
                   format(dmin,"%d/%m/%Y"),
                   "</h4> </p> <p align = 'center'> <span style='color: red;'> <strong> DISCLAIMER: Apenas as previsões pontuais realizadas até o dia ",
                   format(dmax,"%d/%m/%Y"),
-                  " e a projeção do pico da doença devem ser considerados, e somente para os DRSs e Municípios com mais de 1,000 casos ou 100 mortes em ",
-                  format(dmin,"%d/%m/%Y")," (os demais DRSs e Municípios foram omitidos). Embora apresentadas nos gráficos, as previsões pontuais após ",
+                  " e a projeção do pico da doença devem ser considerados, para todos os DRSs e apenas para Municípios com mais de 500 casos ou 100 mortes em ",
+                  format(dmin,"%d/%m/%Y")," (os demais Municípios foram omitidos). Embora apresentadas nos gráficos, as previsões pontuais após ",
                   format(dmax,"%d/%m/%Y"),
                   " NÃO DEVEM SER CONSIDERADAS. </strong> </span> </p> <p align='center'> Desenvolvido por pesquisadores do <a href='https://www.ime.usp.br/'>IME-USP</a> </p> <p align='center'> Atualizado em ",format(dmin,"%d/%m/%Y"),"</p>",sep = "")
       HTML(t1)
@@ -361,8 +362,8 @@ server <- function(input, output) {
                   format(round(sum(tmpM$Sup)),decimal.mark = ",",big.mark = "."),
                   "</strong></span> </h2> <h4 align='center'> As previsões são realizadas através de Modelos SEIR Metapopulação com Mobilidade supondo que a evolução da doença se manterá da mesma forma que na semana terminando em ",
                   format(dmin,"%d/%m/%Y"),"</h4> </p> <p align = 'center'> <span style='color: red;'> <strong> DISCLAIMER: Apenas as previsões pontuais realizadas até o dia ",format(dmax,"%d/%m/%Y"),
-                  " e a projeção do pico da doença devem ser considerados, e somente para os DRSs e Municípios com mais de 1,000 casos ou 100 mortes em ",
-                  format(dmin,"%d/%m/%Y")," (os demais DRSs e Municípios foram omitidos). Embora apresentadas nos gráficos, as previsões pontuais após ",
+                  " e a projeção do pico da doença devem ser considerados, para todos os DRSs e apenas para Municípios com mais de 500 casos ou 100 mortes em ",
+                  format(dmin,"%d/%m/%Y")," (os demais Municípios foram omitidos). Embora apresentadas nos gráficos, as previsões pontuais após ",
                   format(dmax,"%d/%m/%Y"),
                   " NÃO DEVEM SER CONSIDERADAS. </strong> </span> </p> <p align='center'> Desenvolvido por pesquisadores do <a href='https://www.ime.usp.br/'>IME-USP</a> </p> <p align='center'> Atualizado em ",format(dmin,"%d/%m/%Y"),"</p>",sep = "")
     else
@@ -380,8 +381,8 @@ server <- function(input, output) {
                   format(round(sum(tmpM$Sup)),decimal.mark = ",",big.mark = "."),
                   "</strong></span> </h2> <h4 align='center'> As previsões são realizadas através de Modelos SEIR Metapopulação com Mobilidade supondo que a evolução da doença se manterá da mesma forma que na semana terminando em ",
                   format(dmin,"%d/%m/%Y"),"</h4> </p> <p align = 'center'> <span style='color: red;'> <strong> DISCLAIMER: Apenas as previsões pontuais realizadas até o dia ",format(dmax,"%d/%m/%Y"),
-                  " e a projeção do pico da doença devem ser considerados, e somente para os DRSs e Municípios com mais de 1,000 casos ou 100 mortes em ",
-                  format(dmin,"%d/%m/%Y")," (os demais DRSs e Municípios foram omitidos). Embora apresentadas nos gráficos, as previsões pontuais após ",
+                  " e a projeção do pico da doença devem ser considerados, para todos os DRSs e apenas para Municípios com mais de 500 casos ou 100 mortes em ",
+                  format(dmin,"%d/%m/%Y")," (os demais Municípios foram omitidos). Embora apresentadas nos gráficos, as previsões pontuais após ",
                   format(dmax,"%d/%m/%Y"),
                   " NÃO DEVEM SER CONSIDERADAS. </strong> </span> </p> <p align='center'> Desenvolvido por pesquisadores do <a href='https://www.ime.usp.br/'>IME-USP</a> </p> <p align='center'> Atualizado em ",format(dmin,"%d/%m/%Y"),"</p>",sep = "")
     HTML(t1)
@@ -404,8 +405,8 @@ server <- function(input, output) {
                 format(round(tmpM$Sup),decimal.mark = ",",big.mark = "."),
                 "</strong></span> </h2> <br> <h4 align='center'> As previsões são realizadas através de Modelos SEIR Metapopulação com Mobilidade supondo que a evolução da doença se manterá da mesma forma que na semana terminando em ",
                 format(dmin,"%d/%m/%Y"),"</h4> </p> <p align = 'center'> <span style='color: red;'> <strong> DISCLAIMER: Apenas as previsões pontuais realizadas até o dia ",format(dmax,"%d/%m/%Y"),
-                " e a projeção do pico da doença devem ser considerados, e somente para os DRSs e Municípios com mais de 1,000 casos ou 100 mortes em ",
-                format(dmin,"%d/%m/%Y")," (os demais DRSs e Municípios foram omitidos). Embora apresentadas nos gráficos, as previsões pontuais após ",
+                " e a projeção do pico da doença devem ser considerados, para todos os DRSs e apenas para Municípios com mais de 500 casos ou 100 mortes em ",
+                format(dmin,"%d/%m/%Y")," (os demais Municípios foram omitidos). Embora apresentadas nos gráficos, as previsões pontuais após ",
                 format(dmax,"%d/%m/%Y"),
                 " NÃO DEVEM SER CONSIDERADAS. </strong> </span> </p> <p align='center'> Desenvolvido por pesquisadores do <a href='https://www.ime.usp.br/'>IME-USP</a> </p> <p align='center'> Atualizado em ",format(dmin,"%d/%m/%Y"),"</p>",sep = "")
     HTML(t1)
@@ -421,10 +422,16 @@ server <- function(input, output) {
       tmpM_DRS <- tmpM_DRS[order(tmpM_DRS$Mediana,decreasing = T),c(2:5)]
       names(tmpM_DRS) <- c("DRS","Mínimo","Mediana","Máximo")
       tmpM_DRS[,2:4] <- sapply(tmpM_DRS[,2:4], FUN=function(x) prettyNum(round(x),decimal.mark = ",",big.mark="."))
+      tmpM_DRS$DRS <- as.character(tmpM_DRS$DRS)
+      tmpM_DRS$DRS[tmpM_DRS$DRS == "Grande São Paulo"] <- "Grande São Paulo (sem Cidade de SP)"
+      tmpM_DRS$DRS <- as.factor(tmpM_DRS$DRS)
       
       tmpC_DRS <- tmpC_DRS[order(tmpC_DRS$Mediana,decreasing = T),c(2:5)]
       names(tmpC_DRS) <- c("DRS","Mínimo","Mediana","Máximo")
       tmpC_DRS[,2:4] <- sapply(tmpC_DRS[,2:4], FUN=function(x) prettyNum(round(x),decimal.mark = ",",big.mark="."))
+      tmpC_DRS$DRS <- as.character(tmpC_DRS$DRS)
+      tmpC_DRS$DRS[tmpC_DRS$DRS == "Grande São Paulo"] <- "Grande São Paulo (sem Cidade de SP)"
+      tmpC_DRS$DRS <- as.factor(tmpC_DRS$DRS)
       
       tmpM_city <- tmpM_city[order(tmpM_city$Mediana,decreasing = T),-c(1,6)]
       names(tmpM_city) <- c("Município","Mínimo","Mediana","Máximo")
