@@ -8,6 +8,8 @@ cd /storage/SEIR/$1
 cp *csv /home/diego/mdyn/output_seir/;
 cd;
 cd mdyn;
+rm cases_all_$1.csv;
+rm deaths_all_$1.csv;
 git pull;
 git add output_seir/;
 git commit -m "output seir";
