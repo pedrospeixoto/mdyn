@@ -70,7 +70,7 @@ plot_validate <- function(drs,obs,obs_drs,par,pred,init_validate,end_validate,po
     I[[d]] <- merge(I[[d]],tmp,all = T)
     
     #Plot
-    if(max(I[[d]]$I) > 250 | max(D[[d]]$D) > 100){
+    if(max(I[[d]]$I) > 500 | max(D[[d]]$D) > 100){
       tmp <- D[[d]]
       pD <- ggplot(tmp,aes(x = date)) + theme_solarized(light = FALSE) + geom_line(aes(y = D),color = "red") + 
         geom_line(aes(y = Dpred),linetype = "dashed",color = "red") +
@@ -126,7 +126,7 @@ plot_validate <- function(drs,obs,obs_drs,par,pred,init_validate,end_validate,po
   #Plot city
   for(c in par$names){
     tmp <- obs %>% filter(date == ymd(end_validate) & city == c)
-    if(tmp$confirmed_corrected > 250 | tmp$deaths_corrected > 100){
+    if(tmp$confirmed_corrected > 500 | tmp$deaths_corrected > 100){
       position <- match(c,par$names)
       D <- data.frame()
       I <- data.frame()

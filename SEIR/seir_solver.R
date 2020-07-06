@@ -9,3 +9,4 @@ solve_seir <- function(y,times,derivatives,parms){
   }
   return(mod)
 }
+
