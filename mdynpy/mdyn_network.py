@@ -266,7 +266,11 @@ class Network:
             df_domain_local = self.df_domain[self.df_domain[self.domain_gran] == self.domain]
         self.domain_geometry=df_domain_local.geometry.values[0]
         
-        self.domain_neib = df_domain_local.NEIGHBORS.values[0]
+        if True: #ignore domain neigbours
+            self.domain_neib = None
+        else:
+            self.domain_neib = df_domain_local.NEIGHBORS.values[0]
+        
         if self.domain_neib is not None:
             self.domain_neib = self.domain_neib.split(',')
             self.df_domain_nb=self.df_domain[self.df_domain[self.domain_gran].isin(self.domain_neib)]
@@ -274,9 +278,8 @@ class Network:
             self.df_domain_nb["idx"] = range(self.nreg_in, self.nreg_in+len(self.df_domain_nb), 1)
             self.df_domain_nb=self.df_domain_nb.set_index("idx")
             #print(self.df_domain_nb)
+
         domain_limit_coords=list(self.domain_geometry.envelope.exterior.coords)
-
-
         # Regular grid structure
         x = []
         y = []
@@ -342,7 +345,7 @@ class Network:
         #Region grid is composed of data points, cell centres
         self.region_grid = np.zeros((self.nlat+1, self.nlon+1), dtype=int)
 
-        #Regions out are out of main domain
+        #Regions out are out of main domain ---ignoring outdomains (uncoment if regquired)
         if self.domain_neib is not None:
             regions_out = self.df_domain_nb[self.domain_gran].to_dict()
             reg_out = list(regions_out.values())
