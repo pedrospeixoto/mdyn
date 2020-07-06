@@ -18,9 +18,11 @@ dmax <- dmin+30
 
 <br>
 
-<h3 align='justify'> As projeções foram realizadas através da simulação de `r nmodels` Modelos SEIR Metapopulacionais, em que a mobilidade entre as cidades do Estado, mensurada por dados anônimos de geolocalização de celulares, é acoplada à um modelo epidemiológico de compartimentos. Os modelos foram escolhidos dentre dezenas de milhares de modelos candidatos, pois se aderiram bem aos dados observados. A aderência foi mensurada pela diferença entre o número de mortes e o número de casos confirmados nos Departamentos Regionais de Saúde (DRS) e Municípios com mais de $100$ mortes e $250$ casos confirmados ao final do período de uma semana terminando em `r format(dmin,"%d/%m/%Y")`.
+<h3 align='justify'> As projeções foram realizadas através da simulação de `r nmodels` Modelos SEIR Metapopulacionais, em que a mobilidade entre as cidades do Estado, mensurada por dados anônimos de geolocalização de celulares, é acoplada à um modelo epidemiológico de compartimentos. Os modelos foram escolhidos dentre dezenas de milhares de modelos candidatos, pois se aderiram bem aos dados observados. A aderência foi mensurada pela diferença entre o número de mortes e o número de casos confirmados nos Departamentos Regionais de Saúde (DRS) e Municípios com mais de $100$ mortes e $500$ casos confirmados ao final do período de uma semana terminando em `r format(dmin,"%d/%m/%Y")`.
 
-As projeções desses modelos, que leva em consideração a transmissão do vírus entre as cidades, só pode ser realizada com maior confiança pelo período de um mês e supõe que a evolução da doença se manterá da mesma forma que na semana terminando em `r format(dmin,"%d/%m/%Y")`. Além disso, também podemos estimar através deles quando será o pico de mortes pela doença (dia com mais mortes). </h3>
+As projeções desses modelos, que leva em consideração a transmissão do vírus entre as cidades, só pode ser realizada com maior confiança pelo período de um mês e supõe que a evolução da doença se manterá da mesma forma que na semana terminando em `r format(dmin,"%d/%m/%Y")`. Além disso, também podemos estimar através deles quando será o pico de mortes pela doença (dia com mais mortes). 
+
+Os dados utilizados aqui foram obtidos do site da <a href='https://www.seade.gov.br/coronavirus/'>Fundação SEADE</a></h3>
 
 <h2> <span style='color: #1E90FF'> <strong> Diferenciais </span> </strong></h2>
 
@@ -87,9 +89,9 @@ O primeiro termo da multiplicação representa o tempo médio que um indivíduo 
 <br>
 
 * acertam o número de mortes com um erro máximo de 6\% em pelo menos 90\% das comparações da semana terminando em `r format(dmin,"%d/%m/%Y")`, sendo que uma comparação é formada pela combinação de um DRS com mais de $100$ mortes confirmadas e um dia.
-* acertam o número de casos confirmados com um erro máximo de 7\% em pelo menos 90\% das comparações da semana terminando em `r format(dmin,"%d/%m/%Y")`, sendo que uma comparação é formada pela combinação de um DRS com mais de $250$ casos confirmados e um dia.
+* acertam o número de casos confirmados com um erro máximo de 7\% em pelo menos 90\% das comparações da semana terminando em `r format(dmin,"%d/%m/%Y")`, sendo que uma comparação é formada pela combinação de um DRS com mais de $500$ casos confirmados e um dia.
 * acertam o número de mortes com um erro máximo de 6\% em pelo menos 90\% das comparações da semana terminando em `r format(dmin,"%d/%m/%Y")`, sendo que uma comparação é formada pela combinação de um Município com mais de $100$ mortes confirmadas e um dia.
-* acertam o número de casos confirmados com um erro máximo de 7\% em pelo menos 90\% das comparações da semana terminando em `r format(dmin,"%d/%m/%Y")`, sendo que uma comparação é formada pela combinação de um Município com mais de $250$ casos confirmados e um dia.
+* acertam o número de casos confirmados com um erro máximo de 7\% em pelo menos 90\% das comparações da semana terminando em `r format(dmin,"%d/%m/%Y")`, sendo que uma comparação é formada pela combinação de um Município com mais de $500$ casos confirmados e um dia.
 
 A aderência é testada contra uma suavização da incidência de casos e mortes confirmadas em cada Município a fim de corrigir possíveis efeitos sazonais devido à heterogeneidade da realização de testes entre os dias da semana. As condições iniciais do modelo também são baseadas nessa suavização.
 
@@ -102,7 +104,7 @@ As estatísticas descritivas dos parâmetros dos `r nmodels` modelos considerado
 * $\tau_{S}$: `r round(median(param$Ts),1)` [`r round(min(param$Ts),1)`;`r round(max(param$Ts),1)`] dias Infectados antes de entrar para as estatísticas
 * $\tau_{SR}$: `r round(median(param$Tsr),1)` [`r round(min(param$Tsr),1)`;`r round(max(param$Tsr),1)`] dias até Recuperação após entrar para as estatísticas
 * $\tau_{D}$: `r round(median(param$Td),1)` [`r round(min(param$Td),1)`;`r round(max(param$Td),1)`] dias até Óbito após entrar para as estatísticas 
-* $p_{S}$: `r round(median(param$MedianAssymptomatic),4)` [`r round(min(param$MedianAssymptomatic),4)`;`r round(max(param$MedianAssymptomatic),4)`] proporção de infectados que não são contabilizados nas estatísticas no Estado como um todo
+* $p_{S}$: `r 1-round(median(param$MedianAssymptomatic),4)` [`r 1-round(max(param$MedianAssymptomatic),4)`;`r 1-round(min(param$MedianAssymptomatic),4)`] proporção de infectados que são contabilizados nas estatísticas no Estado como um todo
 <br>
 
 <strong> Os valores estimados de casos confirmados, óbitos e pico da doença, se referem à mediana das previsões dos modelos considerados, enquanto as bandas superiores e inferiores se referem ao Mínimo e Máximo, respectivamente, das previsões dos modelos considerados. Como cada modelo representa um cenário para o futuro que se encaixa bem aos dados da semana terminando em `r format(dmin,"%d/%m/%Y")`, temos o melhor e pior cenário, além de um cenário médio. </strong>
@@ -111,7 +113,7 @@ As estatísticas descritivas dos parâmetros dos `r nmodels` modelos considerado
 
 <h2> <span style='color: red'> <strong> DISCLAIMER </span> </strong></h2>
 
-<h3 align='justify'> <span style='color: red'> <strong> APENAS PROJEÇÕES PARA MUNICÍPIOS EM QUE FOI TESTADA A ADERÊNCIA DOS MODELOS AOS DADOS (AQUELES COM MAIS DE 250 CASOS E 100 MORTES CONFIRMADAS EM `r format(dmin,"%d/%m/%Y")`) SÃO APRESENTADAS NESSE DASHBOARD, EMBORA O MODELO FORNEÇA PREDIÇÕES PARA TODOS OS MUNICÍPIOS DO ESTADO. AS ÚNICAS QUANTIDADES QUE DEVEM SER CONDIERADAS NESSE DASHBOARD SÃO AS PREVISÕES DE CASOS E MORTES APRESENTADAS EM LOCAL OPORTUNO ATÉ O DIA `r format(dmax,"%d/%m/%Y")` E A PREVISÃO PARA O PICO DA DOENÇA NAS LOCALIDADES APRESENTADAS. NADA ALÉM DO PICO DA DOENÇA DEVEM SER CONSIDERADO NAS FIGURAS E IMAGENS.
+<h3 align='justify'> <span style='color: red'> <strong> APENAS PROJEÇÕES PARA MUNICÍPIOS EM QUE FOI TESTADA A ADERÊNCIA DOS MODELOS AOS DADOS (AQUELES COM MAIS DE 500 CASOS E 100 MORTES CONFIRMADAS EM `r format(dmin,"%d/%m/%Y")`) SÃO APRESENTADAS NESSE DASHBOARD, EMBORA O MODELO FORNEÇA PREDIÇÕES PARA TODOS OS MUNICÍPIOS DO ESTADO. AS ÚNICAS QUANTIDADES QUE DEVEM SER CONDIERADAS NESSE DASHBOARD SÃO AS PREVISÕES DE CASOS E MORTES APRESENTADAS EM LOCAL OPORTUNO ATÉ O DIA `r format(dmax,"%d/%m/%Y")` E A PREVISÃO PARA O PICO DA DOENÇA NAS LOCALIDADES APRESENTADAS. NADA ALÉM DO PICO DA DOENÇA DEVEM SER CONSIDERADO NAS FIGURAS E IMAGENS.
 </h3>
 
 <h2> <span style='color: #1E90FF'> <strong> Quem somos </span> </strong></h2>
