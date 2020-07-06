@@ -4,6 +4,17 @@ echo "Converting pdf to png..."
 
 cd /storage/SEIR/$1
 
+#Copy to mdyn
+cp *csv /home/diego/mdyn/output_seir/;
+cd;
+cd mdyn;
+git pull;
+git add output_seir/;
+git commit -m "output seir";
+git push;
+cd;
+cd /storage/SEIR/$1;
+
 #Clear ShinyApps
 find /storage/ShinyApps/seircovid19 -type f -iname '*.png' -delete;
 find /storage/ShinyApps/seircovid19 -type f -iname '*.csv' -delete;
