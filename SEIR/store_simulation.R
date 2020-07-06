@@ -1,5 +1,5 @@
 #Store the results of the simulation
-store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,maxD,end_validate){
+store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,maxD,end_validate,obs,obs_drs){
   
   #Create objects
   peak <- data.frame("Municipio" = NA,"TMinimo" = NA,"TMediana" = NA,"TMaximo" = NA,"MMinimo" = NA,"MMediana" = NA,"MMaximo" = NA)
@@ -91,16 +91,22 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
     cases_all <- rbind.data.frame(cases_all,tmp)
     
     #Epidemiological curve
-    if(c_pred$Ipred[1] > 250 | c_pred$Dpred[1] > 100){
-      tmp <- c_pred
+    if(c_pred$Itpred[1] > 500 | c_pred$Dpred[1] > 100){
+      tmp2 <- obs %>% filter(city == c & confirmed_corrected >= 100 & date <= min(c_pred$date))
+      tmp <- rbind.data.frame(data.frame("date" = tmp2$date,"Epred" = NA,"EpredInf" = NA,"EpredSup" = NA,"Ispred" = tmp2$infected,"IspredInf" = NA,
+                                         "IspredSup" = NA,"Ipred" = NA,"IpredInf" = NA,"IpredSup" = NA,"Itpred" = tmp2$confirmed_corrected,
+                                         "ItpredInf" = NA,"ItpredSup" = NA,"Rpred" = NA,"RpredInf" = NA,"RpredSup" = NA,"Dpred" = tmp2$deaths_corrected,
+                                         "DpredInf" = NA,"DpredSup" = NA),c_pred)
+      
       p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                                                                  linetype = "dashed") + 
         geom_line(aes(y = Ispred, color = "a")) + geom_ribbon(aes(ymin = IspredInf,ymax = IspredSup,fill = "a"),alpha = 0.25) +
         geom_line(aes(y = Dpred, color = "c")) + geom_ribbon(aes(ymin = DpredInf,ymax = DpredSup,fill = "c"),alpha = 0.25) + 
-        theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length,length.out = 12),
-                                                       labels = strftime(seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length,length.out = 12),
+        theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(min(ymd(tmp$date),na.rm = T)),ymd(end_validate)+simulate_length,length.out = 12),
+                                                       labels = strftime(seq.Date(ymd(min(ymd(tmp$date))),ymd(end_validate)+simulate_length,length.out = 12),
                                                                          format="%d/%m/%y")) + 
-        scale_y_continuous(breaks = round(seq(min(c(tmp$DpredInf,tmp$IspredInf)),max(c(tmp$DpredSup,tmp$IspredSup)),length.out = 10))) +
+        scale_y_continuous(breaks = round(seq(min(c(tmp$DpredInf,tmp$IspredInf),na.rm = T),
+                                              max(c(tmp$DpredSup,tmp$IspredSup),na.rm = T),length.out = 10))) +
         theme(legend.title = element_text(face = "bold"),legend.position = "bottom") + ylab("Indivíduos") +
         xlab("Data") + scale_colour_discrete("",labels = c("Infectados","Total de Óbitos")) +
         theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
@@ -265,15 +271,20 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
                                              "TMaximo" = as.character(ymd(end_validate)+max(pd)),
                                              "MMinimo" = min(mpd),"MMediana" = median(mpd),"MMaximo" = max(mpd))) #Peak
     #Epidemiological curve
-    tmp <- c_pred
+    tmp2 <- obs_drs %>% select(-city) %>% filter(DRS == d & confirmed_corrected >= 100 & date <= min(c_pred$date)) %>% unique() %>% data.frame()
+    tmp <- rbind.data.frame(data.frame("date" = tmp2$date,"Epred" = NA,"EpredInf" = NA,"EpredSup" = NA,"Ispred" = tmp2$infected,"IspredInf" = NA,
+                                       "IspredSup" = NA,"Ipred" = NA,"IpredInf" = NA,"IpredSup" = NA,"Itpred" = tmp2$confirmed_corrected,
+                                       "ItpredInf" = NA,"ItpredSup" = NA,"Rpred" = NA,"RpredInf" = NA,"RpredSup" = NA,"Dpred" = tmp2$deaths_corrected,
+                                       "DpredInf" = NA,"DpredSup" = NA),c_pred)
     p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                                                                linetype = "dashed") +
       geom_line(aes(y = Ispred, color = "a")) + geom_ribbon(aes(ymin = IspredInf,ymax = IspredSup,fill = "a"),alpha = 0.25) +
       geom_line(aes(y = Dpred, color = "c")) + geom_ribbon(aes(ymin = DpredInf,ymax = DpredSup,fill = "c"),alpha = 0.25) + 
-      theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length,length.out = 12),
-                                                     labels = strftime(seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length,length.out = 12),
+      theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(min(ymd(tmp$date),na.rm = T)),ymd(end_validate)+simulate_length,length.out = 12),
+                                                     labels = strftime(seq.Date(ymd(min(ymd(tmp$date),na.rm = T)),
+                                                                                ymd(end_validate)+simulate_length,length.out = 12),
                                                                        format="%d/%m/%y")) + 
-      scale_y_continuous(breaks = round(seq(min(tmp$Dpred),max(tmp$IspredSup),length.out = 10))) +
+      scale_y_continuous(breaks = round(seq(min(tmp$Dpred,na.rm = T),max(tmp$IspredSup,na.rm = T),length.out = 10))) +
       theme(legend.title = element_text(face = "bold"),legend.position = "bottom") + ylab("Indivíduos") +
       xlab("Data") + scale_colour_discrete("",labels = c("Infectados","Total de Óbitos")) +
       theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
@@ -382,14 +393,25 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
                        "Dpred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$D))))),2,median),
                        "DpredInf" = minD*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$D))))),2,min),
                        "DpredSup" = maxD*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$D))))),2,max))
-  p <- ggplot(c_pred,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
+  tmp2 <- obs %>% filter(date <= min(c_pred$date)) %>% select(date,infected,confirmed_corrected,deaths_corrected) %>% data.table()
+  tmp2 <- tmp2[,infected := sum(infected),by = date]
+  tmp2 <- tmp2[,confirmed_corrected := sum(confirmed_corrected),by = date]
+  tmp2 <- tmp2[,deaths_corrected := sum(deaths_corrected),by = date]
+  tmp2 <- unique(data.frame(tmp2))
+  tmp2 <- tmp2 %>% filter(confirmed_corrected > 100)
+  tmp <- rbind.data.frame(data.frame("date" = tmp2$date,"Epred" = NA,"EpredInf" = NA,"EpredSup" = NA,"Ispred" = tmp2$infected,"IspredInf" = NA,
+                                     "IspredSup" = NA,"Ipred" = NA,"IpredInf" = NA,"IpredSup" = NA,"Itpred" = tmp2$confirmed_corrected,
+                                     "ItpredInf" = NA,"ItpredSup" = NA,"Rpred" = NA,"RpredInf" = NA,"RpredSup" = NA,"Dpred" = tmp2$deaths_corrected,
+                                     "DpredInf" = NA,"DpredSup" = NA),c_pred)
+  p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                                                                 linetype = "dashed") +
     geom_line(aes(y = Ispred, color = "a")) + geom_ribbon(aes(ymin = IspredInf,ymax = IspredSup,fill = "a"),alpha = 0.25) +
     geom_line(aes(y = Dpred, color = "c")) + geom_ribbon(aes(ymin = DpredInf,ymax = DpredSup,fill = "c"),alpha = 0.25) + 
-    theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length,length.out = 12),
-                                                   labels = strftime(seq.Date(ymd(end_validate),ymd(end_validate)+simulate_length,length.out = 12),
+    theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(min(ymd(tmp$date),na.rm = T)),ymd(end_validate)+simulate_length,length.out = 12),
+                                                   labels = strftime(seq.Date(ymd(min(ymd(tmp$date),na.rm = T)),
+                                                                              ymd(end_validate)+simulate_length,length.out = 12),
                                                                      format="%d/%m/%y")) + 
-    scale_y_continuous(breaks = round(seq(min(c_pred$Dpred),max(c_pred$IspredSup),length.out = 10))) +
+    scale_y_continuous(breaks = round(seq(min(c_pred$Dpred,na.rm = T),max(c_pred$IspredSup,na.rm = T),length.out = 10))) +
     theme(legend.title = element_text(face = "bold"),legend.position = "bottom") + ylab("Indivíduos") +
     xlab("Data") + scale_colour_discrete("",labels = c("Infectados","Total de Óbitos")) +
     theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
