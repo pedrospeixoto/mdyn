@@ -8,17 +8,17 @@ library(lubridate)
 
 #Parameters
 cores <- 24 #Number   of cores to use in parallel computation
-pos <- Sys.Date() #"teste" #What to add at the end of all output files
+pos <- "teste" #Sys.Date() #"teste" #What to add at the end of all output files
 seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
 d_max <- Sys.Date() #"2020-06-14"
 simulate_length <- as.numeric(ymd("2020-12-31") - ymd(d_max)) #Number of days to simulate
-error_I <- 0.0625
-error_D <- 0.0475
+error_I <- 0.1#0.0625
+error_D <- 0.1#0.0475
 
 #Set mobility matrix
 par$mob <- list()
-day <- seq.Date(from = ymd("2020-05-27"),to = ymd("2020-06-23"),1)
+day <- seq.Date(from = ymd("2020-06-09"),to = ymd("2020-07-06"),1)
 for(d in as.character(day)){
   cat(d)
   cat("\n")
@@ -59,8 +59,8 @@ for(d in as.character(seq.Date(from = ymd("2020-05-27"),to = d_max,1)))
 #Cadidate parameters  
 par$pS <- 1/c(5:10,15,20,30,40,50)
 par$Te <- c(4:6)
-par$Ti <- c(5:28)
-par$Ts <- 5:28
+par$Ti <- c(5:10)
+par$Ts <- 5:15
 par$Tsr <- 5:28
 par$Td <- c(7:28)
 par$s <- c(0.25,0.5,1,1.5,2,2.5,3)
