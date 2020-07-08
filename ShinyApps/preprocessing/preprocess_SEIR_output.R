@@ -44,7 +44,7 @@ preprocess_SEIR_output <- function(param,drs,pos,obs,end_validate){
   cases_DRS$Date <- ymd(cases_DRS$Date)
   saveRDS(cases_DRS,"/storage/ShinyApps/seircovid19/www/cases_DRS.rds")
   
-  #Deaths cities
+  #Deaths DRS
   deaths_DRS$DRS <- NULL
   deaths_DRS <- deaths_DRS[,c(1,5,2,3,4)]
   names(deaths_DRS)[2] <- "DRS"
@@ -95,7 +95,10 @@ preprocess_SEIR_output <- function(param,drs,pos,obs,end_validate){
   #drs
   saveRDS(drs,"/storage/ShinyApps/seircovid19/www/drs.rds")
   
+  #Data state
+  state <- data.frame(fread(paste("/storage/SEIR/",pos,"/simulation_state_",pos,".csv",sep = "")))
+  saveRDS(state,"/storage/ShinyApps/seircovid19/www/state.rds")
+  
   ######Convert to png and create video######
   system(paste("./mdyn/sh/preprocess_SEIR_convert.sh",pos))
-  
 }
