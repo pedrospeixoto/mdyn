@@ -55,14 +55,14 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
                          "Dpred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$D[,position])))),2,median),
                          "DpredInf" = minD*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$D[,position])))),2,min),
                          "DpredSup" = maxD*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$D[,position])))),2,max))
-    c_pred$DpredInf[1] <- c_pred$DpredInf[1]/minD
-    c_pred$DpredSup[1] <- c_pred$DpredSup[1]/maxD
-    c_pred$IpredInf[1] <- c_pred$IpredInf[1]/minI
-    c_pred$IpredSup[1] <- c_pred$IpredSup[1]/maxI
-    c_pred$IspredInf[1] <- c_pred$IspredInf[1]/minI
-    c_pred$IspredSup[1] <- c_pred$IspredSup[1]/maxI
-    c_pred$ItpredInf[1] <- c_pred$ItpredInf[1]/minI
-    c_pred$ItpredSup[1] <- c_pred$ItpredSup[1]/maxI
+    c_pred$DpredInf[1:6] <- c_pred$DpredInf[1:6]/minD
+    c_pred$DpredSup[1:6] <- c_pred$DpredSup[1:6]/maxD
+    c_pred$IpredInf[1:6] <- c_pred$IpredInf[1:6]/minI
+    c_pred$IpredSup[1:6] <- c_pred$IpredSup[1:6]/maxI
+    c_pred$IspredInf[1:6] <- c_pred$IspredInf[1:6]/minI
+    c_pred$IspredSup[1:6] <- c_pred$IspredSup[1:6]/maxI
+    c_pred$ItpredInf[1:6] <- c_pred$ItpredInf[1:6]/minI
+    c_pred$ItpredSup[1:6] <- c_pred$ItpredSup[1:6]/maxI
     deaths$inf[,position] <- c_pred$DpredInf #Dinf
     deaths$sup[,position] <- c_pred$DpredSup #Dsup
     deaths$median[,position] <- c_pred$Dpred #Dpred
@@ -299,14 +299,14 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
                           "Dpred" = apply(c_pred$D,2,median),
                           "DpredInf" = minD*apply(c_pred$D,2,min),
                           "DpredSup" = maxD*apply(c_pred$D,2,max))
-    c_pred$DpredInf[1] <- c_pred$DpredInf[1]/minD
-    c_pred$DpredSup[1] <- c_pred$DpredSup[1]/maxD
-    c_pred$IpredInf[1] <- c_pred$IpredInf[1]/minI
-    c_pred$IpredSup[1] <- c_pred$IpredSup[1]/maxI
-    c_pred$IspredInf[1] <- c_pred$IspredInf[1]/minI
-    c_pred$IspredSup[1] <- c_pred$IspredSup[1]/maxI
-    c_pred$ItpredInf[1] <- c_pred$ItpredInf[1]/minI
-    c_pred$ItpredSup[1] <- c_pred$ItpredSup[1]/maxI
+    c_pred$DpredInf[1:6] <- c_pred$DpredInf[1:6]/minD
+    c_pred$DpredSup[1:6] <- c_pred$DpredSup[1:6]/maxD
+    c_pred$IpredInf[1:6] <- c_pred$IpredInf[1:6]/minI
+    c_pred$IpredSup[1:6] <- c_pred$IpredSup[1:6]/maxI
+    c_pred$IspredInf[1:6] <- c_pred$IspredInf[1:6]/minI
+    c_pred$IspredSup[1:6] <- c_pred$IspredSup[1:6]/maxI
+    c_pred$ItpredInf[1:6] <- c_pred$ItpredInf[1:6]/minI
+    c_pred$ItpredSup[1:6] <- c_pred$ItpredSup[1:6]/maxI
     
     #All deaths
     dados_DRS$D <- data.frame(t(dados_DRS$D))
@@ -498,14 +498,14 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
                        "DpredInf" = minD*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$D))))),2,min),
                        "DpredSup" = maxD*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$D))))),2,max))
   tmp2 <- obs %>% filter(date <= min(c_pred$date)) %>% select(date,infected,confirmed_corrected,deaths_corrected) %>% data.table()
-  c_pred$DpredInf[1] <- c_pred$DpredInf[1]/minD
-  c_pred$DpredSup[1] <- c_pred$DpredSup[1]/maxD
-  c_pred$IpredInf[1] <- c_pred$IpredInf[1]/minI
-  c_pred$IpredSup[1] <- c_pred$IpredSup[1]/maxI
-  c_pred$IspredInf[1] <- c_pred$IspredInf[1]/minI
-  c_pred$IspredSup[1] <- c_pred$IspredSup[1]/maxI
-  c_pred$ItpredInf[1] <- c_pred$ItpredInf[1]/minI
-  c_pred$ItpredSup[1] <- c_pred$ItpredSup[1]/maxI
+  c_pred$DpredInf[1:6] <- c_pred$DpredInf[1:6]/minD
+  c_pred$DpredSup[1:6] <- c_pred$DpredSup[1:6]/maxD
+  c_pred$IpredInf[1:6] <- c_pred$IpredInf[1:6]/minI
+  c_pred$IpredSup[1:6] <- c_pred$IpredSup[1:6]/maxI
+  c_pred$IspredInf[1:6] <- c_pred$IspredInf[1:6]/minI
+  c_pred$IspredSup[1:6] <- c_pred$IspredSup[1:6]/maxI
+  c_pred$ItpredInf[1:6] <- c_pred$ItpredInf[1:6]/minI
+  c_pred$ItpredSup[1:6] <- c_pred$ItpredSup[1:6]/maxI
   tmp2 <- tmp2[,infected := sum(infected),by = date]
   tmp2 <- tmp2[,confirmed_corrected := sum(confirmed_corrected),by = date]
   tmp2 <- tmp2[,deaths_corrected := sum(deaths_corrected),by = date]
