@@ -54,6 +54,7 @@ header-includes:
 ---
 
 ```{r,echo=FALSE}
+state <- params$state %>% filter(date == data_rel)
 deaths_city <- params$deaths_city
 deaths_city$c_1000 <- NULL
 cases_city <- params$cases_city
@@ -69,7 +70,7 @@ tmpM_DRS <- deaths_DRS %>% filter(Date == data_rel)
 
 # Previsão para dia `r format(params$input$date,"%d/%m/%Y")`
 
-\noindent Projetamos \textcolor{yellow}{`r format(round(sum(tmpC$Mediana)),decimal.mark = ",",big.mark = ".")` [`r format(round(sum(tmpC$Infimo)),decimal.mark = ",",big.mark = ".")`,`r format(round(sum(tmpC$Sup)),decimal.mark = ",",big.mark = ".")`] Casos Confirmados} e \textcolor{red}{`r format(round(sum(tmpM$Mediana)),decimal.mark = ",",big.mark = ".")` [`r format(round(sum(tmpM$Infimo)),decimal.mark = ",",big.mark = ".")`,`r format(round(sum(tmpM$Sup)),decimal.mark = ",",big.mark = ".")`] Mortes} no Estado de São Paulo em `r format(params$input$date,"%d/%m/%Y")`
+\noindent Projetamos \textcolor{yellow}{`r format(round(state$median_cases),decimal.mark = ",",big.mark = ".")` [`r format(round(state$min_cases),decimal.mark = ",",big.mark = ".")`,`r format(round(state$max_cases),decimal.mark = ",",big.mark = ".")`] Casos Confirmados} e \textcolor{red}{`r format(round(state$median_deaths),decimal.mark = ",",big.mark = ".")` [`r format(round(state$min_deaths),decimal.mark = ",",big.mark = ".")`,`r format(round(state$max_deaths),decimal.mark = ",",big.mark = ".")`] Mortes} no Estado de São Paulo em `r format(params$input$date,"%d/%m/%Y")`
 
 \begin{figure}
 \centering
