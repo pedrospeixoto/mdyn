@@ -30,8 +30,8 @@ data_format = "Parquet" #"ORC"
 data_dir = "data/mobility_br_2020/"
 #data_dir = "data/triples_br_2020_04_17_date/all/"
 #data_dir = "data/triples_br_2020_04_17_date/"
-date_ini = "2020-06-06"
-date_end = "2020-06-06"
+date_ini = "2020-02-16"
+date_end = "2020-03-06"
 #date_end = "2020-03-01"
 load_data = True
 
@@ -39,7 +39,7 @@ load_data = True
 num_source = 2
 
 #Isolation index
-isoind_file = "data/isol_br/Social Distancing Index by Cities2020-06-20.csv"
+isoind_file = "data/isol_br/Social Distancing Index by Cities2020-07-06.csv"
 #isoind_file = "inloco/Social Distancing Index by Cities2020-05-23.csv"
 
 #-----------------------------

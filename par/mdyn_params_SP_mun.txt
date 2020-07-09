@@ -30,12 +30,12 @@ data_format = "Parquet" #"ORC"
 data_dir = "data/mobility_br_2020/"
 #data_dir = "data/triples_br_2020_04_17_proc/all/state0=São Paulo/"
 #data_dir = "data/triples_br_2020_04_17_proc/SP"
-date_ini = "2020-03-01"
-date_end = "2020-06-03"
+date_ini = "2020-05-01"
+date_end = "2020-07-06"
 load_data = True
 
 #Isolation index
-isoind_file = "data/isol_br/Social Distancing Index by Cities2020-06-03.csv"
+isoind_file = "data/isol_br/Social Distancing Index by Cities2020-07-01.csv"
 #isoind_file = "inloco/Social Distancing Index by Cities2020-05-21.csv"
 
 #Number of main sources for plots
