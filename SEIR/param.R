@@ -13,7 +13,7 @@ seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
 d_max <- Sys.Date() #"2020-06-14"
 simulate_length <- as.numeric(ymd("2020-12-31") + 5 - ymd(d_max)) #Number of days to simulate
-error_I <- 0.055
+error_I <- 0.05
 error_D <- 0.045
 
 #Set mobility matrix
@@ -56,7 +56,7 @@ for(w in unique(weekdays(day)))
 for(d in as.character(seq.Date(from = ymd("2020-06-09"),to = d_max,1)))
   par$mob[[as.character(ymd(d))]] <- par$mob[[as.character(weekdays(ymd(d)))]]
 
-#Cadidate parameters  
+#Cadidate parameters
 par$pS <- 1/c(5:10,15,20,30,40,50)
 par$Te <- c(4:6)
 par$Ti <- c(5:10)
@@ -77,7 +77,7 @@ SEIR_covid(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models,error
 #     lc[i] <- sum(log((n-k[i]+1):n)) - sum(log(1:k[i]))
 #   return(lc)
 # }
-# 
+#
 # mc <- function(p,c,delta,cardinality){
 #   m <- (1/c)*(log_choose(cardinality,p) - log(delta))
 #   ifelse(m <= cardinality,m,NA)
