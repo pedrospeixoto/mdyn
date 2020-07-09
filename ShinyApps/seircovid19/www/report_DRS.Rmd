@@ -77,7 +77,7 @@ tmpM_DRS <- deaths_DRS %>% filter(Date == data_rel & DRS == params$DRS)
 
 # Previsão para dia `r format(params$input$date,"%d/%m/%Y")`
 
-\noindent Projetamos \textcolor{yellow}{`r format(round(tmpC_DRS$Mediana),decimal.mark = ",",big.mark = ".")` [`r format(round(tmpC_DRS$Infimo),decimal.mark = ",",big.mark = ".")`,`r format(round(tmpC_DRS$Sup),decimal.mark = ",",big.mark = ".")`] Casos Confirmados} e \textcolor{red}{`r format(round(tmpC_DRS$Mediana),decimal.mark = ",",big.mark = ".")` [`r format(round(tmpC_DRS$Infimo),decimal.mark = ",",big.mark = ".")`,`r format(round(tmpC_DRS$Sup),decimal.mark = ",",big.mark = ".")`] Mortes} na DRS `r paste(DRS,ifelse(DRS == "Grande São Paulo","(excluindo a Cidade de São Paulo)",""))` em `r format(params$input$date,"%d/%m/%Y")`
+\noindent Projetamos \textcolor{yellow}{`r format(round(tmpC_DRS$Mediana),decimal.mark = ",",big.mark = ".")` [`r format(round(tmpC_DRS$Infimo),decimal.mark = ",",big.mark = ".")`,`r format(round(tmpC_DRS$Sup),decimal.mark = ",",big.mark = ".")`] Casos Confirmados} e \textcolor{red}{`r format(round(tmpC_DRS$Mediana),decimal.mark = ",",big.mark = ".")` [`r format(round(tmpC_DRS$Infimo),decimal.mark = ",",big.mark = ".")`,`r format(round(tmpC_DRS$Sup),decimal.mark = ",",big.mark = ".")`] Mortes} na DRS `r paste(DRS"")` em `r format(params$input$date,"%d/%m/%Y")`
 
 \begin{figure}
 \centering

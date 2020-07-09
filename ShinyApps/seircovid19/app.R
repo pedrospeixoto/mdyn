@@ -20,30 +20,6 @@ library(xtable)
 library(rhandsontable)
 options(java.parameters = "-Xss2560k")
 
-#####Dados#####
-cases_city <- readRDS("./www/cases_city.rds")
-cases_DRS <- readRDS("./www/cases_DRS.rds")
-deaths_city <- readRDS("./www/deaths_city.rds")
-deaths_DRS <- readRDS("./www/deaths_DRS.rds")
-peak_city <- readRDS("./www/peak_city.rds")
-peak_DRS <- readRDS("./www/peak_DRS.rds")
-Rt <- readRDS("./www/Rt.rds")
-Rt <- Rt %>% filter(Minimo > 0.1)
-Rt$Municipio <- factor(stri_trans_totitle(tolower(as.character(Rt$Municipio))))
-param <- readRDS("./www/param.rds")
-pos <- readRDS("./www/pos.rds")
-nmodels <- readRDS("./www/nmodels.rds")
-drs <- readRDS("./www/drs.rds")
-dmin <- min(ymd(cases_city$Date))
-dmax <- dmin+30
-l_drs <- levels(cases_DRS$DRS)
-l_city <- as.character(unique(cases_city$Municipio[as.numeric(cases_city$c_1000) == 1]))
-l_drs2 <- c(l_drs,l_city)
-names(l_drs2) <- c(paste("DRS",l_drs),paste("Cidade de",stri_trans_totitle(tolower(as.character(l_city)))))
-l_drs2 <- l_drs2[order(names(l_drs2))]
-l_drs2 <- c("SP",l_drs2)
-names(l_drs2)[1] <- "Estado de São Paulo"
-
 myDownloadButton <- function(outputId, label = "Download"){
   tags$a(id = outputId, class = "btn btn-default shiny-download-link", href = "", 
          target = "_blank", download = NA, NULL, label)
@@ -59,6 +35,30 @@ ui <- shinyUI(fluidPage(
 # Server
 server <- function(input, output) {
   #shinyURL.server()
+  #####Dados#####
+  state <- readRDS("./www/state.rds")
+  cases_city <- readRDS("./www/cases_city.rds")
+  cases_DRS <- readRDS("./www/cases_DRS.rds")
+  deaths_city <- readRDS("./www/deaths_city.rds")
+  deaths_DRS <- readRDS("./www/deaths_DRS.rds")
+  peak_city <- readRDS("./www/peak_city.rds")
+  peak_DRS <- readRDS("./www/peak_DRS.rds")
+  Rt <- readRDS("./www/Rt.rds")
+  Rt <- Rt %>% filter(Minimo > 0.1)
+  Rt$Municipio <- factor(stri_trans_totitle(tolower(as.character(Rt$Municipio))))
+  param <- readRDS("./www/param.rds")
+  pos <- readRDS("./www/pos.rds")
+  nmodels <- readRDS("./www/nmodels.rds")
+  drs <- readRDS("./www/drs.rds")
+  dmin <- min(ymd(cases_city$Date))
+  dmax <- dmin+30
+  l_drs <- levels(cases_DRS$DRS)
+  l_city <- as.character(unique(cases_city$Municipio[as.numeric(cases_city$c_1000) == 1]))
+  l_drs2 <- c(l_drs,l_city)
+  names(l_drs2) <- c(paste("DRS",l_drs),paste("Cidade de",stri_trans_totitle(tolower(as.character(l_city)))))
+  l_drs2 <- l_drs2[order(names(l_drs2))]
+  l_drs2 <- c("SP",l_drs2)
+  names(l_drs2)[1] <- "Estado de São Paulo"
   
   output$app = renderUI(
     navbarPage(theme = shinytheme("spacelab"),"CoronaMoove",windowTitle = "Previsão COVID-19 - SP",
@@ -87,7 +87,7 @@ server <- function(input, output) {
                    fluidRow(column(8,HTML(paste('<center><img src="SP_EPcurve_predicted_',pos,
                                                 '.png" height="625" width="937"></center>',sep = ""))),
                             column(4,uiOutput("resEstado"),style = "background-color:#F5F5F5;")),
-               p("*A linha e banda vermelha dizem respeito ao número de indivíduos que estão infectados simultâneamente na data. As linhas tracejadas são as estimativas (mediana, pior caso e melhor caso) para o pico de mortes pela doença (dia com mais mortes)."),
+               p("*Cada linha representa a previsão de um modelo. A linha grossa (mediana das previsões) e banda vermelha (melhor e prior caso) dizem respeito ao número de indivíduos que estão infectados simultâneamente na data. As linhas tracejadas são as estimativas (mediana, pior caso e melhor caso) para o pico de mortes pela doença (dia com mais mortes)."),
                fluidRow(column(6,HTML("<h2 align='center'><span style='font-weight: bold; color: #1E90FF;'>Previsão Mortes por Departamento Regional de Saúde </span> </h2>")),
                         column(6,HTML("<h2 align='center'><span style='font-weight: bold; color: #1E90FF;'>Previsão Casos por Departamento Regional de Saúde </span> </h2>"))),
                fluidRow(column(6,rHandsontableOutput("mortes_DRS")),
@@ -138,7 +138,7 @@ server <- function(input, output) {
                                       ))),
                  fluidRow(column(8,uiOutput("EPDRS")),
                           column(4,uiOutput("resDRS"),style = "background-color:#F5F5F5;")),
-                 p("*A linha e banda vermelha dizem respeito ao número de indivíduos que estão infectados simultâneamente na data. As linhas tracejadas são as estimativas (mediana, pior caso e melhor caso) para o pico de mortes pela doença (dia com mais mortes)."),
+                 p("*Cada linha representa a previsão de um modelo. A linha grossa (mediana das previsões) e banda vermelha (melhor e prior caso) dizem respeito ao número de indivíduos que estão infectados simultâneamente na data. As linhas tracejadas são as estimativas (mediana, pior caso e melhor caso) para o pico de mortes pela doença (dia com mais mortes)."),
                  fluidRow(column(6,HTML("<h2 align='center'><span style='font-weight: bold; color: #1E90FF;'>Previsão Mortes por Município </span> </h2>")),
                           column(6,HTML("<h2 align='center'><span style='font-weight: bold; color: #1E90FF;'>Previsão Casos por Município </span> </h2>"))),
                  fluidRow(column(6,rHandsontableOutput("mortes_city_DRS")),
@@ -177,7 +177,7 @@ server <- function(input, output) {
                                       tags$style(type='text/css', ".irs-grid-text { font-size: 10pt; }")))),
                  fluidRow(column(8,uiOutput("EPCity")),
                           column(4,uiOutput("resCity"),style = "background-color:#F5F5F5;")),
-                 p("*A linha e banda vermelha dizem respeito ao número de indivíduos que estão infectados simultâneamente na data. As linhas tracejadas são as estimativas (mediana, pior caso e melhor caso) para o pico de mortes pela doença (dia com mais mortes). O modelo projeta casos e mortes para todos os DRSs e apenas para Municípios com mais de 500 casos confirmados ou 100 mortes confirmadas quando o modelo foi ajustado."),
+                 p("*Cada linha representa a previsão de um modelo. A linha grossa (mediana das previsões) e banda vermelha (melhor e prior caso) dizem respeito ao número de indivíduos que estão infectados simultâneamente na data. As linhas tracejadas são as estimativas (mediana, pior caso e melhor caso) para o pico de mortes pela doença (dia com mais mortes). O modelo projeta casos e mortes para todos os DRSs e apenas para Municípios com mais de 500 casos confirmados ou 100 mortes confirmadas quando o modelo foi ajustado."),
                  br(),
                  tags$p("Aplicação desenvolvida por ", 
                         tags$a(href="https://www.linkedin.com/in/diego-marcondes-87a1218b/","Diego Marcondes ")," com ",
@@ -268,7 +268,7 @@ server <- function(input, output) {
                    temp_casos,overwrite = TRUE)
          params <- list(input = input,data = format(dmin,"%d/%m/%Y"),cases_city = cases_city,cases_DRS = cases_DRS,
                         deaths_city = deaths_city,deaths_DRS = deaths_DRS,peak_DRS = peak_DRS,peak_city = peak_city,
-                        pos = pos,nmodels = nmodels)
+                        pos = pos,nmodels = nmodels,state = state)
          incProgress(1/3)
          rmarkdown::render(tempReport, output_file = file,
                            params = params,
@@ -318,20 +318,19 @@ server <- function(input, output) {
   
   output$resEstado <- renderUI({
     if(!is.null(input$date)){
-     tmpC <- cases_city %>% filter(Date == ymd(input$date))
-      tmpM <- deaths_city %>% filter(Date == ymd(input$date))
+      tmp <- state %>% filter(date == ymd(input$date))
       t1 <- paste("<h1 align='center'> <span style='color: #1E90FF;'><strong> Pevisão para ",format(input$date,"%d/%m/%Y"),
                   " </strong></span></h1> <h2 align='center',face = 'bold'> <br> <span style='color: orange;'><strong>Casos Confirmados: ",
-                  format(round(sum(tmpC$Mediana)),decimal.mark = ",",big.mark = "."),
+                  format(round(tmp$median_cases),decimal.mark = ",",big.mark = "."),
                   "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Melhor Cenário: ",
-                  format(round(sum(tmpC$Infimo)),decimal.mark = ",",big.mark = "."),
+                  format(round(tmp$min_cases),decimal.mark = ",",big.mark = "."),
                   "<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Pior Cenário: ",
-                  format(round(sum(tmpC$Sup)),decimal.mark = ",",big.mark = "."),
+                  format(round(tmp$max_cases),decimal.mark = ",",big.mark = "."),
                   "</strong></span> <br><br> <span style='color: red;'> <strong> Mortes Confirmadas: ",
-                  format(round(sum(tmpM$Mediana)),decimal.mark = ",",big.mark = "."),"&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Melhor Cenário: ",
-                  format(round(sum(tmpM$Infimo)),decimal.mark = ",",big.mark = "."),
+                  format(round(tmp$median_deaths),decimal.mark = ",",big.mark = "."),"&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Melhor Cenário: ",
+                  format(round(tmp$min_deaths),decimal.mark = ",",big.mark = "."),
                   "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Pior Cenário: ",
-                  format(round(sum(tmpM$Sup)),decimal.mark = ",",big.mark = "."),
+                  format(round(tmp$max_deaths),decimal.mark = ",",big.mark = "."),
                   "</strong></span> </h2> <br> <h4 align='center'> As previsões são realizadas através de Modelos SEIR Metapopulação com Mobilidade supondo que a evolução da doença se manterá da mesma forma que na semana terminando em ",
                   format(dmin,"%d/%m/%Y"),
                   "</h4> </p> <p align = 'center'> <span style='color: red;'> <strong> DISCLAIMER: Apenas as previsões pontuais realizadas até o dia ",
@@ -349,17 +348,17 @@ server <- function(input, output) {
     tmpM <- deaths_DRS %>% filter(Date == ymd(input$dateDRS) & DRS == input$DRS)
     if(input$DRS == "Grande São Paulo")
       t1 <- paste("<h1 align='center'> <span style='color: #1E90FF;'><strong>  Previsão para ",format(input$dateDRS,"%d/%m/%Y"),
-                  "</strong></span></h1> <p align='center'> <span style='color: #1E90FF;'><strong> (Excluindo a Cidade de São Paulo) </strong></span></p> <h2 align='center',face = 'bold'> <br> <span style='color: orange;'> <strong> Casos Confirmados: ",
-                  format(round(sum(tmpC$Mediana)),decimal.mark = ",",big.mark = "."),
+                  "</strong></span></h1> <h2 align='center',face = 'bold'> <br> <span style='color: orange;'> <strong> Casos Confirmados: ",
+                  format(round(tmpC$Mediana),decimal.mark = ",",big.mark = "."),
                   "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Melhor Cenário: ",
-                  format(round(sum(tmpC$Infimo)),decimal.mark = ",",big.mark = "."),
+                  format(round(tmpC$Infimo),decimal.mark = ",",big.mark = "."),
                   "<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Pior Cenário: ",
-                  format(round(sum(tmpC$Sup)),decimal.mark = ",",big.mark = "."),"</span> <br><br> <span style='color: red;'> Mortes Confirmadas: ",
-                  format(round(sum(tmpM$Mediana)),decimal.mark = ",",big.mark = "."),
+                  format(round(tmpC$Sup),decimal.mark = ",",big.mark = "."),"</span> <br><br> <span style='color: red;'> Mortes Confirmadas: ",
+                  format(round(tmpM$Mediana),decimal.mark = ",",big.mark = "."),
                   "&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Melhor Cenário: ",
-                  format(round(sum(tmpM$Infimo)),decimal.mark = ",",big.mark = "."),
+                  format(round(tmpM$Infimo),decimal.mark = ",",big.mark = "."),
                   "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Pior Cenário: ",
-                  format(round(sum(tmpM$Sup)),decimal.mark = ",",big.mark = "."),
+                  format(round(tmpM$Sup),decimal.mark = ",",big.mark = "."),
                   "</strong></span> </h2> <h4 align='center'> As previsões são realizadas através de Modelos SEIR Metapopulação com Mobilidade supondo que a evolução da doença se manterá da mesma forma que na semana terminando em ",
                   format(dmin,"%d/%m/%Y"),"</h4> </p> <p align = 'center'> <span style='color: red;'> <strong> DISCLAIMER: Apenas as previsões pontuais realizadas até o dia ",format(dmax,"%d/%m/%Y"),
                   " e a projeção do pico da doença devem ser considerados, para todos os DRSs e apenas para Municípios com mais de 500 casos ou 100 mortes em ",
@@ -369,16 +368,16 @@ server <- function(input, output) {
     else
       t1 <- paste("<h1 align='center'> <span style='color: #1E90FF;'><strong> Previsão para ",format(input$dateDRS,"%d/%m/%Y"),
                   "</strong></span></h1> <h2 align='center',face = 'bold'> <br> <span style='color: orange;'> <strong> Casos Confirmados: ",
-                  format(round(sum(tmpC$Mediana)),decimal.mark = ",",big.mark = "."),
+                  format(round(tmpC$Mediana),decimal.mark = ",",big.mark = "."),
                   "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Melhor Cenário: ",
-                  format(round(sum(tmpC$Infimo)),decimal.mark = ",",big.mark = "."),
+                  format(round(tmpC$Infimo),decimal.mark = ",",big.mark = "."),
                   "<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Pior Cenário: ",
-                  format(round(sum(tmpC$Sup)),decimal.mark = ",",big.mark = "."),"</span> <br><br> <span style='color: red;'> Mortes Confirmadas: ",
-                  format(round(sum(tmpM$Mediana)),decimal.mark = ",",big.mark = "."),
+                  format(round(tmpC$Sup),decimal.mark = ",",big.mark = "."),"</span> <br><br> <span style='color: red;'> Mortes Confirmadas: ",
+                  format(round(tmpM$Mediana),decimal.mark = ",",big.mark = "."),
                   "&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Melhor Cenário: ",
-                  format(round(sum(tmpM$Infimo)),decimal.mark = ",",big.mark = "."),
+                  format(round(tmpM$Infimo),decimal.mark = ",",big.mark = "."),
                   "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Pior Cenário: ",
-                  format(round(sum(tmpM$Sup)),decimal.mark = ",",big.mark = "."),
+                  format(round(tmpM$Sup),decimal.mark = ",",big.mark = "."),
                   "</strong></span> </h2> <h4 align='center'> As previsões são realizadas através de Modelos SEIR Metapopulação com Mobilidade supondo que a evolução da doença se manterá da mesma forma que na semana terminando em ",
                   format(dmin,"%d/%m/%Y"),"</h4> </p> <p align = 'center'> <span style='color: red;'> <strong> DISCLAIMER: Apenas as previsões pontuais realizadas até o dia ",format(dmax,"%d/%m/%Y"),
                   " e a projeção do pico da doença devem ser considerados, para todos os DRSs e apenas para Municípios com mais de 500 casos ou 100 mortes em ",
@@ -423,14 +422,14 @@ server <- function(input, output) {
       names(tmpM_DRS) <- c("DRS","Mínimo","Mediana","Máximo")
       tmpM_DRS[,2:4] <- sapply(tmpM_DRS[,2:4], FUN=function(x) prettyNum(round(x),decimal.mark = ",",big.mark="."))
       tmpM_DRS$DRS <- as.character(tmpM_DRS$DRS)
-      tmpM_DRS$DRS[tmpM_DRS$DRS == "Grande São Paulo"] <- "Grande São Paulo (sem Cidade de SP)"
+      #tmpM_DRS$DRS[tmpM_DRS$DRS == "Grande São Paulo"] <- "Grande São Paulo (sem Cidade de SP)"
       tmpM_DRS$DRS <- as.factor(tmpM_DRS$DRS)
       
       tmpC_DRS <- tmpC_DRS[order(tmpC_DRS$Mediana,decreasing = T),c(2:5)]
       names(tmpC_DRS) <- c("DRS","Mínimo","Mediana","Máximo")
       tmpC_DRS[,2:4] <- sapply(tmpC_DRS[,2:4], FUN=function(x) prettyNum(round(x),decimal.mark = ",",big.mark="."))
       tmpC_DRS$DRS <- as.character(tmpC_DRS$DRS)
-      tmpC_DRS$DRS[tmpC_DRS$DRS == "Grande São Paulo"] <- "Grande São Paulo (sem Cidade de SP)"
+      #tmpC_DRS$DRS[tmpC_DRS$DRS == "Grande São Paulo"] <- "Grande São Paulo (sem Cidade de SP)"
       tmpC_DRS$DRS <- as.factor(tmpC_DRS$DRS)
       
       tmpM_city <- tmpM_city[order(tmpM_city$Mediana,decreasing = T),-c(1,6)]
@@ -544,7 +543,7 @@ server <- function(input, output) {
                   overwrite = TRUE)
         
         params <- list(drs = drs,DRS = input$DRS,input = input,data = format(dmin,"%d/%m/%Y"),cases_city = cases_city,
-                       cases_DRS = cases_DRS,
+                       cases_DRS = cases_DRS,state = state,
                        deaths_city = deaths_city,deaths_DRS = deaths_DRS,peak_DRS = peak_DRS,peak_city = peak_city,
                        pos = pos,nmodels = nmodels,dmin = dmin)
         incProgress(1/3)
