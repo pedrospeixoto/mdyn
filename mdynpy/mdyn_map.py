@@ -67,7 +67,7 @@ class Map:
             height = height*1.1
             #print(fwidth, fheight)
         if fwidth > 15 or fheight > 15: #Bug region plot, but not all brasil
-            print(fwidth, fheight)
+            #print(fwidth, fheight)
             fwidth = fwidth/3
             fheight = fheight/3
             width = width*1.05
@@ -889,6 +889,162 @@ class Map:
             textstr = "Fonte: IME-USP/InLoco"
         
         plt.gcf().text(0.02, 0.02, textstr, fontsize=10)
+
+        plt.tight_layout() 
+        plt.savefig(filename, dpi=300)   
+        plt.close()
+
+    def map_network_centrality(self, mat, reg0, title, filename):
+        
+        network = self.dom
+        
+        plt.title(title, y=1.08)
+        print("  Plotting: ", filename)
+
+        #print(network.regions_in_latlon)
+        n=len(network.regions_in_latlon)
+        
+        pos={}
+        # define position in basemap
+        for i, reg in enumerate(network.regions_in_latlon.values()):
+            x, y = self.map(reg[1], reg[0])
+            #print(i, reg[0], reg[1], x, y)
+            pos[i]=[x,y]
+        
+        #Only graph inner nodes
+        mattmp=mat[:n, :n]
+        np.fill_diagonal(mattmp, 0)
+
+        #Graph
+        G = nx.from_numpy_matrix(mattmp, create_using=nx.DiGraph)
+        N = len(G)
+        print("   Network len:", N)
+        M = G.number_of_edges()
+        print("   Network edges:", M)
+
+        #Calculate centrality
+        #print(G.edges)
+        print("   Calculating Spectrum:")
+        #G.remove_edges_from(nx.selfloop_edges(G))
+        Gspec= nx.adjacency_spectrum(G) 
+        ev = max(Gspec, key=np.abs) #calcula o max autovalor
+        print("   Max ev:", ev)
+        # print(autovalor)
+        # # nx.draw(G)
+        # # plt.show()
+        # # print ()
+        
+        alpha = (1/ev.real) - 0.1*(1/ev.real)
+        print("   Calculating centrality:")
+        centrality = nx.katz_centrality(G, alpha=alpha)
+        
+        
+        #Filer low flux edges:       
+        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
+        if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
+            remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4] 
+        #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
+        G.remove_edges_from(remove)
+        
+        N = len(G)
+        print("   Filtred Network len:", N)
+        M = G.number_of_edges()
+        print("   Filtred Network edges:", M)
+
+        np.set_printoptions(threshold=sys.maxsize)
+    
+        #print(data)
+        #delta=max(data)-min(data)
+        #Set isolation limits
+        #limits = np.array([min(data)+0.05,min(data)+delta/3, min(data)+2*delta/3, max(data)-0.05 ])
+        #print("Isolation limits: ", limits)
+        #nodelimits = np.array([0.2, 0.3, 0.4, 0.5, 0.6 ])
+        #print(" Enforced limits: ", nodelimits)
+        #dataw = np.digitize(data, nodelimits, right=True)/len(nodelimits)
+        #dataw[np.isnan(data)]=np.nan
+
+        data = np.array(list(centrality.values()))
+        #data = np.log(1+data)
+        #print(data)
+        maxdata=np.amax(data)
+        mindata=np.amin(data)
+        data=(data-mindata)/(maxdata-mindata)
+        #print(data)
+        #print(np.sort(data))
+        node_colors = data
+        
+        #print(node_colors)
+        
+        if network.maxlats-network.minlats > 15: #this is a big map!
+            node_sizes = 10*np.floor((np.exp(data))*5-2.0)
+        else:
+            #node_sizes = [10 for i in range(N)]
+            node_sizes = np.floor((np.exp(data))*5-2.0)
+
+        #node_alphas = 0.3+(data)*0.5
+
+        edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
+        weights = np.array(weights)  
+        
+        #Set categories
+        #limits = np.percentile(weights, [5, 80, 85, 90, 95, 99])
+        #print("Flux limits: ", limits)
+        #edlimits = np.array([1, 10, 20, 40, 80, 160, 320, 640])
+        #print("  Enforced limits: ", edlimits)
+        #weights = np.digitize(weights, edlimits, right=True)/len(edlimits)
+        weights = np.log2(weights)
+        #weights=np.where(weights>10, 1, 0)
+        maxw = max(weights) #
+        #print(weights, maxw)
+        edge_colors = weights #[2+M*(i+2)/maxw for i in weights] #100*weights #range(2, M + 2)
+        edge_widths = 0.1+0.9*(weights/maxw)
+        edge_alphas = 0.3+(weights/maxw)*0.5
+    
+        print("   Plotting nodes...")
+        nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, 
+            node_color=node_colors, alpha=0.9, with_labels=False, linewidths= 0.3, cmap=plt.cm.Blues)
+            #) #vmin=0.3, vmax=0.7)
+        print("   Plotting edges...")
+        edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
+                                    arrowsize=5, edgelist=edges, edge_color=edge_colors,
+                                    edge_cmap=plt.cm.hot_r, width=edge_widths,
+                                    edge_vmin=0 , edge_max=14,
+                                    connectionstyle='arc3, rad=0.1')
+        
+        # set alpha value for each edge
+        for i in range(M):
+            edges[i].set_alpha(edge_alphas[i])
+
+        ax = plt.gca()
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="3%", pad=0.05)
+        #cax = divider.new_vertical(size="5%", pad=0.5, pack_start=True)
+        
+        #pc = mpl.collections.PatchCollection(edges, cmap=plt.cm.hot_r, match_original=True)
+        #pc.set_array(edge_colors)
+        
+        sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r, norm=plt.Normalize(vmin=0, vmax=14))
+        sm.set_array(edge_colors)
+        #cbar = plt.colorbar(sm)
+        cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')        
+        #cbared.set_ticks([0, 1])
+        #cbared.set_ticks(np.array(range(len(edlimits)))/len(edlimits))
+        #cbared.ax.set_yticklabels([ 'Low', 'High']) 
+        #cbared.ax.set_yticklabels(edlimits) 
+
+        nodes.set_array(node_colors)
+        cax = divider.append_axes("bottom", size="5%", pad=0.05)
+        cbarnodes = plt.colorbar(nodes, orientation="horizontal", cax=cax, label="Centralidade de Katz")
+         #label='Isolation index (normalized between min-max)'
+        #cbarnodes.set_ticks([0, 0.5, 1.0])
+        #cbarnodes.set_ticks(np.array(range(len(nodelimits)))/len(edlimits))
+        #cbarnodes.ax.set_xticklabels([ 'Min State Isolation', 'Isolation Index', 'Max State Isolation']) 
+        #cbarnodes.ax.set_xticklabels(nodelimits) 
+        if "datalake" in filename:
+            textstr = "Fonte: IME-USP/COVID-Radar"
+        else:
+            textstr = "Fonte: IME-USP/InLoco"
+        plt.gcf().text(0.02, 0.01, textstr, fontsize=7)
 
         plt.tight_layout() 
         plt.savefig(filename, dpi=300)   
