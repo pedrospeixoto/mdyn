@@ -144,12 +144,12 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
         geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                                                                  linetype = "dashed") + 
         geom_line(aes(y = Casos, color = "a"),alpha = 0.4) + 
-        geom_line(data = pl %>% filter(Modelo == "0"),aes(x = ymd(Data), y = Casos, color = "a",group = "1")) +
-        geom_line(data = tmp,aes(x = ymd(date), y = Ispred, color = "a",group = "1")) +
-        geom_line(data = tmp,aes(x = ymd(date), y = Dpred, color = "c",group = "1")) +
+        geom_line(data = pl %>% filter(Modelo == "0"),aes(x = ymd(Data), y = Casos, color = "a",group = "1"),size = 2) +
+        geom_line(data = tmp,aes(x = ymd(date), y = Ispred, color = "a",group = "1"),size = 2) +
+        geom_line(data = tmp,aes(x = ymd(date), y = Dpred, color = "c",group = "1"),size = 2) +
         geom_ribbon(data = tmp,aes(x = ymd(date),ymin = IspredInf,ymax = IspredSup,fill = "a",group = "1"),alpha = 0.25) +
         geom_line(aes(y = Mortes, color = "c"),alpha = 0.4) + 
-        geom_line(data = pl %>% filter(Modelo == "0"),aes(x = ymd(Data),y = Mortes, color = "c",group = "1")) + 
+        geom_line(data = pl %>% filter(Modelo == "0"),aes(x = ymd(Data),y = Mortes, color = "c",group = "1"),size = 2) + 
         geom_ribbon(data = tmp,aes(x = ymd(date),ymin = DpredInf,ymax = DpredSup,fill = "c",group = "1"),alpha = 0.25) + 
         theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(min(ymd(tmp$date),na.rm = T)),ymd(end_validate)+simulate_length,length.out = 12),
                                                        labels = strftime(seq.Date(ymd(min(ymd(tmp$date))),ymd(end_validate)+simulate_length,length.out = 12),
@@ -377,12 +377,12 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
       geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                  linetype = "dashed") + 
       geom_line(aes(y = Casos, color = "a"),alpha = 0.4) + 
-      geom_line(data = pl %>% filter(Modelo == "0"),aes(x = ymd(Data), y = Casos, color = "a",group = "1")) +
-      geom_line(data = tmp,aes(x = ymd(date), y = Ispred, color = "a",group = "1")) +
-      geom_line(data = tmp,aes(x = ymd(date), y = Dpred, color = "c",group = "1")) +
+      geom_line(data = pl %>% filter(Modelo == "0"),aes(x = ymd(Data), y = Casos, color = "a",group = "1"),size = 2) +
+      geom_line(data = tmp,aes(x = ymd(date), y = Ispred, color = "a",group = "1"),size = 2) +
+      geom_line(data = tmp,aes(x = ymd(date), y = Dpred, color = "c",group = "1"),size = 2) +
       geom_ribbon(data = tmp,aes(x = ymd(date),ymin = IspredInf,ymax = IspredSup,fill = "a",group = "1"),alpha = 0.25) +
       geom_line(aes(y = Mortes, color = "c"),alpha = 0.4) + 
-      geom_line(data = pl %>% filter(Modelo == "0"),aes(x = ymd(Data),y = Mortes, color = "c",group = "1")) + 
+      geom_line(data = pl %>% filter(Modelo == "0"),aes(x = ymd(Data),y = Mortes, color = "c",group = "1"),size = 2) + 
       geom_ribbon(data = tmp,aes(x = ymd(date),ymin = DpredInf,ymax = DpredSup,fill = "c",group = "1"),alpha = 0.25) + 
       theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(min(ymd(tmp$date),na.rm = T)),ymd(end_validate)+simulate_length,length.out = 12),
                                                      labels = strftime(seq.Date(ymd(min(ymd(tmp$date))),ymd(end_validate)+simulate_length,length.out = 12),
@@ -566,12 +566,12 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
     geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                linetype = "dashed") + 
     geom_line(aes(y = Casos, color = "a"),alpha = 0.4) + 
-    geom_line(data = pl %>% filter(Modelo == "0"),aes(x = ymd(Data), y = Casos, color = "a",group = "1")) +
-    geom_line(data = tmp,aes(x = ymd(date), y = Ispred, color = "a",group = "1")) +
-    geom_line(data = tmp,aes(x = ymd(date), y = Dpred, color = "c",group = "1")) +
+    geom_line(data = pl %>% filter(Modelo == "0"),aes(x = ymd(Data), y = Casos, color = "a",group = "1"),size = 2) +
+    geom_line(data = tmp,aes(x = ymd(date), y = Ispred, color = "a",group = "1"),size = 2) +
+    geom_line(data = tmp,aes(x = ymd(date), y = Dpred, color = "c",group = "1"),size = 2) +
     geom_ribbon(data = tmp,aes(x = ymd(date),ymin = IspredInf,ymax = IspredSup,fill = "a",group = "1"),alpha = 0.25) +
     geom_line(aes(y = Mortes, color = "c"),alpha = 0.4) + 
-    geom_line(data = pl %>% filter(Modelo == "0"),aes(x = ymd(Data),y = Mortes, color = "c",group = "1")) + 
+    geom_line(data = pl %>% filter(Modelo == "0"),aes(x = ymd(Data),y = Mortes, color = "c",group = "1"),size = 2) + 
     geom_ribbon(data = tmp,aes(x = ymd(date),ymin = DpredInf,ymax = DpredSup,fill = "c",group = "1"),alpha = 0.25) + 
     theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(min(ymd(tmp$date),na.rm = T)),ymd(end_validate)+simulate_length,length.out = 12),
                                                    labels = strftime(seq.Date(ymd(min(ymd(tmp$date))),ymd(end_validate)+simulate_length,length.out = 12),
