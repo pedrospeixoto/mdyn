@@ -117,6 +117,96 @@ def map_move_mats(mdyn, network, ipar):
             filename=filename.replace("Network_Flux", "Network_Iso")
             map.map_data_on_network(reg_iso, mat, regions, title, filename)
 
+def centrality_move_mats(mdyn, network, ipar):
+    print()
+    print("Mapping centrality on move mats:")
+    #Get movement matrices
+    mdyn.collect_move_mat(network)
+
+    #Get isolation indeces
+    #iso = sd.socialdist(ipar.isoind_file, network) 
+
+    #print(iso.df.columns)
+    #print("Regions:", network.regions)
+    
+    #Loop for each day
+    for i, day in enumerate(mdyn.days_all):
+        
+        print("Calculating on: ", i, day.strftime("%Y-%m-%d"))
+        #print(iso.df['day'].unique(), day.strftime("%Y-%m-%d"))
+        
+        #filter day, state, regions
+        #df_iso = iso.df[iso.df['day']==day.strftime("%Y-%m-%d")]
+        
+        if network.domain_abrv == "BRA":
+            #BRA uses geocodes, so get city names
+            regions = network.regions_in_names
+        else:
+            #Use actual city names
+            regions = network.regions
+            #Filter state
+            #df_iso = df_iso[df_iso['reg_name'].isin(regions.values())]
+
+        mat = mdyn.movemats[i]
+        #reg_iso = np.zeros([network.nreg_in])
+        #for reg in range(network.nreg_in):
+        #    region = regions.get(reg)
+        #    region = str(region)   
+        #    if region in list(df_iso['reg_name'].values): 
+        #        isotmp = df_iso.loc[df_iso['reg_name'] == region, 'iso'].values[0]
+        #    else:
+        #        isotmp = np.nan
+        #    reg_iso[reg] = isotmp
+            
+        #Do map
+        dow=mex.weekdays[day.weekday()]
+        
+        if network.domain_abrv=="BRA":
+
+            zooms=[
+                [False, -15, -34, -60, -40, False, "BRA"  ],
+                [True, 0, -15, -50,-34, False, "Nordeste"  ],
+                [True, -5, -15, -40,-34, False, "NordesteLitoral"  ],
+                [True, -15, -34, -60,-40, False, "Sul-Sudeste"  ],
+                [True, -10, -25, -60,-40, False, "Centro-Sudeste"  ],
+                [True, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ],
+                [True, -24.6, -26.2, -50.5,-48.5, True, "RMCTBA"  ],
+                [True, -41.0, -45.2, -23.0,-22.0, True, "RMRJ"  ],
+                [True, -19.8, -25.5, -52.25,-43, True, "SP"  ],
+                [True, -19.8, -25.5, -52.25,-43, True, "SP"  ],
+                [True, -3.0, -10, -43.0,-34, True, "CE_RN_PB_PE"  ]
+            ]
+
+            for zoom in zooms:
+                if zoom[0]:
+                    title = network.domain+" "+network.subdomains+" Network Zoom "+zoom[6]+" "
+                    filename = mdyn.dump_dir+title.replace(" ", "_") #+"_"+str(i+67).zfill(3)+".jpg"
+                else:
+                    title = network.domain+" "+network.subdomains+" Network "
+                    filename = mdyn.dump_dir+title.replace(" ", "_") #+str(i+67).zfill(3)+".jpg"
+
+                title = title + day.strftime("%Y-%m-%d")+" "+dow
+                filename = filename + day.strftime("%Y-%m-%d")+".jpg"
+        
+                map=Map(network, zoom)
+                map.map_network_centrality(mat, regions, title, filename.replace("Network", "Network_Centrality"))
+
+        else:
+            if ipar.zoom[0]:
+                title = network.domain+" "+network.subdomains+" Network Zoom "+ipar.zoom[6]+" "
+                filename = mdyn.dump_dir+title.replace(" ", "_") #+"_"+str(i+67).zfill(3)+".jpg"
+            else:
+                title = network.domain+" "+network.subdomains+" Network "
+                filename = mdyn.dump_dir+title.replace(" ", "_") #+str(i+67).zfill(3)+".jpg"
+
+            title = title + day.strftime("%Y-%m-%d")+" "+dow
+            filename = filename + day.strftime("%Y-%m-%d")+".jpg"
+        
+            map=Map(network, ipar.zoom)
+            filename=filename.replace("Network", "Network_Centrality")
+            map.map_network_centrality(mat, regions, title, filename)
+
+
 def analyse_move_mats(mdyn, network, ipar):
     print()
     print("Analyse move mats:")
