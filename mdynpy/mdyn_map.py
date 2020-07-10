@@ -263,7 +263,7 @@ class Map:
     
         data[data<0]=0.0
 
-        plt.title(title, y=1.08)
+        plt.title(title, y=1.05)
 
         #2d color plot of data
         cmap = "hot_r" 
@@ -300,7 +300,7 @@ class Map:
 
         title = title.replace("_", " ")
         filename = filename.replace("\n", "")
-        plt.title(title, y=1.08, size="10")
+        plt.title(title, y=1.05)
 
         #2d color plot of data
         cmap = "hot_r" 
@@ -363,7 +363,7 @@ class Map:
 
         title = title.replace("_", " ")
         filename = filename.replace("\n", "")
-        plt.title(title, y=1.08, size="10")
+        plt.title(title, y=1.05)
 
         #2d color plot of data
         cmap = "hot_r" 
@@ -400,7 +400,7 @@ class Map:
         x, y = np.meshgrid(lons, lats)
         x, y = self.map(x, y)
         
-        plt.title(title, y=1.08)
+        plt.title(title, y=1.05)
         print("  Plotting: ", filename)
         #2d color plot of data
         cmap = "hot_r" 
@@ -424,7 +424,7 @@ class Map:
     def map_network(self, mat, reg0, title, filename):
 
         network = self.dom
-        plt.title(title, y=1.08)
+        plt.title(title, y=1.05)
         print("  Plotting: ", filename)
 
         #print(network.regions_in_latlon)
@@ -493,7 +493,7 @@ class Map:
         
         network = self.dom
         
-        plt.title(title, y=1.08)
+        plt.title(title, y=1.05)
         print("  Plotting: ", filename)
 
         #print(network.regions_in_latlon)
@@ -518,9 +518,9 @@ class Map:
         print("   Network edges:", M)
 
         #Filer low flux edges:       
-        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
-        if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
-            remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4] 
+        #remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
+        #if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
+        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 8] 
         #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
         G.remove_edges_from(remove)
         
@@ -556,7 +556,7 @@ class Map:
     
         nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, 
             node_color=node_colors, with_labels=False, linewidths= 0.3, cmap=plt.cm.winter,
-            vmin=0.3, vmax=0.7)
+            vmin=0.3, vmax=0.6)
         edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
                                     arrowsize=5, edgelist=edges, edge_color=edge_colors,
                                     edge_cmap=plt.cm.hot_r, width=edge_widths,
@@ -595,7 +595,7 @@ class Map:
         
         network = self.dom
         
-        plt.title(title, y=1.08)
+        plt.title(title, y=1.05)
         print("  Plotting: ", filename)
 
         #print(network.regions_in_latlon)
@@ -620,9 +620,9 @@ class Map:
         print("   Network edges:", M)
 
         #Filer low flux edges:       
-        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
-        if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
-            remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4] 
+        #remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
+        #if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
+        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 8] 
         #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
         G.remove_edges_from(remove)
         
@@ -640,8 +640,8 @@ class Map:
         maxw = max(weights) #
 
         edge_colors = weights #[2+M*(i+2)/maxw for i in weights] #100*weights #range(2, M + 2)
-        edge_widths = 0.2+0.9*(weights/maxw)
-        edge_alphas = 0.5+(weights/maxw)*0.5
+        edge_widths = 0.1+0.9*(weights/maxw)
+        edge_alphas = 0.4+(weights/maxw)*0.5
 
 
         edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
@@ -678,7 +678,7 @@ class Map:
         
         network = self.dom
         
-        plt.title(title, y=1.08)
+        plt.title(title, y=1.05)
         print("  Plotting: ", filename)
 
         #print(network.regions_in_latlon)
@@ -702,28 +702,15 @@ class Map:
         M = G.number_of_edges()
         print("   Network edges:", M)
 
-        #Filer low flux edges:       
-        #remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 4]
-        #if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
-        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 8] 
-        #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
-        G.remove_edges_from(remove)
-        
-        N = len(G)
-        print("   Filtred Network len:", N)
-        M = G.number_of_edges()
-        print("   Filtred Network edges:", M)
-
         np.set_printoptions(threshold=sys.maxsize)
 
         node_colors = data
         
         node_sizes = [20 for i in range(N)]
 
-            
         nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, 
             node_color=node_colors, with_labels=False, linewidths= 0.3, cmap=plt.cm.winter,
-            vmin=0.3, vmax=0.7)
+            vmin=0.3, vmax=0.6)
         
 
         ax = plt.gca()
@@ -749,7 +736,7 @@ class Map:
         
         network = self.dom
         
-        plt.title(title, y=1.08)
+        plt.title(title, y=1.05)
         print("  Plotting: ", filename)
 
         #print(network.regions_in_latlon)
