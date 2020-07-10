@@ -27,7 +27,7 @@ import mdynpy.mdyn_extras as mex
 
 class Map:
     def __init__(self, network, zoom=[False, 0, 0, 0, 0, False]): 
-
+        
         #Init the figure
         linewidth=0.8
         
@@ -39,7 +39,6 @@ class Map:
             height = abs(zoom[2]-zoom[1])*factor
             #print(lat0, lon0, height, width , zoom[2]-zoom[1] ,  zoom[4]-zoom[3])
         else:
-        
             factor = 1.0e5
             lat0=0.5*(network.maxlats+network.minlats)
             lon0=0.5*(network.maxlons+network.minlons)
@@ -54,43 +53,21 @@ class Map:
         
         fwidth = width/factor
         fheight = height/factor
+
         #print(fwidth, fheight)
         if fwidth < fheight: #we want more square like figures
             #print(fwidth, fheight)
             fwidth = fheight
             width = height
-        if fwidth > 25: #Brasil plot - very large!
-            #print(fwidth, fheight)
-            fwidth = fwidth/5
-            fheight = fheight/5
-            width = width*1.1
-            height = height*1.1
-            #print(fwidth, fheight)
-        if fwidth > 15 or fheight > 15: #Bug region plot, but not all brasil
-            #print(fwidth, fheight)
-            fwidth = fwidth/3
-            fheight = fheight/3
-            width = width*1.05
-            height = height*1.05
-            #print(fwidth, fheight)
-        if fwidth < 5 and fwidth > 3 : #small region plot, zoom a bit
-            #print(fwidth, fheight)
-            fwidth = fwidth*1.5
-            fheight = fheight*1.5
-            width = width*1.02
-            height = height*1.02
-            #print(fwidth, fheight)
 
-        if fwidth < 3: #small region plot, zoom a lot
-            #print(fwidth, fheight)
-            fwidth = fwidth*4
-            fheight = fheight*4
-            width = width*1.05
-            height = height*1.05
-            #print(fwidth, fheight)
-        
-        
+        ratio=fheight/fwidth
+        if ratio < 0.7:
+            ratio = 0.7
 
+        size = 8
+        fwidth = size
+        fheight = size*ratio
+         
         fig, ax = plt.subplots( figsize=(fwidth, fheight))
 
         #Define map projection
@@ -469,7 +446,7 @@ class Map:
 
         #Nodes (Katz)
         N = len(G)
-        print("Network len:", N)
+        print("   Network len:", N)
         node_sizes = [0.5 for i in range(N)]
 
         #Edges
@@ -536,9 +513,9 @@ class Map:
         #Graph
         G = nx.from_numpy_matrix(mattmp, create_using=nx.DiGraph)
         N = len(G)
-        print("Network len:", N)
+        print("   Network len:", N)
         M = G.number_of_edges()
-        print("Network edges:", M)
+        print("   Network edges:", M)
 
         #Filer low flux edges:       
         remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
@@ -548,30 +525,17 @@ class Map:
         G.remove_edges_from(remove)
         
         N = len(G)
-        print("Filtred Network len:", N)
+        print("   Filtred Network len:", N)
         M = G.number_of_edges()
-        print("Filtred Network edges:", M)
+        print("   Filtred Network edges:", M)
 
         np.set_printoptions(threshold=sys.maxsize)
-        #Nodes (Katz)
-        
         
         #print(data)
-        #delta=max(data)-min(data)
-        #Set isolation limits
-        #limits = np.array([min(data)+0.05,min(data)+delta/3, min(data)+2*delta/3, max(data)-0.05 ])
-        #print("Isolation limits: ", limits)
-        #nodelimits = np.array([0.2, 0.3, 0.4, 0.5, 0.6 ])
-        #print(" Enforced limits: ", nodelimits)
-        #dataw = np.digitize(data, nodelimits, right=True)/len(nodelimits)
-        #dataw[np.isnan(data)]=np.nan
         node_colors = data
         #print(node_colors)
         
-        if network.maxlats-network.minlats > 20: #this is a big map!
-            node_sizes = [1 for i in range(N)]
-        else:
-            node_sizes = [10 for i in range(N)]
+        node_sizes = [15 for i in range(N)]
 
         edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
         weights = np.array(weights)  
@@ -606,28 +570,17 @@ class Map:
         ax = plt.gca()
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="3%", pad=0.05)
-        #cax = divider.new_vertical(size="5%", pad=0.5, pack_start=True)
-        
-        #pc = mpl.collections.PatchCollection(edges, cmap=plt.cm.hot_r, match_original=True)
-        #pc.set_array(edge_colors)
-        
+                
         sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r, norm=plt.Normalize(vmin=0, vmax=14))
         sm.set_array(edge_colors)
-        #cbar = plt.colorbar(sm)
+        
         cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')        
-        #cbared.set_ticks([0, 1])
-        #cbared.set_ticks(np.array(range(len(edlimits)))/len(edlimits))
-        #cbared.ax.set_yticklabels([ 'Low', 'High']) 
-        #cbared.ax.set_yticklabels(edlimits) 
+        
 
         nodes.set_array(node_colors)
         cax = divider.append_axes("bottom", size="5%", pad=0.05)
         cbarnodes = plt.colorbar(nodes, orientation="horizontal", cax=cax, label="Índice de Isolamento")
-         #label='Isolation index (normalized between min-max)'
-        #cbarnodes.set_ticks([0, 0.5, 1.0])
-        #cbarnodes.set_ticks(np.array(range(len(nodelimits)))/len(edlimits))
-        #cbarnodes.ax.set_xticklabels([ 'Min State Isolation', 'Isolation Index', 'Max State Isolation']) 
-        #cbarnodes.ax.set_xticklabels(nodelimits) 
+        
         if "datalake" in filename:
             textstr = "Fonte: IME-USP/COVID-Radar"
         else:
@@ -662,9 +615,9 @@ class Map:
         #Graph
         G = nx.from_numpy_matrix(mattmp, create_using=nx.DiGraph)
         N = len(G)
-        print("Network len:", N)
+        print("   Network len:", N)
         M = G.number_of_edges()
-        print("Network edges:", M)
+        print("   Network edges:", M)
 
         #Filer low flux edges:       
         remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
@@ -674,51 +627,23 @@ class Map:
         G.remove_edges_from(remove)
         
         N = len(G)
-        print("Filtred Network len:", N)
+        print("   Filtred Network len:", N)
         M = G.number_of_edges()
-        print("Filtred Network edges:", M)
+        print("   Filtred Network edges:", M)
 
         np.set_printoptions(threshold=sys.maxsize)
-        #Nodes (Katz)
         
-        
-        #print(data)
-        #delta=max(data)-min(data)
-        #Set isolation limits
-        #limits = np.array([min(data)+0.05,min(data)+delta/3, min(data)+2*delta/3, max(data)-0.05 ])
-        #print("Isolation limits: ", limits)
-        #nodelimits = np.array([0.2, 0.3, 0.4, 0.5, 0.6 ])
-        #print(" Enforced limits: ", nodelimits)
-        #dataw = np.digitize(data, nodelimits, right=True)/len(nodelimits)
-        #dataw[np.isnan(data)]=np.nan
-        #node_colors = data
-        #print(node_colors)
-        
-        #if network.maxlats-network.minlats > 20: #this is a big map!
-        #    node_sizes = [1 for i in range(N)]
-        #else:
-        #    node_sizes = [10 for i in range(N)]
-
         edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
         weights = np.array(weights)  
         
-        #Set categories
-        #limits = np.percentile(weights, [5, 80, 85, 90, 95, 99])
-        #print("Flux limits: ", limits)
-        #edlimits = np.array([1, 10, 20, 40, 80, 160, 320, 640])
-        #print("  Enforced limits: ", edlimits)
-        #weights = np.digitize(weights, edlimits, right=True)/len(edlimits)
         weights = np.log2(weights)
-        #weights=np.where(weights>10, 1, 0)
         maxw = max(weights) #
-        #print(weights, maxw)
+
         edge_colors = weights #[2+M*(i+2)/maxw for i in weights] #100*weights #range(2, M + 2)
         edge_widths = 0.2+0.9*(weights/maxw)
         edge_alphas = 0.5+(weights/maxw)*0.5
 
-        #nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, 
-        #    node_color=node_colors, with_labels=False, linewidths= 0.3, cmap=plt.cm.winter,
-        #    vmin=0.3, vmax=0.7)
+
         edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
                                     arrowsize=5, edgelist=edges, edge_color=edge_colors,
                                     edge_cmap=plt.cm.hot_r, width=edge_widths,
@@ -732,28 +657,13 @@ class Map:
         ax = plt.gca()
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="3%", pad=0.05)
-        #cax = divider.new_vertical(size="5%", pad=0.5, pack_start=True)
         
-        #pc = mpl.collections.PatchCollection(edges, cmap=plt.cm.hot_r, match_original=True)
-        #pc.set_array(edge_colors)
         
         sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r, norm=plt.Normalize(vmin=0, vmax=14))
         sm.set_array(edge_colors)
-        #cbar = plt.colorbar(sm)
+        
         cbared = plt.colorbar(sm, cax=cax, label='Fluxo (log2 viagens/dia)')        
-        #cbared.set_ticks([0, 1])
-        #cbared.set_ticks(np.array(range(len(edlimits)))/len(edlimits))
-        #cbared.ax.set_yticklabels([ 'Low', 'High']) 
-        #cbared.ax.set_yticklabels(edlimits) 
-
-        #nodes.set_array(node_colors)
-        #cax = divider.append_axes("bottom", size="5%", pad=0.05)
-        #cbarnodes = plt.colorbar(nodes, orientation="horizontal", cax=cax, label="Índice de Isolamento")
-         #label='Isolation index (normalized between min-max)'
-        #cbarnodes.set_ticks([0, 0.5, 1.0])
-        #cbarnodes.set_ticks(np.array(range(len(nodelimits)))/len(edlimits))
-        #cbarnodes.ax.set_xticklabels([ 'Min State Isolation', 'Isolation Index', 'Max State Isolation']) 
-        #cbarnodes.ax.set_xticklabels(nodelimits) 
+        
         if "datalake" in filename:
             textstr = "Fonte: IME-USP/COVID-Radar"
         else:
@@ -788,100 +698,41 @@ class Map:
         #Graph
         G = nx.from_numpy_matrix(mattmp, create_using=nx.DiGraph)
         N = len(G)
-        print("Network len:", N)
+        print("   Network len:", N)
         M = G.number_of_edges()
-        print("Network edges:", M)
+        print("   Network edges:", M)
 
         #Filer low flux edges:       
-        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
-        if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
-            remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 15] 
+        #remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 4]
+        #if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
+        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 8] 
         #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
         G.remove_edges_from(remove)
         
         N = len(G)
-        print("Filtred Network len:", N)
+        print("   Filtred Network len:", N)
         M = G.number_of_edges()
-        print("Filtred Network edges:", M)
+        print("   Filtred Network edges:", M)
 
         np.set_printoptions(threshold=sys.maxsize)
-        #Nodes (Katz)
-        
-        
-        #print(data)
-        #delta=max(data)-min(data)
-        #Set isolation limits
-        #limits = np.array([min(data)+0.05,min(data)+delta/3, min(data)+2*delta/3, max(data)-0.05 ])
-        #print("Isolation limits: ", limits)
-        #nodelimits = np.array([0.2, 0.3, 0.4, 0.5, 0.6 ])
-        #print(" Enforced limits: ", nodelimits)
-        #dataw = np.digitize(data, nodelimits, right=True)/len(nodelimits)
-        #dataw[np.isnan(data)]=np.nan
-        node_colors = data
-        #print(node_colors)
-        
-        if network.maxlats-network.minlats > 20: #this is a big map!
-            node_sizes = [4 for i in range(N)]
-        else:
-            node_sizes = [10 for i in range(N)]
 
-        edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
-        weights = np.array(weights)  
+        node_colors = data
         
-        #Set categories
-        #limits = np.percentile(weights, [5, 80, 85, 90, 95, 99])
-        #print("Flux limits: ", limits)
-        #edlimits = np.array([1, 10, 20, 40, 80, 160, 320, 640])
-        #print("  Enforced limits: ", edlimits)
-        #weights = np.digitize(weights, edlimits, right=True)/len(edlimits)
-        weights = np.log2(weights)
-        #weights=np.where(weights>10, 1, 0)
-        maxw = max(weights) #
-        #print(weights, maxw)
-        edge_colors = weights #[2+M*(i+2)/maxw for i in weights] #100*weights #range(2, M + 2)
-        edge_widths = 0.1+0.9*(weights/maxw)
-        edge_alphas = 0.3+(weights/maxw)*0.5
-    
+        node_sizes = [20 for i in range(N)]
+
+            
         nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, 
             node_color=node_colors, with_labels=False, linewidths= 0.3, cmap=plt.cm.winter,
             vmin=0.3, vmax=0.7)
-        #edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
-        #                            arrowsize=5, edgelist=edges, edge_color=edge_colors,
-        #                            edge_cmap=plt.cm.hot_r, width=edge_widths,
-        #                            edge_vmin=0 , edge_max=14,
-        #                            connectionstyle='arc3, rad=0.1')
         
-        # set alpha value for each edge
-        #for i in range(M):
-        #    edges[i].set_alpha(edge_alphas[i])
 
         ax = plt.gca()
         divider = make_axes_locatable(ax)
-        #cax = divider.append_axes("right", size="3%", pad=0.05)
-        #cax = divider.new_vertical(size="5%", pad=0.5, pack_start=True)
         
-        #pc = mpl.collections.PatchCollection(edges, cmap=plt.cm.hot_r, match_original=True)
-        #pc.set_array(edge_colors)
-        
-        #sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r, norm=plt.Normalize(vmin=0, vmax=14))
-        #sm.set_array(edge_colors)
-        #cbar = plt.colorbar(sm)
-        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')        
-        #cbared.set_ticks([0, 1])
-        #cbared.set_ticks(np.array(range(len(edlimits)))/len(edlimits))
-        #cbared.ax.set_yticklabels([ 'Low', 'High']) 
-        #cbared.ax.set_yticklabels(edlimits) 
-
         nodes.set_array(node_colors)
         cax = divider.append_axes("right", size="3%", pad=0.05)
-        #cax = divider.append_axes("bottom", size="5%", pad=0.05)
-        #cbarnodes = plt.colorbar(nodes, orientation="horizontal", cax=cax, label="Índice de Isolamento")
+        
         cbarnodes = plt.colorbar(nodes, cax=cax, label="Índice de Isolamento")
-         #label='Isolation index (normalized between min-max)'
-        #cbarnodes.set_ticks([0, 0.5, 1.0])
-        #cbarnodes.set_ticks(np.array(range(len(nodelimits)))/len(edlimits))
-        #cbarnodes.ax.set_xticklabels([ 'Min State Isolation', 'Isolation Index', 'Max State Isolation']) 
-        #cbarnodes.ax.set_xticklabels(nodelimits) 
         
         if "datalake" in filename:
             textstr = "Fonte: IME-USP/COVID-Radar"

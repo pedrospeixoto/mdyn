@@ -59,45 +59,14 @@ def map_move_mats(mdyn, network, ipar):
         #Do map
         dow=mex.weekdays[day.weekday()]
         
-        
-        if network.domain_abrv=="BRA":
+        if isinstance(ipar.zoom[0], bool): #in this case we have a single zoom
+            zooms = [ipar.zoom]
+        else: #list of zooms
+            zooms = ipar.zoom
 
-            zooms=[
-                [False, -15, -34, -60, -40, False, "BRA"  ],
-                [True, 0, -15, -50,-34, False, "Nordeste"  ],
-                [True, -5, -15, -40,-34, False, "NordesteLitoral"  ],
-                [True, -15, -34, -60,-40, False, "Sul-Sudeste"  ],
-                [True, -10, -25, -60,-40, False, "Centro-Sudeste"  ],
-                [True, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ],
-                [True, -24.6, -26.2, -50.5,-48.5, True, "RMCTBA"  ],
-                [True, -41.0, -45.2, -23.0,-22.0, True, "RMRJ"  ],
-                [True, -19.8, -25.5, -52.25,-43, True, "SP"  ],
-                [True, -19.8, -25.5, -52.25,-43, True, "SP"  ],
-                [True, -3.0, -10, -43.0,-34, True, "CE_RN_PB_PE"  ]
-            ]
-
-            for zoom in zooms:
-                if zoom[0]:
-                    title = network.domain+" "+network.subdomains+" Network Zoom "+zoom[6]+" "
-                    filename = mdyn.dump_dir+title.replace(" ", "_") #+"_"+str(i+67).zfill(3)+".jpg"
-                else:
-                    title = network.domain+" "+network.subdomains+" Network "
-                    filename = mdyn.dump_dir+title.replace(" ", "_") #+str(i+67).zfill(3)+".jpg"
-
-                title = title + day.strftime("%Y-%m-%d")+" "+dow
-                filename = filename + day.strftime("%Y-%m-%d")+".jpg"
-
-                map=Map(network, zoom)
-                map.map_network_data(reg_iso, mat, regions, title, filename)
-        
-                map=Map(network, zoom)
-                map.map_network_flux(mat, regions, title, filename.replace("Network", "Network_Flux"))
-
-                map=Map(network, zoom)
-                map.map_data_on_network(reg_iso, mat, regions, title, filename.replace("Network", "Network_Iso"))
-        else:
-            if ipar.zoom[0]:
-                title = network.domain+" "+network.subdomains+" Network Zoom "+ipar.zoom[6]+" "
+        for zoom in zooms:
+            if zoom[0]:
+                title = network.domain+" "+network.subdomains+" Network Zoom "+zoom[6]+" "
                 filename = mdyn.dump_dir+title.replace(" ", "_") #+"_"+str(i+67).zfill(3)+".jpg"
             else:
                 title = network.domain+" "+network.subdomains+" Network "
@@ -106,17 +75,19 @@ def map_move_mats(mdyn, network, ipar):
             title = title + day.strftime("%Y-%m-%d")+" "+dow
             filename = filename + day.strftime("%Y-%m-%d")+".jpg"
 
-            map=Map(network, ipar.zoom)
+            map=Map(network, zoom)
             map.map_network_data(reg_iso, mat, regions, title, filename)
+    
+            map=Map(network, zoom)
+            map.map_network_flux(mat, regions, title, filename.replace("Network", "Network_Flux"))
+
+            map=Map(network, zoom)
+            map.map_data_on_network(reg_iso, mat, regions, title, filename.replace("Network", "Network_Iso"))
+
+        print("done date.")
+        print()
+    return
         
-            map=Map(network, ipar.zoom)
-            filename=filename.replace("Network", "Network_Flux")
-            map.map_network_flux(mat, regions, title, filename)
-
-            map=Map(network, ipar.zoom)
-            filename=filename.replace("Network_Flux", "Network_Iso")
-            map.map_data_on_network(reg_iso, mat, regions, title, filename)
-
 def centrality_move_mats(mdyn, network, ipar):
     print()
     print("Mapping centrality on move mats:")
@@ -161,39 +132,14 @@ def centrality_move_mats(mdyn, network, ipar):
         #Do map
         dow=mex.weekdays[day.weekday()]
         
-        if network.domain_abrv=="BRA":
+        if isinstance(ipar.zoom[0], bool): #in this case we have a single zoom
+            zooms = [ipar.zoom]
+        else: #list of zooms
+            zooms = ipar.zoom
 
-            zooms=[
-                [False, -15, -34, -60, -40, False, "BRA"  ],
-                [True, 0, -15, -50,-34, False, "Nordeste"  ],
-                [True, -5, -15, -40,-34, False, "NordesteLitoral"  ],
-                [True, -15, -34, -60,-40, False, "Sul-Sudeste"  ],
-                [True, -10, -25, -60,-40, False, "Centro-Sudeste"  ],
-                [True, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ],
-                [True, -24.6, -26.2, -50.5,-48.5, True, "RMCTBA"  ],
-                [True, -41.0, -45.2, -23.0,-22.0, True, "RMRJ"  ],
-                [True, -19.8, -25.5, -52.25,-43, True, "SP"  ],
-                [True, -19.8, -25.5, -52.25,-43, True, "SP"  ],
-                [True, -3.0, -10, -43.0,-34, True, "CE_RN_PB_PE"  ]
-            ]
-
-            for zoom in zooms:
-                if zoom[0]:
-                    title = network.domain+" "+network.subdomains+" Network Zoom "+zoom[6]+" "
-                    filename = mdyn.dump_dir+title.replace(" ", "_") #+"_"+str(i+67).zfill(3)+".jpg"
-                else:
-                    title = network.domain+" "+network.subdomains+" Network "
-                    filename = mdyn.dump_dir+title.replace(" ", "_") #+str(i+67).zfill(3)+".jpg"
-
-                title = title + day.strftime("%Y-%m-%d")+" "+dow
-                filename = filename + day.strftime("%Y-%m-%d")+".jpg"
-        
-                map=Map(network, zoom)
-                map.map_network_centrality(mat, regions, title, filename.replace("Network", "Network_Centrality"))
-
-        else:
-            if ipar.zoom[0]:
-                title = network.domain+" "+network.subdomains+" Network Zoom "+ipar.zoom[6]+" "
+        for zoom in zooms:
+            if zoom[0]:
+                title = network.domain+" "+network.subdomains+" Network Zoom "+zoom[6]+" "
                 filename = mdyn.dump_dir+title.replace(" ", "_") #+"_"+str(i+67).zfill(3)+".jpg"
             else:
                 title = network.domain+" "+network.subdomains+" Network "
@@ -201,10 +147,11 @@ def centrality_move_mats(mdyn, network, ipar):
 
             title = title + day.strftime("%Y-%m-%d")+" "+dow
             filename = filename + day.strftime("%Y-%m-%d")+".jpg"
-        
-            map=Map(network, ipar.zoom)
-            filename=filename.replace("Network", "Network_Centrality")
-            map.map_network_centrality(mat, regions, title, filename)
+    
+            map=Map(network, zoom)
+            map.map_network_centrality(mat, regions, title, filename.replace("Network", "Network_Centrality"))
+
+
 
 
 def analyse_move_mats(mdyn, network, ipar):
