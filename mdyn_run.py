@@ -61,6 +61,15 @@ if run_opt == 1:
     print("Execution time "+str(time_end-time_start)+" seconds")
 
 if run_opt == 2:
+    #Read movemats and social dist index and plot them together
+    time_start = time.time()
+    #mmat.analyse_move_mats(mdyn, network, ipar)
+
+    mmat.centrality_move_mats(mdyn, network, ipar)
+    time_end = time.time()
+    print("Execution time "+str(time_end-time_start)+" seconds")
+
+if run_opt == 3:
     time_start = time.time()
     mmat.analyse_move_mats_dow(mdyn, network, ipar)
     time_end = time.time()
