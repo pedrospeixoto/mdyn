@@ -13,6 +13,9 @@ import matplotlib.cm as cm
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+from scipy import stats
+import scipy
+
 import networkx as nx
 
 from itertools import product
@@ -752,6 +755,9 @@ class Map:
         #Only graph inner nodes
         mattmp=mat[:n, :n]
         np.fill_diagonal(mattmp, 0)
+        evs=np.linalg.eigvals(mattmp)
+        ev = max(evs, key=np.abs) #calcula o max autovalor
+        print("   Max ev:", ev, "evs:",  evs[:10])
 
         #Graph
         G = nx.from_numpy_matrix(mattmp, create_using=nx.DiGraph)
@@ -764,9 +770,9 @@ class Map:
         #print(G.edges)
         print("   Calculating Spectrum:")
         #G.remove_edges_from(nx.selfloop_edges(G))
-        Gspec= nx.adjacency_spectrum(G) 
-        ev = max(Gspec, key=np.abs) #calcula o max autovalor
-        print("   Max ev:", ev)
+        #Gspec= nx.adjacency_spectrum(G, weight=None) 
+        #ev = max(Gspec, key=np.abs) #calcula o max autovalor
+        #print("   Max ev:", ev)
         # print(autovalor)
         # # nx.draw(G)
         # # plt.show()
@@ -774,9 +780,9 @@ class Map:
         
         alpha = (1/ev.real) - 0.1*(1/ev.real)
         print("   Calculating centrality:")
-        centrality = nx.katz_centrality(G, alpha=alpha)
+        centrality = nx.katz_centrality(G, alpha=alpha, beta=100.0, weight=None)
         
-        
+        print(stats.describe(np.array(list(centrality.values()))))
         #Filer low flux edges:       
         remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
         if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
@@ -813,12 +819,8 @@ class Map:
         
         #print(node_colors)
         
-        if network.maxlats-network.minlats > 15: #this is a big map!
-            node_sizes = 10*np.floor((np.exp(data))*5-2.0)
-        else:
-            #node_sizes = [10 for i in range(N)]
-            node_sizes = np.floor((np.exp(data))*5-2.0)
-
+        node_sizes = 4.0*np.floor((np.exp(data))*10-10.0)
+        
         #node_alphas = 0.3+(data)*0.5
 
         edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
@@ -840,7 +842,7 @@ class Map:
     
         print("   Plotting nodes...")
         nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, 
-            node_color=node_colors, alpha=0.9, with_labels=False, linewidths= 0.3, cmap=plt.cm.Blues)
+            node_color=node_colors, alpha=0.9, with_labels=False, linewidths= 1, cmap=plt.cm.Blues)
             #) #vmin=0.3, vmax=0.7)
         print("   Plotting edges...")
         edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
