@@ -1,0 +1,69 @@
+#Main domain definition
+domain = "PARANÁ" #SP or RJ
+domain_abrv = "PR"
+domain_gran = "NM_ESTADO"
+domain_shape = "maps/UFEBRASIL/UFEBRASIL"
+
+#Subdomain definitions
+subdomains = "Municip"
+subdomains_gran = "NM_MUNICIP"
+subdomains_shape = "maps/pr_municipios/41MUE250GC_SIR"
+
+#Population
+domain_pop = "maps/population/population_ufebrasil.csv"
+domain_pop_labels = ["Estado", "Populacao"]
+subdomains_pop = "maps/population/population_mun_br_2019.csv"
+subdomains_pop_labels = ["UF", "MUNICIPIO", "POP2019"]
+
+#Network granularity
+latlon_gran = 0.01 #granularity of lat long spacing
+
+#Network pre-computation flag
+load_domain = True #Load precomp structures
+
+#-----------------------------
+# Mobile Data Set Definition
+#-----------------------------
+
+#Initialize mobile data and load data to dataframe
+data_format = "Parquet" #"ORC"
+data_dir = "data/mobility_br_2020/"
+#data_dir = "data/triples_br_2020_04_17_proc/all/state0=São Paulo/"
+#data_dir = "data/triples_br_2020_04_17_proc/SP"
+date_ini = "2020-03-01"
+date_end = "2020-07-05"
+load_data = True
+
+#Isolation index
+isoind_file = "data/isol_br/Social Distancing Index by Cities2020-07-06.csv"
+#isoind_file = "inloco/Social Distancing Index by Cities2020-05-21.csv"
+
+#Number of main sources for plots
+num_source = 1
+
+#-----------------------------
+# Slicing/Zoom
+#------------------------------
+        #Flag, lats, lons, drawsubdomains, label
+zoom = [True, -24.6, -26.2, -50.5,-48.5, True, "RMCTBA"  ]
+
+#-----------------------------
+# Simulation configuration
+#------------------------------
+
+#Initial condition for simulation (file with num of cases per region)
+#São Paulo
+data_ini_by_reg = { 268 : 1.0 }
+
+#Number of simulation days
+num_simul_days = 1
+
+#Type of model 
+# 0: simple mat iteration
+# 1: only infected - see diego's doc
+# 2: two parameter model
+model = 2
+infec_rate = 0.4  #infection rate per day
+spread_rate = 1.0 #Spatial spread rate
+
+risk_lim = 1.0 #Infected people to consider risk limit
