@@ -33,6 +33,10 @@ date=2020-07-05
 ../../sh/network_anim.sh Brasil_Municip_Network_Flux_Zoom_RMRJ_ 2020-02-16 $date || { echo 'falhou' ; exit 1; }
 ../../sh/network_anim.sh Brasil_Municip_Network_Iso_Zoom_RMRJ_ 2020-02-16 $date || { echo 'falhou' ; exit 1; }
 
+../../sh/network_anim.sh Brasil_Municip_Network_Zoom_RMGO_ 2020-02-16 $date || { echo 'falhou' ; exit 1; }
+../../sh/network_anim.sh Brasil_Municip_Network_Flux_Zoom_RMGO_ 2020-02-16 $date || { echo 'falhou' ; exit 1; }
+../../sh/network_anim.sh Brasil_Municip_Network_Iso_Zoom_RMGO_ 2020-02-16 $date || { echo 'falhou' ; exit 1; }
+
 ../../sh/network_anim.sh Brasil_Municip_Network_Zoom_RMCTBA_ 2020-02-16 $date || { echo 'falhou' ; exit 1; }
 ../../sh/network_anim.sh Brasil_Municip_Network_Flux_Zoom_RMCTBA_ 2020-02-16 $date || { echo 'falhou' ; exit 1; }
 ../../sh/network_anim.sh Brasil_Municip_Network_Iso_Zoom_RMCTBA_ 2020-02-16 $date || { echo 'falhou' ; exit 1; }
