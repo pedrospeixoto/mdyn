@@ -103,6 +103,7 @@ def statistics_move_mats(mdyn, network, ipar):
     #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1], lab, fontsize=14, color=mycolors[0])
     
     data = {"Data": dates_ma, lab: evol_ma }
+    dataraw = {"Data": mdyn.days_all, lab: evoldiag }
 
     lab = "SAINDO DE "+refname
     #plt.plot(mdyn.days_all, evoldiag, color=mycolors[0], linewidth=3, label=lab)
@@ -112,6 +113,7 @@ def statistics_move_mats(mdyn, network, ipar):
     #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1]+1, lab, fontsize=14, color=mycolors[1])
     
     data[lab]=evol_ma
+    dataraw[lab]=evol_outall
 
     lab = "ENTRANDO EM "+refname
     #plt.plot(mdyn.days_all, evoldiag, color=mycolors[0], linewidth=3, label=lab)
@@ -120,6 +122,7 @@ def statistics_move_mats(mdyn, network, ipar):
     plt.plot(dates_ma, evol_ma, color=mycolors[2], linewidth=4, label=lab)
     #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1]-1, lab, fontsize=14, color=mycolors[2])
     data[lab]=evol_ma
+    dataraw[lab]=evol_inall
 
     texts = []
     for k, nb in enumerate(neib):
@@ -137,6 +140,7 @@ def statistics_move_mats(mdyn, network, ipar):
         plt.plot(dates_ma, evol_ma, color=mycolors[3+k], linewidth=1, label=lab_out, linestyle="-.")
         #plt.text(dates_ma[-1]+timedelta(days=1), evol_ma[-1], lab_out, fontsize=14, color=mycolors[3+k])
         data[nb]=evol_ma
+        dataraw[nb]=evol
 
     plt.legend(loc='best', fontsize=12)
 
@@ -177,16 +181,18 @@ def statistics_move_mats(mdyn, network, ipar):
     plt.tight_layout() 
 
     adjust_text(texts, autoalign="y", only_move={'points': 'y',
-        'text':'xy', 'objects':'y'})
+        'text':'y', 'objects':'y'})
     
     #Save density plot to folder "dump"
-    plt.savefig(filename)
+    plt.savefig(filename+".jpg", dpi=400)
+    #plt.savefig(filename+".tiff", dpi=200)
     plt.close()
     
-    print(data)
+    df = pd.DataFrame(dataraw)
+    df.to_csv(filename+"raw.csv", sep=";")
+
     df = pd.DataFrame(data)
-    print(df)
-    df.to_csv(filename+".csv", sep=";")
+    df.to_csv(filename+"percent.csv", sep=";")
 
     return
 
