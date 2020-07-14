@@ -28,15 +28,12 @@ load_domain = True #Load precomp structures
 #Initialize mobile data and load data to dataframe
 data_format = "Parquet" #"ORC"
 data_dir = "data/mobility_br_2020/"
-#data_dir = "data/triples_br_2020_04_17_proc/all/state0=São Paulo/"
-#data_dir = "data/triples_br_2020_04_17_proc/SP"
 date_ini = "2020-02-01"
 date_end = "2020-07-04"
 load_data = True
 
 #Isolation index
 isoind_file = "data/isol_br/Social Distancing Index by Cities2020-07-01.csv"
-#isoind_file = "inloco/Social Distancing Index by Cities2020-05-21.csv"
 
 #Number of main sources for plots
 num_source = 1
@@ -50,9 +47,9 @@ zoom = [False, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ]
 #-----------------------------
 # Statistics
 #------------------------------
-reference = 559 # 271  # 268 #"SÃO PAULO"
-neighb = [271, 319, 559, 114, 620, 262]
-nneighb = 4 # based on population. plus list above
+reference = 188 #Goiania
+neighb = [188]
+nneighb = 6 # based on population. plus list above
 
 #-----------------------------
 # Simulation configuration
