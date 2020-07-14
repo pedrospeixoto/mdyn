@@ -51,10 +51,22 @@ def statistics_move_mats(mdyn, network, ipar):
     print()
     print("Reference:", refname, refind)
     keys = ipar.neighb
+    nneib_pop = ipar.nneighb
+
+    pop=np.array(network.reg_pop)
+    ipop=list(pop.argsort()[-nneib_pop:][::-1])
+    if refind in ipop:
+        ipop.remove(refind)
+    
+    for k in keys:
+        if k in ipop:
+            ipop.remove(k)
+
+    keys = keys + ipop
+    neibind = keys
     nneib = len(keys)
     neib = [None]*nneib
-    neibind = keys
-    print()
+
     print("Neighbours")
     for i, key in enumerate(keys):
         neib[i]=network.regions.get(key)
@@ -92,13 +104,17 @@ def statistics_move_mats(mdyn, network, ipar):
     fig = plt.figure(figsize=(20,10), dpi= 300)
     mycolors = ['tab:red', 'tab:blue', 'tab:green', 
         'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
-        'red', 'steelblue', 'firebrick', 'mediumseagreen']      
+        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple']      
+
+    ref_ndays = 7-1
 
     lab = "INTERNAS A "+refname
     #plt.plot(mdyn.days_all, evoldiag, color=mycolors[0], linewidth=3, label=lab)
     dates_ma = mdyn.days_all[6:]
     evol_ma = mex.moving_average(evoldiag)
-    evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
+    evol_ref = np.average(evoldiag[0:ref_ndays])
+    #evol_ref = evol_ma[0]
+    evol_ma = 100*(evol_ma - evol_ref)/evol_ref
     plt.plot(dates_ma, evol_ma, color=mycolors[0], linewidth=4, label=lab)
     #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1], lab, fontsize=14, color=mycolors[0])
     
@@ -108,7 +124,10 @@ def statistics_move_mats(mdyn, network, ipar):
     lab = "SAINDO DE "+refname
     #plt.plot(mdyn.days_all, evoldiag, color=mycolors[0], linewidth=3, label=lab)
     evol_ma = mex.moving_average(evol_outall)
-    evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
+    evol_ref = np.average(evol_outall[0:ref_ndays])
+    #evol_ref = evol_ma[0]
+    evol_ma = 100*(evol_ma - evol_ref)/evol_ref
+    #evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
     plt.plot(dates_ma, evol_ma-evol_ma[0], color=mycolors[1], linewidth=4, label=lab)
     #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1]+1, lab, fontsize=14, color=mycolors[1])
     
@@ -118,7 +137,10 @@ def statistics_move_mats(mdyn, network, ipar):
     lab = "ENTRANDO EM "+refname
     #plt.plot(mdyn.days_all, evoldiag, color=mycolors[0], linewidth=3, label=lab)
     evol_ma = mex.moving_average(evol_inall)
-    evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
+    evol_ref = np.average(evol_inall[0:ref_ndays])
+    #evol_ref = evol_ma[0]
+    evol_ma = 100*(evol_ma - evol_ref)/evol_ref
+    #evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
     plt.plot(dates_ma, evol_ma, color=mycolors[2], linewidth=4, label=lab)
     #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1]-1, lab, fontsize=14, color=mycolors[2])
     data[lab]=evol_ma
@@ -130,25 +152,32 @@ def statistics_move_mats(mdyn, network, ipar):
         lab_in = refname+"<-"+nb
         evol=evolneib_in[k, :]
         evol_ma = mex.moving_average(evol)
-        evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
+        evol_ref = np.average(evol[0:ref_ndays])
+        #evol_ref = evol_ma[0]
+        evol_ma = 100*(evol_ma - evol_ref)/evol_ref
+        #evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
         plt.plot(dates_ma, evol_ma, color=mycolors[3+k], linewidth=1, label=lab_in, linestyle="--")
         texts.append(plt.text(dates_ma[-1]+timedelta(days=7), 
             evol_ma[-1], nb, fontsize=10, color=mycolors[3+k], alpha=0.5))
+
         evol=evolneib_out[k, :]
         evol_ma = mex.moving_average(evol)
-        evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
+        evol_ref = np.average(evol[0:ref_ndays])
+        #evol_ref = evol_ma[0]
+        evol_ma = 100*(evol_ma - evol_ref)/evol_ref
+        #evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
         plt.plot(dates_ma, evol_ma, color=mycolors[3+k], linewidth=1, label=lab_out, linestyle="-.")
         #plt.text(dates_ma[-1]+timedelta(days=1), evol_ma[-1], lab_out, fontsize=14, color=mycolors[3+k])
         data[nb]=evol_ma
         dataraw[nb]=evol
 
-    plt.legend(loc='best', fontsize=12)
+    plt.legend(loc='best', fontsize=12, ncol=2)
 
     #fancy stuff
     ax = plt.gca()
 
     ax.yaxis.get_offset_text().set_fontsize(14)
-    ax.set_ylabel('Variação de viagens', fontsize=14)
+    ax.set_ylabel('viagens - média móvel semanal', fontsize=14)
     ax.yaxis.set_major_formatter(mtick.PercentFormatter())
     #plt.ticklabel_format(axis="y", style="plain", scilimits=(0,0))
     #plt.yscale('log')
@@ -169,7 +198,7 @@ def statistics_move_mats(mdyn, network, ipar):
     plt.gca().spines["right"].set_alpha(0.0)    
     plt.gca().spines["left"].set_alpha(0.3)   
 
-    ref_txt = "Semana de referência (média)\n"+days[0]+" a "+days[6]
+    ref_txt = "Referência (média)\n"+days[0]+" a "+days[ref_ndays]
     plt.gcf().text(0.90, 0.05, ref_txt, fontsize=14, 
         bbox=dict(facecolor='gray', alpha=0.3), horizontalalignment='center', 
         verticalalignment='center', transform=ax.transAxes)

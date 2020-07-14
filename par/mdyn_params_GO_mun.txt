@@ -1,13 +1,13 @@
 #Main domain definition
-domain = "SÃO PAULO" #SP or RJ
-domain_abrv = "SP"
+domain = "GOIÁS" #SP or RJ
+domain_abrv = "GO"
 domain_gran = "NM_ESTADO"
 domain_shape = "maps/UFEBRASIL/UFEBRASIL"
 
 #Subdomain definitions
 subdomains = "Municip"
 subdomains_gran = "NM_MUNICIP"
-subdomains_shape = "maps/sp_municipios/35MUE250GC_SIR"
+subdomains_shape = "maps/go_municipios/52MUE250GC_SIR"
 
 #Population
 domain_pop = "maps/population/population_ufebrasil.csv"
@@ -30,8 +30,8 @@ data_format = "Parquet" #"ORC"
 data_dir = "data/mobility_br_2020/"
 #data_dir = "data/triples_br_2020_04_17_proc/all/state0=São Paulo/"
 #data_dir = "data/triples_br_2020_04_17_proc/SP"
-date_ini = "2020-04-02"
-date_end = "2020-07-10"
+date_ini = "2020-02-01"
+date_end = "2020-07-04"
 load_data = True
 
 #Isolation index
