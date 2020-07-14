@@ -11,9 +11,185 @@ from datetime import datetime
 from datetime import date
 from datetime import timedelta
 
+import matplotlib as mpl
+from mpl_toolkits.basemap import Basemap
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
+import matplotlib.colors as colors
+import matplotlib.cm as cm
+from matplotlib.ticker import MaxNLocator
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import matplotlib.ticker as mtick
+from adjustText import adjust_text
+from matplotlib import patches
+
+
 from mdynpy.mdyn_map import Map
 import mdynpy.mdyn_extras as mex
 import mdynpy.mdyn_socialdist as sd
+
+
+def statistics_move_mats(mdyn, network, ipar):
+    print()
+    print("Statistics of move mats:")
+    #Get movement matrices
+    mdyn.collect_move_mat(network)
+
+    if network.domain_abrv == "BRA":
+        #BRA uses geocodes, so get city names
+        regions = network.regions_in_names
+    else:
+        #Use actual city names
+        regions = network.regions
+        #Filter state
+
+    print("Regions:", regions)
+    
+    key = ipar.reference
+    refname = regions.get(key)
+    refind = key
+    print()
+    print("Reference:", refname, refind)
+    keys = ipar.neighb
+    nneib = len(keys)
+    neib = [None]*nneib
+    neibind = keys
+    print()
+    print("Neighbours")
+    for i, key in enumerate(keys):
+        neib[i]=network.regions.get(key)
+
+    print(neib, neibind)
+
+    title = network.domain+" "+network.subdomains+" Flux "+refname+" "
+    filename = mdyn.dump_dir+title.replace(" ", "_")
+    #neib_title = network.domain+" "+network.subdomains+" Mains Fluxes "+refname+" "
+    #neib_file = mdyn.dump_dir+neib_title.replace(" ", "_")
+
+    ndays = len(mdyn.days_all)
+    evolneib_in = np.zeros((nneib,ndays))
+    evolneib_out = np.zeros((nneib,ndays))
+    evoldiag = np.zeros(ndays)
+    evol_inall = np.zeros(ndays)
+    evol_outall = np.zeros(ndays)
+
+    days = []
+    #Loop for each day
+    for i, day in enumerate(mdyn.days_all):
+        day_str = day.strftime("%Y-%m-%d")
+        #print("Calculating on: ", i, day_str)
+        days.append(day_str)              
+        mat = mdyn.movemats[i]
+        evoldiag[i] = mat[refind,refind]
+        evol_inall[i] = sum(mat[refind,:])-evoldiag[i]
+        evol_outall[i] = sum(mat[: , refind])-evoldiag[i]
+
+        for j, ind in enumerate(neibind):
+            evolneib_in[j, i] = mat[refind, ind]
+            evolneib_out[j, i] = mat[ind, refind]  
+    
+    # Draw Plot
+    fig = plt.figure(figsize=(20,10), dpi= 300)
+    mycolors = ['tab:red', 'tab:blue', 'tab:green', 
+        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
+        'red', 'steelblue', 'firebrick', 'mediumseagreen']      
+
+    lab = "INTERNAS A "+refname
+    #plt.plot(mdyn.days_all, evoldiag, color=mycolors[0], linewidth=3, label=lab)
+    dates_ma = mdyn.days_all[6:]
+    evol_ma = mex.moving_average(evoldiag)
+    evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
+    plt.plot(dates_ma, evol_ma, color=mycolors[0], linewidth=4, label=lab)
+    #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1], lab, fontsize=14, color=mycolors[0])
+    
+    data = {"Data": dates_ma, lab: evol_ma }
+
+    lab = "SAINDO DE "+refname
+    #plt.plot(mdyn.days_all, evoldiag, color=mycolors[0], linewidth=3, label=lab)
+    evol_ma = mex.moving_average(evol_outall)
+    evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
+    plt.plot(dates_ma, evol_ma-evol_ma[0], color=mycolors[1], linewidth=4, label=lab)
+    #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1]+1, lab, fontsize=14, color=mycolors[1])
+    
+    data[lab]=evol_ma
+
+    lab = "ENTRANDO EM "+refname
+    #plt.plot(mdyn.days_all, evoldiag, color=mycolors[0], linewidth=3, label=lab)
+    evol_ma = mex.moving_average(evol_inall)
+    evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
+    plt.plot(dates_ma, evol_ma, color=mycolors[2], linewidth=4, label=lab)
+    #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1]-1, lab, fontsize=14, color=mycolors[2])
+    data[lab]=evol_ma
+
+    texts = []
+    for k, nb in enumerate(neib):
+        lab_out = refname+"->"+nb
+        lab_in = refname+"<-"+nb
+        evol=evolneib_in[k, :]
+        evol_ma = mex.moving_average(evol)
+        evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
+        plt.plot(dates_ma, evol_ma, color=mycolors[3+k], linewidth=1, label=lab_in, linestyle="--")
+        texts.append(plt.text(dates_ma[-1]+timedelta(days=7), 
+            evol_ma[-1], nb, fontsize=10, color=mycolors[3+k], alpha=0.5))
+        evol=evolneib_out[k, :]
+        evol_ma = mex.moving_average(evol)
+        evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
+        plt.plot(dates_ma, evol_ma, color=mycolors[3+k], linewidth=1, label=lab_out, linestyle="-.")
+        #plt.text(dates_ma[-1]+timedelta(days=1), evol_ma[-1], lab_out, fontsize=14, color=mycolors[3+k])
+        data[nb]=evol_ma
+
+    plt.legend(loc='best', fontsize=12)
+
+    #fancy stuff
+    ax = plt.gca()
+
+    ax.yaxis.get_offset_text().set_fontsize(14)
+    ax.set_ylabel('Variação de viagens', fontsize=14)
+    ax.yaxis.set_major_formatter(mtick.PercentFormatter())
+    #plt.ticklabel_format(axis="y", style="plain", scilimits=(0,0))
+    #plt.yscale('log')
+    plt.yticks(fontsize=14, alpha=.7)
+
+    plt.xlim(dates_ma[0], dates_ma[-1]+timedelta(days=10))
+    xtick_location = mdyn.days_all[::7]
+    xtick_labels = days[::7]
+    xtick_location.append(xtick_location[-1]++timedelta(days=7))
+    xtick_labels.append("")
+    plt.xticks(ticks=xtick_location, labels=xtick_labels, ha="right", rotation=45, fontsize=15) #, alpha=.7)
+    
+    plt.title(refname, fontsize=16)
+
+    plt.grid(axis='both', alpha=.3)
+    plt.gca().spines["top"].set_alpha(0.0)    
+    plt.gca().spines["bottom"].set_alpha(0.3)
+    plt.gca().spines["right"].set_alpha(0.0)    
+    plt.gca().spines["left"].set_alpha(0.3)   
+
+    ref_txt = "Semana de referência (média)\n"+days[0]+" a "+days[6]
+    plt.gcf().text(0.90, 0.05, ref_txt, fontsize=14, 
+        bbox=dict(facecolor='gray', alpha=0.3), horizontalalignment='center', 
+        verticalalignment='center', transform=ax.transAxes)
+
+    textstr = "Fonte:\n IME-USP/InLoco"
+    plt.gcf().text(0.98, -0.1, textstr, fontsize=12, horizontalalignment='center', 
+        verticalalignment='center', transform=ax.transAxes)
+
+    plt.tight_layout() 
+
+    adjust_text(texts, autoalign="y", only_move={'points': 'y',
+        'text':'xy', 'objects':'y'})
+    
+    #Save density plot to folder "dump"
+    plt.savefig(filename)
+    plt.close()
+    
+    print(data)
+    df = pd.DataFrame(data)
+    print(df)
+    df.to_csv(filename+".csv", sep=";")
+
+    return
+
 
 def map_move_mats(mdyn, network, ipar):
     print()

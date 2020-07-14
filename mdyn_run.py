@@ -75,6 +75,14 @@ if run_opt == 3:
     time_end = time.time()
     print("Execution time "+str(time_end-time_start)+" seconds")
 
+
+if run_opt == 4:
+    time_start = time.time()
+    mmat.statistics_move_mats(mdyn, network, ipar)
+    time_end = time.time()
+    print("Execution time "+str(time_end-time_start)+" seconds")
+
+
 if run_opt == 20:
     time_start = time.time()
     mmat.simulate_move_mats(mdyn, network, ipar)
