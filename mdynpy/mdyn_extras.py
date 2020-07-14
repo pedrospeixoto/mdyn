@@ -289,6 +289,11 @@ def distance_lat(lon, lat, lon1,lat1):
     signdistlat = np.sign(lat1-lat)
     return signdistlat*dist
 
+def moving_average(data_set, periods=7):
+    #central moving average
+    weights = np.ones(periods) / periods
+    return np.convolve(data_set, weights, mode='valid')
+
 
 #
 # General post processing functions
