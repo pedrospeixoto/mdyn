@@ -106,7 +106,7 @@ def statistics_move_mats(mdyn, network, ipar):
         'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
         'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple']      
 
-    ref_ndays = 7-1
+    ref_ndays = 7
 
     lab = "INTERNAS A "+refname
     #plt.plot(mdyn.days_all, evoldiag, color=mycolors[0], linewidth=3, label=lab)
@@ -150,7 +150,7 @@ def statistics_move_mats(mdyn, network, ipar):
     for k, nb in enumerate(neib):
         lab_out = refname+"->"+nb
         lab_in = refname+"<-"+nb
-        evol=evolneib_in[k, :]
+        evol = evolneib_in[k, :]
         evol_ma = mex.moving_average(evol)
         evol_ref = np.average(evol[0:ref_ndays])
         #evol_ref = evol_ma[0]
@@ -160,7 +160,7 @@ def statistics_move_mats(mdyn, network, ipar):
         texts.append(plt.text(dates_ma[-1]+timedelta(days=7), 
             evol_ma[-1], nb, fontsize=10, color=mycolors[3+k], alpha=0.5))
 
-        evol=evolneib_out[k, :]
+        evol = evolneib_out[k, :]
         evol_ma = mex.moving_average(evol)
         evol_ref = np.average(evol[0:ref_ndays])
         #evol_ref = evol_ma[0]
@@ -168,8 +168,8 @@ def statistics_move_mats(mdyn, network, ipar):
         #evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
         plt.plot(dates_ma, evol_ma, color=mycolors[3+k], linewidth=1, label=lab_out, linestyle="-.")
         #plt.text(dates_ma[-1]+timedelta(days=1), evol_ma[-1], lab_out, fontsize=14, color=mycolors[3+k])
-        data[nb]=evol_ma
-        dataraw[nb]=evol
+        data[nb] = evol_ma
+        dataraw[nb] = evol
 
     plt.legend(loc='best', fontsize=12, ncol=2)
 
