@@ -31,7 +31,7 @@ data_dir = "data/mobility_br_2020/"
 #data_dir = "data/triples_br_2020_04_17_proc/all/state0=São Paulo/"
 #data_dir = "data/triples_br_2020_04_17_proc/SP"
 date_ini = "2020-02-01"
-date_end = "2020-07-05"
+date_end = "2020-07-12"
 load_data = True
 
 #Isolation index
@@ -58,16 +58,6 @@ neighb = [134, 332, 351, 353, 362, 367]
 #-Fazenda Rio Grande
 #-Araucária
 #-Almirante Tamandaré
-
-date_ini_pand_pre = "2020-03-22"
-date_end_pand_pre = "2020-03-28"
-date_ini_pand_ini = "2020-03-22"
-date_end_pand_ini = "2020-03-28"
-date_ini_pand_mid = "2020-03-22"
-date_end_pand_mid = "2020-03-28"
-date_ini_pand_rec = "2020-03-22"
-date_end_pand_rec = "2020-03-28"
-
 
 #-----------------------------
 # Simulation configuration
