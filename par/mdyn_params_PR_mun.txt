@@ -52,7 +52,7 @@ zoom = [True, -24.6, -26.2, -50.5,-48.5, True, "RMCTBA"  ]
 #------------------------------
 reference = 355 #"CURITIBA"
 neighb = [134, 332, 351, 353, 362, 367]
-nneighb = 3 # based on population. plus list above
+nneighb = 200 # based on population. plus list above
 
 #Colombo
 #-Pinhais
