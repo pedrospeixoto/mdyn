@@ -22,6 +22,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.ticker as mtick
 from adjustText import adjust_text
 from matplotlib import patches
+import seaborn as sns
 
 
 from mdynpy.mdyn_map import Map
@@ -132,10 +133,14 @@ def statistics_move_mats(mdyn, network, ipar):
     
     data = {"Data": dates_ma, lab: evol_ma }
     dataraw = {"Data": mdyn.days_all, lab: evoldiag }
+    dataraw_in = {"Data": dates_ma}
+    dataraw_out = {"Data": dates_ma}
 
     lab = "SAINDO DE "+refname
     #plt.plot(mdyn.days_all, evoldiag, color=mycolors[0], linewidth=3, label=lab)
     evol_ma = mex.moving_average(evol_outall)
+    dataraw_out[refname]=evol_ma
+
     evol_ref = np.average(evol_outall[0:ref_ndays])
     #evol_ref = evol_ma[0]
     evol_ma = 100*(evol_ma - evol_ref)/evol_ref
@@ -145,10 +150,12 @@ def statistics_move_mats(mdyn, network, ipar):
     
     data[lab]=evol_ma
     dataraw[lab]=evol_outall
-
+    
     lab = "ENTRANDO EM "+refname
     #plt.plot(mdyn.days_all, evoldiag, color=mycolors[0], linewidth=3, label=lab)
     evol_ma = mex.moving_average(evol_inall)
+    dataraw_in[refname]=evol_ma
+
     evol_ref = np.average(evol_inall[0:ref_ndays])
     #evol_ref = evol_ma[0]
     evol_ma = 100*(evol_ma - evol_ref)/evol_ref
@@ -157,6 +164,7 @@ def statistics_move_mats(mdyn, network, ipar):
     #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1]-1, lab, fontsize=14, color=mycolors[2])
     data[lab]=evol_ma
     dataraw[lab]=evol_inall
+    
 
     texts = []
     k = 0
@@ -165,12 +173,14 @@ def statistics_move_mats(mdyn, network, ipar):
         lab_in = refname+"<-"+nb
         evol = evolneib_in[ki, :]
 
-        if np.amin(evol) < 1500:
+        if np.amin(evol) < 50:
             print("Warning: City with small number of trips, removing ", nb)
             continue
 
         k = k +1
         evol_ma = mex.moving_average(evol)
+        dataraw_in[nb] = evol_ma
+
         evol_ref = np.average(evol[0:ref_ndays])
         #evol_ref = evol_ma[0]
         evol_ma = 100*(evol_ma - evol_ref)/evol_ref
@@ -181,9 +191,11 @@ def statistics_move_mats(mdyn, network, ipar):
 
         data["de "+nb] = evol_ma
         dataraw["de "+nb] = evol
-
+        
         evol = evolneib_out[ki, :]
         evol_ma = mex.moving_average(evol)
+        dataraw_out[nb] = evol_ma
+
         evol_ref = np.average(evol[0:ref_ndays])
         #evol_ref = evol_ma[0]
         evol_ma = 100*(evol_ma - evol_ref)/evol_ref
@@ -193,6 +205,7 @@ def statistics_move_mats(mdyn, network, ipar):
 
         data["para "+nb] = evol_ma
         dataraw["para "+nb] = evol
+        
 
     plt.legend(loc='best', fontsize=12, ncol=2)
 
@@ -238,17 +251,63 @@ def statistics_move_mats(mdyn, network, ipar):
     
     #Save density plot to folder "dump"
     plt.savefig(filename+"evol.jpg", dpi=400)
-    plt.savefig(filename+"evol.tiff", dpi=200)
+    #plt.savefig(filename+"evol.tiff", dpi=200)
     plt.close()
     
-    df = pd.DataFrame(dataraw)
-    df.to_csv(filename+"raw.csv", sep=";")
-    df.to_excel(filename+"raw.xls")
+    #-----------save dataframes -----------------------#
 
-    df = pd.DataFrame(data)
-    df.to_csv(filename+"percent.csv", sep=";")
-    df.to_excel(filename+"percent.xls")
+    df_raw = pd.DataFrame(dataraw)
+    #df.to_csv(filename+"raw.csv", sep=";")
+    df_raw.to_excel(filename+"raw.xls")
 
+    df_perc = pd.DataFrame(data)
+    #df.to_csv(filename+"percent.csv", sep=";")
+    df_perc.to_excel(filename+"percent.xls")
+
+    #-----------stack plot -----------------------#
+
+    fig, ax = plt.subplots(2, 1, figsize=(20,10), dpi= 300)
+
+    # Data in
+    df_tmp = pd.DataFrame(dataraw_in)
+    df_tmp['OUTROS'] = df_tmp.drop(['Data', refname], axis=1).sum(axis=1)
+    df_tmp = df_tmp.drop([refname], axis=1)
+    df_tmp = df_tmp.iloc[:, ::-1]
+    ax[0] = df_tmp.plot.area(x='Data', ax=ax[0], alpha=0.5, legend=True)
+    ax[0].set_ylabel('VIAGENS PARA '+refname, fontsize=14)
+    handles, labels = ax[0].get_legend_handles_labels()
+    ax[0].legend(handles[::-1], labels[::-1], bbox_to_anchor=(1.00, 1.00))
+
+    df_tmp = pd.DataFrame(dataraw_out)
+    df_tmp['OUTROS'] = df_tmp.drop(['Data', refname], axis=1).sum(axis=1)
+    df_tmp = df_tmp.drop([refname], axis=1)
+    df_tmp = df_tmp.iloc[:, ::-1]
+    ax[1] = df_tmp.plot.area(x='Data', ax=ax[1], alpha=0.5, legend=False)
+    ax[1].set_ylabel('VIAGENS DE '+refname, fontsize=14)
+    #handles, labels = ax[0].get_legend_handles_labels()
+    #ax[1].legend(handles[::-1], labels[::-1], bbox_to_anchor=(1.02, 1.00))
+
+    for i in range(2):
+        ax[i].yaxis.get_offset_text().set_fontsize(14)
+        ax[i].set_xlabel(' ')
+        ax[i].tick_params(axis='both', which='major', labelsize=14)
+        ax[i].tick_params(axis='both', which='minor', labelsize=10)
+        #ax[0].yaxis.set_major_formatter(mtick.PercentFormatter())
+        ax[i].yaxis.get_major_formatter().set_powerlimits((0, 1))
+        #plt.ticklabel_format(axis="y", style="sci", scilimits=(0,0))
+        #ax[i].yticks(fontsize=14, alpha=.7)
+        ax[i].spines["top"].set_alpha(0.0)    
+        ax[i].spines["bottom"].set_alpha(0.3)
+        ax[i].spines["right"].set_alpha(0.0)    
+        ax[i].spines["left"].set_alpha(0.3)   
+
+    textstr = "Fonte:\n IME-USP/InLoco"
+    plt.gcf().text(1.10, -0.1, textstr, fontsize=12, horizontalalignment='center', 
+        verticalalignment='center', transform=ax[1].transAxes)
+
+    plt.tight_layout() 
+    plt.savefig(filename+"stack_evol.jpg", dpi=400)
+    
     return
 
 
