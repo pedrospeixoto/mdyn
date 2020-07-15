@@ -173,7 +173,7 @@ def statistics_move_mats(mdyn, network, ipar):
         lab_in = refname+"<-"+nb
         evol = evolneib_in[ki, :]
 
-        if np.amin(evol) < 500:
+        if np.amin(evol) < 50:
             print("Warning: City with small number of trips, removing ", nb)
             continue
 
@@ -274,16 +274,16 @@ def statistics_move_mats(mdyn, network, ipar):
     df_tmp = df_tmp.drop([refname], axis=1)
     df_tmp = df_tmp.iloc[:, ::-1]
     ax[0] = df_tmp.plot.area(x='Data', ax=ax[0], alpha=0.5, legend=True)
-    ax[0].set_ylabel('viagens de '+refname, fontsize=14)
+    ax[0].set_ylabel('VIAGENS PARA '+refname, fontsize=14)
     handles, labels = ax[0].get_legend_handles_labels()
-    ax[0].legend(handles[::-1], labels[::-1], bbox_to_anchor=(1.02, 1.00))
+    ax[0].legend(handles[::-1], labels[::-1], bbox_to_anchor=(1.00, 1.00))
 
     df_tmp = pd.DataFrame(dataraw_out)
     df_tmp['OUTROS'] = df_tmp.drop(['Data', refname], axis=1).sum(axis=1)
     df_tmp = df_tmp.drop([refname], axis=1)
     df_tmp = df_tmp.iloc[:, ::-1]
     ax[1] = df_tmp.plot.area(x='Data', ax=ax[1], alpha=0.5, legend=False)
-    ax[1].set_ylabel('viagens para '+refname, fontsize=14)
+    ax[1].set_ylabel('VIAGENS DE '+refname, fontsize=14)
     #handles, labels = ax[0].get_legend_handles_labels()
     #ax[1].legend(handles[::-1], labels[::-1], bbox_to_anchor=(1.02, 1.00))
 
@@ -295,7 +295,6 @@ def statistics_move_mats(mdyn, network, ipar):
         #ax[0].yaxis.set_major_formatter(mtick.PercentFormatter())
         ax[i].yaxis.get_major_formatter().set_powerlimits((0, 1))
         #plt.ticklabel_format(axis="y", style="sci", scilimits=(0,0))
-        #plt.yscale('log')
         #ax[i].yticks(fontsize=14, alpha=.7)
         ax[i].spines["top"].set_alpha(0.0)    
         ax[i].spines["bottom"].set_alpha(0.3)
