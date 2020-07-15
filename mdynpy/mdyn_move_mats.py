@@ -54,6 +54,7 @@ def statistics_move_mats(mdyn, network, ipar):
     nneib_pop = ipar.nneighb
 
     pop=np.array(network.reg_pop)
+    pop_ref = pop[refind]
     ipop=list(pop.argsort()[-nneib_pop:][::-1])
     if refind in ipop:
         ipop.remove(refind)
@@ -73,7 +74,7 @@ def statistics_move_mats(mdyn, network, ipar):
 
     print(neib, neibind)
 
-    title = network.domain+" "+network.subdomains+" Flux "+refname+" "
+    title = network.domain+" "+network.subdomains+" Mobility "+refname+" "
     filename = mdyn.dump_dir+title.replace(" ", "_")
     #neib_title = network.domain+" "+network.subdomains+" Mains Fluxes "+refname+" "
     #neib_file = mdyn.dump_dir+neib_title.replace(" ", "_")
@@ -102,9 +103,20 @@ def statistics_move_mats(mdyn, network, ipar):
     
     # Draw Plot
     fig = plt.figure(figsize=(20,10), dpi= 300)
-    mycolors = ['tab:red', 'tab:blue', 'tab:green', 
+    mycolors = [
+        'tab:red', 'tab:blue', 'tab:green', 
         'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
-        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple']      
+        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
+        'tab:red', 'tab:blue', 'tab:green', 
+        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
+        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
+        'tab:red', 'tab:blue', 'tab:green', 
+        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
+        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
+        'tab:red', 'tab:blue', 'tab:green', 
+        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
+        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
+        ]      
 
     ref_ndays = 7
 
@@ -147,10 +159,17 @@ def statistics_move_mats(mdyn, network, ipar):
     dataraw[lab]=evol_inall
 
     texts = []
-    for k, nb in enumerate(neib):
+    k = 0
+    for ki, nb in enumerate(neib):
         lab_out = refname+"->"+nb
         lab_in = refname+"<-"+nb
-        evol = evolneib_in[k, :]
+        evol = evolneib_in[ki, :]
+
+        if np.amin(evol) < 1500:
+            print("Warning: City with small number of trips, removing ", nb)
+            continue
+
+        k = k +1
         evol_ma = mex.moving_average(evol)
         evol_ref = np.average(evol[0:ref_ndays])
         #evol_ref = evol_ma[0]
@@ -160,7 +179,10 @@ def statistics_move_mats(mdyn, network, ipar):
         texts.append(plt.text(dates_ma[-1]+timedelta(days=7), 
             evol_ma[-1], nb, fontsize=10, color=mycolors[3+k], alpha=0.5))
 
-        evol = evolneib_out[k, :]
+        data["de "+nb] = evol_ma
+        dataraw["de "+nb] = evol
+
+        evol = evolneib_out[ki, :]
         evol_ma = mex.moving_average(evol)
         evol_ref = np.average(evol[0:ref_ndays])
         #evol_ref = evol_ma[0]
@@ -168,8 +190,9 @@ def statistics_move_mats(mdyn, network, ipar):
         #evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
         plt.plot(dates_ma, evol_ma, color=mycolors[3+k], linewidth=1, label=lab_out, linestyle="-.")
         #plt.text(dates_ma[-1]+timedelta(days=1), evol_ma[-1], lab_out, fontsize=14, color=mycolors[3+k])
-        data[nb] = evol_ma
-        dataraw[nb] = evol
+
+        data["para "+nb] = evol_ma
+        dataraw["para "+nb] = evol
 
     plt.legend(loc='best', fontsize=12, ncol=2)
 
@@ -186,7 +209,7 @@ def statistics_move_mats(mdyn, network, ipar):
     plt.xlim(dates_ma[0], dates_ma[-1]+timedelta(days=10))
     xtick_location = mdyn.days_all[::7]
     xtick_labels = days[::7]
-    xtick_location.append(xtick_location[-1]++timedelta(days=7))
+    xtick_location.append(xtick_location[-1]+timedelta(days=7))
     xtick_labels.append("")
     plt.xticks(ticks=xtick_location, labels=xtick_labels, ha="right", rotation=45, fontsize=15) #, alpha=.7)
     
@@ -198,8 +221,9 @@ def statistics_move_mats(mdyn, network, ipar):
     plt.gca().spines["right"].set_alpha(0.0)    
     plt.gca().spines["left"].set_alpha(0.3)   
 
-    ref_txt = "Referência (média)\n"+days[0]+" a "+days[ref_ndays]
-    plt.gcf().text(0.90, 0.05, ref_txt, fontsize=14, 
+    ref_txt = "Referência (média)\n"+days[0]+" a "+days[ref_ndays-1]
+    #plt.gcf().text(0.90, 0.05, ref_txt, fontsize=14, 
+    plt.gcf().text(0.1, 0.05, ref_txt, fontsize=14, 
         bbox=dict(facecolor='gray', alpha=0.3), horizontalalignment='center', 
         verticalalignment='center', transform=ax.transAxes)
 
@@ -213,15 +237,17 @@ def statistics_move_mats(mdyn, network, ipar):
         'text':'y', 'objects':'y'})
     
     #Save density plot to folder "dump"
-    plt.savefig(filename+".jpg", dpi=400)
-    #plt.savefig(filename+".tiff", dpi=200)
+    plt.savefig(filename+"evol.jpg", dpi=400)
+    plt.savefig(filename+"evol.tiff", dpi=200)
     plt.close()
     
     df = pd.DataFrame(dataraw)
     df.to_csv(filename+"raw.csv", sep=";")
+    df.to_excel(filename+"raw.xls")
 
     df = pd.DataFrame(data)
     df.to_csv(filename+"percent.csv", sep=";")
+    df.to_excel(filename+"percent.xls")
 
     return
 
