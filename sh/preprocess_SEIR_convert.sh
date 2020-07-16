@@ -24,7 +24,7 @@ find /storage/ShinyApps/seircovid19 -type f -iname '*.csv' -delete;
 find /storage/ShinyApps/seircovid19 -type f -iname '*.mp4' -delete;
 
 #Convert files in main directory and delete pdf
-mogrify -density 200 -quality 100 -format png ./*.pdf;
+mogrify -density 400 -quality 100 -format png ./*.pdf;
 find . -maxdepth 1 -type f -iname "*.pdf" -delete;
 find . -maxdepth 1 -type f -iname "*.png" -exec cp {} /storage/ShinyApps/seircovid19/www/ \; &
 
