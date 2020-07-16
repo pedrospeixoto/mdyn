@@ -8,6 +8,7 @@ domain_shape = "maps/UFEBRASIL/UFEBRASIL"
 subdomains = "Municip"
 subdomains_gran = "NM_MUNICIP"
 subdomains_shape = "maps/go_municipios/52MUE250GC_SIR"
+#subdomains_shape = "maps/go_df_municipios/ShapeGO+DF"
 
 #Population
 domain_pop = "maps/population/population_ufebrasil.csv"
