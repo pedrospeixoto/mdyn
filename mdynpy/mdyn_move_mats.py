@@ -71,7 +71,7 @@ def statistics_move_mats(mdyn, network, ipar):
 
     print("Neighbours")
     for i, key in enumerate(keys):
-        neib[i]=network.regions.get(key)
+        neib[i]=regions.get(key)
 
     print(neib, neibind)
 
