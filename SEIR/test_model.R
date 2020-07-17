@@ -19,9 +19,9 @@ test_model <- function(D,I,teste_D,teste_I,drs,init_validate,end_validate){
   D <- merge(D,teste_D$DRS)
   D$dif <- (D$D_pred - D$D_drs)/D$D_drs
   D <- D %>% filter(DRS != "0")
-  dif_D <- max(c(quantile(abs(D$dif)[D$D_drs > 100],0.95),quantile(abs(Dcity),0.95)))
+  dif_D <- max(c(quantile(abs(D$dif)[D$D_drs > 100],0.9),quantile(abs(Dcity),0.9)))
   D <- D %>% filter(D_drs > 100)
-  D <- c(D$dif[D$dif < quantile(D$dif,0.95)],Dcity[Dcity < quantile(Dcity,0.95)])
+  D <- c(D$dif[D$dif < quantile(D$dif,0.9)],Dcity[Dcity < quantile(Dcity,0.9)])
 
   #Cases in DRSs
   colnames(I) <- par$names
