@@ -30,8 +30,8 @@ data_format = "Parquet" #"ORC"
 data_dir = "data/mobility_br_2020/"
 #data_dir = "data/triples_br_2020_04_17_proc/all/state0=São Paulo/"
 #data_dir = "data/triples_br_2020_04_17_proc/SP"
-date_ini = "2020-02-01"
-date_end = "2020-07-10"
+date_ini = "2020-07-01"
+date_end = "2020-07-12"
 load_data = True
 
 #Isolation index
@@ -44,6 +44,9 @@ num_source = 1
 #-----------------------------
 # Slicing/Zoom
 #------------------------------
+
+filter = [False, "list", 0 ]
+
         #Flag, lats, lons, drawsubdomains, label
 zoom = [False, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ]
 
