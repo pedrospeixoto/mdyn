@@ -52,9 +52,10 @@ zoom = [False, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ]
 #------------------------------
 #reference = 262 #559 # 271  # 268 #"SÃO PAULO"
 reference = 268 #"SÃO PAULO"
-neighb = [336, 84, 268, 257, 432, 583, 382, 271, 620, 507]
+neighb = [268]
+#neighb = [336, 84, 268, 257, 432, 583, 382, 271, 620, 507]
 #neighb = [268, 271, 319, 559, 114, 620, 262]
-nneighb = 600 # based on population. plus list above
+nneighb = 30 # based on population. plus list above
 
 #-----------------------------
 # Simulation configuration

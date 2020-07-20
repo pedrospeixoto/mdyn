@@ -43,12 +43,15 @@ isoind_file = "data/isol_br/Social Distancing Index by Cities2020-07-14.csv"
 #------------------------------
 
 #Filter based on population (pop) given a max number of cities 
-filter = [True, "pop", 50 ]
+#filter = [True, "pop", 50 ]
+filter = [True, "list", 0 ]
+filter_list = [66, 1696, 303, 111, 2162, 949, 5569,3174,5417,635,5219,1665,2309,169,1337,
+      4005,1596,882,3242,1163,4931,16,138,4398,3829,1754,443]
 
  #Flag, lats, lons, drawsubdomains, label
 zoom =[
    #    [False, -15, -34, -60, -40, False, "BRA"  ],
-         [True, 5, -35, -75, -32, False, "BRA"  ],
+         [True, 6, -37, -75, -31, False, "BRA"  ],
    #     [True, 0, -15, -50,-34, False, "Nordeste"  ],
    #     [True, -5, -15, -40,-34, False, "NordesteLitoral"  ],
    #     [True, -15, -34, -60,-40, False, "Sul-Sudeste"  ],
@@ -72,9 +75,13 @@ zoom =[
 #------------------------------
 #reference = 262 #559 # 271  # 268 #"SÃO PAULO"
 reference = 3829 #"SÃO PAULO"
-neighb = [3829] 
+#neighb = [3829] 
 #neighb = [268, 271, 319, 559, 114, 620, 262]
-nneighb = 600 # based on population. plus list above
+#capitais
+neighb = [66, 1696, 303, 111, 2162, 949, 5569,3174,5417,635,5219,1665,2309,169,1337,
+      4005,1596,882,3242,1163,4931,16,138,4398,3829,1754,443]
+
+nneighb = 1 # based on population. plus list above
 
 #-----------------------------
 # Simulation configuration
