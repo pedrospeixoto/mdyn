@@ -182,7 +182,7 @@ def statistics_move_mats(mdyn, network, ipar):
         lab_in = refname+"<-"+nb
         evol = evolneib_in[ki, :]
 
-        if np.average(evol) < 100:
+        if np.average(evol) < 5:
             print("Warning: City with small number of trips, removing ", nb)
             continue
 
