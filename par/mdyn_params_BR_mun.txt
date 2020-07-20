@@ -28,8 +28,8 @@ load_domain = True #Load precomp structures
 #Initialize mobile data and load data to dataframe
 data_format = "Parquet" #"ORC"
 data_dir = "data/mobility_br_2020/"
-date_ini = "2020-06-06"
-date_end = "2020-06-06"
+date_ini = "2020-02-01"
+date_end = "2020-07-12"
 load_data = True
 
 #Number of main sources for plots
@@ -74,7 +74,7 @@ zoom =[
 reference = 3829 #"SÃO PAULO"
 neighb = [3829] 
 #neighb = [268, 271, 319, 559, 114, 620, 262]
-nneighb = 600 # based on population. plus list above
+nneighb = 40 # based on population. plus list above
 
 #-----------------------------
 # Simulation configuration
