@@ -539,7 +539,7 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
           strip.text = element_text(size = 20,face = "bold",color = "white")) +
     labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
     ggtitle(paste("Curva epidemiológica prevista para o Estado de São Paulo"))
-  pdf(file = paste("/storage/SEIR/",pos,"/SP_EPcurve_predicted_MEDIAN_",pos,".pdf",sep = ""),
+  pdf(file = paste("/storage/SEIR/",pos,"/SP_EPcurve_predicted_MEDIAN.pdf",sep = ""),
       width = 15,height = 10)
   suppressWarnings(suppressMessages(print(p))) #Save plot
   dev.off()
@@ -593,7 +593,7 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
           strip.text = element_text(size = 20,face = "bold",color = "white")) +
     labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
     ggtitle(paste("Curva epidemiológica prevista para o Estado de São Paulo"))
-  pdf(file = paste("/storage/SEIR/",pos,"/SP_EPcurve_predicted_",pos,".pdf",sep = ""),
+  pdf(file = paste("/storage/SEIR/",pos,"/SP_EPcurve_predicted.pdf",sep = ""),
       width = 15,height = 10)
   suppressWarnings(suppressMessages(print(p))) #Save plot
   dev.off()
