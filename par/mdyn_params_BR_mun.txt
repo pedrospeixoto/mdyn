@@ -28,8 +28,8 @@ load_domain = True #Load precomp structures
 #Initialize mobile data and load data to dataframe
 data_format = "Parquet" #"ORC"
 data_dir = "data/mobility_br_2020/"
-date_ini = "2020-07-03"
-date_end = "2020-07-12"
+date_ini = "2020-06-06"
+date_end = "2020-06-06"
 load_data = True
 
 #Number of main sources for plots
@@ -41,20 +41,24 @@ isoind_file = "data/isol_br/Social Distancing Index by Cities2020-07-14.csv"
 #-----------------------------
 # Slicing/Zoom
 #------------------------------
- #Flag, lats, lons, drawsubdomains, label
 
+#Filter based on population (pop) given a max number of cities 
+filter = [True, "pop", 50 ]
+
+ #Flag, lats, lons, drawsubdomains, label
 zoom =[
-       [False, -15, -34, -60, -40, False, "BRA"  ],
-       [True, 0, -15, -50,-34, False, "Nordeste"  ],
-        [True, -5, -15, -40,-34, False, "NordesteLitoral"  ],
-       [True, -15, -34, -60,-40, False, "Sul-Sudeste"  ],
-       [True, -10, -25, -60,-40, False, "Centro-Sudeste"  ],
-        [True, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ],
-        [True, -24.6, -26.2, -50.5,-48.5, True, "RMCTBA"  ],
-        [True, -23.5,-22.2, -42.0, -45.0, True, "RMRJ"  ],
-        [True, -17.4, -15.0, -47.0,-50.0, True, "RMGO"  ],
-        [True, -19.8, -25.5, -52.25,-43, True, "SP"  ],
-        [True, -3.0, -10, -43.0,-34, True, "CE_RN_PB_PE"  ]
+   #    [False, -15, -34, -60, -40, False, "BRA"  ],
+         [True, 5, -35, -75, -32, False, "BRA"  ],
+   #     [True, 0, -15, -50,-34, False, "Nordeste"  ],
+   #     [True, -5, -15, -40,-34, False, "NordesteLitoral"  ],
+   #     [True, -15, -34, -60,-40, False, "Sul-Sudeste"  ],
+   #     [True, -10, -25, -60,-40, False, "Centro-Sudeste"  ],
+   #     [True, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ],
+   #     [True, -24.6, -26.2, -50.5,-48.5, True, "RMCTBA"  ],
+   #     [True, -23.5,-22.2, -42.0, -45.0, True, "RMRJ"  ],
+   #     [True, -17.4, -15.0, -47.0,-50.0, True, "RMGO"  ],
+   #     [True, -19.8, -25.5, -52.25,-43, True, "SP"  ],
+   #     [True, -3.0, -10, -43.0,-34, True, "CE_RN_PB_PE"  ]
 ]
 
 #zoom = [False, -15, -34, -60,-40, False, "Sul-Sudeste"  ]
