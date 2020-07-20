@@ -103,9 +103,7 @@ class Network:
         self.build_grid_network()
 
         #Load regions' populations
-
         #self.load_pop()
-
         try:
             self.load_pop()
         except:
@@ -1088,6 +1086,7 @@ class Network:
             #print(reg_collect)
         
         return mat, mat_normed, self.regions_in
+
 
     def load_pop(self):
         print("Loading regions' populations....", end="")

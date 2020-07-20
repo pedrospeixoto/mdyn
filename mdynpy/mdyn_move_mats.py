@@ -22,6 +22,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.ticker as mtick
 from adjustText import adjust_text
 from matplotlib import patches
+
 import seaborn as sns
 
 
@@ -35,7 +36,7 @@ def statistics_move_mats(mdyn, network, ipar):
     print("Statistics of move mats:")
     #Get movement matrices
     mdyn.collect_move_mat(network)
-
+    
     if network.domain_abrv == "BRA":
         #BRA uses geocodes, so get city names
         regions = network.regions_in_names
@@ -56,7 +57,7 @@ def statistics_move_mats(mdyn, network, ipar):
 
     pop=np.array(network.reg_pop)
     pop_ref = pop[refind]
-    ipop=list(pop.argsort()[-nneib_pop:][::-1])
+    ipop = list(pop.argsort()[-nneib_pop:][::-1])
     if refind in ipop:
         ipop.remove(refind)
     
@@ -341,7 +342,18 @@ def map_move_mats(mdyn, network, ipar):
             #Filter state
             df_iso = df_iso[df_iso['reg_name'].isin(regions.values())]
 
-        mat = mdyn.movemats[i]
+        #filter if set up
+        if ipar.filter[0]:
+            mat = mdyn.movemats[i]
+            if ipar.filter[1] == "pop":
+                npop = ipar.filter[2]
+                pop=np.array(network.reg_pop)
+                ipop=list(pop.argsort()[-npop:][::-1])
+                print(ipop)
+                filter_list=ipop
+        else:
+            mat = mdyn.movemats[i]
+
         reg_iso = np.zeros([network.nreg_in])
         for reg in range(network.nreg_in):
             region = regions.get(reg)
@@ -371,14 +383,14 @@ def map_move_mats(mdyn, network, ipar):
             title = title + day.strftime("%Y-%m-%d")+" "+dow
             filename = filename + day.strftime("%Y-%m-%d")+".jpg"
 
-            map=Map(network, zoom)
-            map.map_network_data(reg_iso, mat, regions, title, filename)
+            #map=Map(network, zoom)
+            #map.map_network_data(reg_iso, mat, regions, title, filename)
     
             map=Map(network, zoom)
-            map.map_network_flux(mat, regions, title, filename.replace("Network", "Network_Flux"))
+            map.map_network_flux(mat, regions, title, filename.replace("Network", "Network_Flux"), edge_filter=filter_list)
 
-            map=Map(network, zoom)
-            map.map_data_on_network(reg_iso, mat, regions, title, filename.replace("Network", "Network_Iso"))
+            #map=Map(network, zoom)
+            #map.map_data_on_network(reg_iso, mat, regions, title, filename.replace("Network", "Network_Iso"))
 
         print("done date.")
         print()
