@@ -16,6 +16,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy import stats
 import scipy
 
+import geopandas as gpd
+
 import networkx as nx
 
 from itertools import product
@@ -32,7 +34,7 @@ class Map:
     def __init__(self, network, zoom=[False, 0, 0, 0, 0, False]): 
         
         #Init the figure
-        linewidth=0.8
+        linewidth=0.5
         
         if zoom[0]:
             factor = 1.0e5
@@ -101,7 +103,22 @@ class Map:
         #map.drawmapboundary(fill_color='aqua')
         #map.fillcontinents(lake_color='aqua')
         map.drawmapboundary()
-        map.drawstates(color='k',linestyle='--', linewidth=0.2)
+        #map.drawstates(color='k',linestyle='--', linewidth=0.2)
+        df_states = gpd.read_file('maps/UFEBRASIL/UFEBRASIL.shp')
+        for geo in df_states.geometry:
+            poly = geo
+            if poly.geom_type == 'MultiPolygon':
+                # do multipolygon things.
+                for poly_local in list(poly):
+                    x, y = poly_local.exterior.coords.xy
+                    x, y = map(x, y)
+                    map.plot(x, y, marker=None, color='k',linestyle='-', linewidth=linewidth)
+            elif poly.geom_type == 'Polygon':
+            # do polygon things.          
+                x, y = poly.exterior.coords.xy
+                x, y = map(x, y)
+                map.plot(x, y, marker=None, color='k',linestyle='-', linewidth=linewidth)
+        
         if network.maxlats-network.minlats > 20: 
             map.drawparallels(np.arange(-50,10,5), labels=[True,False,False,False])
             map.drawmeridians(np.arange(-180,180,5), labels=[False,False,True,False])
@@ -111,6 +128,7 @@ class Map:
         else:
             map.drawparallels(np.arange(-50,10,1), labels=[True,False,False,False])
             map.drawmeridians(np.arange(-180,180,1), labels=[False,False,True,False])
+        
         map.ax = ax
         self.dom = network
         
@@ -129,7 +147,7 @@ class Map:
             x, y = map(x, y)
             map.plot(x, y, marker=None, color='k',linestyle='-', linewidth=linewidth)
         
-        if zoom[0]:
+        if zoom[5]:
             subdomain_geometry = network.df_subdomains.geometry
             for poly in subdomain_geometry:
                 if poly.geom_type == 'MultiPolygon':
@@ -155,7 +173,7 @@ class Map:
         self.dpi = 200
         self.max_dpi = 300
 
-
+    
     def map_density_data(self, lng, lat, title, filename):
         
         #Calculate 2d histogram
@@ -574,7 +592,7 @@ class Map:
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="3%", pad=0.05)
                 
-        sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r, norm=plt.Normalize(vmin=0, vmax=14))
+        sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r) #, norm=plt.Normalize(vmin=0, vmax=14))
         sm.set_array(edge_colors)
         
         cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')        
@@ -594,7 +612,7 @@ class Map:
         plt.savefig(filename, dpi=300)   
         plt.close()
 
-    def map_network_flux(self, mat, reg0, title, filename):
+    def map_network_flux(self, mat, reg0, title, filename, edge_filter=[]):
         
         network = self.dom
         
@@ -625,10 +643,23 @@ class Map:
         #Filer low flux edges:       
         #remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
         #if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
-        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 8] 
+        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 6] 
         #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
         G.remove_edges_from(remove)
-        
+
+        #remove edges based on filter
+        if len(edge_filter)>1:
+            nodes_keep = list(edge_filter)
+            nodes_remove = list(set(G.nodes) - set(edge_filter))
+            #print(nodes_remove)
+            #print(nodes_keep)
+            ed_remove = []
+            for node in nodes_remove:
+                ed=list(G.in_edges(node))+list(G.out_edges(node))
+                ed_remove=ed_remove+ed
+                
+            #print(ed_remove)
+            G.remove_edges_from(ed_remove)
         N = len(G)
         print("   Filtred Network len:", N)
         M = G.number_of_edges()
@@ -662,7 +693,7 @@ class Map:
         cax = divider.append_axes("right", size="3%", pad=0.05)
         
         
-        sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r, norm=plt.Normalize(vmin=0, vmax=14))
+        sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r) #, norm=plt.Normalize(vmin=3, vmax=14))
         sm.set_array(edge_colors)
         
         cbared = plt.colorbar(sm, cax=cax, label='Fluxo (log2 viagens/dia)')        

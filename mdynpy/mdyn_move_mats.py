@@ -22,6 +22,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.ticker as mtick
 from adjustText import adjust_text
 from matplotlib import patches
+
 import seaborn as sns
 
 
@@ -35,7 +36,7 @@ def statistics_move_mats(mdyn, network, ipar):
     print("Statistics of move mats:")
     #Get movement matrices
     mdyn.collect_move_mat(network)
-
+    
     if network.domain_abrv == "BRA":
         #BRA uses geocodes, so get city names
         regions = network.regions_in_names
@@ -56,7 +57,7 @@ def statistics_move_mats(mdyn, network, ipar):
 
     pop=np.array(network.reg_pop)
     pop_ref = pop[refind]
-    ipop=list(pop.argsort()[-nneib_pop:][::-1])
+    ipop = list(pop.argsort()[-nneib_pop:][::-1])
     if refind in ipop:
         ipop.remove(refind)
     
@@ -65,6 +66,8 @@ def statistics_move_mats(mdyn, network, ipar):
             ipop.remove(k)
 
     keys = keys + ipop
+    if refind in keys:
+        keys.remove(refind)
     neibind = keys
     nneib = len(keys)
     neib = [None]*nneib
@@ -117,19 +120,24 @@ def statistics_move_mats(mdyn, network, ipar):
         'tab:red', 'tab:blue', 'tab:green', 
         'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
         'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
+        'tab:red', 'tab:blue', 'tab:green', 
+        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
+        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
         ]      
 
     ref_ndays = 7
 
+    relative = False
     lab = "INTERNAS A "+refname
     #plt.plot(mdyn.days_all, evoldiag, color=mycolors[0], linewidth=3, label=lab)
     dates_ma = mdyn.days_all[6:]
     evol_ma = mex.moving_average(evoldiag)
     evol_ref = np.average(evoldiag[0:ref_ndays])
     #evol_ref = evol_ma[0]
-    evol_ma = 100*(evol_ma - evol_ref)/evol_ref
-    plt.plot(dates_ma, evol_ma, color=mycolors[0], linewidth=4, label=lab)
-    #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1], lab, fontsize=14, color=mycolors[0])
+    if relative:
+        evol_ma = 100*(evol_ma - evol_ref)/evol_ref
+        plt.plot(dates_ma, evol_ma, color=mycolors[0], linewidth=4, label=lab)
+        #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1], lab, fontsize=14, color=mycolors[0])
     
     data = {"Data": dates_ma, lab: evol_ma }
     dataraw = {"Data": mdyn.days_all, lab: evoldiag }
@@ -143,10 +151,11 @@ def statistics_move_mats(mdyn, network, ipar):
 
     evol_ref = np.average(evol_outall[0:ref_ndays])
     #evol_ref = evol_ma[0]
-    evol_ma = 100*(evol_ma - evol_ref)/evol_ref
-    #evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
-    plt.plot(dates_ma, evol_ma-evol_ma[0], color=mycolors[1], linewidth=4, label=lab)
-    #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1]+1, lab, fontsize=14, color=mycolors[1])
+    if relative:
+        evol_ma = 100*(evol_ma - evol_ref)/evol_ref
+        #evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
+        plt.plot(dates_ma, evol_ma, color=mycolors[1], linewidth=4, label=lab)
+        #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1]+1, lab, fontsize=14, color=mycolors[1])
     
     data[lab]=evol_ma
     dataraw[lab]=evol_outall
@@ -158,14 +167,14 @@ def statistics_move_mats(mdyn, network, ipar):
 
     evol_ref = np.average(evol_inall[0:ref_ndays])
     #evol_ref = evol_ma[0]
-    evol_ma = 100*(evol_ma - evol_ref)/evol_ref
-    #evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
-    plt.plot(dates_ma, evol_ma, color=mycolors[2], linewidth=4, label=lab)
-    #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1]-1, lab, fontsize=14, color=mycolors[2])
+    if relative:
+        evol_ma = 100*(evol_ma - evol_ref)/evol_ref
+        #evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
+        plt.plot(dates_ma, evol_ma, color=mycolors[2], linewidth=4, label=lab)
+        #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1]-1, lab, fontsize=14, color=mycolors[2])
     data[lab]=evol_ma
     dataraw[lab]=evol_inall
     
-
     texts = []
     k = 0
     for ki, nb in enumerate(neib):
@@ -173,7 +182,7 @@ def statistics_move_mats(mdyn, network, ipar):
         lab_in = refname+"<-"+nb
         evol = evolneib_in[ki, :]
 
-        if np.average(evol) < 50:
+        if np.average(evol) < 5:
             print("Warning: City with small number of trips, removing ", nb)
             continue
 
@@ -183,7 +192,8 @@ def statistics_move_mats(mdyn, network, ipar):
 
         evol_ref = np.average(evol[0:ref_ndays])
         #evol_ref = evol_ma[0]
-        evol_ma = 100*(evol_ma - evol_ref)/evol_ref
+        if relative:
+            evol_ma = 100*(evol_ma - evol_ref)/evol_ref
         #evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
         plt.plot(dates_ma, evol_ma, color=mycolors[3+k], linewidth=1, label=lab_in, linestyle="--")
         texts.append(plt.text(dates_ma[-1]+timedelta(days=7), 
@@ -198,7 +208,8 @@ def statistics_move_mats(mdyn, network, ipar):
 
         evol_ref = np.average(evol[0:ref_ndays])
         #evol_ref = evol_ma[0]
-        evol_ma = 100*(evol_ma - evol_ref)/evol_ref
+        if relative:
+            evol_ma = 100*(evol_ma - evol_ref)/evol_ref
         #evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
         plt.plot(dates_ma, evol_ma, color=mycolors[3+k], linewidth=1, label=lab_out, linestyle="-.")
         #plt.text(dates_ma[-1]+timedelta(days=1), evol_ma[-1], lab_out, fontsize=14, color=mycolors[3+k])
@@ -214,7 +225,8 @@ def statistics_move_mats(mdyn, network, ipar):
 
     ax.yaxis.get_offset_text().set_fontsize(14)
     ax.set_ylabel('viagens - média móvel semanal', fontsize=14)
-    ax.yaxis.set_major_formatter(mtick.PercentFormatter())
+    if relative:
+        ax.yaxis.set_major_formatter(mtick.PercentFormatter())
     #plt.ticklabel_format(axis="y", style="plain", scilimits=(0,0))
     #plt.yscale('log')
     plt.yticks(fontsize=14, alpha=.7)
@@ -234,11 +246,12 @@ def statistics_move_mats(mdyn, network, ipar):
     plt.gca().spines["right"].set_alpha(0.0)    
     plt.gca().spines["left"].set_alpha(0.3)   
 
-    ref_txt = "Referência (média)\n"+days[0]+" a "+days[ref_ndays-1]
-    #plt.gcf().text(0.90, 0.05, ref_txt, fontsize=14, 
-    plt.gcf().text(0.1, 0.05, ref_txt, fontsize=14, 
-        bbox=dict(facecolor='gray', alpha=0.3), horizontalalignment='center', 
-        verticalalignment='center', transform=ax.transAxes)
+    if relative:
+        ref_txt = "Referência (média)\n"+days[0]+" a "+days[ref_ndays-1]
+        #plt.gcf().text(0.90, 0.05, ref_txt, fontsize=14, 
+        plt.gcf().text(0.1, 0.05, ref_txt, fontsize=14, 
+            bbox=dict(facecolor='gray', alpha=0.3), horizontalalignment='center', 
+            verticalalignment='center', transform=ax.transAxes)
 
     textstr = "Fonte:\n IME-USP/InLoco"
     plt.gcf().text(0.98, -0.1, textstr, fontsize=12, horizontalalignment='center', 
@@ -342,6 +355,19 @@ def map_move_mats(mdyn, network, ipar):
             df_iso = df_iso[df_iso['reg_name'].isin(regions.values())]
 
         mat = mdyn.movemats[i]
+        #filter if set up
+        if ipar.filter[0]:
+            if ipar.filter[1] == "pop":
+                npop = ipar.filter[2]
+                pop=np.array(network.reg_pop)
+                ipop=list(pop.argsort()[-npop:][::-1])
+                print(ipop)
+                filter_list=ipop
+            if ipar.filter[1] == "list":
+                filter_list = ipar.filter_list
+        else:
+            filter_list=[]
+
         reg_iso = np.zeros([network.nreg_in])
         for reg in range(network.nreg_in):
             region = regions.get(reg)
@@ -371,14 +397,14 @@ def map_move_mats(mdyn, network, ipar):
             title = title + day.strftime("%Y-%m-%d")+" "+dow
             filename = filename + day.strftime("%Y-%m-%d")+".jpg"
 
-            map=Map(network, zoom)
-            map.map_network_data(reg_iso, mat, regions, title, filename)
+            #map=Map(network, zoom)
+            #map.map_network_data(reg_iso, mat, regions, title, filename)
     
             map=Map(network, zoom)
-            map.map_network_flux(mat, regions, title, filename.replace("Network", "Network_Flux"))
+            map.map_network_flux(mat, regions, title, filename.replace("Network", "Network_Flux"), edge_filter=filter_list)
 
-            map=Map(network, zoom)
-            map.map_data_on_network(reg_iso, mat, regions, title, filename.replace("Network", "Network_Iso"))
+            #map=Map(network, zoom)
+            #map.map_data_on_network(reg_iso, mat, regions, title, filename.replace("Network", "Network_Iso"))
 
         print("done date.")
         print()

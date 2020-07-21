@@ -15,6 +15,7 @@ from datetime import datetime
 from datetime import date
 from datetime import timedelta
 
+import networkx as nx
 #import calendar
 #import imp
 
@@ -139,9 +140,9 @@ class MobileDynamics:
         #Loop over days
         self.movemats = [] #List of matrices per day
         self.movemats_norm = [] #List of matrices per day
-        #self.movemats_reg0 = [] #Regions t0 (depart from)
-        #self.movemats_reg1 = [] #Regions t1 (arrive at)
         self.movemats_reg_names = [] #Regions names
+
+        self.graphs = [] #List of network graphs
 
         self.days_all = [] #List of dates per day
         self.dates_dirs = [] #directory of day data
@@ -171,11 +172,12 @@ class MobileDynamics:
             movemat, movemat_norm, names = network.collect_move_mat(local_dir) 
             self.movemats.append(movemat)
             self.movemats_norm.append(movemat_norm)
-            #self.movemats_reg0.append(np.genfromtxt(local_dir+name+'_reg0.csv').astype(int))
-            #self.movemats_reg1.append(np.genfromtxt(local_dir+name+'_reg1.csv').astype(int))
+
+            G = nx.from_numpy_matrix(movemat, create_using=nx.DiGraph)
+            self.graphs.append(G)
                 
             self.movemats_reg_names.append(names)
             print("Loaded matrix for :", day )
 
-        return movemat, movemat_norm, names
+        return 
             
