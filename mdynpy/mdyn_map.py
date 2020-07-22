@@ -573,11 +573,11 @@ class Map:
         #print(weights, maxw)
         edge_colors = weights #[2+M*(i+2)/maxw for i in weights] #100*weights #range(2, M + 2)
         edge_widths = 0.1+0.9*(weights/maxw)
-        edge_alphas = 0.3+(weights/maxw)*0.5
+        edge_alphas = 0.1+(weights/maxw)*0.4
     
         nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, 
             node_color=node_colors, with_labels=False, linewidths= 0.3, cmap=plt.cm.winter,
-            vmin=0.3, vmax=0.6)
+            vmin=0.35, vmax=0.55)
         edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
                                     arrowsize=5, edgelist=edges, edge_color=edge_colors,
                                     edge_cmap=plt.cm.hot_r, width=edge_widths,
@@ -592,16 +592,19 @@ class Map:
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="3%", pad=0.05)
                 
-        sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r) #, norm=plt.Normalize(vmin=0, vmax=14))
+        sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r, norm=plt.Normalize(vmin=0, vmax=14, clip=True))
         sm.set_array(edge_colors)
         
-        cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')        
-        
+        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')        
+        cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (viagens/dia)', ticks=[2, 7, 12])        
+        cbared.ax.set_yticklabels(["Baixo", "Médio", "Alto"], rotation="vertical")
 
         nodes.set_array(node_colors)
         cax = divider.append_axes("bottom", size="5%", pad=0.05)
-        cbarnodes = plt.colorbar(nodes, orientation="horizontal", cax=cax, label="Índice de Isolamento")
-        
+        cbarnodes = plt.colorbar(nodes, orientation="horizontal", cax=cax, label="Índice de Isolamento") #, ticks=[0.35, 0.45, 0.55])
+        #cnodes.ax.set_yticklabels(["35%", "45%", "55%"], rotation="vertical")
+
+
         if "datalake" in filename:
             textstr = "Fonte: IME-USP/COVID-Radar"
         else:
@@ -674,9 +677,10 @@ class Map:
         maxw = max(weights) #
 
         edge_colors = weights #[2+M*(i+2)/maxw for i in weights] #100*weights #range(2, M + 2)
+        #edge_widths = 0.2+0.7*(weights/maxw)
+        #edge_alphas = 0.4+(weights/maxw)*0.5
         edge_widths = 0.1+0.9*(weights/maxw)
-        edge_alphas = 0.4+(weights/maxw)*0.5
-
+        edge_alphas = 0.1+(weights/maxw)*0.4
 
         edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
                                     arrowsize=5, edgelist=edges, edge_color=edge_colors,
@@ -693,10 +697,12 @@ class Map:
         cax = divider.append_axes("right", size="3%", pad=0.05)
         
         
-        sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r) #, norm=plt.Normalize(vmin=3, vmax=14))
+        sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r, norm=plt.Normalize(vmin=0, vmax=14, clip=True))
         sm.set_array(edge_colors)
         
-        cbared = plt.colorbar(sm, cax=cax, label='Fluxo (log2 viagens/dia)')        
+        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')        
+        cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (viagens/dia)', ticks=[2, 7, 12])        
+        cbared.ax.set_yticklabels(["Baixo", "Médio", "Alto"], rotation="vertical")
         
         if "datalake" in filename:
             textstr = "Fonte: IME-USP/COVID-Radar"
