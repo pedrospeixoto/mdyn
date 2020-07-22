@@ -66,7 +66,8 @@ server <- function(input, output) {
                tags$head(tags$link(rel = "shortcut icon", href = "favicon.jpg"),tags$style("#tbl {white-space: nowrap;}"),
                          tags$style(type='text/css', "* { font-family: 'lato light' !important; }" ),
                          tags$style("#state {font-size:20px;}"),
-                         tags$style("#date {font-size:20px;}")),
+                         tags$style("#date {font-size:20px;}"),
+                         includeHTML(("./www/analytics.html"))),
                  sidebarLayout(
                    sidebarPanel(
                      HTML('<center><a href="https://www.ime.usp.br/"><img src="logo.jpg" height="200" width="150"></center></a>'),
@@ -84,10 +85,9 @@ server <- function(input, output) {
                                       tags$style(type='text/css', ".irs-grid-text { font-size: 10pt; }"),
                                       tags$style(type='text/css', 
                                                  "#report {width:130%; margin-top: 60px; margin-left: 75px; align:center}")))),
-                   fluidRow(column(8,HTML(paste('<center><img src="SP_EPcurve_predicted_',pos,
-                                                '.png" height="625" width="937"></center>',sep = ""))),
+                   fluidRow(column(8,HTML(paste('<center><img src="SP_EPcurve_predicted.png" height="625" width="937"></center>',sep = ""))),
                             column(4,uiOutput("resEstado"),style = "background-color:#F5F5F5;")),
-               p("*Cada linha representa a previsão de um modelo. A linha grossa (mediana das previsões) e banda vermelha (melhor e prior caso) dizem respeito ao número de indivíduos que estão infectados simultâneamente na data. As linhas tracejadas são as estimativas (mediana, pior caso e melhor caso) para o pico de mortes pela doença (dia com mais mortes)."),
+               p("*Cada linha representa a previsão de um modelo. A linha grossa (mediana das previsões) e banda vermelha (melhor e prior caso) dizem respeito ao número de indivíduos que estão infectados simultaneamente na data. As linhas tracejadas são as estimativas (mediana, pior caso e melhor caso) para o pico de mortes pela doença (dia com mais mortes)."),
                fluidRow(column(6,HTML("<h2 align='center'><span style='font-weight: bold; color: #1E90FF;'>Previsão Mortes por Departamento Regional de Saúde </span> </h2>")),
                         column(6,HTML("<h2 align='center'><span style='font-weight: bold; color: #1E90FF;'>Previsão Casos por Departamento Regional de Saúde </span> </h2>"))),
                fluidRow(column(6,rHandsontableOutput("mortes_DRS")),
@@ -138,7 +138,7 @@ server <- function(input, output) {
                                       ))),
                  fluidRow(column(8,uiOutput("EPDRS")),
                           column(4,uiOutput("resDRS"),style = "background-color:#F5F5F5;")),
-                 p("*Cada linha representa a previsão de um modelo. A linha grossa (mediana das previsões) e banda vermelha (melhor e prior caso) dizem respeito ao número de indivíduos que estão infectados simultâneamente na data. As linhas tracejadas são as estimativas (mediana, pior caso e melhor caso) para o pico de mortes pela doença (dia com mais mortes)."),
+                 p("*Cada linha representa a previsão de um modelo. A linha grossa (mediana das previsões) e banda vermelha (melhor e prior caso) dizem respeito ao número de indivíduos que estão infectados simultaneamente na data. As linhas tracejadas são as estimativas (mediana, pior caso e melhor caso) para o pico de mortes pela doença (dia com mais mortes)."),
                  fluidRow(column(6,HTML("<h2 align='center'><span style='font-weight: bold; color: #1E90FF;'>Previsão Mortes por Município </span> </h2>")),
                           column(6,HTML("<h2 align='center'><span style='font-weight: bold; color: #1E90FF;'>Previsão Casos por Município </span> </h2>"))),
                  fluidRow(column(6,rHandsontableOutput("mortes_city_DRS")),
@@ -177,7 +177,7 @@ server <- function(input, output) {
                                       tags$style(type='text/css', ".irs-grid-text { font-size: 10pt; }")))),
                  fluidRow(column(8,uiOutput("EPCity")),
                           column(4,uiOutput("resCity"),style = "background-color:#F5F5F5;")),
-                 p("*Cada linha representa a previsão de um modelo. A linha grossa (mediana das previsões) e banda vermelha (melhor e prior caso) dizem respeito ao número de indivíduos que estão infectados simultâneamente na data. As linhas tracejadas são as estimativas (mediana, pior caso e melhor caso) para o pico de mortes pela doença (dia com mais mortes). O modelo projeta casos e mortes para todos os DRSs e apenas para Municípios com mais de 500 casos confirmados ou 100 mortes confirmadas quando o modelo foi ajustado."),
+                 p("*Cada linha representa a previsão de um modelo. A linha grossa (mediana das previsões) e banda vermelha (melhor e prior caso) dizem respeito ao número de indivíduos que estão infectados simultaneamente na data. As linhas tracejadas são as estimativas (mediana, pior caso e melhor caso) para o pico de mortes pela doença (dia com mais mortes). O modelo projeta casos e mortes para todos os DRSs e apenas para Municípios com mais de 500 casos confirmados ou 100 mortes confirmadas quando o modelo foi ajustado."),
                  br(),
                  tags$p("Aplicação desenvolvida por ", 
                         tags$a(href="https://www.linkedin.com/in/diego-marcondes-87a1218b/","Diego Marcondes ")," com ",
@@ -319,7 +319,7 @@ server <- function(input, output) {
   output$resEstado <- renderUI({
     if(!is.null(input$date)){
       tmp <- state %>% filter(date == ymd(input$date))
-      t1 <- paste("<h1 align='center'> <span style='color: #1E90FF;'><strong> Pevisão para ",format(input$date,"%d/%m/%Y"),
+      t1 <- paste("<h1 align='center'> <span style='color: #1E90FF;'><strong> Previsão para ",format(input$date,"%d/%m/%Y"),
                   " </strong></span></h1> <h2 align='center',face = 'bold'> <br> <span style='color: orange;'><strong>Casos Confirmados: ",
                   format(round(tmp$median_cases),decimal.mark = ",",big.mark = "."),
                   "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Melhor Cenário: ",

@@ -375,8 +375,8 @@ summary {
 </center>
 <p><br></p>
 <h3 align="justify">
-<p>As projeções foram realizadas através da simulação de 20 Modelos SEIR Metapopulacionais, em que a mobilidade entre as cidades do Estado, mensurada por dados anônimos de geolocalização de celulares, é acoplada à um modelo epidemiológico de compartimentos. Os modelos foram escolhidos dentre dezenas de milhares de modelos candidatos, pois se aderiram bem aos dados observados. A aderência foi mensurada pela diferença entre o número de mortes e o número de casos confirmados nos Departamentos Regionais de Saúde (DRS) e Municípios com mais de <span class="math inline">\(100\)</span> mortes e <span class="math inline">\(500\)</span> casos confirmados ao final do período de uma semana terminando em 03/07/2020.</p>
-<p>As projeções desses modelos, que leva em consideração a transmissão do vírus entre as cidades, só pode ser realizada com maior confiança pelo período de um mês e supõe que a evolução da doença se manterá da mesma forma que na semana terminando em 03/07/2020. Além disso, também podemos estimar através deles quando será o pico de mortes pela doença (dia com mais mortes).</p>
+<p>As projeções foram realizadas através da simulação de 50 Modelos SEIR Metapopulacionais, em que a mobilidade entre as cidades do Estado, mensurada por dados anônimos de geolocalização de celulares, é acoplada à um modelo epidemiológico de compartimentos. Os modelos foram escolhidos dentre dezenas de milhares de modelos candidatos, pois se aderiram bem aos dados observados. A aderência foi mensurada pela diferença entre o número de mortes e o número de casos confirmados nos Departamentos Regionais de Saúde (DRS) e Municípios com mais de <span class="math inline">\(100\)</span> mortes e <span class="math inline">\(500\)</span> casos confirmados ao final do período de uma semana terminando em 14/07/2020.</p>
+<p>As projeções desses modelos, que leva em consideração a transmissão do vírus entre as cidades, só pode ser realizada com maior confiança pelo período de um mês e supõe que a evolução da doença se manterá da mesma forma que na semana terminando em 14/07/2020. Além disso, também podemos estimar através deles quando será o pico de mortes pela doença (dia com mais mortes).</p>
 Os dados utilizados aqui foram obtidos do site da <a href="https://www.seade.gov.br/coronavirus/">Fundação SEADE</a>
 </h3>
 <h2>
@@ -433,28 +433,28 @@ O primeiro termo da multiplicação representa o tempo médio que um indivíduo 
 <h3 align="justify">
 <p>A taxa de morte de cada município é calculada diretamente das estatísticas oficiais e a proporção da população que viaja diariamente de uma cidade para outra é estimada por dados georreferenciados de celular, enquanto a Força de Infecção é calculada explicitamente como uma formula dos outros parâmetros, que depende também das condições iniciais. Já a proporção de infectados e os tempos médios em cada compartimento são determinados baseando-se na aderência aos dados observados nos Municípios e nos Departamentos Regionais de Saúde (DRSs). Dentre <span class="math inline">\(100,000\)</span> modelos simulados com valores candidatos para os parâmetros, são escolhidos aqueles que simultaneamente: <br></p>
 <ul>
-<li>acertam o número de mortes com um erro máximo de 6% em pelo menos 90% das comparações da semana terminando em 03/07/2020, sendo que uma comparação é formada pela combinação de um DRS com mais de <span class="math inline">\(100\)</span> mortes confirmadas e um dia.</li>
-<li>acertam o número de casos confirmados com um erro máximo de 7% em pelo menos 90% das comparações da semana terminando em 03/07/2020, sendo que uma comparação é formada pela combinação de um DRS com mais de <span class="math inline">\(500\)</span> casos confirmados e um dia.</li>
-<li>acertam o número de mortes com um erro máximo de 6% em pelo menos 90% das comparações da semana terminando em 03/07/2020, sendo que uma comparação é formada pela combinação de um Município com mais de <span class="math inline">\(100\)</span> mortes confirmadas e um dia.</li>
-<li>acertam o número de casos confirmados com um erro máximo de 7% em pelo menos 90% das comparações da semana terminando em 03/07/2020, sendo que uma comparação é formada pela combinação de um Município com mais de <span class="math inline">\(500\)</span> casos confirmados e um dia.</li>
+<li>acertam o número de mortes com um erro máximo de 6% em pelo menos 90% das comparações da semana terminando em 14/07/2020, sendo que uma comparação é formada pela combinação de um DRS com mais de <span class="math inline">\(100\)</span> mortes confirmadas e um dia.</li>
+<li>acertam o número de casos confirmados com um erro máximo de 7% em pelo menos 90% das comparações da semana terminando em 14/07/2020, sendo que uma comparação é formada pela combinação de um DRS com mais de <span class="math inline">\(500\)</span> casos confirmados e um dia.</li>
+<li>acertam o número de mortes com um erro máximo de 6% em pelo menos 90% das comparações da semana terminando em 14/07/2020, sendo que uma comparação é formada pela combinação de um Município com mais de <span class="math inline">\(100\)</span> mortes confirmadas e um dia.</li>
+<li>acertam o número de casos confirmados com um erro máximo de 7% em pelo menos 90% das comparações da semana terminando em 14/07/2020, sendo que uma comparação é formada pela combinação de um Município com mais de <span class="math inline">\(500\)</span> casos confirmados e um dia.</li>
 </ul>
 <p>A aderência é testada contra uma suavização da incidência de casos e mortes confirmadas em cada Município a fim de corrigir possíveis efeitos sazonais devido à heterogeneidade da realização de testes entre os dias da semana. As condições iniciais do modelo também são baseadas nessa suavização.</p>
-<p>As estatísticas descritivas dos parâmetros dos 20 modelos considerados foram (Mediana [Mínimo;Máximo]): <br> <br></p>
+<p>As estatísticas descritivas dos parâmetros dos 50 modelos considerados foram (Mediana [Mínimo;Máximo]): <br> <br></p>
 <ul>
 <li><span class="math inline">\(\tau_{E}\)</span>: 5 [4;6] dias Exposto antes de se tornar Infectado</li>
-<li><span class="math inline">\(\tau_{I}\)</span>: 7.5 [5;10] dias Infectado antes de se Recuperar sem entrar para as estatísticas</li>
-<li><span class="math inline">\(\tau_{S}\)</span>: 12 [11;12] dias Infectados antes de entrar para as estatísticas</li>
-<li><span class="math inline">\(\tau_{SR}\)</span>: 15.5 [5;28] dias até Recuperação após entrar para as estatísticas</li>
-<li><span class="math inline">\(\tau_{D}\)</span>: 15 [13;16] dias até Óbito após entrar para as estatísticas</li>
-<li><span class="math inline">\(p_{S}\)</span>: 0.0833 [0.025;0.2] proporção de infectados que são contabilizados nas estatísticas no Estado como um todo <br></li>
+<li><span class="math inline">\(\tau_{I}\)</span>: 6 [5;10] dias Infectado antes de se Recuperar sem entrar para as estatísticas</li>
+<li><span class="math inline">\(\tau_{S}\)</span>: 13 [12;14] dias Infectados antes de entrar para as estatísticas</li>
+<li><span class="math inline">\(\tau_{SR}\)</span>: 15 [5;28] dias até Recuperação após entrar para as estatísticas</li>
+<li><span class="math inline">\(\tau_{D}\)</span>: 15 [14;18] dias até Óbito após entrar para as estatísticas</li>
+<li><span class="math inline">\(p_{S}\)</span>: 0.125 [0.0333;0.2] proporção de infectados que são contabilizados nas estatísticas no Estado como um todo <br></li>
 </ul>
-<p><strong> Os valores estimados de casos confirmados, óbitos e pico da doença, se referem à mediana das previsões dos modelos considerados, enquanto as bandas superiores e inferiores se referem ao Mínimo e Máximo, respectivamente, das previsões dos modelos considerados. Como cada modelo representa um cenário para o futuro que se encaixa bem aos dados da semana terminando em 03/07/2020, temos o melhor e pior cenário, além de um cenário médio. </strong></p>
+<p><strong> Os valores estimados de casos confirmados, óbitos e pico da doença, se referem à mediana das previsões dos modelos considerados, enquanto as bandas superiores e inferiores se referem ao Mínimo e Máximo, respectivamente, das previsões dos modelos considerados. Como cada modelo representa um cenário para o futuro que se encaixa bem aos dados da semana terminando em 14/07/2020, temos o melhor e pior cenário, além de um cenário médio. </strong></p>
 </h3>
 <h2>
 <span style="color: red"> <strong> DISCLAIMER </span> </strong>
 </h2>
 <h3 align="justify">
-<span style="color: red"> <strong> APENAS PROJEÇÕES PARA MUNICÍPIOS EM QUE FOI TESTADA A ADERÊNCIA DOS MODELOS AOS DADOS (AQUELES COM MAIS DE 500 CASOS E 100 MORTES CONFIRMADAS EM 03/07/2020) SÃO APRESENTADAS NESSE DASHBOARD, EMBORA O MODELO FORNEÇA PREDIÇÕES PARA TODOS OS MUNICÍPIOS DO ESTADO. AS ÚNICAS QUANTIDADES QUE DEVEM SER CONDIERADAS NESSE DASHBOARD SÃO AS PREVISÕES DE CASOS E MORTES APRESENTADAS EM LOCAL OPORTUNO ATÉ O DIA 02/08/2020 E A PREVISÃO PARA O PICO DA DOENÇA NAS LOCALIDADES APRESENTADAS. NADA ALÉM DO PICO DA DOENÇA DEVEM SER CONSIDERADO NAS FIGURAS E IMAGENS.
+<span style="color: red"> <strong> APENAS PROJEÇÕES PARA MUNICÍPIOS EM QUE FOI TESTADA A ADERÊNCIA DOS MODELOS AOS DADOS (AQUELES COM MAIS DE 500 CASOS E 100 MORTES CONFIRMADAS EM 14/07/2020) SÃO APRESENTADAS NESSE DASHBOARD, EMBORA O MODELO FORNEÇA PREDIÇÕES PARA TODOS OS MUNICÍPIOS DO ESTADO. AS ÚNICAS QUANTIDADES QUE DEVEM SER CONDIERADAS NESSE DASHBOARD SÃO AS PREVISÕES DE CASOS E MORTES APRESENTADAS EM LOCAL OPORTUNO ATÉ O DIA 13/08/2020 E A PREVISÃO PARA O PICO DA DOENÇA NAS LOCALIDADES APRESENTADAS. NADA ALÉM DO PICO DA DOENÇA DEVEM SER CONSIDERADO NAS FIGURAS E IMAGENS.
 </h3>
 <h2>
 <span style="color: #1E90FF"> <strong> Quem somos </span> </strong>

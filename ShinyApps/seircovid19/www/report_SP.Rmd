@@ -11,6 +11,7 @@ params:
   peak_DRS: 'NULL'
   pos: 'NULL'
   nmodels: 'NULL'
+  state: 'NULL'
 title: Previsões COVID-19 Estado de São Paulo
 subtitle: Relatório Executivo
 author: 
@@ -54,7 +55,6 @@ header-includes:
 ---
 
 ```{r,echo=FALSE}
-state <- params$state %>% filter(date == data_rel)
 deaths_city <- params$deaths_city
 deaths_city$c_1000 <- NULL
 cases_city <- params$cases_city
@@ -62,6 +62,7 @@ cases_city$c_1000  <- NULL
 deaths_DRS <- params$deaths_DRS
 cases_DRS <- params$cases_DRS
 data_rel <- ymd(params$input$date)
+state <- params$state %>% filter(date == data_rel)
 tmpC <- cases_city %>% filter(Date == data_rel)
 tmpM <- deaths_city %>% filter(Date == data_rel)
 tmpC_DRS <- cases_DRS %>% filter(Date == data_rel)
@@ -74,7 +75,7 @@ tmpM_DRS <- deaths_DRS %>% filter(Date == data_rel)
 
 \begin{figure}
 \centering
-\includegraphics[width=\linewidth,height=0.7\textheight]{SP_EPcurve_predicted_`r params$pos`.png}
+\includegraphics[width=\linewidth,height=0.7\textheight]{SP_EPcurve_predicted_.png}
 \end{figure}
 
 # Previsão de Casos por DRS em `r format(params$input$date,"%d/%m/%Y")`
