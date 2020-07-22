@@ -397,8 +397,8 @@ def map_move_mats(mdyn, network, ipar):
             title = title + day.strftime("%Y-%m-%d")+" "+dow
             filename = filename + day.strftime("%Y-%m-%d")+".jpg"
 
-            #map=Map(network, zoom)
-            #map.map_network_data(reg_iso, mat, regions, title, filename)
+            map=Map(network, zoom)
+            map.map_network_data(reg_iso, mat, regions, title, filename)
     
             map=Map(network, zoom)
             map.map_network_flux(mat, regions, title, filename.replace("Network", "Network_Flux"), edge_filter=filter_list)
