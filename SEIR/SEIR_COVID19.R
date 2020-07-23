@@ -106,9 +106,10 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   maxD <- 1
   mI <- 1
   mD <- 1
+  mm <- 1
   
   for(k in 1:sample_size){#For each sampled model
-    pb$tick(tokens = list(letter = paste(progress_letter[k],kgood,"D =",round(mD,5),"I =",round(mI,5)))) #Update progress bar
+    pb$tick(tokens = list(letter = paste(progress_letter[k],kgood,round(mm,5),"D =",round(mD,5),"I =",round(mI,5)))) #Update progress bar
     
     #Parameters of model k
     parK <- sample_parameters(par,day_validate)
@@ -149,6 +150,8 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       mI <- test$dif_I
     if(test$dif_D < mD) #If is minimum error so far
       mD <- test$dif_D
+    if(max(test$dif_D,test$dif_I) < mm)
+      mm <- max(test$dif_D,test$dif_I)
     
     #Result
     if(good == 1){#Store good models
