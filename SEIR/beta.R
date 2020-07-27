@@ -46,7 +46,7 @@ beta <- function(parK,t,lambda,drs,day,obs){
   b <- as.vector(num/den)
   
   #Only cities with 1000+ cases
-  c <- obs %>% filter(date == ymd(day) & confirmed_corrected > 500) 
+  c <- obs %>% filter(date == ymd(day) & confirmed_corrected > 1000) 
   beta[par$names %in% c$city] <- b[par$names %in% c$city]
   
   #beta[beta <= 0] <- min(beta[beta > 0])
