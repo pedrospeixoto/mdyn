@@ -13,13 +13,13 @@ fi
 file=$1
 
 if [ "$2" != "" ]; then
-    echo "Final Date", $2
+    echo "Initial and Final Date", $2, $3
 else
     echo "Provide initial and final date, format YYYY-MM-DD"
     exit 1
 fi
-inidate="2020-02-01"
-enddate=$2
+inidate=$2 
+enddate=$3
 
 
 
@@ -34,7 +34,8 @@ while [ $i != $endmonth ]; do
   ini_date="2020-"$month"-01"
   mp1=$(($month+1))
   mp1=$(printf "%02d" $mp1)
-  if [ $mp1 != $endmonth ]; then
+  endmonth2d=$(printf "%02d" $endmonth)
+  if [ $mp1 != $endmonthd2 ]; then
     end_date="2020-"$mp1"-01"
   else 
     end_date=$enddate
@@ -46,7 +47,7 @@ while [ $i != $endmonth ]; do
   rm $file$month".tmp"
   #awk '{ if ( NR == 1 ) { print "dia <-" replace ;} else {print $0;} }' replace=\"$date\" $file >   "tmp_"$file
   nohup python -u mdyn_run.py -f $file$month".txt" -o 1 &> log_$month.txt &
-  rm $file$month".txt"
+  #rm $file$month".txt"
   ((i+=1))
 done
 
