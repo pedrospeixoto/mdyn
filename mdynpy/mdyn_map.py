@@ -573,7 +573,7 @@ class Map:
         #print(weights, maxw)
         edge_colors = weights #[2+M*(i+2)/maxw for i in weights] #100*weights #range(2, M + 2)
         if "RM" in title:
-            edge_widths = 0.1+0.9*(weights/maxw)
+            edge_widths = 0.2+0.9*(weights/maxw)
             edge_alphas = 0.1+(weights/maxw)*0.4
         else:
             edge_widths = 0.5+0.9*(weights/maxw)
@@ -682,7 +682,7 @@ class Map:
 
         edge_colors = weights #[2+M*(i+2)/maxw for i in weights] #100*weights #range(2, M + 2)
         if "RM" in title:
-            edge_widths = 0.1+0.9*(weights/maxw)
+            edge_widths = 0.2+0.9*(weights/maxw)
             edge_alphas = 0.1+(weights/maxw)*0.4
         else:
             edge_widths = 0.4+0.7*(weights/maxw)
