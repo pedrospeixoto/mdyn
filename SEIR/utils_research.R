@@ -19,7 +19,7 @@ library(progress)
 library(gridExtra)
 
 #Source scripts
-source("mdyn/ShinyApps/preprocessing/preprocess_SEIR_output.R")
+source("mdyn/ShinyApps/preprocessing/preprocess_SEIR_output_research.R")
 source("mdyn/SEIR/model_research.R")
 source("mdyn/SEIR/EPI_curve.R")
 source("mdyn/SEIR/get_data_SP_research.R")
