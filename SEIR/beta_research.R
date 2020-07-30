@@ -52,7 +52,7 @@ beta <- function(parK,t,lambda,drs,day,obs){
   c <- obs %>% filter(date == ymd(day) & confirmed_corrected > 500) 
   beta[par$names %in% c$city] <- b[par$names %in% c$city]
   
-  beta[beta <= 0] <- min(beta[beta > 0])
+  #beta[beta <= 0] <- min(beta[beta > 0])
   
   return(beta)
 }
