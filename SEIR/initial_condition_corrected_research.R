@@ -1,5 +1,5 @@
 #Initial condition corrected
-initial_condition_corrected <- function(init,init1f,init2f,parK){
+initial_condition_corrected <- function(init,init1f,parK){
   initK <- init
   
   #Correct Infected
@@ -9,7 +9,7 @@ initial_condition_corrected <- function(init,init1f,init2f,parK){
   #initK[(3*parK$sites + 1):(4*parK$sites)] <- (parK$upI+1)*initK[(3*parK$sites + 1):(4*parK$sites)]
   
   #Exposed
-  initK[1:parK$sites] <- parK$upI*(1/(parK$gammaI))*(init2f[1:parK$sites] + (parK$nuI+parK$gammaS-1)*init1f[1:parK$sites]) #Correct E
+  initK[1:parK$sites] <- parK$upI*(1/(parK$gammaI))*(init1f[1:parK$sites] + (parK$nuI+parK$gammaS-1)*initK[1:parK$sites]) #Correct E
   initK[1:parK$sites] <- ifelse(initK[1:parK$sites] < 0,0,initK[1:parK$sites])
   
   return(initK)

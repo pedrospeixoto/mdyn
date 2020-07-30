@@ -64,7 +64,6 @@ get_data_SP <- function(){
   iso$reg_name[iso$reg_name == "ESTRELA D'OESTE"] <- "ESTRELA DOESTE"
   iso$reg_name[iso$reg_name == "PALMEIRA D'OESTE"] <- "PALMEIRA DOESTE"
   iso$reg_name[iso$reg_name == "SANTA BÁRBARA D'OESTE"] <- "SANTA BÁRBARA DOESTE"
-  iso$day <- ymd(iso$day) + 7
   iso$key <- paste(iso$reg_name,iso$day)
   iso <- iso %>% select(key,iso,mean_pre,weekday)
   obs$key <- paste(obs$city,obs$date)

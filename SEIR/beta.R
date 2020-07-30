@@ -4,11 +4,11 @@ beta <- function(parK,t,lambda,drs,day,obs){
   #####Beta by DRS#####
   
   #Calculate exposed
-  parK$obs_DRS$E[[as.character(t)]] <- parK$upI*(1/(parK$gammaI))*(parK$obs_DRS$E[[as.character(t+2)]]+
-                                                                                  (parK$nuI + parK$gammaS - 1)*parK$obs_DRS$E[[as.character(t+1)]])
+  parK$obs_DRS$E[[as.character(t)]] <- parK$upI*(1/(parK$gammaI))*(parK$obs_DRS$E[[as.character(t+1)]] +
+                                                                                  (parK$nuI + parK$gammaS - 1)*parK$obs_DRS$E[[as.character(t)]])
   parK$obs_DRS$E[[as.character(t)]] <- ifelse(parK$obs_DRS$E[[as.character(t)]] < 0,0,parK$obs_DRS$E[[as.character(t)]])
-  parK$obs$E[[as.character(t)]] <- parK$upI*(1/(parK$gammaI))*(parK$obs$E[[as.character(t+2)]]+
-                                                                              (parK$nuI + parK$gammaS - 1)*parK$obs$E[[as.character(t+1)]])
+  parK$obs$E[[as.character(t)]] <- parK$upI*(1/(parK$gammaI))*(parK$obs$E[[as.character(t+1)]]+
+                                                                              (parK$nuI + parK$gammaS - 1)*parK$obs$E[[as.character(t)]])
   parK$obs$E[[as.character(t)]] <- ifelse(parK$obs$E[[as.character(t)]] < 0,0,parK$obs$E[[as.character(t)]])
   
   #Calculate susceptibles
@@ -23,7 +23,7 @@ beta <- function(parK,t,lambda,drs,day,obs){
   num <- ((lambdaE + parK$gammaI) * parK$obs$E[[as.character(t)]] * (par$pop - parK$obs$D[[as.character(t)]]))
   
   #Denominator
-  den <- Sobs * (parK$s*((parK$mob[[as.character(ymd(day) - 1)]] - diag(diag(parK$mob[[as.character(ymd(day) - 1)]]))) %*% 
+  den <- Sobs * (parK$s*((parK$mob[[as.character(ymd(day) + t - 1)]] - diag(diag(parK$mob[[as.character(ymd(day) + t - 1)]]))) %*% 
                            cbind((1+parK$upI)*parK$obs$Is[[as.character(t)]])) + 1 + (parK$upI+1)*parK$obs$Is[[as.character(t)]]) #Denominator
   
   #Beta
@@ -39,7 +39,7 @@ beta <- function(parK,t,lambda,drs,day,obs){
   num <- ((lambdaE + parK$gammaI) * parK$obs$E[[as.character(t)]] * (par$pop - parK$obs$D[[as.character(t)]])) 
 
   #Denominator
-  den <- Sobs * (parK$s*((parK$mob[[as.character(ymd(day)-1)]] - diag(diag(parK$mob[[as.character(ymd(day) - 1)]]))) %*% 
+  den <- Sobs * (parK$s*((parK$mob[[as.character(ymd(day) + t - 1)]] - diag(diag(parK$mob[[as.character(ymd(day) + t - 1)]]))) %*% 
                            cbind((1+parK$upI)*parK$obs$Is[[as.character(t)]])) + 1 + (parK$upI+1)*parK$obs$Is[[as.character(t)]]) 
   
   #Beta
