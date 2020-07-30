@@ -21,7 +21,8 @@ Rt <- function(parK,day,t){
   Dobs <- parK$obs$D[[as.character(t)]]
   
   #Infected
-  In <- parK$betaMedian*Sobs/(par$pop - Dobs)*(1 + parK$s*((par$mob[[as.character(day) - 7 + t]] - diag(diag(par$mob[[as.character(day)- 7 + t]]))) %*%
+  In <- parK$betaMedian*Sobs/(par$pop - Dobs)*(1 + parK$s*((par$mob[[as.character(ymd(day) - 7 + t)]] - 
+                                                              diag(diag(par$mob[[as.character(ymd(day) - 7 + t)]]))) %*%
                                                              cbind((1+parK$obs$iso[[as.character(t)]]*parK$upI)*parK$obs$Is[[as.character(t)]])) + 1 + 
                                                  (parK$obs$iso[[as.character(t)]]*parK$upI+1)*parK$obs$Is[[as.character(t)]])
   
