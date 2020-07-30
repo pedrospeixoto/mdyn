@@ -30,7 +30,7 @@ Rt <- function(parK,day,t){
   Rt[[t]] <- In * meanTime
   }
   
-  Rt <- bind_rows(Rt)
+  Rt <- data.frame(do.call(rbind,Rt))
   Rt <- apply(Rt,2,mean)
   
   return(list("Rt" = as.vector(Rt),"meanTi" = meanTime))
