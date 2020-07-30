@@ -86,7 +86,7 @@ get_data_SP <- function(){
   obs$key <- NULL
   obs$iso_DRS <- NULL  
   obs$mean_pre_DRS <- NULL
-  obs$iso <- ifelse(obs$iso > obs$mean_pre,(1-obs$iso)/(1-obs$mean_pre),1)
+  obs$iso <- 1-obs$iso#ifelse(obs$iso > obs$mean_pre,(1-obs$iso)/(1-obs$mean_pre),1)
   obs$mean_pre <- NULL
   obs$weekday <- NULL
   obs$DRS <- NULL
