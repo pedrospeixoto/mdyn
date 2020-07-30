@@ -8,7 +8,7 @@ library(lubridate)
 
 #Parameters
 cores <- 24 #Number   of cores to use in parallel computation
-pos <- Sys.Date() #"teste" #What to add at the end of all output files
+pos <- paste(Sys.Date(),"_research",sep = "") #"teste" #What to add at the end of all output files
 seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
 d_max <- Sys.Date() #"2020-06-14"
