@@ -48,7 +48,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   drs$DRS[drs$Municipio == "SÃO PAULO"] <- "I"
   drs$Regiao[drs$Municipio == "SÃO PAULO"] <- "Grande São Paulo"
   drs <- droplevels(drs)
-  obs_drs <- data_drs(obs,drs,par)
+  obs_drs <- data_drs(obs,drs)
 
   #####Model estimation#####
   cat("Calculate growth and death rate...\n")
@@ -140,7 +140,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       rm(initK,parK)
       next
     }
-    parK$beta[parK$beta < 0.01] <- 0.01
+    parK$beta[parK$beta == 0] <- min(parK$beta[parK$beta > 0])
     
     #Model
     mod <- solve_seir(y = initK,times = 1:7,derivatives = derivatives,parms = parK)[,-1] #Simulate model k
