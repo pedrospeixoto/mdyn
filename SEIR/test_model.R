@@ -35,9 +35,9 @@ test_model <- function(D,I,teste_D,teste_I,drs,init_validate,end_validate){
   I <- merge(I,teste_I$DRS)
   I$dif <- (I$I_pred - I$I_drs)/I$I_drs
   I <- I %>% filter(DRS != "0")
-  dif_I <- max(c(quantile(abs(I$dif)[I$I_drs > 500],0.975),quantile(abs(Icity),0.975)))
+  dif_I <- max(c(quantile(abs(I$dif)[I$I_drs > 500],0.95),quantile(abs(Icity),0.95)))
   I <- I %>% filter(I_drs > 500)
-  I <- c(I$dif[I$dif < quantile(I$dif,0.975)],Icity[Icity < quantile(Icity,0.975)])
+  I <- c(I$dif[I$dif < quantile(I$dif,0.95)],Icity[Icity < quantile(Icity,0.95)])
   
   return(list("dif_D" = dif_D,"dif_I" = dif_I,"error_D" = D,"error_I" = I))
 }
