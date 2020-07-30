@@ -25,7 +25,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     stop("There is a problem with the notifications dataset. Please fix it.")
   
   #####Days of validation#####
-  end_validate <- min(max(ymd(na.omit(obs)$date))-2,ymd(d_max))
+  end_validate <- min(max(ymd(na.omit(obs)$date))-1,ymd(d_max))
   init_validate <- end_validate - 6
   init_simulate <- end_validate
   day_validate <- seq.Date(from = ymd(init_validate),to = ymd(end_validate),by = 1) #Days to validate
@@ -49,7 +49,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   init <- initial_condition(obs,init_validate,par) #Initial condition
   init1f <- initial_condition(obs,init_validate+1,par) #Data one day after initial
   init1p <- initial_condition(obs,init_validate-1,par) #Data one day before initial
-  init2f <- initial_condition(obs,init_validate+2,par) #Data two days after initial
+  #init2f <- initial_condition(obs,init_validate+2,par) #Data two days after initial
   
   #Obs each day around week of validation
   par$obs <- obs_around_init(obs,obs_drs,par,init_validate,start = 0,end = 9)
@@ -115,7 +115,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     parK <- sample_parameters(par,day_validate)
     
     #Initial condition
-    initK <- initial_condition_corrected(init,init1f,init2f,parK)
+    initK <- initial_condition_corrected(init,init1f,parK)
     
     #Calculate beta
     parK$beta <- list()
@@ -263,7 +263,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   init <- initial_condition(obs,end_validate,par) #Initial condition
   init1f <- initial_condition(obs,end_validate+1,par) #Data one day after initial
   init1p <- initial_condition(obs,end_validate-1,par) #Data one day before initial
-  init2f <- initial_condition(obs,end_validate+2,par) #Data two days after initial
+  #init2f <- initial_condition(obs,end_validate+2,par) #Data two days after initial
   
   #Simulate scenario everything is as week after end validation
   good_models <- length(pred) #number of good models
@@ -283,7 +283,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     parK$sites <- par$sites #Sites
     
     #Initial condition
-    initK <- initial_condition_corrected(init,init1f,init2f,parK)
+    initK <- initial_condition_corrected(init,init1f,parK)
     
     #Model
     mod <- solve_seir(y = initK,times = 1:simulate_length,derivatives = derivatives,parms = parK)[,-1]
