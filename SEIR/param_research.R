@@ -12,7 +12,7 @@ pos <- paste(Sys.Date(),"_research",sep = "") #"teste" #What to add at the end o
 seed <- as.numeric(Sys.Date()) #Seed
 par <- list() #Candidate values of model parameters
 d_max <- Sys.Date() #"2020-06-14"
-simulate_length <- as.numeric(ymd("2020-12-31") + 5 - ymd(d_max)) #Number of days to simulate
+simulate_length <- as.numeric(ymd("2020-09-30") + 5 - ymd(d_max)) #Number of days to simulate
 error_I <- 0.065
 error_D <- 0.065
 
