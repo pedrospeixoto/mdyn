@@ -180,7 +180,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       
       
       #Mean infected time and Rt
-      parK$Rt <- Rt(parK,end_validate,7)
+      parK$Rt <- Rt(parK,end_validate)
       parK$meanTi <- parK$Rt$meanTi
       parK$Rt <- parK$Rt$Rt
       pred[[k]]$meanTi <- parK$meanTi #Prediction of mean infection time
