@@ -5,8 +5,8 @@ Rt <- function(parK,day,t){
   meanTime <- parK$pS*parK$Ts + (1-parK$pS)*parK$Ti
   
   ##Calculate exposed
-  parK$obs$E[[as.character(t)]] <- parK$upI*(1/(parK$gammaI))*(parK$obs$E[[as.character(t+2)]]+
-                                                                                  (parK$nuI + parK$gammaS - 1)*parK$obs$E[[as.character(t+1)]])
+  parK$obs$E[[as.character(t)]] <- parK$upI*(1/(parK$gammaI))*(parK$obs$E[[as.character(t+1)]]+
+                                                                                  (parK$nuI + parK$gammaS - 1)*parK$obs$E[[as.character(t)]])
   parK$obs$E[[as.character(t)]] <- ifelse(parK$obs$E[[as.character(t)]] < 0,0,parK$obs$E[[as.character(t)]])
   
   #Calculate Susceptible
