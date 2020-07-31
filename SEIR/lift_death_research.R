@@ -13,8 +13,8 @@ lift_death <- function(obs,end_validate,par){
   lift <- lift[match(par$names,lift$city),] #order cities
   lift$lift[is.na(lift$lift)] <- 1 #fill NA with 1
   lift$lift[lift$lift == 0] <- 1
-  #lift$lift[lift$lift < 0.9] <- 1 #Truncate
-  lift$lift[lift$lift > 1.5] <- 1.5 #Truncate
+  lift$lift[lift$lift < 0.75] <- 0.75 #Truncate
+  lift$lift[lift$lift > 1.25] <- 1.25 #Truncate
   
   return(lift$lift)
 }
