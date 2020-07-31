@@ -17,21 +17,18 @@ Rt <- function(parK,day,t){
     parK$obs$iso[[as.character(t)]]*parK$obs$E[[as.character(t)]] - parK$obs$iso[[as.character(t)]]*parK$upI*parK$obs$Is[[as.character(t)]] -
     parK$obs$iso[[as.character(t)]]*parK$upI*parK$obs$R[[as.character(t)]]
   
-  #Calculate deaths
-  Dobs <- parK$obs$D[[as.character(t)]]
-  
   #Infected
-  In <- parK$betaMedian*Sobs/(par$pop - Dobs)*(1 + parK$s*((par$mob[[as.character(ymd(day) - 7 + t)]] - 
+  In <- parK$betaMedian*Sobs/(parK$obs$iso[[as.character(t)]]*(parK$pop - parK$obs$Is[[as.character(t)]] - parK$obs$D[[as.character(t)]] - parK$obs$R[[as.character(t)]]) + parK$obs$R[[as.character(t)]])*(1 + parK$s*((par$mob[[as.character(ymd(day) - 7 + t)]] - 
                                                               diag(diag(par$mob[[as.character(ymd(day) - 7 + t)]]))) %*%
-                                                             cbind((1+parK$obs$iso[[as.character(t)]]*parK$upI)*parK$obs$Is[[as.character(t)]])) + 1 + 
-                                                 (parK$obs$iso[[as.character(t)]]*parK$upI+1)*parK$obs$Is[[as.character(t)]])
+                                          cbind((parK$upI)* parK$obs$iso[[as.character(t)]] * parK$obs$Is[[as.character(t)]])/(1 + (parK$upI) * parK$obs$iso[[as.character(t)]] * parK$obs$Is[[as.character(t)]])))
   
   #Rt
-  Rt[[t]] <- In * meanTime
+  Rt[[t]] <- as.vector(In * meanTime)
   }
   
   Rt <- data.frame(do.call(rbind,Rt))
-  Rt <- apply(Rt,2,mean)
+  Rt <- apply(Rt,2,median)
+  Rt[Rt < 0] <- 0
   
   return(list("Rt" = as.vector(Rt),"meanTi" = meanTime))
 }

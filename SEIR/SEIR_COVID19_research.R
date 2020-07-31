@@ -66,7 +66,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       
   #Test data by DRS
   teste_D <- list()
-  teste_D$DRS <- obs_drs %>% filter(date %in% seq.Date(from = ymd(init_validate),to = ymd(end_validate),1)) %>%
+  teste_D$DRS <- obs_drs %>% filter(date %in% seq.Date(from = ymd(end_validate)-30,to = ymd(end_validate),1)) %>%
     select(date,DRS,deaths_corrected) %>% unique()
   names(teste_D$DRS)[3] <- "D_drs"
   teste_D$DRS$key <- paste(teste_D$DRS$date,teste_D$DRS$DRS)
@@ -77,7 +77,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   teste_D$city <- teste_D$city[,c(1,match(par$names,colnames(teste_D$city)))]
   
   teste_I <- list()
-  teste_I$DRS <- obs_drs %>% filter(date %in% seq.Date(from = ymd(init_validate),to = ymd(end_validate),1)) %>%
+  teste_I$DRS <- obs_drs %>% filter(date %in% seq.Date(from = ymd(end_validate)-30,to = ymd(end_validate),1)) %>%
     select(date,DRS,confirmed_corrected) %>% unique()
   names(teste_I$DRS)[3] <- "I_drs"
   teste_I$DRS$key <- paste(teste_I$DRS$date,teste_I$DRS$DRS)
@@ -93,6 +93,8 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
 
   #Calculate death rate for each DRS
   par$delta <- death_rate(teste_D$DRS,teste_I$DRS,obs,end_validate,drs,par)
+  teste_D$DRS <- teste_D$DRS %>% filter(date >= ymd(init_validate)) 
+  teste_I$DRS <- teste_I$DRS %>% filter(date >= ymd(init_validate))
   
   cat("Estimatimating the model...\n")
   
@@ -168,7 +170,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       #Median of beta
       parK$betaMedian <- parK$beta #as.vector(apply(bind_rows(lapply(parK$beta,function(x) data.frame(rbind(x)))),2,median))
       pred[[k]]$beta <- parK$betaMedian
-      names(parK$beta) <- weekdays(seq.Date(from = ymd(init_validate),to = ymd(end_validate),1))
+      #names(parK$beta) <- weekdays(seq.Date(from = ymd(init_validate),to = ymd(end_validate),1))
       
       #Prediction
       pred[[k]]$E <- mod[,1:parK$sites] #Prediction of E
