@@ -27,6 +27,7 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
   } 
   opts <- list(progress = progress)
   i <- 1
+  diffNA <- function(x){c(NA,diff(x))}
 
   for(c in par$names){
     pb$tick(tokens = list(letter = progress_letter[i]))
@@ -54,7 +55,13 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
                          "RpredSup" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$R[,position])))),2,max),
                          "Dpred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$D[,position])))),2,median),
                          "DpredInf" = minD*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$D[,position])))),2,min),
-                         "DpredSup" = maxD*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$D[,position])))),2,max))
+                         "DpredSup" = maxD*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$D[,position])))),2,max),
+                         "NewDpred" = apply(t(apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$D[,position])))),1,
+                                                    diffNA)),2,median),
+                         "NewDpredInf" = apply(t(apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$D[,position])))),1,
+                                                       diffNA)),2,min),
+                         "NewDpredSup" = apply(t(apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(x$D[,position])))),1,
+                                                       diffNA)),2,max))
     c_pred$DpredInf[1:6] <- c_pred$DpredInf[1:6]/minD
     c_pred$DpredSup[1:6] <- c_pred$DpredSup[1:6]/maxD
     c_pred$IpredInf[1:6] <- c_pred$IpredInf[1:6]/minI
@@ -104,7 +111,8 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
       tmp <- rbind.data.frame(data.frame("date" = tmp2$date,"Epred" = NA,"EpredInf" = NA,"EpredSup" = NA,"Ispred" = tmp2$infected,"IspredInf" = NA,
                                          "IspredSup" = NA,"Ipred" = NA,"IpredInf" = NA,"IpredSup" = NA,"Itpred" = tmp2$confirmed_corrected,
                                          "ItpredInf" = NA,"ItpredSup" = NA,"Rpred" = NA,"RpredInf" = NA,"RpredSup" = NA,"Dpred" = tmp2$deaths_corrected,
-                                         "DpredInf" = NA,"DpredSup" = NA),c_pred)
+                                         "DpredInf" = NA,"DpredSup" = NA,"NewDpred" = tmp2$new_deaths_corrected,
+                                         "NewDpredInf" = NA,"NewDpredSup" = NA),c_pred)
       
       p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                                                                  linetype = "dashed") + 
@@ -131,6 +139,33 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
         labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
         ggtitle(paste("Curva epidemiológica prevista para a cidade de",c,"- SP"))
       pdf(file = paste("/storage/SEIR/",pos,"/EPCurve/",gsub(" ","",c),"_EPCurve_MEDIAN_",pos,".pdf",sep = ""),width = 15,height = 10)
+      suppressWarnings(suppressMessages(print(p))) #Save plot
+      dev.off()
+      
+      p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
+                                                                 linetype = "dashed") + 
+        geom_line(aes(y = NewDpred, color = "c")) + geom_ribbon(aes(ymin = NewDpredInf,ymax = NewDpredSup,fill = "c"),alpha = 0.25) + 
+        theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(min(ymd(tmp$date),na.rm = T)),ymd(end_validate)+simulate_length,length.out = 12),
+                                                       labels = strftime(seq.Date(ymd(min(ymd(tmp$date))),ymd(end_validate)+simulate_length,length.out = 12),
+                                                                         format="%d/%m/%y")) + 
+        scale_y_continuous(breaks = round(seq(min(c(tmp$NewDpredInf),na.rm = T),
+                                              max(c(tmp$NewDpredSup),na.rm = T),length.out = 10))) +
+        theme(legend.title = element_text(face = "bold"),legend.position = "bottom") + ylab("Indivíduos") +
+        xlab("Data") + scale_colour_discrete("",labels = c("Novos Óbitos")) +
+        theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
+              axis.text.x = element_text(size = 15,face = "bold",color = "white"),
+              legend.text = element_text(size = 15,face = "bold",color = "white"),
+              axis.text.y = element_text(size = 15,face = "bold",color = "white"),
+              legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
+              panel.grid.minor.y = element_blank(),
+              axis.title = element_text(color = "white",size = 20),
+              plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
+        theme(plot.margin = unit(c(1,1,1,1), "lines")) + scale_fill_discrete(guide = FALSE) + 
+        theme(strip.background = element_blank(),
+              strip.text = element_text(size = 20,face = "bold",color = "white")) +
+        labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
+        ggtitle(paste("Novos óbitos diários previstos para a cidade de",c,"- SP"))
+      pdf(file = paste("/storage/SEIR/",pos,"/EPCurve/",gsub(" ","",c),"_NewDeaths_",pos,".pdf",sep = ""),width = 15,height = 10)
       suppressWarnings(suppressMessages(print(p))) #Save plot
       dev.off()
       
@@ -298,7 +333,13 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
                           "RpredSup" = apply(c_pred$R,2,max),
                           "Dpred" = apply(c_pred$D,2,median),
                           "DpredInf" = minD*apply(c_pred$D,2,min),
-                          "DpredSup" = maxD*apply(c_pred$D,2,max))
+                          "DpredSup" = maxD*apply(c_pred$D,2,max),
+                          "NewDpred" = apply(t(apply(c_pred$D,1,
+                                                     diffNA)),2,median),
+                          "NewDpredInf" = apply(t(apply(c_pred$D,1,
+                                                        diffNA)),2,min),
+                          "NewDpredSup" = apply(t(apply(c_pred$D,1,
+                                                        diffNA)),2,max))
     c_pred$DpredInf[1:6] <- c_pred$DpredInf[1:6]/minD
     c_pred$DpredSup[1:6] <- c_pred$DpredSup[1:6]/maxD
     c_pred$IpredInf[1:6] <- c_pred$IpredInf[1:6]/minI
@@ -337,7 +378,8 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
     tmp <- rbind.data.frame(data.frame("date" = tmp2$date,"Epred" = NA,"EpredInf" = NA,"EpredSup" = NA,"Ispred" = tmp2$infected,"IspredInf" = NA,
                                        "IspredSup" = NA,"Ipred" = NA,"IpredInf" = NA,"IpredSup" = NA,"Itpred" = tmp2$confirmed_corrected,
                                        "ItpredInf" = NA,"ItpredSup" = NA,"Rpred" = NA,"RpredInf" = NA,"RpredSup" = NA,"Dpred" = tmp2$deaths_corrected,
-                                       "DpredInf" = NA,"DpredSup" = NA),c_pred)
+                                       "DpredInf" = NA,"DpredSup" = NA,"NewDpred" = tmp2$new_deaths_corrected,
+                                       "NewDpredInf" = NA,"NewDpredSup" = NA),c_pred)
     p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                                                                linetype = "dashed") +
       geom_line(aes(y = Ispred, color = "a")) + geom_ribbon(aes(ymin = IspredInf,ymax = IspredSup,fill = "a"),alpha = 0.25) +
@@ -363,6 +405,34 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
       labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
       ggtitle(paste("Curva epidemiológica prevista para DRS",unique(drs$Regiao[drs$DRS == d])))
     pdf(file = paste("/storage/SEIR/",pos,"/EPCurve/DRS_",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_EPCurve_MEDIAN_",pos,".pdf",sep = ""),
+        width = 15,height = 10)
+    suppressWarnings(suppressMessages(print(p))) #Save plot
+    dev.off()
+    
+    p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
+                                                               linetype = "dashed") +
+      geom_line(aes(y = NewDpred, color = "c")) + geom_ribbon(aes(ymin = NewDpredInf,ymax = NewDpredSup,fill = "c"),alpha = 0.25) + 
+      theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(min(ymd(tmp$date),na.rm = T)),ymd(end_validate)+simulate_length,length.out = 12),
+                                                     labels = strftime(seq.Date(ymd(min(ymd(tmp$date),na.rm = T)),
+                                                                                ymd(end_validate)+simulate_length,length.out = 12),
+                                                                       format="%d/%m/%y")) + 
+      scale_y_continuous(breaks = round(seq(min(tmp$NewDpred,na.rm = T),max(tmp$NewDpredSup,na.rm = T),length.out = 10))) +
+      theme(legend.title = element_text(face = "bold"),legend.position = "bottom") + ylab("Indivíduos") +
+      xlab("Data") + scale_colour_discrete("",labels = c("Novos Óbitos")) +
+      theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
+            axis.text.x = element_text(size = 15,face = "bold",color = "white"),
+            legend.text = element_text(size = 15,face = "bold",color = "white"),
+            axis.text.y = element_text(size = 15,face = "bold",color = "white"),
+            legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
+            panel.grid.minor.y = element_blank(),
+            axis.title = element_text(color = "white",size = 20),
+            plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
+      theme(plot.margin = unit(c(1,1,1,1), "lines")) + scale_fill_discrete(guide = FALSE) + 
+      theme(strip.background = element_blank(),
+            strip.text = element_text(size = 20,face = "bold",color = "white")) +
+      labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
+      ggtitle(paste("Novos óbitos diários previstos para DRS",unique(drs$Regiao[drs$DRS == d])))
+    pdf(file = paste("/storage/SEIR/",pos,"/EPCurve/DRS_",gsub(" ","",unique(drs$Regiao[drs$DRS == d])),"_NewDeaths_",pos,".pdf",sep = ""),
         width = 15,height = 10)
     suppressWarnings(suppressMessages(print(p))) #Save plot
     dev.off()
@@ -496,7 +566,13 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
                        "RpredSup" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$R))))),2,max),
                        "Dpred" = apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$D))))),2,median),
                        "DpredInf" = minD*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$D))))),2,min),
-                       "DpredSup" = maxD*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$D))))),2,max))
+                       "DpredSup" = maxD*apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$D))))),2,max),
+                       "NewDpred" = apply(t(apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$D))))),1,
+                                                  diffNA)),2,median),
+                       "NewDpredInf" = apply(t(apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$D))))),1,
+                                                     diffNA)),2,min),
+                       "NewDpredSup" = apply(t(apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$D))))),1,
+                                                     diffNA)),2,max))
   tmp2 <- obs %>% filter(date <= min(c_pred$date)) %>% select(date,infected,confirmed_corrected,deaths_corrected) %>% data.table()
   c_pred$DpredInf[1:6] <- c_pred$DpredInf[1:6]/minD
   c_pred$DpredSup[1:6] <- c_pred$DpredSup[1:6]/maxD
@@ -514,7 +590,8 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
   tmp <- rbind.data.frame(data.frame("date" = tmp2$date,"Epred" = NA,"EpredInf" = NA,"EpredSup" = NA,"Ispred" = tmp2$infected,"IspredInf" = NA,
                                      "IspredSup" = NA,"Ipred" = NA,"IpredInf" = NA,"IpredSup" = NA,"Itpred" = tmp2$confirmed_corrected,
                                      "ItpredInf" = NA,"ItpredSup" = NA,"Rpred" = NA,"RpredInf" = NA,"RpredSup" = NA,"Dpred" = tmp2$deaths_corrected,
-                                     "DpredInf" = NA,"DpredSup" = NA),c_pred)
+                                     "DpredInf" = NA,"DpredSup" = NA,"NewDpred" = tmp2$new_deaths_corrected,
+                                     "NewDpredInf" = NA,"NewDpredSup" = NA),c_pred)
   p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                                                                 linetype = "dashed") +
     geom_line(aes(y = Ispred, color = "a")) + geom_ribbon(aes(ymin = IspredInf,ymax = IspredSup,fill = "a"),alpha = 0.25) +
@@ -540,6 +617,34 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
     labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
     ggtitle(paste("Curva epidemiológica prevista para o Estado de São Paulo"))
   pdf(file = paste("/storage/SEIR/",pos,"/SP_EPcurve_predicted_MEDIAN.pdf",sep = ""),
+      width = 15,height = 10)
+  suppressWarnings(suppressMessages(print(p))) #Save plot
+  dev.off()
+  
+  p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
+                                                             linetype = "dashed") +
+    geom_line(aes(y = NewDpred, color = "c")) + geom_ribbon(aes(ymin = NewDpredInf,ymax = NewDpredSup,fill = "c"),alpha = 0.25) + 
+    theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(min(ymd(tmp$date),na.rm = T)),ymd(end_validate)+simulate_length,length.out = 12),
+                                                   labels = strftime(seq.Date(ymd(min(ymd(tmp$date),na.rm = T)),
+                                                                              ymd(end_validate)+simulate_length,length.out = 12),
+                                                                     format="%d/%m/%y")) + 
+    scale_y_continuous(breaks = round(seq(min(c_pred$NewDpred,na.rm = T),max(c_pred$NewDpredSup,na.rm = T),length.out = 10))) +
+    theme(legend.title = element_text(face = "bold"),legend.position = "bottom") + ylab("Indivíduos") +
+    xlab("Data") + scale_colour_discrete("",labels = c("Novos Óbitos")) +
+    theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
+          axis.text.x = element_text(size = 15,face = "bold",color = "white"),
+          legend.text = element_text(size = 15,face = "bold",color = "white"),
+          axis.text.y = element_text(size = 15,face = "bold",color = "white"),
+          legend.key.width=unit(3.5,"cm"),panel.grid.major.y = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          axis.title = element_text(color = "white",size = 20),
+          plot.caption = element_text(face = "bold",color = "white",hjust = 0,size = 15)) +
+    theme(plot.margin = unit(c(1,1,1,1), "lines")) + scale_fill_discrete(guide = FALSE) + 
+    theme(strip.background = element_blank(),
+          strip.text = element_text(size = 20,face = "bold",color = "white")) +
+    labs(caption = "©IME - USP. Design: Diego Marcondes. Para mais informações e conteúdo sobre a COVID-19 acesse www.ime.usp.br/~pedrosp/covid19/") +
+    ggtitle(paste("Novos óbitos diários previstos para o Estado de São Paulo"))
+  pdf(file = paste("/storage/SEIR/",pos,"/SP_NewDeaths.pdf",sep = ""),
       width = 15,height = 10)
   suppressWarnings(suppressMessages(print(p))) #Save plot
   dev.off()
