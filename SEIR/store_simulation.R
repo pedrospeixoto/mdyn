@@ -111,7 +111,7 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
       tmp <- rbind.data.frame(data.frame("date" = tmp2$date,"Epred" = NA,"EpredInf" = NA,"EpredSup" = NA,"Ispred" = tmp2$infected,"IspredInf" = NA,
                                          "IspredSup" = NA,"Ipred" = NA,"IpredInf" = NA,"IpredSup" = NA,"Itpred" = tmp2$confirmed_corrected,
                                          "ItpredInf" = NA,"ItpredSup" = NA,"Rpred" = NA,"RpredInf" = NA,"RpredSup" = NA,"Dpred" = tmp2$deaths_corrected,
-                                         "DpredInf" = NA,"DpredSup" = NA,"NewDpred" = tmp2$new_deaths_corrected,
+                                         "DpredInf" = NA,"DpredSup" = NA,"NewDpred" = tmp2$new_death_cor,
                                          "NewDpredInf" = NA,"NewDpredSup" = NA),c_pred)
       
       p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
@@ -378,7 +378,7 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
     tmp <- rbind.data.frame(data.frame("date" = tmp2$date,"Epred" = NA,"EpredInf" = NA,"EpredSup" = NA,"Ispred" = tmp2$infected,"IspredInf" = NA,
                                        "IspredSup" = NA,"Ipred" = NA,"IpredInf" = NA,"IpredSup" = NA,"Itpred" = tmp2$confirmed_corrected,
                                        "ItpredInf" = NA,"ItpredSup" = NA,"Rpred" = NA,"RpredInf" = NA,"RpredSup" = NA,"Dpred" = tmp2$deaths_corrected,
-                                       "DpredInf" = NA,"DpredSup" = NA,"NewDpred" = tmp2$new_deaths_corrected,
+                                       "DpredInf" = NA,"DpredSup" = NA,"NewDpred" = tmp2$new_death_cor,
                                        "NewDpredInf" = NA,"NewDpredSup" = NA),c_pred)
     p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                                                                linetype = "dashed") +
@@ -573,7 +573,7 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
                                                      diffNA)),2,min),
                        "NewDpredSup" = apply(t(apply(rbindlist(lapply(X = predSIM,FUN = function(x) data.frame(rbind(rowSums(x$D))))),1,
                                                      diffNA)),2,max))
-  tmp2 <- obs %>% filter(date <= min(c_pred$date)) %>% select(date,infected,confirmed_corrected,deaths_corrected) %>% data.table()
+  tmp2 <- obs %>% filter(date <= min(c_pred$date)) %>% select(date,infected,confirmed_corrected,deaths_corrected,new_death_cor) %>% data.table()
   c_pred$DpredInf[1:6] <- c_pred$DpredInf[1:6]/minD
   c_pred$DpredSup[1:6] <- c_pred$DpredSup[1:6]/maxD
   c_pred$IpredInf[1:6] <- c_pred$IpredInf[1:6]/minI
@@ -585,12 +585,13 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
   tmp2 <- tmp2[,infected := sum(infected),by = date]
   tmp2 <- tmp2[,confirmed_corrected := sum(confirmed_corrected),by = date]
   tmp2 <- tmp2[,deaths_corrected := sum(deaths_corrected),by = date]
+  tmp2 <- tmp2[,new_death_cor := sum(new_death_cor),by = date]
   tmp2 <- unique(data.frame(tmp2))
   tmp2 <- tmp2 %>% filter(confirmed_corrected > 100)
   tmp <- rbind.data.frame(data.frame("date" = tmp2$date,"Epred" = NA,"EpredInf" = NA,"EpredSup" = NA,"Ispred" = tmp2$infected,"IspredInf" = NA,
                                      "IspredSup" = NA,"Ipred" = NA,"IpredInf" = NA,"IpredSup" = NA,"Itpred" = tmp2$confirmed_corrected,
                                      "ItpredInf" = NA,"ItpredSup" = NA,"Rpred" = NA,"RpredInf" = NA,"RpredSup" = NA,"Dpred" = tmp2$deaths_corrected,
-                                     "DpredInf" = NA,"DpredSup" = NA,"NewDpred" = tmp2$new_deaths_corrected,
+                                     "DpredInf" = NA,"DpredSup" = NA,"NewDpred" = tmp2$new_death_cor,
                                      "NewDpredInf" = NA,"NewDpredSup" = NA),c_pred)
   p <- ggplot(tmp,aes(x = ymd(date),group = 1)) + geom_vline(xintercept = ymd(as.matrix(rbind(peak[nrow(peak),2:4]))[1,]),color = "white",
                                                                 linetype = "dashed") +
