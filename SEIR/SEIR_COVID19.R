@@ -58,7 +58,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       
   #Test data by DRS
   teste_D <- list()
-  teste_D$DRS <- obs_drs %>% filter(date %in% seq.Date(from = ymd(end_validate)-30,to = ymd(end_validate),1)) %>%
+  teste_D$DRS <- obs_drs %>% filter(date %in% seq.Date(from = ymd(end_validate)-60,to = ymd(end_validate),1)) %>%
     select(date,DRS,deaths_corrected) %>% unique()
   names(teste_D$DRS)[3] <- "D_drs"
   teste_D$DRS$key <- paste(teste_D$DRS$date,teste_D$DRS$DRS)
@@ -69,7 +69,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   teste_D$city <- teste_D$city[,c(1,match(par$names,colnames(teste_D$city)))]
   
   teste_I <- list()
-  teste_I$DRS <- obs_drs %>% filter(date %in% seq.Date(from = ymd(end_validate)-30,to = ymd(end_validate),1)) %>%
+  teste_I$DRS <- obs_drs %>% filter(date %in% seq.Date(from = ymd(end_validate)-60,to = ymd(end_validate),1)) %>%
     select(date,DRS,confirmed_corrected) %>% unique()
   names(teste_I$DRS)[3] <- "I_drs"
   teste_I$DRS$key <- paste(teste_I$DRS$date,teste_I$DRS$DRS)
