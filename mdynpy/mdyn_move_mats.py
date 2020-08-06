@@ -491,11 +491,11 @@ def centrality_move_mats(mdyn, network, ipar):
             filename = filename + day.strftime("%Y-%m-%d")+".jpg"
     
             map=Map(network, zoom)
-            map.map_network_data(reg_df, mat, regions, title, filename.replace("Network", "Network_Arrival_Time"), node_list=ipar.filter_list )
+            map.map_network_data(reg_df, mat, regions, title, filename.replace("Network", "Network_Arrival_Time"), node_list=filter_list )
             
 
             map=Map(network, zoom)
-            map.map_network_centrality(mat, regions, title, filename.replace("Network", "Network_Centrality"), edge_filter=ipar.filter_list )
+            map.map_network_centrality(mat, regions, title, filename.replace("Network", "Network_Centrality"), edge_filter=filter_list )
 
 
 
