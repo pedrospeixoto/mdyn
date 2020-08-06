@@ -17,6 +17,7 @@ library(htmlwidgets)
 library(tidyverse)
 library(lubridate)
 library(rhandsontable)
+library(data.table)
 options(java.parameters = "-Xss2560k")
 
 #####Dados#####
@@ -28,8 +29,11 @@ obs <- read.csv(textConnection(txt)) #Get data
 obs$date <- ymd(obs$date)
 dataD <- max(obs$date)
 dataD <- paste(day(dataD),"/",sprintf("%02d", month(dataD)),"/",year(dataD),sep = "")
-obs <- obs %>% filter(date == max(date) & city != "" & city != "Importados/Indefinidos") %>% 
-  select(city,state,city_ibge_code,last_available_confirmed,last_available_deaths)
+obs <- obs %>% filter(date >= max(date) - 30 & city != "" & city != "Importados/Indefinidos") %>% 
+  select(date,city,state,city_ibge_code,last_available_confirmed,last_available_deaths)
+new <- function(x){
+  max(x) - min(x)
+}
 
 
 ######UI#####
@@ -83,12 +87,12 @@ server <- function(input, output) {
                  column(1,align = "center","  ",downloadButton('download', 'Download'))),
                br(),
                br(),
-               withMathJax(HTML("<h4><strong>Propensão Relativa à Subnotificação COVID-19</strong> <br> <br>  <p align='justify'> A propensão relativa à subnotificação de um Município é definida como $$PR = \\frac{\\text{Taxa de morte por COVID-19 no Município}}{\\text{Taxa de morte por COVID-19 no Estado do Município}} - 1$$ em que as taxa de morte são definidas como a proporção entre o número de mortes confirmadas por COVID-19 e o número de casos confirmados de COVID-19 no Município e no Estado, respectivamente. No mapa acima a propensão só é calculada para Municípios com pelo menos duas mortes confirmadas por COVID-19. A propensão representa o <i> Lift </i> menos um entre as variáveis óbito por COVID-19 e Município quando calculado considerando apenas os indivíduos infectados por COVID-19 contabilizados nas estatísticas oficiais. Para mais informações sobre o <i> Lift</i> ver <a href='https://arxiv.org/abs/1901.10012'>[1]</a> e <a href='https://www.mdpi.com/1099-4300/20/2/97'>[2]</a>.</p>")),
-               withMathJax(HTML("<h4><strong>Como interpretar</strong> <br> <br> <p align='justify'> Se a <strong>PR</strong> for maior do que zero, significa que a taxa de morte no Município está acima da taxa de morte no Estado, e concluímos que esse Município é mais propenso a ter mortes por COVID-19 relativo ao seu Estado. Essa propensão se da majoritariamente pelos seguintes motivos:</p>")),
+               withMathJax(HTML("<h4><strong>Propensão Relativa à Subnotificação COVID-19</strong> <br> <br>  <p align='justify'> A propensão relativa à subnotificação de um Município é definida como $$PR = \\frac{\\text{Taxa de morte por COVID-19 no Município}}{\\text{Taxa de morte por COVID-19 no Estado do Município}} - 1$$ em que as taxa de morte são definidas como a proporção entre o número de mortes confirmadas por COVID-19 e o número de casos confirmados de COVID-19 no Município e no Estado, respectivamente, nos últimos 30 dias. No mapa acima a propensão só é calculada para Municípios com pelo menos uma morte confirmada por COVID-19 nos últimos 30 dias. A propensão representa o <i> Lift </i> menos um entre as variáveis óbito por COVID-19 e Município quando calculado considerando apenas os indivíduos infectados por COVID-19 contabilizados nas estatísticas oficiais. Para mais informações sobre o <i> Lift</i> ver <a href='https://arxiv.org/abs/1901.10012'>[1]</a> e <a href='https://www.mdpi.com/1099-4300/20/2/97'>[2]</a>.</p>")),
+               withMathJax(HTML("<h4><strong>Como interpretar</strong> <br> <br> <p align='justify'> Se a <strong>PR</strong> for maior do que zero, significa que a taxa de morte nos últimos 30 dias no Município está acima da taxa de morte no Estado, e concluímos que esse Município foi mais propenso a ter mortes por COVID-19 relativo ao seu Estado nas últimas semanas. Essa propensão se da majoritariamente pelos seguintes motivos:</p>")),
                HTML("<p align='justify'> <strong>(i)</strong> A população do Município possui características distintas da população do Estado como um todo, no sentido de ter uma parcela maior no grupo de risco em relação à doença, o que faz com que a taxa de mortalidade do Município seja maior.</p>"),
                HTML("<p align='justify'> <strong>(ii)</strong> O sitema de saúde do Município entrou em colapso e não está mais prestando os devidos cuidados aos pacientes com COVID-19, o que causa uma taxa de morte maior.</p>"),
                HTML("<p align='justify'> <strong>(iii)</strong> Os casos no Município estão com uma subnotificação acima da média do Estado, o que faz com que menos casos sejam contabilizados para o cálculo da taxa de morte, fazendo com que ela seja superestimada.</p>"),
-               HTML("Tendo em vista que os sistemas de saúde ainda não entraram em colapso, e atentando ás particularidades sociodemográficas de cada Município, <strong>podemos considerar a propensão relativa à subnotificação como uma medida da subnotificação de casos no Município em relação à subnotifcação no Estado</strong>. Se a <strong>PR</strong> do Município for maior do que um, temos evidências de que a subnotificação de casos nele é maior do que no seu Estado e portanto ele está, relativamente ao seu Estado, mais propenso à subnotificação, entendida aqui como uma maior prevalência de casos do que representada pelos dados oficiais."),
+               HTML("Tendo em vista que os sistemas de saúde não entraram em colapso, e atentando ás particularidades sociodemográficas de cada Município, <strong>podemos considerar a propensão relativa à subnotificação como uma medida da subnotificação de casos no Município em relação à subnotifcação no Estado</strong>. Se a <strong>PR</strong> do Município for maior do que um, temos evidências de que a subnotificação de casos nele é maior do que no seu Estado e portanto ele está, relativamente ao seu Estado, mais propenso à subnotificação, entendida aqui como uma maior prevalência de casos do que representada pelos dados oficiais."),
                br(),
                br(),
                HTML("Os dados utilizados aqui foram retirados do site <a href='https://brasil.io/dataset/covid19/caso/'>Brasil.io</a>."),
@@ -151,15 +155,21 @@ server <- function(input, output) {
   observeEvent(input$do,{
     if(!is.null(input$state)){
       tmp <- obs %>% filter(state == input$state) %>% droplevels()
-      tmp$rate <- ifelse(tmp$last_available_confirmed > 0,tmp$last_available_deaths/tmp$last_available_confirmed,0)
-      tmp$rate[tmp$last_available_deaths < 2] <- NA
-      rate <- sum(tmp$last_available_deaths)/sum(tmp$last_available_confirmed)
+      tmp <- data.table(tmp)
+      tmp[tmp$city == "Santo André",]
+      tmp <- tmp[,Ndeath := new(last_available_deaths),by = city]
+      tmp <- tmp[,Nconfirmed := new(last_available_confirmed),by = city]
+      tmp <- data.frame(tmp)
+      tmp <- tmp %>% select(city,Ndeath,Nconfirmed,city_ibge_code) %>% unique()
+      tmp$rate <- tmp$Ndeath/tmp$Nconfirmed
+      rate <- sum(tmp$Ndeath)/sum(tmp$Nconfirmed)
       tmp$lift <- tmp$rate/rate
+      tmp$lift[is.na(tmp$lift)] <- 0
       tab <- tmp %>% filter(lift > 1) %>% select(city,lift)
       tab$lift <- tab$lift - 1
       names(tab) <- c("Município","Propensão Relativa")
       tab <- tab[order(tab[,2],decreasing = T),]
-      tmp$lift[tmp$lift < 1] <- 1 
+      tmp$lift[tmp$lift < 1 & tmp$lift > 0] <- 1 
       tmp$lift[tmp$lift > 2] <- 2 
       
       output$tabela <- renderRHandsontable({
@@ -175,11 +185,11 @@ server <- function(input, output) {
           shp_tmp[is.na(shp_tmp[[names(shp_tmp)[j]]]),j] <- 0
       nomes <- vector()
       nomes[shp_tmp$lift == 1] <- "Propensão < 0"
-      nomes[shp_tmp$last_available_deaths < 2] <- "Sem dados suficientes"
+      nomes[shp_tmp$lift == 0] <- "Sem dados suficientes"
       nomes[shp_tmp$lift == 2] <- "Propensão > 1"
       nomes[is.na(nomes)] <- paste("Propensão:",round(shp_tmp$lift[is.na(nomes)]-1,2))
       shp_tmp$lift <- shp_tmp$lift - 1
-      shp_tmp$lift[shp_tmp$last_available_deaths < 2] <- -0.01
+      shp_tmp$lift[shp_tmp$lift == -1] <- -0.01
   
       # Make vector of colors for values smaller than 0 (20 colors)
       rc <- c("white",colorRampPalette(colors = c("orange","red"), space = "Lab")(10))
