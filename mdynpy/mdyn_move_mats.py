@@ -417,9 +417,23 @@ def centrality_move_mats(mdyn, network, ipar):
     #Get movement matrices
     mdyn.collect_move_mat(network)
 
-    #Get isolation indeces
-    #iso = sd.socialdist(ipar.isoind_file, network) 
+    #Get extra data
+    df = pd.read_csv("input/arrival_time.csv") 
+    print(df)
 
+    #filter if set up
+    if ipar.filter[0]:
+        if ipar.filter[1] == "pop":
+            npop = ipar.filter[2]
+            pop=np.array(network.reg_pop)
+            ipop=list(pop.argsort()[-npop:][::-1])
+            print(ipop)
+            filter_list=ipop
+        if ipar.filter[1] == "list":
+            filter_list = ipar.filter_list
+    else:
+        filter_list=[]
+        
     #print(iso.df.columns)
     #print("Regions:", network.regions)
     
@@ -442,15 +456,20 @@ def centrality_move_mats(mdyn, network, ipar):
             #df_iso = df_iso[df_iso['reg_name'].isin(regions.values())]
 
         mat = mdyn.movemats[i]
-        #reg_iso = np.zeros([network.nreg_in])
-        #for reg in range(network.nreg_in):
-        #    region = regions.get(reg)
-        #    region = str(region)   
-        #    if region in list(df_iso['reg_name'].values): 
-        #        isotmp = df_iso.loc[df_iso['reg_name'] == region, 'iso'].values[0]
-        #    else:
-        #        isotmp = np.nan
-        #    reg_iso[reg] = isotmp
+        reg_df = np.zeros([network.nreg_in])
+        reg_list = df['Município'].values
+        
+        reg_list = [w.upper() for w in reg_list]
+        
+        for reg in range(network.nreg_in):
+            region = regions.get(reg)
+            region = str(region)   
+            if region in reg_list: 
+                
+                valtmp = df.loc[df['Município'].str.upper()  == region, 'arrival10week'].values[0]
+            else:
+                valtmp = np.nan
+            reg_df[reg] = valtmp
             
         #Do map
         dow=mex.weekdays[day.weekday()]
@@ -472,7 +491,11 @@ def centrality_move_mats(mdyn, network, ipar):
             filename = filename + day.strftime("%Y-%m-%d")+".jpg"
     
             map=Map(network, zoom)
-            map.map_network_centrality(mat, regions, title, filename.replace("Network", "Network_Centrality"))
+            map.map_network_data(reg_df, mat, regions, title, filename.replace("Network", "Network_Arrival_Time"), node_list=filter_list )
+            
+
+            map=Map(network, zoom)
+            map.map_network_centrality(mat, regions, title, filename.replace("Network", "Network_Centrality"), edge_filter=filter_list )
 
 
 

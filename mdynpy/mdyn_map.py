@@ -510,7 +510,7 @@ class Map:
         plt.savefig(filename, dpi=300)   
         plt.close()
 
-    def map_network_data(self, data, mat, reg0, title, filename):
+    def map_network_data(self, data, mat, reg0, title, filename, edge_list=[], node_list=[]):
         
         network = self.dom
         
@@ -541,9 +541,31 @@ class Map:
         #Filer low flux edges:       
         #remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
         #if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
-        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 0] 
+        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 4] 
         #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
         G.remove_edges_from(remove)
+        
+        #remove nodes and edges based on filter
+        if len(edge_list)>1 or len(node_list)>1 :
+            nodes_keep = list(edge_list)
+            nodes_remove = list(set(G.nodes) - set(node_list))
+            if len(edge_list)>1 :
+                nodes_ed_remove = list(set(G.nodes) - set(edge_list))
+            else:
+                nodes_ed_remove = nodes_remove
+
+            #print(nodes_remove)
+            #print(nodes_keep)
+            ed_remove = []
+            for node in nodes_ed_remove:
+                ed=list(G.in_edges(node))+list(G.out_edges(node))
+                ed_remove=ed_remove+ed
+                
+            #print(ed_remove)
+            
+            G.remove_edges_from(ed_remove)
+            #G.remove_nodes_from(nodes_remove)
+        
         
         N = len(G)
         print("   Filtred Network len:", N)
@@ -556,17 +578,12 @@ class Map:
         node_colors = data
         #print(node_colors)
         
-        node_sizes = [15 for i in range(N)]
+        node_sizes = [25 for i in range(N)]
 
         edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
         weights = np.array(weights)  
         
-        #Set categories
-        #limits = np.percentile(weights, [5, 80, 85, 90, 95, 99])
-        #print("Flux limits: ", limits)
-        #edlimits = np.array([1, 10, 20, 40, 80, 160, 320, 640])
-        #print("  Enforced limits: ", edlimits)
-        #weights = np.digitize(weights, edlimits, right=True)/len(edlimits)
+
         weights = np.log2(weights)
         #weights=np.where(weights>10, 1, 0)
         maxw = max(weights) #
@@ -580,8 +597,7 @@ class Map:
             edge_alphas = 0.1+(weights/maxw)*0.4
 
         nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, 
-            node_color=node_colors, with_labels=False, linewidths= 0.3, cmap=plt.cm.winter,
-            vmin=0.35, vmax=0.55)
+            node_color=node_colors, with_labels=False, linewidths= 0.3, cmap=plt.cm.winter)
         edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
                                     arrowsize=5, edgelist=edges, edge_color=edge_colors,
                                     edge_cmap=plt.cm.hot_r, width=edge_widths,
@@ -605,7 +621,7 @@ class Map:
 
         nodes.set_array(node_colors)
         cax = divider.append_axes("bottom", size="5%", pad=0.05)
-        cbarnodes = plt.colorbar(nodes, orientation="horizontal", cax=cax, label="Índice de Isolamento") #, ticks=[0.35, 0.45, 0.55])
+        cbarnodes = plt.colorbar(nodes, orientation="horizontal", cax=cax, label="Arrival Time") #, ticks=[0.35, 0.45, 0.55])
         #cnodes.ax.set_yticklabels(["35%", "45%", "55%"], rotation="vertical")
 
 
@@ -778,7 +794,7 @@ class Map:
         plt.savefig(filename, dpi=300)   
         plt.close()
 
-    def map_network_centrality(self, mat, reg0, title, filename):
+    def map_network_centrality(self, mat, reg0, title, filename, edge_filter=[]):
         
         network = self.dom
         
@@ -808,6 +824,20 @@ class Map:
         print("   Network len:", N)
         M = G.number_of_edges()
         print("   Network edges:", M)
+
+        #remove edges based on filter
+        if len(edge_filter)>1:
+            nodes_keep = list(edge_filter)
+            nodes_remove = list(set(G.nodes) - set(edge_filter))
+            #print(nodes_remove)
+            #print(nodes_keep)
+            ed_remove = []
+            for node in nodes_remove:
+                ed=list(G.in_edges(node))+list(G.out_edges(node))
+                ed_remove=ed_remove+ed
+                
+            #print(ed_remove)
+            G.remove_edges_from(ed_remove)
 
         #Calculate centrality
         #print(G.edges)
