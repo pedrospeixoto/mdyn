@@ -18,7 +18,7 @@ error_D <- 0.055
 
 #Set mobility matrix
 par$mob <- list()
-day <- seq.Date(from = ymd("2020-06-24"),to = ymd("2020-07-21"),1)
+day <- seq.Date(from = ymd("2020-07-06"),to = ymd("2020-08-02"),1)
 for(d in as.character(day)){
   cat(d)
   cat("\n")
