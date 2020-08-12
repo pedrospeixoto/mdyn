@@ -15,6 +15,7 @@ lift_death <- function(obs,end_validate,par){
   lift$lift[lift$lift == 0] <- 1
   lift$lift[lift$lift < 0.9] <- 0.9 #Truncate
   lift$lift[lift$lift > 1.1] <- 1.1 #Truncate
+  lift$lift <- 1
   
   return(lift$lift)
 }
