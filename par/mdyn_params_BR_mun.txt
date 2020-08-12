@@ -44,7 +44,7 @@ isoind_file = "data/isol_br/Social Distancing Index by Cities2020-07-18.csv"
 
 #Filter based on population (pop) given a max number of cities 
 #filter = [True, "pop", 50 ]
-filter = [True, "list", 0 ]
+filter = [False, "list", 0 ]
 #capital cities
 #filter_list = [66, 1696, 303, 111, 2162, 949, 5569,3174,5417,635,5219,1665,2309,169,1337,
 #      4005,1596,882,3242,1163,4931,16,138,4398,3829,1754,443]

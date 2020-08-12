@@ -16,7 +16,9 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy import stats
 import scipy
 
+import pandas as pd
 import geopandas as gpd
+
 
 import networkx as nx
 
@@ -813,6 +815,7 @@ class Map:
         
         #Only graph inner nodes
         mattmp=mat[:n, :n]
+        #mattmp=mat[:100, :100]
         np.fill_diagonal(mattmp, 0)
         evs=np.linalg.eigvals(mattmp)
         ev = max(evs, key=np.abs) #calcula o max autovalor
@@ -853,9 +856,25 @@ class Map:
         
         alpha = (1/ev.real) - 0.1*(1/ev.real)
         print("   Calculating centrality:")
-        centrality = nx.katz_centrality(G, alpha=alpha, beta=100.0, weight=None)
-        
-        print(stats.describe(np.array(list(centrality.values()))))
+        centrality = nx.katz_centrality(G, alpha=alpha, beta=1.0, weight=None)
+        data = np.array(list(centrality.values()))
+        #data = np.log(1+data)
+        #print(data)
+        maxdata=np.amax(data)
+        mindata=np.amin(data)
+        data=(data-mindata)/(maxdata-mindata)
+
+        #print(data)
+
+        print(stats.describe(data))
+        cent_df=pd.DataFrame(data=data, columns=['Katz'])
+        cent_df['ibge'] = cent_df.index.map(network.regions)
+        cent_df['name'] = cent_df.index.map(network.regions_in_names)
+        #print(cent_df)
+        filecsv=filename[:-4]+".csv"
+        print("  Saving Katz dataframe:", filecsv)
+        cent_df.to_csv(filecsv)
+
         #Filer low flux edges:       
         remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
         if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
@@ -880,12 +899,7 @@ class Map:
         #dataw = np.digitize(data, nodelimits, right=True)/len(nodelimits)
         #dataw[np.isnan(data)]=np.nan
 
-        data = np.array(list(centrality.values()))
-        #data = np.log(1+data)
-        #print(data)
-        maxdata=np.amax(data)
-        mindata=np.amin(data)
-        data=(data-mindata)/(maxdata-mindata)
+        
         #print(data)
         #print(np.sort(data))
         node_colors = data
