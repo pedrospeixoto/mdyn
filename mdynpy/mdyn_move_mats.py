@@ -527,7 +527,7 @@ def centrality_move_mats_avg(mdyn, network, ipar):
 
     #for i, day in enumerate(mdyn.days_all):
     days = mdyn.days_all[0].strftime("%Y-%m-%d")+"_"+mdyn.days_all[-1].strftime("%Y-%m-%d")
-    
+
     print("Calculating for period: ", days)
         #print(iso.df['day'].unique(), day.strftime("%Y-%m-%d"))
         
@@ -565,10 +565,6 @@ def centrality_move_mats_avg(mdyn, network, ipar):
 
         title = title + days
         filename = filename + days+".jpg"
-
-        #map=Map(network, zoom)
-        #map.map_network_data(reg_df, mat, regions, title, filename.replace("Network", "Network_Arrival_Time"), node_list=filter_list )
-        
 
         map=Map(network, zoom)
         map.map_network_centrality(mat, regions, title, filename.replace("Network", "Network_Centrality"), edge_filter=filter_list )
