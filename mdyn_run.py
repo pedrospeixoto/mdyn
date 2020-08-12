@@ -65,7 +65,7 @@ if run_opt == 2:
     time_start = time.time()
     #mmat.analyse_move_mats(mdyn, network, ipar)
 
-    mmat.centrality_move_mats(mdyn, network, ipar)
+    mmat.centrality_move_mats_avg(mdyn, network, ipar)
     time_end = time.time()
     print("Execution time "+str(time_end-time_start)+" seconds")
 
