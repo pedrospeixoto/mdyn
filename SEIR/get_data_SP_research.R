@@ -65,6 +65,14 @@ get_data_SP <- function(){
   iso$reg_name[iso$reg_name == "PALMEIRA D'OESTE"] <- "PALMEIRA DOESTE"
   iso$reg_name[iso$reg_name == "SANTA BÁRBARA D'OESTE"] <- "SANTA BÁRBARA DOESTE"
   iso$key <- paste(iso$reg_name,iso$day)
+  iso <- iso %>% select(key,iso,mean_pre,weekday,reg_name,day)
+  for(c in unique(iso$reg_name)){
+    print(c)
+    tmp <- iso %>% filter(reg_name == c)
+    iso$mean_pre[iso$reg_name == c] <- mean(unique(iso$mean_pre[iso$reg_name == c]))
+    for(d in as.character(seq.Date(min(tmp$day) + 13,max(tmp$day),1)))
+      iso$iso[iso$reg_name == c & iso$day == d] <- mean(tmp$iso[tmp$day >= ymd(d) - 13 & tmp$day <= ymd(d)])
+  }
   iso <- iso %>% select(key,iso,mean_pre,weekday)
   obs$key <- paste(obs$city,obs$date)
   obs <- merge(obs,iso,all.x = T,all.y = F)
@@ -86,7 +94,7 @@ get_data_SP <- function(){
   obs$key <- NULL
   obs$iso_DRS <- NULL  
   obs$mean_pre_DRS <- NULL
-  obs$iso <- 1-obs$iso#ifelse(obs$iso > obs$mean_pre,(1-obs$iso)/(1-obs$mean_pre),1)
+  obs$iso <- ifelse(obs$iso > obs$mean_pre,(1-obs$iso)/(1-obs$mean_pre),1)
   obs$mean_pre <- NULL
   obs$weekday <- NULL
   obs$DRS <- NULL
