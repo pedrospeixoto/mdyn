@@ -1,0 +1,80 @@
+#Main domain definition
+domain = "RIO GRANDE DO SUL" #SP or RJ
+domain_abrv = "RS"
+domain_gran = "NM_ESTADO"
+domain_shape = "maps/UFEBRASIL/UFEBRASIL"
+
+#Subdomain definitions
+subdomains = "Municip"
+subdomains_gran = "NM_MUNICIP"
+subdomains_shape = "maps/rs_municipios/43MUE250GC_SIR"
+
+#Population
+domain_pop = "maps/population/population_ufebrasil.csv"
+domain_pop_labels = ["Estado", "Populacao"]
+subdomains_pop = "maps/population/population_mun_br_2019.csv"
+subdomains_pop_labels = ["UF", "MUNICIPIO", "POP2019"]
+
+#Network granularity
+latlon_gran = 0.01 #granularity of lat long spacing
+
+#Network pre-computation flag
+load_domain = True #Load precomp structures
+
+#-----------------------------
+# Mobile Data Set Definition
+#-----------------------------
+
+#Initialize mobile data and load data to dataframe
+data_format = "Parquet" #"ORC"
+data_dir = "data/mobility_br_2020/"
+date_ini = "2020-06-06"
+date_end = "2020-06-06"
+load_data = True
+
+#Isolation index
+isoind_file = "data/isol_br/Social Distancing Index by Cities2020-07-14.csv"
+#isoind_file = "inloco/Social Distancing Index by Cities2020-05-21.csv"
+
+#Number of main sources for plots
+num_source = 1
+
+#-----------------------------
+# Slicing/Zoom
+#------------------------------
+
+filter = [False, "list", 0 ]
+
+        #Flag, lats, lons, drawsubdomains, label
+zoom = [False, -22.6, -24.2, -47.8,-45.6, True, "RMSP"  ]
+
+#-----------------------------
+# Statistics
+#------------------------------
+#reference = 262 #559 # 271  # 268 #"SÃO PAULO"
+reference = 268 #"SÃO PAULO"
+neighb = [268]
+#neighb = [336, 84, 268, 257, 432, 583, 382, 271, 620, 507]
+#neighb = [268, 271, 319, 559, 114, 620, 262]
+nneighb = 30 # based on population. plus list above
+
+#-----------------------------
+# Simulation configuration
+#------------------------------
+
+#Initial condition for simulation (file with num of cases per region)
+#São Paulo
+data_ini_by_reg = { 268 : 1.0 }
+
+#Number of simulation days
+num_simul_days = 1
+
+#Type of model 
+# 0: simple mat iteration
+# 1: only infected - see diego's doc
+# 2: two parameter model
+model = 2
+infec_rate = 0.4  #infection rate per day
+spread_rate = 1.0 #Spatial spread rate
+
+risk_lim = 1.0 #Infected people to consider risk limit
