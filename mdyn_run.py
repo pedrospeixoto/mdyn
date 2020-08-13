@@ -82,6 +82,11 @@ if run_opt == 4:
     time_end = time.time()
     print("Execution time "+str(time_end-time_start)+" seconds")
 
+if run_opt == 5:
+    time_start = time.time()
+    mmat.time_evolution_states_move_mats(mdyn, network, ipar)
+    time_end = time.time()
+    print("Execution time "+str(time_end-time_start)+" seconds")
 
 if run_opt == 20:
     time_start = time.time()

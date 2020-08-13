@@ -92,9 +92,11 @@ class Network:
         
         #Load main domain
         self.df_domain = self.load_domain()
+        #print(self.df_domain)
 
         #Load subdomains
         self.df_subdomains = self.load_subdomains()
+        #print(self.df_subdomains)
 
         #Create in/out region lists
         self.create_regions()
@@ -244,16 +246,17 @@ class Network:
         self.regions_in_latlon = self.df_subdomains.filter(filt).set_index(self.subdomains_gran).T.to_dict('list')
         self.nreg_in = len(self.regions_in)
 
-        if self.domain_abrv == "BRA":
-            if self.subdomains == "Municip": #Save the names of cities for brasil (as the region is usually the code)
-                self.regions_in_names = self.df_subdomains["NM_MUNICIP"].to_dict()
-            elif self.subdomains == "microreg":
-                self.regions_in_names = self.df_subdomains["NM_MICRO"].to_dict()
-        else:
-            if self.subdomains == "Municip": #Save the names of cities for brasil (as the region is usually the code)
-                self.regions_in_codes = self.df_subdomains["CD_GEOCMU"].to_dict()
-            elif self.subdomains == "microreg":
-                self.regions_in_codes = self.df_subdomains["CD_GEOCMI"].to_dict()
+        #if self.domain_abrv == "BRA":
+        if self.subdomains == "Municip": #Save the names of cities for brasil (as the region is usually the code)
+            self.regions_in_names = self.df_subdomains["NM_MUNICIP"].to_dict()
+            self.regions_in_codes = self.df_subdomains["CD_GEOCMU"].to_dict()
+        elif self.subdomains == "microreg":
+            self.regions_in_names = self.df_subdomains["NM_MICRO"].to_dict()
+            self.regions_in_codes = self.df_subdomains["CD_GEOCMI"].to_dict()
+        elif self.subdomains == "states":
+            self.regions_in_names = self.df_subdomains["NM_ESTADO"].to_dict()
+            self.regions_in_codes = self.df_subdomains["CD_GEOCODU"].to_dict()
+        #else:
         
         #Outer regions (domain)
         #-------------------------
@@ -1024,20 +1027,24 @@ class Network:
         else:
             print("Could not find this domain matrix, searching for Brasil data")
             #Let check if we have a full brasil matriz available
+            name_br = "move_mat_Brasil_Municip"
             if "unicip" in self.subdomains :
                 name = "move_mat_Brasil_Municip"
+                agg_level = "municip"
             elif "icroreg" in self.subdomains:
                 name = "move_mat_Brasil_microreg"
+                agg_level = "microreg"
             elif  "states" in self.subdomains:
                 name = "move_mat_Brasil_states"
+                agg_level = "states"
             else: 
                 print("Don't know how to collect this kind of subdomain", self.subdomains)
                 sys.exit()
 
-            matfile = local_dir+name+'.csv'
+            matfile = local_dir+name_br+'.csv'
             if os.path.exists(matfile):    
                 print("  Found a Brasil matrix! Calculating...this may take some time...")
-                npmat = local_dir+name+'.npy'
+                npmat = local_dir+name_br+'.npy'
                 if os.path.exists(npmat):
                     mat_br = np.load(npmat)
                 else:
@@ -1045,7 +1052,7 @@ class Network:
                     mat_br = np.genfromtxt(matfile)
                     np.save(npmat, mat_br)
                 #mat_br = np.genfromtxt(matfile)  
-                filename = local_dir+name+"_reg_names.txt"
+                filename = local_dir+name_br+"_reg_names.txt"
                 with open(filename) as f:
                     reg_names = f.read().splitlines()
             else:
@@ -1053,20 +1060,47 @@ class Network:
                 print(" (run with the same parameter file and option -o 0!)")
                 sys.exit()
 
-            # now we need to extract from the matrix only the desired columns/lines
-            br_array = np.array(reg_names)
-            local_array = np.array(list(self.regions_in_codes.values()))
-            sorter = np.argsort(br_array)
-            pos = sorter[np.searchsorted(br_array, local_array, sorter=sorter)]
-            
-            #filter matrix
-            mat = mat_br[pos,:][: , pos]
-            if mat.shape[0] != len(self.regions_in):
-                print("Matriz build did not work propertly")
-                sys.exit()
+            if agg_level == "municip": #easy part - no aggregate, just split!
+                # now we need to extract from the matrix only the desired columns/lines
+                br_array = np.array(reg_names)
+                local_array = np.array(list(self.regions_in_codes.values()))
+                sorter = np.argsort(br_array)
+                pos = sorter[np.searchsorted(br_array, local_array, sorter=sorter)]
+                
+                #filter matrix
+                mat = mat_br[pos,:][: , pos]
+                if mat.shape[0] != len(self.regions_in):
+                    print("Matriz build did not work propertly")
+                    sys.exit()
 
+            if agg_level == "states": #aggregate by states
+
+                br_array = np.array(reg_names)
+                #print(br_array)
+                states_array = np.array(list(self.regions_in_codes.values()))
+                #print(states_array)
+                n = self.nreg_in
+                m = len(br_array)
+                mat = np.zeros((n,n))
+                mat_tmp = np.zeros((m,n)) #aggregate by columns
+                #loop over states and aggregate matriz
+                for i in range(n):                    
+                    pos = [j for j, x in enumerate(br_array) if x[:2] == states_array[i]]
+                    mat_tmp[:, i] = np.sum(mat_br[:,pos], axis=1)
+
+                for i in range(n):                    
+                    pos = [j for j, x in enumerate(br_array) if x[:2] == states_array[i]]
+                    mat[i, :] = np.sum(mat_tmp[pos,:], axis=0)
+
+                #sanity check:
+                sum_states = np.sum(mat)
+                sum_mun = np.sum(mat_br)
+                if sum_states != sum_mun:
+                    print("Something went wrong with the aggregation: sum_states, sum_mun ", sum_states, sum_mun)
+                    sys.exit()
             mat_normed = mat / mat.sum(axis=0)
 
+            
             #Save to avoid processing this again
             name = "move_mat_"+self.domain+"_"+self.subdomains
             print("..saving matrix for future use : " , name)

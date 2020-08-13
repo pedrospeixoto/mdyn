@@ -543,7 +543,7 @@ class Map:
         #Filer low flux edges:       
         #remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
         #if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
-        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 4] 
+        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 20] 
         #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
         G.remove_edges_from(remove)
         
@@ -580,7 +580,7 @@ class Map:
         node_colors = data
         #print(node_colors)
         
-        node_sizes = [25 for i in range(N)]
+        node_sizes = [10 for i in range(N)]
 
         edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
         weights = np.array(weights)  
@@ -595,15 +595,17 @@ class Map:
             edge_widths = 0.2+0.9*(weights/maxw)
             edge_alphas = 0.1+(weights/maxw)*0.4
         else:
-            edge_widths = 0.5+0.9*(weights/maxw)
-            edge_alphas = 0.1+(weights/maxw)*0.4
+            #edge_widths = 0.5+0.9*(weights/maxw) #bigmaps
+            edge_widths = 0.2+0.9*(weights/maxw)
+            edge_alphas = 0.1+(weights/maxw)*0.8
+            #edge_alphas = 0.1+(weights/maxw)*0.4
 
         nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, 
             node_color=node_colors, with_labels=False, linewidths= 0.3, cmap=plt.cm.winter)
         edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
                                     arrowsize=5, edgelist=edges, edge_color=edge_colors,
                                     edge_cmap=plt.cm.hot_r, width=edge_widths,
-                                    edge_vmin=0 , edge_max=14,
+                                    #edge_vmin=1 , edge_max=14,
                                     connectionstyle='arc3, rad=0.1')
         
         # set alpha value for each edge
@@ -614,23 +616,31 @@ class Map:
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="3%", pad=0.05)
                 
-        sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r, norm=plt.Normalize(vmin=0, vmax=14, clip=True))
+        sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r) #, norm=plt.Normalize(vmin=1, vmax=14, clip=True))
+        #sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r) #, norm=plt.Normalize(vmin=1, vmax=14, clip=True))
         sm.set_array(edge_colors)
         
         #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')        
-        cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (viagens/dia)', ticks=[2, 7, 12])        
-        cbared.ax.set_yticklabels(["Baixo", "Médio", "Alto"], rotation="vertical")
+        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (viagens/dia)', ticks=[2, 7, 12])        
+        #cbared = plt.colorbar(sm, cax=cax, label='Number of Trips', ticks=[2, 7, 12])       
+        cbared = plt.colorbar(sm, cax=cax, label='Number of Trips', ticks=[6, 12, 16])  
+        #cbared.ax.set_yticklabels(["Baixo", "Médio", "Alto"], rotation="vertical")
+        #cbared.ax.set_yticklabels(["Low", "Medium", "High"], rotation="vertical")
+        cbared.ax.set_yticklabels(["Low", "Medium", "High"], rotation="vertical")
 
         nodes.set_array(node_colors)
         cax = divider.append_axes("bottom", size="5%", pad=0.05)
-        cbarnodes = plt.colorbar(nodes, orientation="horizontal", cax=cax, label="Arrival Time") #, ticks=[0.35, 0.45, 0.55])
-        #cnodes.ax.set_yticklabels(["35%", "45%", "55%"], rotation="vertical")
+        #cbarnodes = plt.colorbar(nodes, orientation="horizontal", cax=cax, label="Arrival Time") #, ticks=[0.35, 0.45, 0.55])
+        #cbarnodes = plt.colorbar(nodes, orientation="horizontal", cax=cax, label="Social Distancing Index", ticks=[0.35, 0.45, 0.55])
+        cbarnodes = plt.colorbar(nodes, orientation="horizontal", cax=cax, label="Social Distancing Index", ticks=[0.25, 0.3, 0.35])
+        cbarnodes.ax.set_yticklabels(["25%", "30%", "35%"], rotation="vertical")
 
 
         if "datalake" in filename:
             textstr = "Fonte: IME-USP/COVID-Radar"
         else:
-            textstr = "Fonte: IME-USP/InLoco"
+            #textstr = "Fonte: IME-USP/InLoco"
+            textstr = "Source: IME-USP/InLoco"
         plt.gcf().text(0.02, 0.02, textstr, fontsize=10)
 
         plt.tight_layout() 
