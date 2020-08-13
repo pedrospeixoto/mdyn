@@ -1076,9 +1076,9 @@ class Network:
             if agg_level == "states": #aggregate by states
 
                 br_array = np.array(reg_names)
-                print(br_array)
+                #print(br_array)
                 states_array = np.array(list(self.regions_in_codes.values()))
-                print(states_array)
+                #print(states_array)
                 n = self.nreg_in
                 m = len(br_array)
                 mat = np.zeros((n,n))
