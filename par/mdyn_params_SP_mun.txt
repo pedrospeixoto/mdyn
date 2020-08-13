@@ -28,8 +28,8 @@ load_domain = True #Load precomp structures
 #Initialize mobile data and load data to dataframe
 data_format = "Parquet" #"ORC"
 data_dir = "data/mobility_br_2020/"
-date_ini = "2020-07-05"
-date_end = "2020-07-21"
+date_ini = "2020-02-01"
+date_end = "2020-02-14"
 load_data = True
 
 #Isolation index
@@ -46,7 +46,7 @@ num_source = 1
 filter = [False, "list", 0 ]
 
         #Flag, lats, lons, drawsubdomains, label
-zoom = [True, -22.6, -24.2, -47.8,-45.6, True, "RMSP"  ]
+zoom = [False, -22.6, -24.2, -47.8,-45.6, True, "RMSP"  ]
 
 #-----------------------------
 # Statistics
