@@ -324,6 +324,298 @@ def statistics_move_mats(mdyn, network, ipar):
     return
 
 
+def time_evolution_states_move_mats(mdyn, network, ipar):
+    print()
+    print("Time evolution of state move mats:")
+    #Get movement matrices
+    mdyn.collect_move_mat(network)
+    
+    if network.domain_abrv == "BRA":
+        #BRA uses geocodes, so get city names
+        regions = network.regions_in_names
+    else:
+        #Use actual city names
+        regions = network.regions
+        #Filter state
+
+    print("Regions:", regions)
+    
+    key = ipar.reference
+    refname = regions.get(key)
+    refind = key
+    print()
+    print("Reference:", refname, refind)
+    keys = ipar.neighb
+    nneib_pop = ipar.nneighb
+
+    pop=np.array(network.reg_pop)
+    pop_ref = pop[refind]
+    ipop = list(pop.argsort()[-nneib_pop:][::-1])
+    if refind in ipop:
+        ipop.remove(refind)
+    
+    for k in keys:
+        if k in ipop:
+            ipop.remove(k)
+
+    keys = keys + ipop
+    if refind in keys:
+        keys.remove(refind)
+    neibind = keys
+    nneib = len(keys)
+    neib = [None]*nneib
+
+    print("Neighbours")
+    for i, key in enumerate(keys):
+        neib[i]=regions.get(key)
+
+    print(neib, neibind)
+
+    title = network.domain+" "+network.subdomains+" Mobility "+refname+" "
+    filename = mdyn.dump_dir+title.replace(" ", "_")
+    #neib_title = network.domain+" "+network.subdomains+" Mains Fluxes "+refname+" "
+    #neib_file = mdyn.dump_dir+neib_title.replace(" ", "_")
+
+    ndays = len(mdyn.days_all)
+    evolneib_in = np.zeros((nneib,ndays))
+    evolneib_out = np.zeros((nneib,ndays))
+    evoldiag = np.zeros(ndays)
+    evol_inall = np.zeros(ndays)
+    evol_outall = np.zeros(ndays)
+
+    days = []
+    #Loop for each day
+    for i, day in enumerate(mdyn.days_all):
+        day_str = day.strftime("%Y-%m-%d")
+        #print("Calculating on: ", i, day_str)
+        days.append(day_str)              
+        mat = mdyn.movemats[i]
+        evoldiag[i] = mat[refind,refind]
+        evol_inall[i] = sum(mat[refind,:])-evoldiag[i]
+        evol_outall[i] = sum(mat[: , refind])-evoldiag[i]
+
+        for j, ind in enumerate(neibind):
+            evolneib_in[j, i] = mat[refind, ind]
+            evolneib_out[j, i] = mat[ind, refind]  
+    
+    # Draw Plot
+    fig = plt.figure(figsize=(20,10), dpi= 300)
+    mycolors = [
+        'tab:red', 'tab:blue', 'tab:green', 
+        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
+        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
+        'tab:red', 'tab:blue', 'tab:green', 
+        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
+        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
+        'tab:red', 'tab:blue', 'tab:green', 
+        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
+        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
+        'tab:red', 'tab:blue', 'tab:green', 
+        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
+        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
+        'tab:red', 'tab:blue', 'tab:green', 
+        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
+        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
+        ]      
+
+    ref_ndays = 7
+
+    relative = False
+    lab = "INTERNAS A "+refname
+    #plt.plot(mdyn.days_all, evoldiag, color=mycolors[0], linewidth=3, label=lab)
+    dates_ma = mdyn.days_all[6:]
+    evol_ma = mex.moving_average(evoldiag)
+    evol_ref = np.average(evoldiag[0:ref_ndays])
+    #evol_ref = evol_ma[0]
+    if relative:
+        evol_ma = 100*(evol_ma - evol_ref)/evol_ref
+        plt.plot(dates_ma, evol_ma, color=mycolors[0], linewidth=4, label=lab)
+        #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1], lab, fontsize=14, color=mycolors[0])
+    
+    data = {"Data": dates_ma, lab: evol_ma }
+    dataraw = {"Data": mdyn.days_all, lab: evoldiag }
+    dataraw_in = {"Data": dates_ma}
+    dataraw_out = {"Data": dates_ma}
+
+    lab = "SAINDO DE "+refname
+    #plt.plot(mdyn.days_all, evoldiag, color=mycolors[0], linewidth=3, label=lab)
+    evol_ma = mex.moving_average(evol_outall)
+    dataraw_out[refname]=evol_ma
+
+    evol_ref = np.average(evol_outall[0:ref_ndays])
+    #evol_ref = evol_ma[0]
+    if relative:
+        evol_ma = 100*(evol_ma - evol_ref)/evol_ref
+        #evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
+        plt.plot(dates_ma, evol_ma, color=mycolors[1], linewidth=4, label=lab)
+        #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1]+1, lab, fontsize=14, color=mycolors[1])
+    
+    data[lab]=evol_ma
+    dataraw[lab]=evol_outall
+    
+    lab = "ENTRANDO EM "+refname
+    #plt.plot(mdyn.days_all, evoldiag, color=mycolors[0], linewidth=3, label=lab)
+    evol_ma = mex.moving_average(evol_inall)
+    dataraw_in[refname]=evol_ma
+
+    evol_ref = np.average(evol_inall[0:ref_ndays])
+    #evol_ref = evol_ma[0]
+    if relative:
+        evol_ma = 100*(evol_ma - evol_ref)/evol_ref
+        #evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
+        plt.plot(dates_ma, evol_ma, color=mycolors[2], linewidth=4, label=lab)
+        #plt.text(dates_ma[-1]+timedelta(days=3), evol_ma[-1]-1, lab, fontsize=14, color=mycolors[2])
+    data[lab]=evol_ma
+    dataraw[lab]=evol_inall
+    
+    texts = []
+    k = 0
+    for ki, nb in enumerate(neib):
+        lab_out = refname+"->"+nb
+        lab_in = refname+"<-"+nb
+        evol = evolneib_in[ki, :]
+
+        if np.average(evol) < 100:
+            print("Warning: City with small number of trips, removing ", nb)
+            continue
+
+        k = k +1
+        evol_ma = mex.moving_average(evol)
+        dataraw_in[nb] = evol_ma
+
+        evol_ref = np.average(evol[0:ref_ndays])
+        #evol_ref = evol_ma[0]
+        if relative:
+            evol_ma = 100*(evol_ma - evol_ref)/evol_ref
+        #evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
+        plt.plot(dates_ma, evol_ma, color=mycolors[3+k], linewidth=1, label=lab_in, linestyle="--")
+        texts.append(plt.text(dates_ma[-1]+timedelta(days=7), 
+            evol_ma[-1], nb, fontsize=10, color=mycolors[3+k], alpha=0.5))
+
+        data["de "+nb] = evol_ma
+        dataraw["de "+nb] = evol
+        
+        evol = evolneib_out[ki, :]
+        evol_ma = mex.moving_average(evol)
+        dataraw_out[nb] = evol_ma
+
+        evol_ref = np.average(evol[0:ref_ndays])
+        #evol_ref = evol_ma[0]
+        if relative:
+            evol_ma = 100*(evol_ma - evol_ref)/evol_ref
+        #evol_ma = 100*(evol_ma - evol_ma[0])/evol_ma[0]
+        plt.plot(dates_ma, evol_ma, color=mycolors[3+k], linewidth=1, label=lab_out, linestyle="-.")
+        #plt.text(dates_ma[-1]+timedelta(days=1), evol_ma[-1], lab_out, fontsize=14, color=mycolors[3+k])
+
+        data["para "+nb] = evol_ma
+        dataraw["para "+nb] = evol
+        
+
+    plt.legend(loc='best', fontsize=12, ncol=2)
+
+    #fancy stuff
+    ax = plt.gca()
+
+    ax.yaxis.get_offset_text().set_fontsize(14)
+    ax.set_ylabel('viagens - média móvel semanal', fontsize=14)
+    if relative:
+        ax.yaxis.set_major_formatter(mtick.PercentFormatter())
+    #plt.ticklabel_format(axis="y", style="plain", scilimits=(0,0))
+    #plt.yscale('log')
+    plt.yticks(fontsize=14, alpha=.7)
+
+    plt.xlim(dates_ma[0], dates_ma[-1]+timedelta(days=10))
+    xtick_location = mdyn.days_all[::7]
+    xtick_labels = days[::7]
+    xtick_location.append(xtick_location[-1]+timedelta(days=7))
+    xtick_labels.append("")
+    plt.xticks(ticks=xtick_location, labels=xtick_labels, ha="right", rotation=45, fontsize=15) #, alpha=.7)
+    
+    plt.title(refname, fontsize=16)
+
+    plt.grid(axis='both', alpha=.3)
+    plt.gca().spines["top"].set_alpha(0.0)    
+    plt.gca().spines["bottom"].set_alpha(0.3)
+    plt.gca().spines["right"].set_alpha(0.0)    
+    plt.gca().spines["left"].set_alpha(0.3)   
+
+    if relative:
+        ref_txt = "Referência (média)\n"+days[0]+" a "+days[ref_ndays-1]
+        #plt.gcf().text(0.90, 0.05, ref_txt, fontsize=14, 
+        plt.gcf().text(0.1, 0.05, ref_txt, fontsize=14, 
+            bbox=dict(facecolor='gray', alpha=0.3), horizontalalignment='center', 
+            verticalalignment='center', transform=ax.transAxes)
+
+    textstr = "Fonte:\n IME-USP/InLoco"
+    plt.gcf().text(0.98, -0.1, textstr, fontsize=12, horizontalalignment='center', 
+        verticalalignment='center', transform=ax.transAxes)
+
+    plt.tight_layout() 
+
+    adjust_text(texts, autoalign="y", only_move={'points': 'y',
+        'text':'y', 'objects':'y'})
+    
+    #Save density plot to folder "dump"
+    plt.savefig(filename+"evol.jpg", dpi=400)
+    #plt.savefig(filename+"evol.tiff", dpi=200)
+    plt.close()
+    
+    #-----------save dataframes -----------------------#
+
+    df_raw = pd.DataFrame(dataraw)
+    #df.to_csv(filename+"raw.csv", sep=";")
+    df_raw.to_excel(filename+"raw.xls")
+
+    df_perc = pd.DataFrame(data)
+    #df.to_csv(filename+"percent.csv", sep=";")
+    df_perc.to_excel(filename+"percent.xls")
+
+    #-----------stack plot -----------------------#
+
+    fig, ax = plt.subplots(2, 1, figsize=(20,10), dpi= 300)
+
+    # Data in
+    df_tmp = pd.DataFrame(dataraw_in)
+    df_tmp['OUTROS'] = df_tmp.drop(['Data', refname], axis=1).sum(axis=1)
+    df_tmp = df_tmp.drop([refname], axis=1)
+    df_tmp = df_tmp.iloc[:, ::-1]
+    ax[0] = df_tmp.plot.area(x='Data', ax=ax[0], alpha=0.5, legend=True)
+    ax[0].set_ylabel('VIAGENS PARA '+refname, fontsize=14)
+    handles, labels = ax[0].get_legend_handles_labels()
+    ax[0].legend(handles[::-1], labels[::-1], bbox_to_anchor=(1.00, 1.00))
+
+    df_tmp = pd.DataFrame(dataraw_out)
+    df_tmp['OUTROS'] = df_tmp.drop(['Data', refname], axis=1).sum(axis=1)
+    df_tmp = df_tmp.drop([refname], axis=1)
+    df_tmp = df_tmp.iloc[:, ::-1]
+    ax[1] = df_tmp.plot.area(x='Data', ax=ax[1], alpha=0.5, legend=False)
+    ax[1].set_ylabel('VIAGENS DE '+refname, fontsize=14)
+    #handles, labels = ax[0].get_legend_handles_labels()
+    #ax[1].legend(handles[::-1], labels[::-1], bbox_to_anchor=(1.02, 1.00))
+
+    for i in range(2):
+        ax[i].yaxis.get_offset_text().set_fontsize(14)
+        ax[i].set_xlabel(' ')
+        ax[i].tick_params(axis='both', which='major', labelsize=14)
+        ax[i].tick_params(axis='both', which='minor', labelsize=10)
+        #ax[0].yaxis.set_major_formatter(mtick.PercentFormatter())
+        ax[i].yaxis.get_major_formatter().set_powerlimits((0, 1))
+        #plt.ticklabel_format(axis="y", style="sci", scilimits=(0,0))
+        #ax[i].yticks(fontsize=14, alpha=.7)
+        ax[i].spines["top"].set_alpha(0.0)    
+        ax[i].spines["bottom"].set_alpha(0.3)
+        ax[i].spines["right"].set_alpha(0.0)    
+        ax[i].spines["left"].set_alpha(0.3)   
+
+    textstr = "Fonte:\n IME-USP/InLoco"
+    plt.gcf().text(1.10, -0.1, textstr, fontsize=12, horizontalalignment='center', 
+        verticalalignment='center', transform=ax[1].transAxes)
+
+    plt.tight_layout() 
+    plt.savefig(filename+"stack_evol.jpg", dpi=400)
+    
+    return
+
 def map_move_mats(mdyn, network, ipar):
     print()
     print("Mapping move mats:")
