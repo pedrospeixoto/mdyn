@@ -627,7 +627,11 @@ def map_move_mats(mdyn, network, ipar):
 
     #print(iso.df.columns)
     #print("Regions:", network.regions)
-    
+    mat_shape = mdyn.movemats[0].shape
+    mat_sum = np.zeros(mat_shape)
+    isol_sum = np.zeros([network.nreg_in])
+
+    plot = False
     #Loop for each day
     for i, day in enumerate(mdyn.days_all):
         
@@ -647,6 +651,8 @@ def map_move_mats(mdyn, network, ipar):
             df_iso = df_iso[df_iso['reg_name'].isin(regions.values())]
 
         mat = mdyn.movemats[i]
+        mat_sum = mat_sum + mat
+
         #filter if set up
         if ipar.filter[0]:
             if ipar.filter[1] == "pop":
@@ -669,7 +675,9 @@ def map_move_mats(mdyn, network, ipar):
             else:
                 isotmp = np.nan
             reg_iso[reg] = isotmp
-            
+        
+        isol_sum = isol_sum + reg_iso
+
         #Do map
         dow=mex.weekdays[day.weekday()]
         
@@ -689,18 +697,41 @@ def map_move_mats(mdyn, network, ipar):
             title = title + day.strftime("%Y-%m-%d")+" "+dow
             filename = filename + day.strftime("%Y-%m-%d")+".jpg"
 
-            if "RM" in title:
+            if plot:
+                if "RM" in title:
+                    map=Map(network, zoom)
+                    map.map_network_data(reg_iso, mat, regions, title, filename)
+            
                 map=Map(network, zoom)
-                map.map_network_data(reg_iso, mat, regions, title, filename)
-
-            map=Map(network, zoom)
-            map.map_network_flux(mat, regions, title, filename.replace("Network", "Network_Flux"), edge_filter=filter_list)
+                map.map_network_flux(mat, regions, title, filename.replace("Network", "Network_Flux"), edge_filter=filter_list)
 
             #map=Map(network, zoom)
             #map.map_data_on_network(reg_iso, mat, regions, title, filename.replace("Network", "Network_Iso"))
 
         print("done date.")
         print()
+
+    #save matrix sum
+    title_mat = network.domain+" "+network.subdomains+" Network Move Mats "+ mdyn.date_ini+"_"+mdyn.date_end
+    filename = mdyn.dump_dir+title_mat.replace(" ", "_") + ".csv"
+    print("Saving mat sum as:", filename)
+    np.savetxt( filename, mat_sum)
+
+    #save average isolation index
+    isol_avg = isol_sum / len(mdyn.days_all)
+    title_iso = network.domain+" "+network.subdomains+" Iso Index Average "+ mdyn.date_ini+"_"+mdyn.date_end
+    filename = mdyn.dump_dir+title_iso.replace(" ", "_")+ ".csv"
+    print("Saving iso index average as:", filename)
+    np.savetxt( filename, isol_avg)
+
+    map=Map(network, zoom)
+    filename = mdyn.dump_dir+title_mat.replace(" ", "_")+ "IsoFlux.jpg"
+    map.map_network_data(isol_avg, mat_sum, regions, title_mat, filename)
+
+    map=Map(network, zoom)
+    filename = mdyn.dump_dir+title_mat.replace(" ", "_")+ "Flux.jpg"
+    map.map_network_flux(mat_sum, regions, title_mat, filename.replace("Network", "Network_Flux"), edge_filter=filter_list)
+
     return
         
 def centrality_move_mats(mdyn, network, ipar):
