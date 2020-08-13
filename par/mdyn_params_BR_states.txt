@@ -27,14 +27,65 @@ load_domain = True #Load precomp structures
 
 #Initialize mobile data and load data to dataframe
 data_format = "Parquet" #"ORC"
-data_dir = "data/triples_br_2020_04_17_date/all/"
-#data_dir = "data/triples_br_2020_04_17_date/"
-date_ini = "2020-01-01"
-date_end = "2020-04-15"
+data_dir = "data/mobility_br_2020/"
+date_ini = "2020-02-01"
+date_end = "2020-08-03"
 load_data = True
 
 #Number of main sources for plots
-num_source = 27
+num_source = 2
+
+#Isolation index
+isoind_file = "data/isol_br/Social Distancing Index by Cities2020-08-07.csv"
+
+#-----------------------------
+# Slicing/Zoom
+#------------------------------
+
+#Filter based on population (pop) given a max number of cities 
+#filter = [True, "pop", 50 ]
+filter = [False, "list", 0 ]
+#capital cities
+#filter_list = [66, 1696, 303, 111, 2162, 949, 5569,3174,5417,635,5219,1665,2309,169,1337,
+#      4005,1596,882,3242,1163,4931,16,138,4398,3829,1754,443]
+
+#BR116 e 110
+filter_list = [ 949,1162,989,2044,1293,1509,1163,1110,1337,1596,1696,1652,1754,1834,1957,2162,2039,2239,2003,2137,2214,3048,2558,3164,2600,2309,3139,3174,3112,3191,2663,3229,3223,3222,3242,3224,3266,3824,3809,3479,3829,4005,4447,4347,4436,4451,4398,4385,4701,4587,4892,4931,4685,4916,4949]
+      
+
+ #Flag, lats, lons, drawsubdomains, label
+zoom =[
+   #    [False, -15, -34, -60, -40, False, "BRA"  ],
+         [True, 6, -37, -75, -31, False, "BRA"  ],
+    #    [True, 0, -15, -50,-34, False, "Nordeste"  ],
+    #    [True, -5, -15, -40,-34, False, "NordesteLitoral"  ],
+    #    [True, -15, -34, -60,-40, False, "Sul-Sudeste"  ],
+    #    [True, -10, -25, -60,-40, False, "Centro-Sudeste"  ],
+    #    [True, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ],
+    #    [True, -24.6, -26.2, -50.5,-48.5, True, "RMCTBA"  ],
+    #    [True, -23.5,-22.2, -42.0, -45.0, True, "RMRJ"  ],
+    #    [True, -17.4, -15.0, -47.0,-50.0, True, "RMGO"  ],
+    #    [True, -19.8, -25.5, -52.25,-43, True, "SP"  ],
+    #    [True, -3.0, -10, -43.0,-34, True, "CE_RN_PB_PE"  ]
+]
+
+#zoom = [False, -15, -34, -60,-40, False, "Sul-Sudeste"  ]
+#zoom = [True, 0, -15, -50,-34, False, "Nordeste"  ]
+#zoom = [True, -15, -34, -60,-40, False, "Sul-Sudeste"  ]
+#zoom = [True, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ]
+#zoom = [True, -19.8, -25.5, -52.25,-43, True, "SP"  ]
+
+#-----------------------------
+# Statistics
+#------------------------------
+#reference = 262 #559 # 271  # 268 #"SÃO PAULO"
+reference = 19 #"SÃO PAULO"
+#neighb = [3829] 
+#neighb = [268, 271, 319, 559, 114, 620, 262]
+#capitais
+neighb = []
+
+nneighb = 126 # based on population. plus list above
 
 #-----------------------------
 # Simulation configuration
