@@ -102,10 +102,10 @@ nneighb = 1 # based on population. plus list above
 #Brasília	115	0.3
 
 data_ini_by_reg = {
-3829 : 1,
-3242 : 0.3,
-5569 : 0.3,
-}
+3829 : 1,}
+#3242 : 0.3,
+#5569 : 0.3,
+#}
 
 #Number of simulation days
 num_simul_days = 30
@@ -115,7 +115,7 @@ num_simul_days = 30
 # 1: only infected - see diego's doc
 # 2: two parameter model
 model = 2
-infec_rate = 0.36  #infection rate per day
+infec_rate = 0.2  #infection rate per day
 spread_rate = 1.0 #Spatial spread rate
 
 risk_lim = 1.0 #Infected people to consider risk limit
