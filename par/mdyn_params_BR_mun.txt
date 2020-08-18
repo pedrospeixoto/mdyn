@@ -57,7 +57,7 @@ filter_list = [ 949,1162,989,2044,1293,1509,1163,1110,1337,1596,1696,1652,1754,1
  #Flag, lats, lons, drawsubdomains, label
 zoom =[
    #    [False, -15, -34, -60, -40, False, "BRA"  ],
-         [True, 6, -37, -75, -31, False, "BRA"  ],
+         [True, 6, -37, -75, -30.8, False, "BRA"  ],
     #    [True, 0, -15, -50,-34, False, "Nordeste"  ],
     #    [True, -5, -15, -40,-34, False, "NordesteLitoral"  ],
     #    [True, -15, -34, -60,-40, False, "Sul-Sudeste"  ],
