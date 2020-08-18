@@ -1330,8 +1330,10 @@ def simulate_model(mdyn, network, ipar):
     
     #Initial condition
     data_ini_regv = np.zeros([network.nregions])
+    data_ini_reg_names = []
     for key in ipar.data_ini_by_reg:
         data_ini_regv[key] = ipar.data_ini_by_reg[key]
+        data_ini_reg_names.append(network.regions_in_names.get(key))
 
     day_state = data_ini_regv
     ntime = mdyn.days + ipar.num_simul_days
@@ -1339,7 +1341,7 @@ def simulate_model(mdyn, network, ipar):
     title_base = "Model_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
     title_base = title_base + "\n_r"+str(ipar.infec_rate).replace(".","") \
         +"_s"+str(ipar.spread_rate).replace(".","")+\
-        "_ini"+str(ipar.data_ini_by_reg).replace("{","").replace("}","").replace(":","_").replace(" ","")
+        "_ini_"+str(data_ini_reg_names[0])
     print(title_base.replace("\n", "_"))
     print()
 
