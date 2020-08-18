@@ -1110,7 +1110,7 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
         diag_norm = np.diag(mdyn.movemats_norm[i])
 
         filename =  mdyn.dump_dir+title_base.replace('\n','').replace(' ','_')+"_day_prob_diag.jpg"
-        if not os.path.exists(filename):
+        if ipar.daily_plots and not os.path.exists(filename):
             print("  Plotting :", filename)
             map=Map(network)
             map.map_move_by_reg(diag_norm, network.regions, network, title_base+"\nDiagonal Prob Move", filename)
@@ -1121,18 +1121,19 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
         
         print("Main regions:", sources)
         #Plot daily main sources
-        for j in sources:
-            title = title_base+"\nOrigin "+str(network.regions[j])
-            filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+"_day_prob.jpg"
-            if not os.path.exists(filename):
-                print("Creating plot for ", filename)
-                move_vec = mdyn.movemats_norm[i][:, j]
-                    
-                map=Map(network)
-                map.map_move_by_reg(move_vec, network.regions, network, title, filename)
+        if ipar.daily_plots:
+            for j in sources:
+                title = title_base+"\nOrigin "+str(network.regions[j])
+                filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+"_day_prob.jpg"
+                if not os.path.exists(filename):
+                    print("Creating plot for ", filename)
+                    move_vec = mdyn.movemats_norm[i][:, j]
+                        
+                    map=Map(network)
+                    map.map_move_by_reg(move_vec, network.regions, network, title, filename)
 
         #Plot daily main sources - adjusted matrices
-        if np.sum(network.reg_pop) > 0.0:
+        if ipar.daily_plots and np.sum(network.reg_pop) > 0.0:
             for j in sources:
                 title = title_base+"\nOrigin "+str(network.regions[j])
                 filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+"_adj_day_prob.jpg"
@@ -1174,15 +1175,16 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
                 pass
         
         #Plot daily main sources - non adjusted matrices
-        for j in sources:
-            title = title_base+"\nOrigin "+str(network.regions[j])
-            filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+"_dow_avg_prob.jpg"
-            if not os.path.exists(filename):
-                print("Creating plot for ", filename)
-                move_vec = movemat_avg[i][:, j]
-                    
-                map=Map(network)
-                map.map_move_by_reg(move_vec, network.regions, network, title, filename)
+        if ipar.daily_plots:
+            for j in sources:
+                title = title_base+"\nOrigin "+str(network.regions[j])
+                filename =  mdyn.dump_dir+title.replace('\n','').replace(' ','_')+"_dow_avg_prob.jpg"
+                if not os.path.exists(filename):
+                    print("Creating plot for ", filename)
+                    move_vec = movemat_avg[i][:, j]
+                        
+                    map=Map(network)
+                    map.map_move_by_reg(move_vec, network.regions, network, title, filename)
 
     return movemat_avg_adj,  movemat_std, movemat_avg_diag
 
@@ -1316,8 +1318,8 @@ def simulate_model(mdyn, network, ipar):
     #Analyse movement matrices
     mdyn.collect_move_mat(network)
 
-    #movemat_avg, movemat_std, movemat_avg_diag = calc_move_mat_avg_dow(mdyn, network, ipar)
-    movemat_avg = calc_move_mat_avg_period(mdyn, network, ipar)
+    movemat_avg, movemat_std, movemat_avg_diag = calc_move_mat_avg_dow(mdyn, network, ipar)
+    #movemat_avg = calc_move_mat_avg_period(mdyn, network, ipar)
 
     #Sources to plot 
     #num_simul_days = ipar.num_simul_days #min(network.nregions-2, 20)
@@ -1356,8 +1358,8 @@ def simulate_model(mdyn, network, ipar):
         else:
             #Use matrix with dow average
             dow = day.weekday()
-            #mat = movemat_avg[dow]
-            mat = movemat_avg
+            mat = movemat_avg[dow]
+            #mat = movemat_avg
             
         day_state = model(day_state, mat, ipar, network)
 
