@@ -1383,11 +1383,11 @@ def simulate_model(mdyn, network, ipar):
     #plot last day
     filename = mdyn.dump_dir+title_base+"_day_"+indx+".jpg"
     filename=filename.replace("\n", "_")
-    if not os.path.exists(filename):
-        print("Creating plot  ", filename)
-        print()    
-        map=Map(network, ipar.zoom[0])
-        map.map_move_by_reg(day_state, network.regions, network, title, filename)
+    
+    print("Creating plot  ", filename)
+    print()    
+    map=Map(network, ipar.zoom[0])
+    map.map_move_by_reg(day_state, network.regions, network, title, filename)
 
     filename = mdyn.dump_dir+title_base+"data_evol.csv"
     filename = filename.replace("\n", "")
@@ -1420,17 +1420,17 @@ def simulate_model(mdyn, network, ipar):
     filename = filename.replace("\n", "")
     df_risk_ind.to_csv (filename, index = False, header=True)
 
-    title = title_base+"_risk_time_with_lim_"+str(ipar.risk_lim)
-    filename = mdyn.dump_dir+title_base+"_risk_lim_"+str(ipar.risk_lim)+".jpg"
-    print(" Plotting risk time ", filename)
-    map=Map(network)
-    map.map_move_by_reg(risk_time, network.regions, network, title, filename)
+    #title = title_base+"_risk_time_with_lim_"+str(ipar.risk_lim)
+    #filename = mdyn.dump_dir+title_base+"_risk_lim_"+str(ipar.risk_lim)+".jpg"
+    #print(" Plotting risk time ", filename)
+    #map=Map(network)
+    #map.map_move_by_reg(risk_time, network.regions, network, title, filename)
 
-    title = title_base+"_risk_index"
-    filename = mdyn.dump_dir+title_base+"_risk_index.jpg"
-    print(" Plotting risk index ", filename)
-    map=Map(network)
-    map.map_move_by_reg(risk_index, network.regions, network, title, filename)
+    #title = title_base+"_risk_index"
+    #filename = mdyn.dump_dir+title_base+"_risk_index.jpg"
+    #print(" Plotting risk index ", filename)
+    #map=Map(network)
+    #map.map_move_by_reg(risk_index, network.regions, network, title, filename)
 
 
 
