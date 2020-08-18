@@ -100,9 +100,20 @@ if run_opt == 21:
     time_end = time.time()
     print("Execution time "+str(time_end-time_start)+" seconds")
 
+
 if run_opt == 22:
     time_start = time.time()
     seir.simulate_seir_model(mdyn, network, ipar)
+    time_end = time.time()
+    print("Execution time "+str(time_end-time_start)+" seconds")
+
+if run_opt == 23:
+    time_start = time.time()
+    for cityind in mex.key_cities:
+        print("city:", cityind, network.regions_in_names.get(cityind))
+        ipar.data_ini_by_reg.clear()
+        ipar.data_ini_by_reg[cityind]=1
+        mmat.simulate_model(mdyn, network, ipar)
     time_end = time.time()
     print("Execution time "+str(time_end-time_start)+" seconds")
 
@@ -123,3 +134,5 @@ if run_opt == 41:
     data=lake.datalake(network, ipar)
     time_end = time.time()
     print("Execution time "+str(time_end-time_start)+" seconds")
+
+
