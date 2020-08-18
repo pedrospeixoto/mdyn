@@ -1075,6 +1075,10 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
     mdyn.movemats_adj_norm = [np.zeros(mdyn.movemats[0].shape)]*len(mdyn.days_all)
 
     #Loop work with transitions matrices and average them by day of the week
+    if len(mdyn.days_all) <7:
+        print("Warning:  not enough days to calculate average by day of the week")
+        print("      some zero matrices may be used.")
+
     for i, day in enumerate(mdyn.days_all):
         print()
         print("Calculating on: ", i, day)
@@ -1334,7 +1338,11 @@ def simulate_model(mdyn, network, ipar):
     data_evol = np.zeros((network.nregions, ntime))
     title_base = "Model_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
     title_base = title_base + "\n_r"+str(ipar.infec_rate).replace(".","") \
-        +"_s"+str(ipar.spread_rate).replace(".","") 
+        +"_s"+str(ipar.spread_rate).replace(".","")+\
+        "_ini"+str(ipar.data_ini_by_reg).replace("{","").replace("}","").replace(":","_").replace(" ","")
+    print(title_base.replace("\n", "_"))
+    print()
+
         #+"_s"+str(int(ipar.spread_rate))
     #simulate scenario
     drange = mex.daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=ipar.num_simul_days))
@@ -1374,10 +1382,11 @@ def simulate_model(mdyn, network, ipar):
 
     #plot last day
     filename = mdyn.dump_dir+title_base+"_day_"+indx+".jpg"
+    filename=filename.replace("\n", "_")
     if not os.path.exists(filename):
         print("Creating plot  ", filename)
         print()    
-        map=Map(network)
+        map=Map(network, ipar.zoom[0])
         map.map_move_by_reg(day_state, network.regions, network, title, filename)
 
     filename = mdyn.dump_dir+title_base+"data_evol.csv"
