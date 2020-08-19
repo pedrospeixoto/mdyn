@@ -27,7 +27,7 @@ get_error_SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,
   day_validate <- seq.Date(from = ymd(init_validate),to = ymd(end_validate),by = 1) #Days to validate
   
   #Calculate lift
-  par$lift <- lift_death(obs,end_validate,par)#testagem()
+  par$lift <- lift_death(obs,end_validate,par) #testagem()
   
   #Obs by DRS
   drs$DRS[drs$Municipio == "SÃO PAULO"] <- "I"

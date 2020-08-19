@@ -10,7 +10,7 @@ growth_rate <- function(obs,obs_drs,drs,par,pos,init_validate,end_validate,day_v
   for(d in unique(drs$DRS)){ #For each DRS
     tmp <- gI %>% filter(DRS == d) #Data of DRS
     tmp <- data.frame("t" = 0:6,"y" = tmp$I_drs) #Data to fit
-    mod <- lm(log(y) ~ t,data = tmp) #lm
+    mod <- lm(log(y+1) ~ t,data = tmp) #lm
     lambda[par$names %in% drs$Municipio[drs$DRS == d]] <- mod$coefficients[2] #Lambda
     p <- ggplot(tmp,aes(x = t,y = y)) + geom_point(color = "white") + 
       stat_function(fun = function(t) exp(mod$coefficients[1])*exp(mod$coefficients[2]*t),color = "white") +
