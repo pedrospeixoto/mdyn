@@ -6,20 +6,16 @@
 
 suppressMessages(source("mdyn/SEIR/utils.R"))
 
-SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models,error_I,error_D){
-  
-  cat("\n")
-  cat("Welcome to Covid SEIR Mobility Model estimation!\n")
-  cat("\n")
+get_error_SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models,error_I,error_D){
   
   #Seed
   set.seed(seed)
   
   #####mkdir#####
+  pos <- paste(pos,"_error",sep = "")
   system(paste("mkdir /storage/SEIR/",pos,sep = ""))
   
   #####Notifications#####
-  cat("Downloading data about confirmed cases and deaths and ploting epidemiological curve...\n")
   obs <- get_data_SP()
   if(nrow(obs)/par$sites-round(nrow(obs)/par$sites) > 0)
     stop("There is a problem with the notifications dataset. Please fix it.")
@@ -30,9 +26,6 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   init_simulate <- end_validate
   day_validate <- seq.Date(from = ymd(init_validate),to = ymd(end_validate),by = 1) #Days to validate
   
-  #Epidemiolohical curve
-  EPI_curve(obs,end_validate,pos)
-  
   #Calculate lift
   par$lift <- lift_death(obs,end_validate,par)#testagem()
   
@@ -41,21 +34,18 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   drs$Regiao[drs$Municipio == "SÃO PAULO"] <- "Grande São Paulo"
   drs <- droplevels(drs)
   obs_drs <- data_drs(obs,drs)
-
+  
   #####Model estimation#####
-  cat("Calculate growth and death rate...\n")
-    
   #Initial condition
   init <- initial_condition(obs,init_validate,par) #Initial condition
   init1f <- initial_condition(obs,init_validate+1,par) #Data one day after initial
   init1p <- initial_condition(obs,init_validate-1,par) #Data one day before initial
-  #init2f <- initial_condition(obs,init_validate+2,par) #Data two days after initial
   
   #Obs each day around week of validation
   par$obs <- obs_around_init(obs,obs_drs,par,init_validate,start = 0,end = 9)
   par$obs_DRS <- par$obs[[2]]
   par$obs <- par$obs[[1]]
-      
+  
   #Test data by DRS
   teste_D <- list()
   teste_D$DRS <- obs_drs %>% filter(date %in% seq.Date(from = ymd(end_validate)-60,to = ymd(end_validate),1)) %>%
@@ -78,17 +68,15 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     select(date,city,confirmed_corrected)
   teste_I$city <- spread(data = teste_I$city,key = "city",value = "confirmed_corrected")
   teste_I$city <- teste_I$city[,c(1,match(par$names,colnames(teste_I$city)))]
-
+  
   #Calculate growth rate
   system(paste("mkdir /storage/SEIR/",pos,"/AjusteRate/",sep = ""))
   par$lambda <- growth_rate(obs,obs_drs,drs,par,pos,init_validate,end_validate,day_validate)
-
+  
   #Calculate death rate for each DRS
   par$delta <- death_rate(teste_D$DRS,teste_I$DRS,obs,end_validate,drs,par)
   teste_D$DRS <- teste_D$DRS %>% filter(date >= ymd(init_validate)) 
   teste_I$DRS <- teste_I$DRS %>% filter(date >= ymd(init_validate))
-  
-  cat("Estimatimating the model...\n")
   
   #Choosing models
   pred <- vector("list",sample_size) #Store predicted values
@@ -137,14 +125,14 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     
     #Model
     mod <- solve_seir(y = initK,times = 1:7,derivatives = derivatives,parms = parK)[,-1] #Simulate model k
-      
+    
     #Result
     D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #Predicted death for testing
     I <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Predicted cases for testing
-      
+    
     #Test if model predicted well
     test <- test_model(D,I,teste_D,teste_I,drs,init_validate,end_validate)
-
+    
     #Is good
     good <- as.numeric(test$dif_I <= error_I & test$dif_D <= error_D) #Test if is good
     is.good[k] <- good #Store
@@ -216,105 +204,10 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     rm(parK,D,I,test,mod,good,initK)
   }
   cat("\n")
-  cat(paste("Good models: ",kgood," (",round(100*kgood/sample_size,2),"%)\n",sep = ""))
+  cat(paste("Min" = round(mm,5),"MinD =",round(mD,5),"MinI =",round(mI,5),sep = ""))
   cat("\n")
-
-  cat("Saving parameters of good models...\n")
   
-  #Saving parameters
-  results$models <- results$models[unlist(lapply(results$models,function(x) ifelse(is.null(x),F,T)))] #Clean
-  results$Vgood <- results$Vgood[unlist(lapply(results$Vgood,function(x) ifelse(is.null(x),F,T)))] #Clean
-  Te <- unlist(lapply(results$models,function(x) x$Te)) #Te
-  Ti <- unlist(lapply(results$models,function(x) x$Ti)) #Ti
-  Ts <- unlist(lapply(results$models,function(x) x$Ts)) #Ts
-  Tsr <- unlist(lapply(results$models,function(x) x$Tsr)) #Tsr
-  Td <- unlist(lapply(results$models,function(x) x$Td)) #Td
-  meanTi <- unlist(lapply(results$models,function(x) x$meanTi)) #meanTi
-  cinfD <- unlist(lapply(results$models,function(x) x$minDK)) #cinfD
-  cinfI <- unlist(lapply(results$models,function(x) x$minIK)) #cinfI
-  csupD <- unlist(lapply(results$models,function(x) x$maxDK)) #cinfD
-  csupI <- unlist(lapply(results$models,function(x) x$maxIK)) #cinfI
-  s <- unlist(lapply(results$models,function(x) x$s)) #s
-  pS <- lapply(results$models,function(x) x$pS) #Missed cases
-  assymptomatic <- 1-unlist(lapply(pS,median)) #Missed cases
-  beta <- lapply(results$models,function(x) x$betaMedian) #Beta
-  betasave <- unlist(lapply(beta,median)) #Beta
-  Rt <- lapply(results$models,function(x) x$Rt) #Rt
-  Rtsave <- unlist(lapply(Rt,median)) #Rt
-  
-  pred <- pred[is.good == 1] #Prediction of only good models
-  saveRDS(object = results,file = paste("/storage/SEIR/",pos,"/result_",pos,".rds",sep = "")) #Save results
-  saveRDS(object = pred,file = paste("/storage/SEIR/",pos,"/prediction_",pos,".rds",sep = "")) #Save predictions
-  
-  param <- data.frame("Model" = 1:kgood,Te,Ti,Ts,Tsr,Td,meanTi,s,"MedianBeta" = betasave,"MedianRt" = Rtsave,"MedianAssymptomatic" = assymptomatic,
-                      cinfD,csupD,cinfI,csupI) #Parameters
-  fwrite(param,paste("/storage/SEIR/",pos,"/parameters_",pos,".csv",sep = "")) #Write parameters of good models
-  
-  cat("Plotting maps of parameters which are city dependent...\n")
-  
-  plot_maps_summary(Rt,par,drs,obs,end_validate,pos)  
-  
-  #######Plot Validation#####
-  cat("Plot observed and predicted number of deaths for each DRS...\n")
-  system(paste("mkdir /storage/SEIR/",pos,"/validate",sep = ""))
-  
-  plot_validate(drs,obs,obs_drs,par,pred,init_validate,end_validate,pos,minI,maxI,minD,maxD)
-
-  #######Simulation of scenarios########  
-  cat("Simulating scenarios...\n")
-  init <- initial_condition(obs,end_validate,par) #Initial condition
-  init1f <- initial_condition(obs,end_validate+1,par) #Data one day after initial
-  init1p <- initial_condition(obs,end_validate-1,par) #Data one day before initial
-  #init2f <- initial_condition(obs,end_validate+2,par) #Data two days after initial
-  
-  #Simulate scenario everything is as week after end validation
-  good_models <- length(pred) #number of good models
-  predSIM <- vector("list",good_models) #To store the predicted values of the simulation
-  pb <- set_progress_bar(good_models)[[1]] 
-  progress_letter <- set_progress_bar(good_models)[[2]] 
-
-  for(k in 1:good_models){
-    pb$tick(tokens = list(letter = progress_letter[k]))
-    
-    #Parameters of model k
-    parK <- results$models[[k]]
-    parK$day <- seq.Date(from = ymd(init_simulate),to = ymd(init_simulate) + simulate_length - 1,by = 1) #Days of validation
-    parK$val <- F #Is validation
-    parK$mob <- par$mob #Mobility matrix
-    parK$pop <- par$pop #Population
-    parK$sites <- par$sites #Sites
-    
-    #Initial condition
-    initK <- initial_condition_corrected(init,init1f,parK)
-    
-    #Model
-    mod <- solve_seir(y = initK,times = 1:simulate_length,derivatives = derivatives,parms = parK)[,-1]
-  
-    #Result
-    predSIM[[k]]$E <- mod[,1:parK$sites] #E
-    predSIM[[k]]$I <- mod[,(parK$sites + 1):(2*parK$sites)] #I
-    predSIM[[k]]$Is <- mod[,(2*parK$sites + 1):(3*parK$sites)] #Is
-    predSIM[[k]]$R <- mod[,(3*parK$sites + 1):(4*parK$sites)] #R
-    predSIM[[k]]$D <- mod[,(4*parK$sites + 1):(5*parK$sites)] #D
-    predSIM[[k]]$It <- mod[,(5*parK$sites + 1):(6*parK$sites)] #Total Infected
-    #predSIM[[k]]$S <- par$pop - pred[[k]]$E - pred[[k]]$I - pred[[k]]$Is - pred[[k]]$R - pred[[k]]$D
-  }
-  
-  cat("Storing results of simulation...\n")
-  
-  #####Results of simulation#####
-  
-  dataSim <- store_simulation(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,maxD,end_validate,obs,obs_drs)
-  
-  cat("Building maps...\n")
-  build_maps(dataSim,drs,par,end_validate,pos)
-  
-  cat("\n")
-  cat("We are done fitting the model! I will starting preprocessing the data in a moment...\n")
-  preprocess_SEIR_output(param,drs,pos,obs,end_validate)
-  
-  cat("\n")
-  cat("And that is it! Please come back more often.\n")
-  cat("\n")
+  l <- list("MinDeath" = mD,"MinInfected" = mI,"Min" = mm)
+  return(l)
 }
-  
+
