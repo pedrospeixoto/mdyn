@@ -12,8 +12,10 @@ get_data_SP <- function(){
   obs$date <- ymd(obs$date) #Date
   for(d in unique(as.character(obs$date))){ #Add zero to cities where and when no cases/deaths were confirmed
     tmp <- par$names[!(par$names %in% obs$city[obs$date == d])]
-    tmp <- data.frame("city" = tmp,"date" = ymd(d),"last_available_confirmed" = 0,"last_available_deaths" = 0)
-    obs <- rbind.data.frame(obs,tmp)
+    if(length(tmp) > 0){
+      tmp <- data.frame("city" = tmp,"date" = ymd(d),"last_available_confirmed" = 0,"last_available_deaths" = 0)
+      obs <- rbind.data.frame(obs,tmp)
+    }
   }
   obs$key <- paste(obs$city,obs$date) #Set key
   obs_new <- obs[1,] #Create new dataframe
