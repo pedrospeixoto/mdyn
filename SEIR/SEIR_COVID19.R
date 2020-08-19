@@ -6,7 +6,7 @@
 
 suppressMessages(source("mdyn/SEIR/utils.R"))
 
-SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models,error_I,error_D){
+SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_models,error_I,error_D,process){
   
   cat("\n")
   cat("Welcome to Covid SEIR Mobility Model estimation!\n")
@@ -309,9 +309,11 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
   cat("Building maps...\n")
   build_maps(dataSim,drs,par,end_validate,pos)
   
-  cat("\n")
-  cat("We are done fitting the model! I will starting preprocessing the data in a moment...\n")
-  preprocess_SEIR_output(param,drs,pos,obs,end_validate)
+  if(process){
+    cat("\n")
+    cat("We are done fitting the model! I will starting preprocessing the data in a moment...\n")
+    preprocess_SEIR_output(param,drs,pos,obs,end_validate)
+  }
   
   cat("\n")
   cat("And that is it! Please come back more often.\n")
