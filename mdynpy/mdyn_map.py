@@ -339,7 +339,7 @@ class Map:
             label = "Days to reach risk limit"
         elif "Model" in title:
             plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.01, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
-            label = "Number of People"
+            label = "Estimated Number of Infected"
         elif "Simul" in title:
             plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1, vmax=100., cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
             label = "Number of People"
