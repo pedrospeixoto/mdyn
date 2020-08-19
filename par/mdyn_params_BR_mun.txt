@@ -31,6 +31,7 @@ data_dir = "data/mobility_br_2020/"
 date_ini = "2020-06-06"
 date_end = "2020-06-06"
 load_data = True
+daily_plots = False
 
 #Number of main sources for plots
 num_source = 2
@@ -56,7 +57,7 @@ filter_list = [ 949,1162,989,2044,1293,1509,1163,1110,1337,1596,1696,1652,1754,1
  #Flag, lats, lons, drawsubdomains, label
 zoom =[
    #    [False, -15, -34, -60, -40, False, "BRA"  ],
-         [True, 6, -37, -75, -31, False, "BRA"  ],
+         [True, 6, -37, -75, -30.8, False, "BRA"  ],
     #    [True, 0, -15, -50,-34, False, "Nordeste"  ],
     #    [True, -5, -15, -40,-34, False, "NordesteLitoral"  ],
     #    [True, -15, -34, -60,-40, False, "Sul-Sudeste"  ],
@@ -101,12 +102,10 @@ nneighb = 1 # based on population. plus list above
 #Brasília	115	0.3
 
 data_ini_by_reg = {
-111 : 1,
-77 : 0.3,
-108 : 0.3,
-92 : 0.4,
-115 :0.3
-}
+3829 : 1,}
+#3242 : 0.3,
+#5569 : 0.3,
+#}
 
 #Number of simulation days
 num_simul_days = 30
