@@ -7,6 +7,7 @@ library(lubridate)
 sink("simulation_paper.txt",split = T)
 #Dates to simulate
 t0 <- seq.Date(from = ymd("2020-04-01"),to = ymd("2020-08-18"),by = 7)
+errors <- data.frame("Min" = NA,"MinDeath" = NA,"MinInfected" = NA)
 
 for(t in as.character(t0)){
   cat("\n")
@@ -74,14 +75,16 @@ for(t in as.character(t0)){
   source("mdyn/SEIR/SEIR_COVID19_get_error.R")
   e <- get_error_SEIR_covid(cores,par,pos,seed+1,sample_size,simulate_length,d_max,max_models,0.1,0.1)
   
-  error_I <- max(e$MinInfected,e$Min)
-  error_D <- max(e$MinDeath,e$Min)
+  error_I <- max(e$MinInfected)
+  error_D <- max(e$MinDeath)
+  errors <- na.omit(rbind.data.frame(errors,data.frame("Min" = e$Min,"MinDeath" = e$MinDeath,"MinInfected" = e$MinInfected)))
   
   #Sample models
   sample_size <- 50000
   max_models <- 50000
   source("mdyn/SEIR/SEIR_COVID19.R")
   SEIR_covid(cores,par,paste(pos,"_paper",sep = ""),seed,sample_size,simulate_length,d_max,max_models,error_I,error_D,process = F)
+  write.csv(x = errors,file = "/storage/SEIR/errors_simulation.csv")
 }
 sink()
 
