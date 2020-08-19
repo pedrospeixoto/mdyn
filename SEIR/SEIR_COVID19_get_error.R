@@ -204,7 +204,7 @@ get_error_SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,
     rm(parK,D,I,test,mod,good,initK)
   }
   cat("\n")
-  cat(paste("Min" = round(mm,5),"MinD =",round(mD,5),"MinI =",round(mI,5),sep = ""))
+  cat(paste("Min = " = round(mm,5)," MinD = ",round(mD,5)," MinI = ",round(mI,5),sep = ""))
   cat("\n")
   
   l <- list("MinDeath" = mD,"MinInfected" = mI,"Min" = mm)

@@ -4,6 +4,7 @@
 
 library(lubridate)
 
+sink("simulation_paper.txt",split = T)
 #Dates to simulate
 t0 <- seq.Date(from = ymd("2020-04-01"),to = ymd("2020-08-18"),by = 7)
 
@@ -68,12 +69,19 @@ for(t in as.character(t0)){
   par$s <- c(0.25,0.5,1,1.5,2,2.5,3)
   
   #Calculate error
-  sample_size <- 10000
-  max_models <- 10000
+  sample_size <- 5000
+  max_models <- 5000
   source("mdyn/SEIR/SEIR_COVID19_get_error.R")
   e <- get_error_SEIR_covid(cores,par,pos,seed+1,sample_size,simulate_length,d_max,max_models,0.1,0.1)
   
-  error_I <- 0.1
-  error_D <- 0.1
+  error_I <- max(e$MinInfected,e$Min)
+  error_D <- max(e$MinDeath,e$Min)
   
+  #Sample models
+  sample_size <- 50000
+  max_models <- 50000
+  source("mdyn/SEIR/SEIR_COVID19.R")
+  SEIR_covid(cores,par,paste(pos,"_paper",sep = ""),seed,sample_size,simulate_length,d_max,max_models,error_I,error_D,process = F)
 }
+sink()
+
