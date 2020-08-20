@@ -70,8 +70,8 @@ for(t in as.character(t0)){
   par$s <- c(0.25,0.5,1,1.5,2,2.5,3)
   
   #Calculate error
-  sample_size <- 5000
-  max_models <- 5000
+  sample_size <- 2000
+  max_models <- 2000
   source("mdyn/SEIR/SEIR_COVID19_get_error.R")
   e <- get_error_SEIR_covid(cores,par,pos,seed+1,sample_size,simulate_length,d_max,max_models,0.1,0.1)
   
