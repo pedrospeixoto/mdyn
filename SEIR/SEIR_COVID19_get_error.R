@@ -136,9 +136,9 @@ get_error_SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,
     #Is good
     good <- as.numeric(test$dif_I <= error_I & test$dif_D <= error_D) #Test if is good
     is.good[k] <- good #Store
-    if(test$dif_I < mI & test$dif_D < mD) #If is minimum error so far
+    if(test$dif_I < mI & test$dif_D < 1.1*mD) #If is minimum error so far
       mI <- test$dif_I
-    if(test$dif_I < mI & test$dif_D < mD) #If is minimum error so far
+    if(test$dif_I < 1.1*mI & test$dif_D < mD) #If is minimum error so far
       mD <- test$dif_D
     if(max(test$dif_D,test$dif_I) < mm)
       mm <- max(test$dif_D,test$dif_I)
