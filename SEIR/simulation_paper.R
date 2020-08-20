@@ -80,8 +80,8 @@ for(t in as.character(t0)){
   errors <- na.omit(rbind.data.frame(errors,data.frame("Min" = e$Min,"MinDeath" = e$MinDeath,"MinInfected" = e$MinInfected)))
   
   #Sample models
-  sample_size <- 50000
-  max_models <- 50000
+  sample_size <- 10000
+  max_models <- 10000
   source("mdyn/SEIR/SEIR_COVID19.R")
   SEIR_covid(cores,par,paste(pos,"_paper",sep = ""),seed,sample_size,simulate_length,d_max,max_models,error_I,error_D,process = F)
   write.csv(x = errors,file = "/storage/SEIR/errors_simulation.csv")

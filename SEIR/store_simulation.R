@@ -1,5 +1,5 @@
 #Store the results of the simulation
-store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,maxD,end_validate,obs,obs_drs){
+store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,maxD,end_validate,obs,obs_drs,process){
   
   #Create objects
   peak <- data.frame("Municipio" = NA,"TMinimo" = NA,"TMediana" = NA,"TMaximo" = NA,"MMinimo" = NA,"MMediana" = NA,"MMaximo" = NA)
@@ -283,6 +283,7 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
   fwrite(peak,paste("/storage/SEIR/",pos,"/peak_",pos,".csv",sep = ""))
   peakM <- peak
   
+  if(process){
   cat("Just one more moment, while I calculate some things for the DRSs...\n")
   
   #DRS
@@ -707,6 +708,7 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
   c_pred <- c_pred %>% select("date","Itpred","ItpredInf","ItpredSup","Dpred","DpredInf","DpredSup")
   names(c_pred) <- c("date","median_cases","min_cases","max_cases","median_deaths","min_deaths","max_deaths")
   fwrite(c_pred,paste("/storage/SEIR/",pos,"/simulation_state_",pos,".csv",sep = ""))
+  }
   
   return(list("Dsim" = Dsim,"Isim" = Isim,"peakM" = peakM))
 }
