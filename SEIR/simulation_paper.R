@@ -70,8 +70,8 @@ for(t in as.character(t0)){
   par$s <- c(0.25,0.5,1,1.5,2,2.5,3)
   
   #Calculate error
-  sample_size <- 2000
-  max_models <- 2000
+  sample_size <- 2500
+  max_models <- 2500
   source("mdyn/SEIR/SEIR_COVID19_get_error.R")
   e <- get_error_SEIR_covid(cores,par,pos,seed+1,sample_size,simulate_length,d_max,max_models,0.1,0.1)
   
@@ -80,8 +80,8 @@ for(t in as.character(t0)){
   errors <- na.omit(rbind.data.frame(errors,data.frame("Min" = e$Min,"MinDeath" = e$MinDeath,"MinInfected" = e$MinInfected)))
   
   #Sample models
-  sample_size <- 10000
-  max_models <- 10000
+  sample_size <- 50000
+  max_models <- 50000
   source("mdyn/SEIR/SEIR_COVID19.R")
   SEIR_covid(cores,par,paste(pos,"_paper",sep = ""),seed,sample_size,simulate_length,d_max,max_models,error_I,error_D,process = F)
   write.csv(x = errors,file = "/storage/SEIR/errors_simulation.csv")
