@@ -1435,7 +1435,157 @@ def simulate_model(mdyn, network, ipar):
     #map.map_move_by_reg(risk_index, network.regions, network, title, filename)
 
 
+def decomposition_model(mdyn, network, ipar):
 
+    #Read city vectors
+    nkeycities = len(mex.key_cities)
+    keycity_names = []
+    keycity_ind = []
+    keycity_vector = []
+    A = np.zeros((network.nreg_in, nkeycities))
+    keycity_evol = []
+    for i, cityind in enumerate(mex.key_cities):
+        keycity_ind.append(cityind)
+        keycity_names.append(network.regions_in_names.get(cityind))
+        title_base = "Model_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
+        title_base = title_base + "_r"+str(ipar.infec_rate).replace(".","") \
+            +"_s"+str(ipar.spread_rate).replace(".","")+\
+            "_ini_"+str(keycity_names[i])
+        #data_dir = mdyn.dump_dir
+        data_dir = "covid/simulations/"
+        filename = data_dir+title_base+"data_evol.npy"
+        
+        if os.path.exists(filename):
+            keycity_evol.append(np.load(filename)) #save full evolution
+            keycity_vector.append(keycity_evol[i][:,-2]) #save last column with valid data
+            A[:, i]=keycity_vector[i]
+            print("city:", i, keycity_ind[i], keycity_names[i], filename, "loaded file.")
+        else:
+            print("city:", i, keycity_ind[i], keycity_names[i], filename, "did not find file.")
+            print("Please run simulator with same parameters before running decomposition")
+            sys.exit()
+        nregin, ndays = keycity_evol[i].shape
+
+    
+    #Pseudo-invese matrix for projection operator
+    P = np.linalg.pinv(A)
+    
+    title_base = "Decomp_"+network.domain+"_"+network.subdomains
+    print()
+    print(title_base.replace("\n", ""))
+    print()
+
+    #read covid data
+    filename = "covid/obitos.csv"
+    deaths = pd.read_csv(filename)
+    filename = "covid/casos.csv"
+    covid = pd.read_csv(filename)
+    
+    covid = covid.set_index('ibgeID')
+    deaths = deaths.set_index('ibgeID')
+    print(len(covid), len(deaths))
+    regions=network.regions_in_codes
+    df_regions = pd.DataFrame({'regions':regions , 'ibge_regions':regions})
+    df_regions = df_regions.set_index("regions")
+    print(len(df_regions))
+
+    covid = pd.concat([df_regions, covid], axis=1, sort=False)
+    deaths = pd.concat([df_regions, deaths], axis=1, sort=False)
+    
+    print(covid.columns)
+
+
+    drange = mex.daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=ipar.num_simul_days))
+    ndays = (mdyn.date_end_obj+timedelta(days=ipar.num_simul_days) - mdyn.date_ini_obj).days
+    
+    covid_proj = np.zeros((nkeycities, ndays))
+    
+    days_all = []
+    days = []
+    for i, day in enumerate(drange):
+        days_all.append(day)
+        indx = '{:02d}'.format(i)
+        day_str = day.strftime("%Y-%m-%d")
+        days.append(day_str)
+
+        #covidvec=deaths[day_str].values
+        covidvec=covid[day_str].values
+        where_are_NaNs = np.isnan(covidvec)
+        covidvec[where_are_NaNs] = 0
+        vec = np.matmul(P, covidvec)
+        covid_proj[:,i] = vec / np.sum(vec)
+
+
+    # Draw Plot
+    fig = plt.figure(figsize=(20,10), dpi= 300)
+    mycolors = [
+        'tab:red', 'tab:blue', 'tab:green', 
+        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
+        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
+        'tab:red', 'tab:blue', 'tab:green', 
+        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
+        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
+        'tab:red', 'tab:blue', 'tab:green', 
+        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
+        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
+        'tab:red', 'tab:blue', 'tab:green', 
+        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
+        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
+        'tab:red', 'tab:blue', 'tab:green', 
+        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
+        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
+        ]      
+
+    x=days_all
+    texts = []
+    for i, city in enumerate(keycity_names):        
+        y=covid_proj[i,:]
+        plt.plot(x, y, color=mycolors[i], linewidth=2, label=city)
+        texts.append(plt.text(days_all[-1]+timedelta(days=7), 
+            y[-1], city, fontsize=10, color=mycolors[i], alpha=0.5))
+
+    plt.legend(loc='best', fontsize=12, ncol=2)
+
+    #fancy stuff
+    ax = plt.gca()
+
+    ax.yaxis.get_offset_text().set_fontsize(14)
+    ax.set_ylabel('Projection coefficient relative to spreader', fontsize=14)
+    #ax.set_yscale('log')
+
+    plt.yticks(fontsize=14, alpha=.7)
+
+    plt.xlim(days_all[0], days_all[-1]+timedelta(days=10))
+    plt.ylim(0, 0.5)
+    xtick_location = days_all[::7]
+    xtick_labels = days[::7]
+    xtick_location.append(xtick_location[-1]+timedelta(days=7))
+    xtick_labels.append("")
+    plt.xticks(ticks=xtick_location, labels=xtick_labels, ha="right", rotation=45, fontsize=15) #, alpha=.7)
+    
+    #plt.title(refname, fontsize=16)
+
+    plt.grid(axis='both', alpha=.3)
+    plt.gca().spines["top"].set_alpha(0.0)    
+    plt.gca().spines["bottom"].set_alpha(0.3)
+    plt.gca().spines["right"].set_alpha(0.0)    
+    plt.gca().spines["left"].set_alpha(0.3)   
+
+    textstr = "Fonte:\n IME-USP"
+    plt.gcf().text(0.98, -0.1, textstr, fontsize=12, horizontalalignment='center', 
+        verticalalignment='center', transform=ax.transAxes)
+
+    plt.tight_layout() 
+
+    adjust_text(texts, autoalign="y", only_move={'points': 'y',
+        'text':'y', 'objects':'y'})
+    
+    #Save density plot to folder "dump"
+    filename = mdyn.dump_dir+title_base
+    plt.savefig(filename+"evol.jpg", dpi=400)
+    #plt.savefig(filename+"evol.tiff", dpi=200)
+    plt.close()
+    
 
 def model(day_state, mat, ipar, network):
 
