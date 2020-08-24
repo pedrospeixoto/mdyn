@@ -102,13 +102,18 @@ nneighb = 1 # based on population. plus list above
 #Brasília	115	0.3
 
 data_ini_by_reg = {
-3829 : 1,}
-#3242 : 0.3,
-#5569 : 0.3,
-#}
+#3829 : 1,}
+#3242 : 1,
+#5569 : 1,
+#949:1,
+#1596 : 1,
+#111 : 1,
+#2309 : 1,
+4931 : 1
+}
 
 #Number of simulation days
-num_simul_days = 30
+num_simul_days = 46
 
 #Type of model 
 # 0: simple mat iteration
