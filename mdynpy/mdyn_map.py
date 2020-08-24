@@ -343,6 +343,9 @@ class Map:
         elif "Simul" in title:
             plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1, vmax=100., cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
             label = "Number of People"
+        elif "Decomp" in title:
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
+            label = "Resid"
         else:
             plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.000001, vmax=1.0, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
             label = "Probability"

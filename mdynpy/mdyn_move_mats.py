@@ -24,6 +24,7 @@ from adjustText import adjust_text
 from matplotlib import patches
 
 import seaborn as sns
+import statsmodels.api as sm
 
 
 from mdynpy.mdyn_map import Map
@@ -1468,7 +1469,7 @@ def decomposition_model(mdyn, network, ipar):
 
     
     #Pseudo-invese matrix for projection operator
-    P = np.linalg.pinv(A)
+    #P = np.linalg.pinv(A)
     
     title_base = "Decomp_"+network.domain+"_"+network.subdomains
     print()
@@ -1491,15 +1492,26 @@ def decomposition_model(mdyn, network, ipar):
 
     covid = pd.concat([df_regions, covid], axis=1, sort=False)
     deaths = pd.concat([df_regions, deaths], axis=1, sort=False)
-    
-    print(covid.columns)
 
+    nanvec=np.array([0, 0, 0, 0, 0, 0 ])
+    for index, row in covid.iterrows():    
+        evol_np = row.to_numpy()
+        evol=evol_np[3:]
+        evol_av=mex.moving_average(evol)
+        new_row = np.append(evol_np[:9], evol_av)
+        #print(index, len(row), evol.shape, evol_av.shape, new_row.shape )
+        #print(index, covid.loc[index, :])
+        covid.loc[index]=new_row
+
+    print(covid.columns)
 
     drange = mex.daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=ipar.num_simul_days))
     ndays = (mdyn.date_end_obj+timedelta(days=ipar.num_simul_days) - mdyn.date_ini_obj).days
     
     covid_proj = np.zeros((nkeycities, ndays))
-    
+    errminus = np.zeros((nkeycities, ndays))
+    errplus = np.zeros((nkeycities, ndays))
+
     days_all = []
     days = []
     for i, day in enumerate(drange):
@@ -1512,37 +1524,45 @@ def decomposition_model(mdyn, network, ipar):
         covidvec=covid[day_str].values
         where_are_NaNs = np.isnan(covidvec)
         covidvec[where_are_NaNs] = 0
-        vec = np.matmul(P, covidvec)
+        #vec = np.matmul(P, covidvec)
+        #covid_proj[:,i] = vec / np.sum(vec)
+        model = sm.OLS(covidvec, A).fit()
+        predictions = model.predict(A)
+        vec = model.params
         covid_proj[:,i] = vec / np.sum(vec)
+        confint = model.conf_int(alpha=0.05)
+        err = confint[:,0]
+        errminus[:,i] = err/ np.sum(err)
+        err = confint[:,1]
+        errplus[:,i] = err/ np.sum(err)  
+        print(day_str, "R2 (normal, adj):", model.rsquared, model.rsquared_adj) #, model.params, model.pvalues)
+        resid = model.resid
+        title = title_base+"_day_"+day_str
+        filename = mdyn.dump_dir+title_base+"_day_"+indx+".jpg"
+        if False and ipar.daily_plots and i>70: #not os.path.exists(filename):
+            print("Creating plot  ", filename)
+            print()    
+            map=Map(network)
+            map.map_move_by_reg(resid, network.regions, network, title, filename)
 
 
+        
     # Draw Plot
     fig = plt.figure(figsize=(20,10), dpi= 300)
-    mycolors = [
-        'tab:red', 'tab:blue', 'tab:green', 
-        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
-        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
-        'tab:red', 'tab:blue', 'tab:green', 
-        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
-        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
-        'tab:red', 'tab:blue', 'tab:green', 
-        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
-        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
-        'tab:red', 'tab:blue', 'tab:green', 
-        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
-        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
-        'tab:red', 'tab:blue', 'tab:green', 
-        'tab:orange', 'tab:brown', 'tab:grey', 'tab:pink', 'tab:olive', 
-        'red', 'steelblue', 'firebrick', 'mediumseagreen', 'red', 'blue', 'green', 'black', 'purple',
-        ]      
+    
+    mycolors = sns.color_palette("husl", 20)
 
     x=days_all
     texts = []
     for i, city in enumerate(keycity_names):        
         y=covid_proj[i,:]
+        z1=errminus[i,:]
+        z2=errplus[i,:]
         plt.plot(x, y, color=mycolors[i], linewidth=2, label=city)
+        plt.fill_between(x, z1, z2,alpha=0.3, facecolor=mycolors[i])
+
         texts.append(plt.text(days_all[-1]+timedelta(days=7), 
-            y[-1], city, fontsize=10, color=mycolors[i], alpha=0.5))
+            y[-1], city, fontsize=12, color=mycolors[i], alpha=0.7))
 
     plt.legend(loc='best', fontsize=12, ncol=2)
 
@@ -1550,19 +1570,21 @@ def decomposition_model(mdyn, network, ipar):
     ax = plt.gca()
 
     ax.yaxis.get_offset_text().set_fontsize(14)
-    ax.set_ylabel('Projection coefficient relative to spreader', fontsize=14)
+    ax.set_ylabel('Spreader proportional representation in linear model', fontsize=14)
+    ax.set_yticks([0.0, 0.2, 0.4, 0.6,  0.8, 1.0])
     #ax.set_yscale('log')
+    #ax.set_yscale('symlog')
 
-    plt.yticks(fontsize=14, alpha=.7)
+    plt.yticks(fontsize=14) #, alpha=.7)
 
     plt.xlim(days_all[0], days_all[-1]+timedelta(days=10))
-    plt.ylim(0, 0.5)
+    plt.ylim(0, 1.01)
     xtick_location = days_all[::7]
     xtick_labels = days[::7]
     xtick_location.append(xtick_location[-1]+timedelta(days=7))
     xtick_labels.append("")
     plt.xticks(ticks=xtick_location, labels=xtick_labels, ha="right", rotation=45, fontsize=15) #, alpha=.7)
-    
+
     #plt.title(refname, fontsize=16)
 
     plt.grid(axis='both', alpha=.3)
@@ -1571,7 +1593,7 @@ def decomposition_model(mdyn, network, ipar):
     plt.gca().spines["right"].set_alpha(0.0)    
     plt.gca().spines["left"].set_alpha(0.3)   
 
-    textstr = "Fonte:\n IME-USP"
+    textstr = "Confidence Interval: 95%"
     plt.gcf().text(0.98, -0.1, textstr, fontsize=12, horizontalalignment='center', 
         verticalalignment='center', transform=ax.transAxes)
 
@@ -1582,7 +1604,7 @@ def decomposition_model(mdyn, network, ipar):
     
     #Save density plot to folder "dump"
     filename = mdyn.dump_dir+title_base
-    plt.savefig(filename+"evol.jpg", dpi=400)
+    plt.savefig(filename+"_evol.jpg", dpi=400)
     #plt.savefig(filename+"evol.tiff", dpi=200)
     plt.close()
     
