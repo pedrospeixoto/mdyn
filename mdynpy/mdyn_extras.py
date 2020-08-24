@@ -473,9 +473,9 @@ capital_cities = [
 3829, #	São Paulo
 1754, #	Aracaju
 443, #	Palmas
-1293, #campina grande
-1957, # feira de santanda
-1509, #Caruaru
-1162, #Mossoro
-4377, #Chapecó
+#1293, #campina grande
+#1957, # feira de santanda
+#1509, #Caruaru
+#1162, #Mossoro
+#4377, #Chapecó
 ]
