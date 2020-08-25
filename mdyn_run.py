@@ -117,6 +117,12 @@ if run_opt == 23:
     time_end = time.time()
     print("Execution time "+str(time_end-time_start)+" seconds")
 
+if run_opt == 24:
+    time_start = time.time()
+    mmat.decomposition_model(mdyn, network, ipar)
+    time_end = time.time()
+    print("Execution time "+str(time_end-time_start)+" seconds")
+
 if run_opt == 30:
     time_start = time.time()
     isol.isol_index(network, ipar)
