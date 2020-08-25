@@ -1532,9 +1532,11 @@ def decomposition_model(mdyn, network, ipar):
         covid_proj[:,i] = vec / np.sum(vec)
         confint = model.conf_int(alpha=0.05)
         err = confint[:,0]
-        errminus[:,i] = err/ np.sum(err)
+        err[err<0] = 0
+        errminus[:,i] = err/ np.sum((err))
         err = confint[:,1]
-        errplus[:,i] = err/ np.sum(err)  
+        err[err<0] = 0
+        errplus[:,i] = err/ np.sum((err))  
         print(day_str, "R2 (normal, adj):", model.rsquared, model.rsquared_adj) #, model.params, model.pvalues)
         resid = model.resid
         title = title_base+"_day_"+day_str
