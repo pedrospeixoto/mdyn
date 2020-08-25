@@ -24,6 +24,7 @@ from adjustText import adjust_text
 from matplotlib import patches
 
 import seaborn as sns
+import statsmodels.api as sm
 
 
 from mdynpy.mdyn_map import Map
@@ -1435,7 +1436,180 @@ def simulate_model(mdyn, network, ipar):
     #map.map_move_by_reg(risk_index, network.regions, network, title, filename)
 
 
+def decomposition_model(mdyn, network, ipar):
 
+    #Read city vectors
+    nkeycities = len(mex.key_cities)
+    keycity_names = []
+    keycity_ind = []
+    keycity_vector = []
+    A = np.zeros((network.nreg_in, nkeycities))
+    keycity_evol = []
+    for i, cityind in enumerate(mex.key_cities):
+        keycity_ind.append(cityind)
+        keycity_names.append(network.regions_in_names.get(cityind))
+        title_base = "Model_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
+        title_base = title_base + "_r"+str(ipar.infec_rate).replace(".","") \
+            +"_s"+str(ipar.spread_rate).replace(".","")+\
+            "_ini_"+str(keycity_names[i])
+        #data_dir = mdyn.dump_dir
+        data_dir = "covid/simulations/"
+        filename = data_dir+title_base+"data_evol.npy"
+        
+        if os.path.exists(filename):
+            keycity_evol.append(np.load(filename)) #save full evolution
+            keycity_vector.append(keycity_evol[i][:,-2]) #save last column with valid data
+            A[:, i]=keycity_vector[i]
+            print("city:", i, keycity_ind[i], keycity_names[i], filename, "loaded file.")
+        else:
+            print("city:", i, keycity_ind[i], keycity_names[i], filename, "did not find file.")
+            print("Please run simulator with same parameters before running decomposition")
+            sys.exit()
+        nregin, ndays = keycity_evol[i].shape
+
+    
+    #Pseudo-invese matrix for projection operator
+    #P = np.linalg.pinv(A)
+    
+    title_base = "Decomp_"+network.domain+"_"+network.subdomains
+    print()
+    print(title_base.replace("\n", ""))
+    print()
+
+    #read covid data
+    filename = "covid/obitos.csv"
+    deaths = pd.read_csv(filename)
+    filename = "covid/casos.csv"
+    covid = pd.read_csv(filename)
+    
+    covid = covid.set_index('ibgeID')
+    deaths = deaths.set_index('ibgeID')
+    print(len(covid), len(deaths))
+    regions=network.regions_in_codes
+    df_regions = pd.DataFrame({'regions':regions , 'ibge_regions':regions})
+    df_regions = df_regions.set_index("regions")
+    print(len(df_regions))
+
+    covid = pd.concat([df_regions, covid], axis=1, sort=False)
+    deaths = pd.concat([df_regions, deaths], axis=1, sort=False)
+
+    nanvec=np.array([0, 0, 0, 0, 0, 0 ])
+    for index, row in covid.iterrows():    
+        evol_np = row.to_numpy()
+        evol=evol_np[3:]
+        evol_av=mex.moving_average(evol)
+        new_row = np.append(evol_np[:9], evol_av)
+        #print(index, len(row), evol.shape, evol_av.shape, new_row.shape )
+        #print(index, covid.loc[index, :])
+        covid.loc[index]=new_row
+
+    print(covid.columns)
+
+    drange = mex.daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=ipar.num_simul_days))
+    ndays = (mdyn.date_end_obj+timedelta(days=ipar.num_simul_days) - mdyn.date_ini_obj).days
+    
+    covid_proj = np.zeros((nkeycities, ndays))
+    errminus = np.zeros((nkeycities, ndays))
+    errplus = np.zeros((nkeycities, ndays))
+
+    days_all = []
+    days = []
+    for i, day in enumerate(drange):
+        days_all.append(day)
+        indx = '{:02d}'.format(i)
+        day_str = day.strftime("%Y-%m-%d")
+        days.append(day_str)
+
+        #covidvec=deaths[day_str].values
+        covidvec=covid[day_str].values
+        where_are_NaNs = np.isnan(covidvec)
+        covidvec[where_are_NaNs] = 0
+        #vec = np.matmul(P, covidvec)
+        #covid_proj[:,i] = vec / np.sum(vec)
+        model = sm.OLS(covidvec, A).fit()
+        predictions = model.predict(A)
+        vec = model.params
+        covid_proj[:,i] = vec / np.sum(vec)
+        confint = model.conf_int(alpha=0.05)
+        err = confint[:,0]
+        err[err<0] = 0
+        errminus[:,i] = err/ np.sum((err))
+        err = confint[:,1]
+        err[err<0] = 0
+        errplus[:,i] = err/ np.sum((err))  
+        print(day_str, "R2 (normal, adj):", model.rsquared, model.rsquared_adj) #, model.params, model.pvalues)
+        resid = model.resid
+        title = title_base+"_day_"+day_str
+        filename = mdyn.dump_dir+title_base+"_day_"+indx+".jpg"
+        if False and ipar.daily_plots and i>70: #not os.path.exists(filename):
+            print("Creating plot  ", filename)
+            print()    
+            map=Map(network)
+            map.map_move_by_reg(resid, network.regions, network, title, filename)
+
+
+        
+    # Draw Plot
+    fig = plt.figure(figsize=(20,10), dpi= 300)
+    
+    mycolors = sns.color_palette("husl", 20)
+
+    x=days_all
+    texts = []
+    for i, city in enumerate(keycity_names):        
+        y=covid_proj[i,:]
+        z1=errminus[i,:]
+        z2=errplus[i,:]
+        plt.plot(x, y, color=mycolors[i], linewidth=2, label=city)
+        plt.fill_between(x, z1, z2,alpha=0.3, facecolor=mycolors[i])
+
+        texts.append(plt.text(days_all[-1]+timedelta(days=7), 
+            y[-1], city, fontsize=12, color=mycolors[i], alpha=0.7))
+
+    plt.legend(loc='best', fontsize=12, ncol=2)
+
+    #fancy stuff
+    ax = plt.gca()
+
+    ax.yaxis.get_offset_text().set_fontsize(14)
+    ax.set_ylabel('Spreader proportional representation in linear model', fontsize=14)
+    ax.set_yticks([0.0, 0.2, 0.4, 0.6,  0.8, 1.0])
+    #ax.set_yscale('log')
+    #ax.set_yscale('symlog')
+
+    plt.yticks(fontsize=14) #, alpha=.7)
+
+    plt.xlim(days_all[0], days_all[-1]+timedelta(days=10))
+    plt.ylim(0, 1.01)
+    xtick_location = days_all[::7]
+    xtick_labels = days[::7]
+    xtick_location.append(xtick_location[-1]+timedelta(days=7))
+    xtick_labels.append("")
+    plt.xticks(ticks=xtick_location, labels=xtick_labels, ha="right", rotation=45, fontsize=15) #, alpha=.7)
+
+    #plt.title(refname, fontsize=16)
+
+    plt.grid(axis='both', alpha=.3)
+    plt.gca().spines["top"].set_alpha(0.0)    
+    plt.gca().spines["bottom"].set_alpha(0.3)
+    plt.gca().spines["right"].set_alpha(0.0)    
+    plt.gca().spines["left"].set_alpha(0.3)   
+
+    textstr = "Confidence Interval: 95%"
+    plt.gcf().text(0.98, -0.1, textstr, fontsize=12, horizontalalignment='center', 
+        verticalalignment='center', transform=ax.transAxes)
+
+    plt.tight_layout() 
+
+    adjust_text(texts, autoalign="y", only_move={'points': 'y',
+        'text':'y', 'objects':'y'})
+    
+    #Save density plot to folder "dump"
+    filename = mdyn.dump_dir+title_base
+    plt.savefig(filename+"_evol.jpg", dpi=400)
+    #plt.savefig(filename+"evol.tiff", dpi=200)
+    plt.close()
+    
 
 def model(day_state, mat, ipar, network):
 

@@ -425,6 +425,27 @@ def plot_matrix(mat, title, filename):
 
 #List of key cities (mdyn indexes)
 key_cities = [
+111, #	Manaus
+2162, #	Salvador
+949, #	Fortaleza
+5569, #	Brasília
+3174, #	Vitória
+5417, #	Goiânia
+635, #	São Luís
+5219, #	Cuiabá
+5122, #	Campo Grande
+2309, #	Belo Horizonte
+169, #	Belém
+1337, #	João Pessoa
+4005, #	Curitiba
+1596, #	Recife
+3242, #	Rio de Janeiro
+4931, #	Porto Alegre
+3829, #	São Paulo
+]
+
+#List of key cities (mdyn indexes)
+capital_cities = [
 66, #	Rio Branco
 1696, #	Maceió
 303, #	Macapá
@@ -452,9 +473,9 @@ key_cities = [
 3829, #	São Paulo
 1754, #	Aracaju
 443, #	Palmas
-1293, #campina grande
-1957, # feira de santanda
-1509, #Caruaru
-1162, #Mossoro
-4377, #Chapecó
+#1293, #campina grande
+#1957, # feira de santanda
+#1509, #Caruaru
+#1162, #Mossoro
+#4377, #Chapecó
 ]
