@@ -1,4 +1,4 @@
-dia <- "2020-05-01"
+dia <- "2020-08-24"
 library(ggplot2)
 library(htmlwidgets)
 library(tidyverse)
