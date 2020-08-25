@@ -7,6 +7,7 @@ library(lubridate)
 sink("simulation_paper.txt",split = T)
 #Dates to simulate
 t0 <- seq.Date(from = ymd("2020-04-01"),to = ymd("2020-08-18"),by = 7)
+t0 <- t0[-c(1,2,3,4)]
 errors <- data.frame("Min" = NA,"MinDeath" = NA,"MinInfected" = NA)
 
 for(t in as.character(t0)){
@@ -15,7 +16,7 @@ for(t in as.character(t0)){
   cat("\n")
   
   ##Parameters
-  cores <- 24 #Number of cores to use in parallel computation
+  cores <- 8 #Number of cores to use in parallel computation
   pos <- t #What to add at the end of all output files
   seed <- as.numeric(ymd(t)) #Seed
   par <- list() #Candidate values of model parameters
