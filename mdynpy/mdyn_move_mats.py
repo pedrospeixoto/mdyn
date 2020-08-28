@@ -652,7 +652,6 @@ def map_move_mats(mdyn, network, ipar):
             df_iso = df_iso[df_iso['reg_name'].isin(regions.values())]
 
         mat = mdyn.movemats[i]
-        mat_sum = mat_sum + mat
 
         #filter if set up
         if ipar.filter[0]:
@@ -664,9 +663,12 @@ def map_move_mats(mdyn, network, ipar):
                 filter_list=ipop
             if ipar.filter[1] == "list":
                 filter_list = ipar.filter_list
+                mat, matnormed = network.filter_transition_matrix(mat, ipar.filter, ipar.filter_list)
         else:
             filter_list=[]
 
+        mat_sum = mat_sum + mat
+        
         reg_iso = np.zeros([network.nreg_in])
         for reg in range(network.nreg_in):
             region = regions.get(reg)
@@ -725,13 +727,13 @@ def map_move_mats(mdyn, network, ipar):
     print("Saving iso index average as:", filename)
     np.savetxt( filename, isol_avg)
 
-    map=Map(network, zoom)
-    filename = mdyn.dump_dir+title_mat.replace(" ", "_")+ "IsoFlux.jpg"
-    map.map_network_data(isol_avg, mat_sum, regions, title_mat, filename)
+    #map=Map(network, zoom)
+    #filename = mdyn.dump_dir+title_mat.replace(" ", "_")+ "IsoFlux.jpg"
+    #map.map_network_data(isol_avg, mat_sum, regions, title_mat, filename)
 
     map=Map(network, zoom)
     filename = mdyn.dump_dir+title_mat.replace(" ", "_")+ "Flux.jpg"
-    map.map_network_flux(mat_sum, regions, title_mat, filename.replace("Network", "Network_Flux"), edge_filter=filter_list)
+    map.map_network_flux(mat_sum, regions, title_mat, filename.replace("Network", "Network_Flux")) #, edge_filter=filter_list)
 
     return
         
