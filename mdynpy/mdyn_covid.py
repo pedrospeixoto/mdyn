@@ -30,10 +30,11 @@ import gc
 #Input parameters - dir name
 #-----------------------------
 covid_file = sys.argv[1]
+dengue_file = sys.argv[2]
+
+#Covid analysis
 
 #Load data
-base_name = "data"
-
 covid = pd.read_csv(covid_file)
 
 print(covid)
@@ -61,7 +62,7 @@ colors=palette(np.linspace(0, 1.0, n))
 
 fig, axs = plt.subplots(6,5, figsize=(15, 15), squeeze=False)
 axs = axs.ravel()
-covid_cases_compare_line = 1000
+covid_cases_compare_line = 2000
 covid_cases_cut_min = 10
 time_cut_max = 90
 for i, state in enumerate(mex.state_abrv2name):   
@@ -118,7 +119,7 @@ fig.delaxes(axs[29])
 
 fig.tight_layout(pad=3.0)
  #Save density plot to folder "dir"
-plt.savefig("covid/Covid_acum_cases_states.png", dpi=300)
+plt.savefig("covid/Covid_acum_cases_states.png", dpi=200)
 plt.close()
 
 fig = plt.figure(figsize=(10, 10))
@@ -132,16 +133,98 @@ plt.ylabel("slope")
 plt.savefig("covid/Covid_acum_cases_states_reg_adj.png", dpi=300)
 plt.close()
 
+
 fig = plt.figure(figsize=(10, 10))
 plt.scatter(covid_cases_compare, slopes)
 for i, state in enumerate(mex.state_abrv2name):  
     plt.annotate(state, (covid_cases_compare[i], slopes[i]))
 
-plt.xlabel("day to reach "+str(covid_cases_compare_line)+" cases")
+plt.xlabel("days to reach "+str(covid_cases_compare_line)+" cases")
 plt.ylabel("slope")
 
-plt.savefig("covid/Covid_acum_cases_states_cut_line.png", dpi=300)
+plt.savefig("covid/Covid_acum_cases_states_cut_line"+str(covid_cases_compare_line)+".png", dpi=300)
 plt.close()
 
 
+fig = plt.figure(figsize=(10, 10))
+intercept_power = np.power(2.0, intercept)
+plt.scatter(np.power(2.0, intercept), slopes)
+for i, state in enumerate(mex.state_abrv2name):  
+    plt.annotate(state, (intercept_power[i], slopes[i]))
+
+plt.xlabel("Intercept: Estimated cases at day 1")
+plt.ylabel("slope")
+
+plt.savefig("covid/Covid_acum_cases_states_slope_intercept_Day1.png", dpi=300)
+plt.close()
+
 #Dengue data!
+#--------------------------------------------------
+
+#Load data
+denv = pd.read_csv(dengue_file, sep=";")
+print(denv.columns)
+denv.sort_values(by=['state'], inplace = True)
+print(denv)
+states = denv.state.values
+denv_soro = denv['denv_soro'].values
+
+#Set regression
+X = denv_soro
+y = slopes
+X = sm.add_constant(X)
+#log(acum_Cases)=a+b*log(day)
+model = sm.OLS(y, X)
+results = model.fit()
+fitted = results.fittedvalues
+print(results.summary())
+
+fig = plt.figure(figsize=(10, 10))
+plt.scatter(denv_soro, slopes)
+plt.plot(denv_soro, fitted, marker='', color="black", linestyle='-.', linewidth=1.0, alpha=1.0)
+
+for i, state in enumerate(mex.state_abrv2name):  
+    if state == states[i]:
+        plt.annotate(state, (denv_soro[i]+0.02, slopes[i]))
+    else:
+        print(state, states[i])
+        print("Warning: states not matching")
+        sys.exit()
+
+plt.annotate("r = "+str(np.round(-np.sqrt(results.rsquared),2))+"\n p = "+str(np.round(results.pvalues[1], 2)), (50, 6.0), fontsize=14)
+plt.xlabel("denv_soro")
+plt.ylabel("covid slope")
+
+plt.savefig("covid/Covid_vs_dengue_slope.png", dpi=300)
+plt.close()
+
+#Set regression
+X = denv_soro
+y = covid_cases_compare
+X = sm.add_constant(X)
+#log(acum_Cases)=a+b*log(day)
+model = sm.OLS(y, X)
+results = model.fit()
+fitted = results.fittedvalues
+print(results.summary())
+
+fig = plt.figure(figsize=(10, 10))
+plt.scatter(denv_soro, covid_cases_compare)
+plt.plot(denv_soro, fitted, marker='', color="black", linestyle='-.', linewidth=1.0, alpha=1.0)
+
+for i, state in enumerate(mex.state_abrv2name):  
+    if state == states[i]:
+        plt.annotate(state, (denv_soro[i]+0.02, covid_cases_compare[i]))
+    else:
+        print(state, states[i])
+        print("Warning: states not matching")
+        sys.exit()
+
+plt.annotate("r = "+str(np.round(-np.sqrt(results.rsquared),2))+"\n p = "+str(np.round(results.pvalues[1], 2)), (50, covid_cases_compare[0]), fontsize=14)
+plt.xlabel("denv_soro")
+plt.ylabel("days to reach "+str(covid_cases_compare_line)+" cases")
+
+plt.savefig("covid/Covid_vs_dengue_case_cutline"+str(covid_cases_compare_line)+".png", dpi=300)
+plt.close()
+
+
