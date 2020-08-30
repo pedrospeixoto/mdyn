@@ -47,10 +47,11 @@ class Map:
             #print(lat0, lon0, height, width , zoom[2]-zoom[1] ,  zoom[4]-zoom[3])
         else:
             factor = 1.0e5
+            #factor = 0.9*1.0e5
             lat0=0.5*(network.maxlats+network.minlats)
             lon0=0.5*(network.maxlons+network.minlons)
-            width = abs(network.maxlons-network.minlons)*factor
-            height = abs(network.maxlats-network.minlats)*factor
+            width = abs(network.maxlons-network.minlons)*factor*0.85
+            height = abs(network.maxlats-network.minlats)*factor*0.95
             #print(lat0, lon0, height, width,  network.maxlats-network.minlats, network.maxlons-network.minlons)
     
         #width=1.1e6
@@ -654,7 +655,111 @@ class Map:
         
         network = self.dom
         
-        plt.title(title, y=1.05)
+        #plt.title(title, y=1.05)
+        print("  Plotting: ", filename)
+
+        #print(network.regions_in_latlon)
+        n=len(network.regions_in_latlon)
+        
+        pos={}
+        # define position in basemap
+        for i, reg in enumerate(network.regions_in_latlon.values()):
+            x, y = self.map(reg[1], reg[0])
+            #print(i, reg[0], reg[1], x, y)
+            pos[i]=[x,y]
+        
+        #Only graph inner nodes
+        mattmp=mat[:n, :n]
+        np.fill_diagonal(mattmp, 0)
+
+        #Graph
+        G = nx.from_numpy_matrix(mattmp, create_using=nx.DiGraph)
+        N = len(G)
+        print("   Network len:", N)
+        M = G.number_of_edges()
+        print("   Network edges:", M)
+
+        #Filter low flux edges:       
+        #remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
+        #if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
+        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 4] 
+        #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
+        G.remove_edges_from(remove)
+
+        #remove edges based on filter
+        if len(edge_filter)>1:
+            nodes_keep = list(edge_filter)
+            nodes_remove = list(set(G.nodes) - set(edge_filter))
+            #print(nodes_remove)
+            #print(nodes_keep)
+            ed_remove = []
+            for node in nodes_remove:
+                ed=list(G.in_edges(node))+list(G.out_edges(node))
+                ed_remove=ed_remove+ed
+                
+            #print(ed_remove)
+            G.remove_edges_from(ed_remove)
+        N = len(G)
+        print("   Filtred Network len:", N)
+        M = G.number_of_edges()
+        print("   Filtred Network edges:", M)
+
+        np.set_printoptions(threshold=sys.maxsize)
+        #print(nx.get_edge_attributes(G,'weight').items())
+        edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
+        #weights = np.array(weights) /2
+        weights = np.array(weights) 
+        
+        weights = np.log2(weights)
+        maxw = max(weights) #
+
+        edge_colors = weights #[2+M*(i+2)/maxw for i in weights] #100*weights #range(2, M + 2)
+        if "RM" in title:
+            edge_widths = 0.2+0.9*(weights/maxw)
+            edge_alphas = 0.1+(weights/maxw)*0.4
+        else:
+            edge_widths = np.clip(1.0*(weights-2)/(maxw), 0, 1.0)
+            edge_alphas = np.clip((weights-2)/(maxw), 0, 1.0)
+
+        edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
+                                    arrowsize=1, edgelist=edges, edge_color=edge_colors,
+                                    edge_cmap=plt.cm.hot_r, width=edge_widths,
+                                    #edge_vmin=0 , edge_max=17,
+                                    connectionstyle='arc3, rad=0.1')
+        
+        # set alpha value for each edge
+        for i in range(M):
+            edges[i].set_alpha(edge_alphas[i])
+
+        ax = plt.gca()
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="3%", pad=0.05)
+        
+        
+        sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r) #, norm=plt.Normalize(vmin=4, vmax=18, clip=True))
+        sm.set_array(edge_colors)
+        
+        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')        
+        cbared = plt.colorbar(sm, cax=cax, label='Trips/Day', ticks=[2, 6, 10, 14])        
+        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (viagens/dia)', ticks=[2, 7, 12])        
+        cbared.ax.set_yticklabels(["$2^2$", "$2^{6}$", "$2^{10}$", "$2^{14}$"]) #, rotation="vertical")
+        #cbared.ax.set_yticklabels(["Baixo", "Médio", "Alto"], rotation="vertical")
+        
+        if "datalake" in filename:
+            textstr = "Fonte: IME-USP/COVID-Radar"
+        else:
+            textstr = "Fonte: IME-USP/InLoco"
+        #plt.gcf().text(0.02, 0.02, textstr, fontsize=10)
+
+        plt.tight_layout() 
+        plt.savefig(filename, dpi=600)   
+        plt.close()
+    
+    def map_network_flux_robot_dance(self, mat, reg0, title, filename, edge_filter=[]):
+        
+        network = self.dom
+        
+        #plt.title(title, y=1.05)
         print("  Plotting: ", filename)
 
         #print(network.regions_in_latlon)
@@ -681,7 +786,7 @@ class Map:
         #Filer low flux edges:       
         #remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
         #if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
-        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 6] 
+        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 8] 
         #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
         G.remove_edges_from(remove)
 
@@ -706,7 +811,7 @@ class Map:
         np.set_printoptions(threshold=sys.maxsize)
         
         edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
-        weights = np.array(weights)  
+        weights = np.array(weights) /2
         
         weights = np.log2(weights)
         maxw = max(weights) #
@@ -716,13 +821,13 @@ class Map:
             edge_widths = 0.2+0.9*(weights/maxw)
             edge_alphas = 0.1+(weights/maxw)*0.4
         else:
-            edge_widths = 0.4+0.7*(weights/maxw)
-            edge_alphas = 0.4+(weights/maxw)*0.5
+            edge_widths = np.clip(1.0*(weights-2)/(maxw), 0, 1.0)
+            edge_alphas = np.clip((weights-2)/(maxw), 0, 1.0)
 
         edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
-                                    arrowsize=5, edgelist=edges, edge_color=edge_colors,
+                                    arrowsize=1, edgelist=edges, edge_color=edge_colors,
                                     edge_cmap=plt.cm.hot_r, width=edge_widths,
-                                    edge_vmin=0 , edge_max=14,
+                                    #edge_vmin=0 , edge_max=17,
                                     connectionstyle='arc3, rad=0.1')
         
         # set alpha value for each edge
@@ -734,23 +839,25 @@ class Map:
         cax = divider.append_axes("right", size="3%", pad=0.05)
         
         
-        sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r, norm=plt.Normalize(vmin=0, vmax=14, clip=True))
+        sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r) #, norm=plt.Normalize(vmin=4, vmax=18, clip=True))
         sm.set_array(edge_colors)
         
         #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')        
-        cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (viagens/dia)', ticks=[2, 7, 12])        
-        cbared.ax.set_yticklabels(["Baixo", "Médio", "Alto"], rotation="vertical")
+        cbared = plt.colorbar(sm, cax=cax, label='Trips/Week', ticks=[4, 8, 12, 16])        
+        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (viagens/dia)', ticks=[2, 7, 12])        
+        cbared.ax.set_yticklabels(["$2^4$", "$2^{8}$", "$2^{12}$", "$2^{16}$"]) #, rotation="vertical")
+        #cbared.ax.set_yticklabels(["Baixo", "Médio", "Alto"], rotation="vertical")
         
         if "datalake" in filename:
             textstr = "Fonte: IME-USP/COVID-Radar"
         else:
             textstr = "Fonte: IME-USP/InLoco"
-        plt.gcf().text(0.02, 0.02, textstr, fontsize=10)
+        #plt.gcf().text(0.02, 0.02, textstr, fontsize=10)
 
         plt.tight_layout() 
-        plt.savefig(filename, dpi=300)   
+        plt.savefig(filename, dpi=600)   
         plt.close()
-        
+
     def map_data_on_network(self, data, mat, reg0, title, filename):
         
         network = self.dom
