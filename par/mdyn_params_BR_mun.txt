@@ -28,8 +28,8 @@ load_domain = True #Load precomp structures
 #Initialize mobile data and load data to dataframe
 data_format = "Parquet" #"ORC"
 data_dir = "data/mobility_br_2020/"
-date_ini = "2020-03-01"
-date_end = "2020-05-01"
+date_ini = "2020-06-06"
+date_end = "2020-06-06"
 load_data = True
 daily_plots = True
 
@@ -43,9 +43,13 @@ isoind_file = "data/isol_br/Social Distancing Index by Cities2020-07-18.csv"
 # Slicing/Zoom
 #------------------------------
 
-#Filter based on population (pop) given a max number of cities 
+#Filter:
+# 1) True/False
+# 2) Type: based on population "pop" given a max number of cities or "list"
+# 3) What to act on: "node" or "links"
+# 4) Mult factor with amount of filtering on the node/link - 0 cuts the node/links, 1 keeps it as it is
 #filter = [True, "pop", 50 ]
-filter = [False, "list", 0 ]
+filter = [True, "list", 0, "node", 0.1 ]
 #capital cities
 #filter_list = [66, 1696, 303, 111, 2162, 949, 5569,3174,5417,635,5219,1665,2309,169,1337,
 #      4005,1596,882,3242,1163,4931,16,138,4398,3829,1754,443]

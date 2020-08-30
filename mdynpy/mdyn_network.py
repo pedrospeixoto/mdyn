@@ -1288,3 +1288,71 @@ class Network:
             print("..done")
 
         return mat, mat_normed, orig_names, dest_names
+
+    def filter_transition_matrix(self, mat, filter, filter_list):
+
+        print()
+        print("Filtering transition matrix...")
+
+        if filter[1] != "list":
+            print("Sorry, won't filter without a list given")
+            sys.exit()
+
+        filter_type = filter[3] #node or link
+        filter_par =  filter[4] #mult factor for nodes/link
+        mat_filt = np.copy(mat)
+        
+        
+        #print(reg_dict)
+        #print(self.regions)
+        n , m = mat.shape
+        #print( orig_names, n, m, n_dest, n_orig, self.nreg_in, nreg)
+        #sys.exit()
+        
+        if filter_type == "link": #attenuate links
+            for reg in filter_list:
+                sum_orig = np.sum(mat_filt[:, reg])
+                #multiply column by factor
+                mat_filt[:, reg] = filter_par*mat[:, reg]
+                #check new sum except new diagonal
+                sum_move = np.sum(mat_filt[:, reg]) - mat_filt[reg, reg]
+                #Adjust diagonal (all reduction is now positioned at the self-loop)
+                mat_filt[reg, reg] = sum_orig - sum_move
+                print(reg, self.regions_in_names.get(reg), mat[reg, reg], mat_filt[reg, reg], mat_filt[reg, reg]/ mat[reg, reg])                
+        elif filter_type == "node": #kill node :
+            for reg in filter_list:
+                #kill links
+                mat_filt[:, reg] = 0.0*mat[:, reg]
+                mat_filt[reg, :] = 0.0*mat[reg, :]
+                mat_filt[reg, reg] = np.sum(mat[:, reg])
+                #check new sum except new diagonal
+                print(reg, self.regions_in_names.get(reg), " node killed")                
+        else :
+            print( "Warning: Don't know what to filter: will do nothing! Good luck!")
+
+        #Sanity check
+        print("New mat min_sum, max_sum", np.min(mat_filt.sum(axis=0)),  np.max(mat_filt.sum(axis=0)))
+        if self.nregions<10:
+            print("Normalized transition matrix (transition probability)")
+            matprint(mat_filt)
+
+        #Normalize
+        mat_normed = mat_filt / mat_filt.sum(axis=0)
+        if self.nregions<10:
+            print("Normalized transition matrix (transition probability)")
+            matprint(mat_normed)
+
+
+        #check consistency
+        mat_tmp=np.copy(mat_normed)
+        for i in  range(n):
+            mat_tmp[i,i] = 0.0
+        #matprint(mat_tmp)
+        moving = mat_tmp.max(axis=0)
+        
+        print(moving)
+
+        if self.nregions > 10:
+            print("..done")
+
+        return mat_filt, mat_normed
