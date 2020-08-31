@@ -68,9 +68,18 @@ for var in variables:
 
     fig, axs = plt.subplots(6,5, figsize=(15, 15), squeeze=False)
     axs = axs.ravel()
-    covid_cases_compare_line = 10
-    covid_cases_cut_min = 10
-    time_cut_max = 120
+    
+    if var == "cases":
+        covid_cases_cut_min = 10
+        time_cut_max = 120
+        time_cut_min = 0
+        covid_cases_compare_line = 10000
+    else:
+        covid_cases_cut_min = 1
+        time_cut_min = 0
+        time_cut_max = 90
+        covid_cases_compare_line = 200
+
     for i, state in enumerate(mex.state_abrv2name):   
         print(state) 
 
@@ -85,10 +94,12 @@ for var in variables:
 
         #Filter time and cases
         filtercases = acum_cases >= covid_cases_cut_min
+
         days_reg = days[filtercases]
         acum_cases_reg = acum_cases[filtercases]
-        days_reg=days_reg[:time_cut_max]
-        acum_cases_reg= acum_cases_reg[:time_cut_max]
+
+        days_reg=days_reg[time_cut_min:time_cut_max]
+        acum_cases_reg= acum_cases_reg[time_cut_min:time_cut_max]
 
         #Set regression
         X = np.log2(days_reg[:time_cut_max])
@@ -187,7 +198,7 @@ for var in variables:
                 sys.exit()
 
     print(flaviv_df)
-    #i_nan = np.where(states == 'RJ')
+    #i_nan = np.where( (states == 'PR') | (states == 'SC') | (states == 'PA'))
      
     denv_soro = flaviv_df['denv_soro'].values
     ckg_soro = flaviv_df['ckg_soro'].values
