@@ -1495,7 +1495,7 @@ def decomposition_model(mdyn, network, ipar):
     covid = pd.concat([df_regions, covid], axis=1, sort=False)
     deaths = pd.concat([df_regions, deaths], axis=1, sort=False)
 
-    nanvec=np.array([0, 0, 0, 0, 0, 0 ])
+    #nanvec=np.array([0, 0, 0, 0, 0, 0 ])
     for index, row in covid.iterrows():    
         evol_np = row.to_numpy()
         evol=evol_np[3:]
@@ -1514,6 +1514,11 @@ def decomposition_model(mdyn, network, ipar):
     errminus = np.zeros((nkeycities, ndays))
     errplus = np.zeros((nkeycities, ndays))
 
+    f= open(ipar.dump_dir+title_base+"_output.csv", "w+")
+    cols = ['DATE'] + list(keycity_names) + ['R2', 'R2adj']
+    f.write(','.join(cols))
+
+
     days_all = []
     days = []
     for i, day in enumerate(drange):
@@ -1531,6 +1536,7 @@ def decomposition_model(mdyn, network, ipar):
         model = sm.OLS(covidvec, A).fit()
         predictions = model.predict(A)
         vec = model.params
+        vec[vec < 0] = 0
         covid_proj[:,i] = vec / np.sum(vec)
         confint = model.conf_int(alpha=0.05)
         err = confint[:,0]
@@ -1540,6 +1546,10 @@ def decomposition_model(mdyn, network, ipar):
         err[err<0] = 0
         errplus[:,i] = err/ np.sum((err))  
         print(day_str, "R2 (normal, adj):", model.rsquared, model.rsquared_adj) #, model.params, model.pvalues)
+        out = [day_str]+ list(covid_proj[:,i])+[ model.rsquared, model.rsquared_adj]
+        out = ','.join([str(i) for i in out])
+        print(out)
+        f.write( "\n"+out )
         resid = model.resid
         title = title_base+"_day_"+day_str
         filename = mdyn.dump_dir+title_base+"_day_"+indx+".jpg"
