@@ -1301,8 +1301,7 @@ class Network:
         filter_type = filter[3] #node or link
         filter_par =  filter[4] #mult factor for nodes/link
         mat_filt = np.copy(mat)
-        
-        
+                
         #print(reg_dict)
         #print(self.regions)
         n , m = mat.shape
@@ -1321,17 +1320,17 @@ class Network:
                 print(reg, self.regions_in_names.get(reg), mat[reg, reg], mat_filt[reg, reg], mat_filt[reg, reg]/ mat[reg, reg])                
         elif filter_type == "node": #kill node :
             for reg in filter_list:
-                #kill links
+                #kill nodes
                 mat_filt[:, reg] = 0.0*mat[:, reg]
                 mat_filt[reg, :] = 0.0*mat[reg, :]
                 mat_filt[reg, reg] = np.sum(mat[:, reg])
-                #check new sum except new diagonal
-                print(reg, self.regions_in_names.get(reg), " node killed")                
+                #print(reg, self.regions_in_names.get(reg), " node killed")                
         else :
             print( "Warning: Don't know what to filter: will do nothing! Good luck!")
 
         #Sanity check
-        print("New mat min_sum, max_sum", np.min(mat_filt.sum(axis=0)),  np.max(mat_filt.sum(axis=0)))
+        #print("Orig and new avrg_sum", np.average(mat.sum(axis=0)), np.average(mat_filt.sum(axis=0)))
+
         if self.nregions<10:
             print("Normalized transition matrix (transition probability)")
             matprint(mat_filt)
@@ -1350,7 +1349,7 @@ class Network:
         #matprint(mat_tmp)
         moving = mat_tmp.max(axis=0)
         
-        print(moving)
+        print("Average max moving frequencies:", np.average(moving))
 
         if self.nregions > 10:
             print("..done")

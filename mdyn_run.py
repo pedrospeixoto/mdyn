@@ -18,6 +18,7 @@ import mdynpy.mdyn_extras as mex
 import mdynpy.mdyn_move_mats as mmat 
 import mdynpy.mdyn_isol_index as isol
 import mdynpy.mdyn_fixed_users as fx
+import mdynpy.mdyn_road_surgery as rs
 import mdynpy.mdyn_seir as seir
 import mdynpy.mdyn_datalake as lake
 
@@ -122,6 +123,7 @@ if run_opt == 24:
     mmat.decomposition_model(mdyn, network, ipar)
     time_end = time.time()
     print("Execution time "+str(time_end-time_start)+" seconds")
+
 
 if run_opt == 30:
     time_start = time.time()
