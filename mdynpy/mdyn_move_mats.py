@@ -1070,10 +1070,11 @@ def calc_move_mat_avg(mdyn, network, ipar):
 
 def calc_move_mat_avg_dow(mdyn, network, ipar):
     #Period mean move mat per dow
+
+    #Matrices adjusted by population
     movemat_avg_adj = [np.zeros(mdyn.movemats[0].shape)]*7
     movemat_avg = [np.zeros(mdyn.movemats[0].shape)]*7
-    
-    print("Warning: Will adjust raw data matrices for region populations")
+        
     mdyn.movemats_adj = [np.zeros(mdyn.movemats[0].shape)]*len(mdyn.days_all)
     mdyn.movemats_adj_norm = [np.zeros(mdyn.movemats[0].shape)]*len(mdyn.days_all)
 
@@ -1081,7 +1082,9 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
     if len(mdyn.days_all) <7:
         print("Warning:  not enough days to calculate average by day of the week")
         print("      some zero matrices may be used.")
-
+    print()    
+    print("Warning: Will adjust raw data matrices for region populations")
+    print()
     for i, day in enumerate(mdyn.days_all):
         print()
         print("Calculating on: ", i, day)
@@ -1192,7 +1195,7 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
                         
                     map=Map(network)
                     map.map_move_by_reg(move_vec, network.regions, network, title, filename)
-
+        #this matrix has been normalized!!!
     return movemat_avg_adj,  movemat_std, movemat_avg_diag
 
 def calc_move_mat_avg_period(mdyn, network, ipar):
@@ -1325,11 +1328,22 @@ def simulate_model(mdyn, network, ipar):
     #Analyse movement matrices
     mdyn.collect_move_mat(network)
 
-    movemat_avg, movemat_std, movemat_avg_diag = calc_move_mat_avg_dow(mdyn, network, ipar)
-    #movemat_avg = calc_move_mat_avg_period(mdyn, network, ipar)
+    #filter if set up
+    if ipar.filter[0]:
+        filter_label = "_Filter_"+ipar.filter[5] 
+        for i, mat in enumerate(mdyn.movemats):
+            mat, matnormed = network.filter_transition_matrix(mat, ipar.filter, ipar.filter_list)
+            mdyn.movemats[i] = mat
+            mdyn.movemats_norm[i] = matnormed
+    else:
+        filter_label = ""
 
-    #Sources to plot 
-    #num_simul_days = ipar.num_simul_days #min(network.nregions-2, 20)
+    movemat_avg_adj_norm, movemat_std, movemat_avg_diag = calc_move_mat_avg_dow(mdyn, network, ipar)
+    #movemat_avg = calc_move_mat_avg_period(mdyn, network, ipar)
+    
+    #hack to run on laptop - use a same single matrix always
+    #for i, mat in enumerate(movemat_avg_adj_norm):
+    #    movemat_avg_adj_norm[i]=movemat_avg_adj_norm[5]
     
     #Initial condition
     data_ini_regv = np.zeros([network.nregions])
@@ -1341,14 +1355,19 @@ def simulate_model(mdyn, network, ipar):
     day_state = data_ini_regv
     ntime = mdyn.days + ipar.num_simul_days
     data_evol = np.zeros((network.nregions, ntime))
+
+    if len(data_ini_reg_names)>1:
+        ini_str=""
+    else:
+        ini_str="_ini_"+str(data_ini_reg_names[0])
+
     title_base = "Model_"+network.domain+"_"+network.subdomains+"_"+mdyn.date_ini+"_"+mdyn.date_end
     title_base = title_base + "\n_r"+str(ipar.infec_rate).replace(".","") \
         +"_s"+str(ipar.spread_rate).replace(".","")+\
-        "_ini_"+str(data_ini_reg_names[0])
+        ini_str+filter_label
     print(title_base.replace("\n", "_"))
     print()
-
-        #+"_s"+str(int(ipar.spread_rate))
+    
     #simulate scenario
     drange = mex.daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=ipar.num_simul_days))
     
@@ -1371,9 +1390,9 @@ def simulate_model(mdyn, network, ipar):
         else:
             #Use matrix with dow average
             dow = day.weekday()
-            mat = movemat_avg[dow]
+            mat = movemat_avg_adj_norm[dow]
             #mat = movemat_avg
-            
+
         day_state = model(day_state, mat, ipar, network)
 
         sumv = np.sum(day_state)
@@ -1624,6 +1643,8 @@ def decomposition_model(mdyn, network, ipar):
     
 
 def model(day_state, mat, ipar, network):
+    
+    #mat assumed to be in terms of probability
 
     if ipar.model == 0: #simple model
         day_state=(1.0+ipar.infec_rate)*day_state + np.matmul(mat, day_state)
@@ -1677,5 +1698,6 @@ def model(day_state, mat, ipar, network):
         tmp_state[np.argmax(tmp_state)] = 0.0
         print("    Non source: avg,max,min :",np.average(tmp_state), np.max(tmp_state), np.min(tmp_state))
         print()
+
     return day_state
 
