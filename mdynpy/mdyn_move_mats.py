@@ -1701,3 +1701,127 @@ def model(day_state, mat, ipar, network):
 
     return day_state
 
+def map_move_mats_robot_dance(mdyn, network, ipar):
+    print()
+    print("Mapping move mats:")
+    #Get movement matrices
+    mdyn.collect_move_mat(network)
+
+    #Get isolation indeces
+    iso = sd.socialdist(ipar.isoind_file, network) 
+
+    #print(iso.df.columns)
+    #print("Regions:", network.regions)
+    mat_shape = mdyn.movemats[0].shape
+    mat_sum = np.zeros(mat_shape)
+    isol_sum = np.zeros([network.nreg_in])
+
+    plot = False
+    #Loop for each day
+    for i, day in enumerate(mdyn.days_all):
+        
+        print("Calculating on: ", i, day.strftime("%Y-%m-%d"))
+        #print(iso.df['day'].unique(), day.strftime("%Y-%m-%d"))
+        
+        #filter day, state, regions
+        df_iso = iso.df[iso.df['day']==day.strftime("%Y-%m-%d")]
+        
+        if network.domain_abrv == "BRA":
+            #BRA uses geocodes, so get city names
+            regions = network.regions_in_names
+        else:
+            #Use actual city names
+            regions = network.regions
+            #Filter state
+            df_iso = df_iso[df_iso['reg_name'].isin(regions.values())]
+
+        mat = mdyn.movemats[i]
+
+        #filter if set up
+        if ipar.filter[0]:
+            if ipar.filter[1] == "pop":
+                npop = ipar.filter[2]
+                pop=np.array(network.reg_pop)
+                ipop=list(pop.argsort()[-npop:][::-1])
+                print(ipop)
+                filter_list=ipop
+            if ipar.filter[1] == "list":
+                filter_list = ipar.filter_list
+                mat, matnormed = network.filter_transition_matrix(mat, ipar.filter, ipar.filter_list)
+        else:
+            filter_list=[]
+
+        mat_sum = mat_sum + mat
+        
+        reg_iso = np.zeros([network.nreg_in])
+        for reg in range(network.nreg_in):
+            region = regions.get(reg)
+            region = str(region)   
+            if region in list(df_iso['reg_name'].values): 
+                isotmp = df_iso.loc[df_iso['reg_name'] == region, 'iso'].values[0]
+            else:
+                isotmp = np.nan
+            reg_iso[reg] = isotmp
+        
+        isol_sum = isol_sum + reg_iso
+
+        #Do map
+        dow=mex.weekdays[day.weekday()]
+        
+        if isinstance(ipar.zoom[0], bool): #in this case we have a single zoom
+            zooms = [ipar.zoom]
+        else: #list of zooms
+            zooms = ipar.zoom
+
+        for zoom in zooms:
+            if zoom[0]:
+                title = network.domain+" "+network.subdomains+" Network Zoom "+zoom[6]+" "
+                filename = mdyn.dump_dir+title.replace(" ", "_") #+"_"+str(i+67).zfill(3)+".jpg"
+            else:
+                title = network.domain+" "+network.subdomains+" Network "
+                filename = mdyn.dump_dir+title.replace(" ", "_") #+str(i+67).zfill(3)+".jpg"
+
+            title = title + day.strftime("%Y-%m-%d")+" "+dow
+            filename = filename + day.strftime("%Y-%m-%d")+".jpg"
+
+            if plot:
+                if "RM" in title:
+                    map=Map(network, zoom)
+                    map.map_network_data(reg_iso, mat, regions, title, filename)
+            
+                map=Map(network, zoom)
+                map.map_network_flux(mat, regions, title, filename.replace("Network", "Network_Flux"), edge_filter=filter_list)
+
+            #map=Map(network, zoom)
+            #map.map_data_on_network(reg_iso, mat, regions, title, filename.replace("Network", "Network_Iso"))
+
+        print("done date.")
+        print()
+
+    #save matrix sum
+    title_mat = network.domain+" "+network.subdomains+" Network Move Mats "+ mdyn.date_ini+"_"+mdyn.date_end
+    filename = mdyn.dump_dir+title_mat.replace(" ", "_") + ".csv"
+    print("Saving mat sum as:", filename)
+    np.savetxt( filename, mat_sum)
+
+    #save average isolation index
+    isol_avg = isol_sum / len(mdyn.days_all)
+    title_iso = network.domain+" "+network.subdomains+" Iso Index Average "+ mdyn.date_ini+"_"+mdyn.date_end
+    filename = mdyn.dump_dir+title_iso.replace(" ", "_")+ ".csv"
+    print("Saving iso index average as:", filename)
+    np.savetxt( filename, isol_avg)
+
+    #map=Map(network, zoom)
+    #filename = mdyn.dump_dir+title_mat.replace(" ", "_")+ "IsoFlux.jpg"
+    #map.map_network_data(isol_avg, mat_sum, regions, title_mat, filename)
+
+    zoom_str=""
+    if zoom[0]:
+        zoom_str=zoom[6]
+    map=Map(network, zoom)
+    title_mat = title_mat+" "+zoom_str
+    filename = mdyn.dump_dir+title_mat.replace(" ", "_")+ "FluxRD"+zoom_str+".jpg"
+    #map.map_network_flux(mat_sum, regions, title_mat, filename.replace("Network", "Network_Flux")) #, edge_filter=filter_list)
+    map.map_network_flux_robot_dance(mat_sum, regions, title_mat, filename.replace("Network", "Network_Flux")) #, edge_filter=filter_list)
+
+    return

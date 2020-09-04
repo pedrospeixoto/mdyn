@@ -31,6 +31,7 @@ data_dir = "data/mobility_br_2020/"
 date_ini = "2020-02-01"
 date_end = "2020-02-14"
 load_data = True
+daily_plots = False
 
 #Isolation index
 isoind_file = "data/isol_br/Social Distancing Index by Cities2020-07-14.csv"
@@ -46,7 +47,9 @@ num_source = 1
 filter = [False, "list", 0 ]
 
         #Flag, lats, lons, drawsubdomains, label
-zoom = [False, -22.6, -24.2, -47.8,-45.6, True, "RMSP"  ]
+#zoom = [False, -22.6, -24.2, -47.8,-45.6, True, "RMSP"  ]
+#zoom = [True, -22.6, -24.2, -47.8,-45.6, True, "RMSP"  ]
+zoom = [True, -23.3, -24.15, -47.3, -46.3, True, "RMSP"  ] #Robot dance
 
 #-----------------------------
 # Statistics
