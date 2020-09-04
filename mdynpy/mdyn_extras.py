@@ -479,3 +479,17 @@ capital_cities = [
 #1162, #Mossoro
 #4377, #Chapecó
 ]
+
+sub_rmsp = {
+    "Sub região norte - RMSP": ["Caieiras", "Cajamar", "Francisco Morato", "Franco Da Rocha", "Mairiporã"],
+    "Sub região leste - RMSP": ["Arujá", "Biritiba Mirim", "Ferraz De Vasconcelos", "Guararema", "Guarulhos", 
+                                "Itaquaquecetuba", "Mogi Das Cruzes", "Poá", "Salesópolis", "Santa Isabel",
+                                "Suzano"],
+    "Sub região sudeste - RMSP": ["Diadema", "Mauá", "Ribeirão Pires", "Rio Grande Da Serra", "Santo André",
+                                  "São Bernardo Do Campo", "São Caetano Do Sul"],
+    "Sub região sudoeste - RMSP": ["Cotia", "Embu Das Artes", "Embu-Guaçu", "Itapecerica Da Serra", "Juquitiba", 
+                                   "São Lourenço Da Serra", "Taboão Da Serra", "Vargem Grande Paulista"],
+    "Sub região oeste - RMSP": ["Barueri", "Carapicuíba", "Itapevi", "Jandira", "Osasco", 
+                                "Pirapora Do Bom Jesus", "Santana De Parnaíba"],
+    "Mun. São Paulo": ["São Paulo"]
+}
