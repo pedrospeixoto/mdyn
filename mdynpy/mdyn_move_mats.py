@@ -1087,7 +1087,7 @@ def calc_move_mat_avg_dow(mdyn, network, ipar):
     print()
     for i, day in enumerate(mdyn.days_all):
         print()
-        print("Calculating on: ", i, day)
+        print("Calculating adjusted matrices on: ", i, day)
         dow = day.weekday()
         
         diag_orig = np.diag(mdyn.movemats[i])
@@ -1333,11 +1333,12 @@ def simulate_model(mdyn, network, ipar):
         filter_label = "_Filter_"+ipar.filter[5] 
         for i, mat in enumerate(mdyn.movemats):
             mat, matnormed = network.filter_transition_matrix(mat, ipar.filter, ipar.filter_list)
-            mdyn.movemats[i] = mat
-            mdyn.movemats_norm[i] = matnormed
+            mdyn.movemats[i] = np.copy(mat)
+            mdyn.movemats_norm[i] = np.copy(matnormed)
     else:
         filter_label = ""
 
+    #This function has side-effects in mdyn move mats - it create adjested matrices!!!
     movemat_avg_adj_norm, movemat_std, movemat_avg_diag = calc_move_mat_avg_dow(mdyn, network, ipar)
     #movemat_avg = calc_move_mat_avg_period(mdyn, network, ipar)
     

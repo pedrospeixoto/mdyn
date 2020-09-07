@@ -51,7 +51,7 @@ isoind_file = "data/isol_br/Social Distancing Index by Cities2020-07-18.csv"
 # 5) Label for filter (for file names)
 #filter = [True, "pop", 50 ]
 #filter = [False, "list", 0, "link", 0.5, "NoFilter" ]
-filter = [True, "list", 0, "link", 0.5, "BR116-101" ]
+filter = [True, "list", 0, "node", 0.5, "BR116-101" ]
 #filter = [True, "list", 0, "link", 0.5, "BR116-SP-RJ" ]
 #filter = [True, "list", 0, "link", 0.5, "BR364" ]
 #filter = [True, "list", 0, "link", 0.5, "BR230" ]
