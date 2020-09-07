@@ -57,14 +57,14 @@ filter = [True, "list", 0, "node", 0.1, "SaoPaulo" ]
 #filter = [True, "list", 0, "node", 0.5, "BR116-101-node05" ]
 #filter = [True, "list", 0, "link", 0.01, "BR116-SP-RJ-link001" ]
 #filter = [True, "list", 0, "link", 0.5, "BR364" ]
-#filter = [True, "list", 0, "link", 0.5, "BR230" ]
+filter = [True, "list", 0, "link", 0.0, "BR230_link00" ]
 #filter = [True, "list", 0, "link", 0.0, "BR116-SP-CTBA" ]
 
 #capital cities
 #filter_list = [66, 1696, 303, 111, 2162, 949, 5569,3174,5417,635,5219,1665,2309,169,1337,4005,1596,882,3242,1163,4931,16,138,4398,3829,1754,443]
 
 #Sao Paulo
-filter_list = [3829]
+#filter_list = [3829]
 
 #BR116 e 110
 #filter_list = [ 949,1162,989,2044,1293,1509,1163,1110,1337,1596,1696,1652,1754,1834,1957,2162,2039,2239,2003,2137,2214,3048,2558,3164,2600,2309,3139,3174,3112,3191,2663,3229,3223,3222,3242,3224,3266,3824,3809,3479,3829,4005,4447,4347,4436,4451,4398,4385,4701,4587,4892,4931,4685,4916,4949]
@@ -76,7 +76,7 @@ filter_list = [3829]
 #filter_list = [3813, 3536, 3408, 3759, 3789, 3405, 3570]
 
 #BR230 João Pessoa	Bayeux	Santa Rita	Cruz do Espírito Santo	Sobrado	Caldas Brandão	Gurinhém	Mogeiro	Ingá	Riachão do Bacamarte	São Miguel de Taipu	Massaranduba	Campina Grande
-#filter_list = [1337,	1267,	1416,	1307,	1448,	1291,	1326,	1362,	1330,	1401,	1437,	1357,	1293]
+filter_list = [1337,	1267,	1416,	1307,	1448,	1291,	1326,	1362,	1330,	1401,	1437,	1357,	1293]
 
 #BR116 SP-CTBA - Sao Paulo, Taboão da Serra	Embu das Artes	Itapecirica da Serra	São Lourenço da Serra	Juquitiba	Miracatu	Juquiá	Registro	Pariquera-Açu	Jacupiranga	Cajati	Barra do Turvo	Campina Grande do Sul	Quatro Barras ... Curitiba
 #filter_list = [3829, 3855,	3434,	3521,	3825,	3563,	3603,	3562,	3744,	3673,	3546,	3371,	3328,	3967,	4200, 3990, 4176, 4005]
