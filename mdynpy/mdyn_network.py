@@ -1312,10 +1312,12 @@ class Network:
             for reg in filter_list:
                 #original movement
                 #multiply column by factor
+                atenuated_vec = (1.0-filter_par)*mat[:, reg]
+                extra_mass = np.sum(atenuated_vec) - mat[reg, reg]
                 mat_filt[:, reg] = filter_par*mat[:, reg]
                 #check new sum of movement
                 #Diagonal is the same, since it is the population
-                mat_filt[reg, reg] = mat[reg, reg] 
+                mat_filt[reg, reg] = mat[reg, reg]+extra_mass 
                 print(reg, self.regions_in_names.get(reg), np.sum(mat[:, reg])/mat[reg, reg], np.sum(mat_filt[:, reg])/mat_filt[reg, reg], mat[reg, reg], mat_filt[reg, reg] )                
         elif filter_type == "node": #kill node :
             for reg in filter_list:
@@ -1326,32 +1328,13 @@ class Network:
                 #print(reg, self.regions_in_names.get(reg), " node killed")                
                 print(reg, self.regions_in_names.get(reg), np.sum(mat[:, reg])/mat[reg, reg], np.sum(mat_filt[:, reg])/mat_filt[reg, reg], mat[reg, reg], mat_filt[reg, reg] )                
         else :
-            print( "Warning: Don't know what to filter: will do nothing! Good luck!")
+            print( "Warning: Don't know what to filter: will do nothing! Please implement it! ", filter_type)
+            sys.exit()
 
         #Sanity check
         #print("Orig and new avrg_sum", np.average(mat.sum(axis=0)), np.average(mat_filt.sum(axis=0)))
 
-        if self.nregions<10:
-            print("Normalized transition matrix (transition probability)")
-            matprint(mat_filt)
-
         #Normalize
         mat_normed = mat_filt / mat_filt.sum(axis=0)
-        if self.nregions<10:
-            print("Normalized transition matrix (transition probability)")
-            matprint(mat_normed)
-
-
-        #check consistency
-        mat_tmp=np.copy(mat_normed)
-        for i in  range(n):
-            mat_tmp[i,i] = 0.0
-        #matprint(mat_tmp)
-        moving = mat_tmp.max(axis=0)
-        
-        print("Average max moving frequencies:", np.average(moving))
-
-        if self.nregions > 10:
-            print("..done")
 
         return mat_filt, mat_normed
