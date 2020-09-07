@@ -1346,6 +1346,7 @@ def simulate_model(mdyn, network, ipar):
     else:
         filter_label = ""
 
+    debug_sp = True
     if debug_sp:    
         #hack to run on laptop - use a same single matrix always
         for i, mat in enumerate(movemat_avg_adj_norm):
@@ -1384,7 +1385,7 @@ def simulate_model(mdyn, network, ipar):
         title = title_base+"_day_"+day.strftime("%Y-%m-%d")
         filename = mdyn.dump_dir+title_base+"_day_"+indx+".jpg"
         if ipar.daily_plots and not os.path.exists(filename):
-            print("Creating plot  ", filename)
+            print("   Creating plot  ", filename)
             print()    
             map=Map(network)
             map.map_move_by_reg(day_state, network.regions, network, title, filename)
@@ -1400,7 +1401,7 @@ def simulate_model(mdyn, network, ipar):
             mat = movemat_avg_adj_norm[dow]
             #mat = movemat_avg
         
-        if ipar.filter[0]:
+        if ipar.filter[0]: #filter already adjusted matriz
             mat, matnormed = network.filter_transition_matrix(mat, ipar.filter, ipar.filter_list)
 
         day_state = model(day_state, mat, ipar, network)
@@ -1704,10 +1705,10 @@ def model(day_state, mat, ipar, network):
 
         #Check non source infected people
         #print("I+rI(N-I)/N + s(AI/N-AtI/N): avg,max,min :",np.average(day_state), np.max(day_state), np.min(day_state))
-        tmp_state = np.copy(day_state)
-        tmp_state[np.argmax(tmp_state)] = 0.0
-        print("    Non source: avg,max,min :",np.average(tmp_state), np.max(tmp_state), np.min(tmp_state))
-        print()
+        #tmp_state = np.copy(day_state)
+        #tmp_state[np.argmax(tmp_state)] = 0.0
+        #print("    Non source: avg,max,min :",np.average(tmp_state), np.max(tmp_state), np.min(tmp_state))
+        #print()
 
     return day_state
 

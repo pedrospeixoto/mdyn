@@ -1290,9 +1290,11 @@ class Network:
         return mat, mat_normed, orig_names, dest_names
 
     def filter_transition_matrix(self, mat, filter, filter_list):
+        verbose = False
 
-        print()
-        print("Filtering transition matrix...")
+        if verbose:
+            print()
+            print("     Filtering transition matrix...")
 
         if filter[1] != "list":
             print("Sorry, won't filter without a list given")
@@ -1307,18 +1309,21 @@ class Network:
         n , m = mat.shape
         #print( orig_names, n, m, n_dest, n_orig, self.nreg_in, nreg)
         #sys.exit()
-        print("Region, orig prop, new prop, orig diag, new diag")                     
+        if verbose:
+            print("      Region, orig prop, new prop, orig diag, new diag")                     
         if filter_type == "link": #attenuate links
             for reg in filter_list:
                 #original movement
-                #multiply column by factor
-                atenuated_vec = (1.0-filter_par)*mat[:, reg]
-                extra_mass = np.sum(atenuated_vec) - mat[reg, reg]
+                #multiply column by factor                
+                total_mass = np.sum(mat[:, reg]) - mat[reg, reg]
                 mat_filt[:, reg] = filter_par*mat[:, reg]
-                #check new sum of movement
+                mat_filt[reg, reg] = 0.0
+                total_extra_mass = total_mass - np.sum(mat_filt[:, reg]) 
+                
                 #Diagonal is the same, since it is the population
-                mat_filt[reg, reg] = mat[reg, reg]+extra_mass 
-                print(reg, self.regions_in_names.get(reg), np.sum(mat[:, reg])/mat[reg, reg], np.sum(mat_filt[:, reg])/mat_filt[reg, reg], mat[reg, reg], mat_filt[reg, reg] )                
+                mat_filt[reg, reg] = mat[reg, reg] + total_extra_mass 
+                if verbose:
+                    print("     ", reg, self.regions_in_names.get(reg), np.sum(mat[:, reg])/mat[reg, reg], np.sum(mat_filt[:, reg])/mat_filt[reg, reg], mat[reg, reg], mat_filt[reg, reg] )                
         elif filter_type == "node": #kill node :
             for reg in filter_list:
                 #kill nodes
@@ -1326,7 +1331,8 @@ class Network:
                 mat_filt[reg, :] = filter_par*mat[reg, :]
                 mat_filt[reg, reg] = mat[reg, reg]
                 #print(reg, self.regions_in_names.get(reg), " node killed")                
-                print(reg, self.regions_in_names.get(reg), np.sum(mat[:, reg])/mat[reg, reg], np.sum(mat_filt[:, reg])/mat_filt[reg, reg], mat[reg, reg], mat_filt[reg, reg] )                
+                if verbose:
+                    print(reg, self.regions_in_names.get(reg), np.sum(mat[:, reg])/mat[reg, reg], np.sum(mat_filt[:, reg])/mat_filt[reg, reg], mat[reg, reg], mat_filt[reg, reg] )                
         else :
             print( "Warning: Don't know what to filter: will do nothing! Please implement it! ", filter_type)
             sys.exit()
