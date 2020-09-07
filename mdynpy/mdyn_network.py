@@ -1321,8 +1321,8 @@ class Network:
         elif filter_type == "node": #kill node :
             for reg in filter_list:
                 #kill nodes
-                mat_filt[:, reg] = 0.0*mat[:, reg]
-                mat_filt[reg, :] = 0.0*mat[reg, :]
+                mat_filt[:, reg] = filter_par*mat[:, reg]
+                mat_filt[reg, :] = filter_par*mat[reg, :]
                 mat_filt[reg, reg] = np.sum(mat[:, reg])
                 #print(reg, self.regions_in_names.get(reg), " node killed")                
         else :
