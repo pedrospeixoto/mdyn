@@ -1316,7 +1316,8 @@ class Network:
                 #original movement
                 #multiply column by factor                
                 total_mass = np.sum(mat[:, reg]) - mat[reg, reg]
-                mat_filt[:, reg] = filter_par*mat[:, reg]
+                for reg1 in filter_list:
+                    mat_filt[reg1, reg] = filter_par*mat[reg1, reg]
                 mat_filt[reg, reg] = 0.0
                 total_extra_mass = total_mass - np.sum(mat_filt[:, reg]) 
                 
@@ -1324,7 +1325,7 @@ class Network:
                 mat_filt[reg, reg] = mat[reg, reg] + total_extra_mass 
                 if verbose:
                     print("     ", reg, self.regions_in_names.get(reg), np.sum(mat[:, reg])/mat[reg, reg], np.sum(mat_filt[:, reg])/mat_filt[reg, reg], mat[reg, reg], mat_filt[reg, reg] )                
-        elif filter_type == "node": #kill node :
+        elif filter_type == "node": #atennuate nodes:
             for reg in filter_list:
                 #kill nodes
                 mat_filt[:, reg] = filter_par*mat[:, reg]
