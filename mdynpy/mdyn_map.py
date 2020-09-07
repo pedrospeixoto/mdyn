@@ -170,7 +170,7 @@ class Map:
                     x, y = map(x, y)
                     map.plot(x, y, marker=None, color = '0.5',linestyle=':', linewidth=linewidth/4)
                         
-        if True: #Highlight areas
+        if False: #Highlight areas
             muns2=mex.sub_rmsp["Mun. São Paulo"]
             muns2 = [x.upper() for x in muns2]
             df=network.df_subdomains[network.df_subdomains['NM_MUNICIP'].isin(muns2)]
