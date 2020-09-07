@@ -50,10 +50,11 @@ isoind_file = "data/isol_br/Social Distancing Index by Cities2020-07-18.csv"
 # 4) Mult factor with amount of filtering on the node/link - 0 cuts the node/links, 1 keeps it as it is
 # 5) Label for filter (for file names)
 #filter = [True, "pop", 50 ]
+filter = [False, "list", 0, "link", 0.5, "NoFilter" ]
 #filter = [True, "list", 0, "link", 0.5, "BR116-SP-RJ" ]
 #filter = [True, "list", 0, "link", 0.5, "BR364" ]
 #filter = [True, "list", 0, "link", 0.5, "BR230" ]
-filter = [True, "list", 0, "link", 0.5, "BR116-SP-CTBA" ]
+#filter = [True, "list", 0, "link", 0.5, "BR116-SP-CTBA" ]
 
 #capital cities
 #filter_list = [66, 1696, 303, 111, 2162, 949, 5569,3174,5417,635,5219,1665,2309,169,1337,4005,1596,882,3242,1163,4931,16,138,4398,3829,1754,443]
@@ -71,7 +72,7 @@ filter = [True, "list", 0, "link", 0.5, "BR116-SP-CTBA" ]
 #filter_list = [1337,	1267,	1416,	1307,	1448,	1291,	1326,	1362,	1330,	1401,	1437,	1357,	1293]
 
 #BR116 SP-CTBA - Taboão da Serra	Embu das Artes	Itapecirica da Serra	São Lourenço da Serra	Juquitiba	Miracatu	Juquiá	Registro	Pariquera-Açu	Jacupiranga	Cajati	Barra do Turvo	Campina Grande do Sul	Quatro Barras
-filter_list = [3855,	3434,	3521,	3825,	3563,	3603,	3562,	3744,	3673,	3546,	3371,	3328,	3967,	4200]
+#filter_list = [3855,	3434,	3521,	3825,	3563,	3603,	3562,	3744,	3673,	3546,	3371,	3328,	3967,	4200]
 
 
  #Flag, lats, lons, drawsubdomains, label
