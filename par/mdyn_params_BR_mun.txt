@@ -69,8 +69,8 @@ filter = [True, "list", 0, "node", 0.5, "BR116-101-node05" ]
 #BR116 e 110
 filter_list = [ 949,1162,989,2044,1293,1509,1163,1110,1337,1596,1696,1652,1754,1834,1957,2162,2039,2239,2003,2137,2214,3048,2558,3164,2600,2309,3139,3174,3112,3191,2663,3229,3223,3222,3242,3224,3266,3824,3809,3479,3829,4005,4447,4347,4436,4451,4398,4385,4701,4587,4892,4931,4685,4916,4949]
 
-#Link BR116 - SP - RJ : Volta Redonda	Barra Mansa	Porto Real	Resende	Itatiaia	Queluz	Lavrinhas	Cruzeiro	Silveiras	Cachoeira Paulista	Canas	Lorena	Guaratinguetá	Aparecida do Norte	Roseira	Pindamonhangaba	Taubaté	Caçapava	São José dos Campos
-#filter_list = [ 3266, 3182, 3233, 3237, 3208, 3737, 3567, 3415, 3846, 3364, 3294, 3380, 3573, 3475, 3764, 3694, 3871, 3363, 3824] 
+#Link BR116 - SP - RJ : Rio de Janeiro ..., Volta Redonda	Barra Mansa	Porto Real	Resende	Itatiaia	Queluz	Lavrinhas	Cruzeiro	Silveiras	Cachoeira Paulista	Canas	Lorena	Guaratinguetá	Aparecida do Norte	Roseira	Pindamonhangaba	Taubaté	Caçapava	São José dos Campos ,... Sao PAulo
+#filter_list = [ 3544, 3474, 3790, 3311, 3479, 3829, 3266, 3182, 3233, 3237, 3208, 3737, 3567, 3415, 3846, 3364, 3294, 3380, 3573, 3475, 3764, 3694, 3871, 3363, 3824, 3242,3249,3183,2725,3224,3235,3256,3204,3225,3231,3230] 
 
 #Links br364: São Carlos	Itirapina	Corumbataí	Rio Claro	Santa Gertrudes	Cordeirópolis	Limeira
 #filter_list = [3813, 3536, 3408, 3759, 3789, 3405, 3570]
