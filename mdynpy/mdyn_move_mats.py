@@ -1335,65 +1335,16 @@ def simulate_model(mdyn, network, ipar):
     #Analyse movement matrices
     mdyn.collect_move_mat(network)
 
-    #Debuging
-    debug_sp = True
-    if debug_sp:
-        mat = mdyn.movemats[0]
-        vec_in = mat[3829, :]
-        vec_out = mat[:, 3829]
-        print()
-        print("Sao Paulo before adj and filter: (sum_in, sum_out, diag, diag)", np.sum(vec_in)-vec_in[3829], np.sum(vec_out)-vec_out[3829], vec_in[3829], vec_out[3829])
-        print()
-
-    
-    #This function has side-effects in mdyn move mats - it create adjested matrices!!!
+    #This function has side-effects in mdyn move mats - it creates adjusted matrices!!!
     movemat_avg_adj_norm, movemat_std, movemat_avg_diag = calc_move_mat_avg_dow(mdyn, network, ipar)
     #movemat_avg = calc_move_mat_avg_period(mdyn, network, ipar)
 
-    #Debuging
-    debug_sp = True
-    if debug_sp:
-        mat = mdyn.movemats_adj[0]
-        vec_in = mat[3829, :]
-        vec_out = mat[:, 3829]
-        print()
-        print("Sao Paulo after adj and before filter: (sum_in, sum_out, diag, diag)", np.sum(vec_in)-vec_in[3829], np.sum(vec_out)-vec_out[3829], vec_in[3829], vec_out[3829])
-        print()
-
-        mat = mdyn.movemats_adj_norm[0]
-        vec_in = mat[3829, :]
-        vec_out = mat[:, 3829]
-        print()
-        print("Sao Paulo after adj and before filter norm: (sum_in, sum_out, diag, diag)", np.sum(vec_in)-vec_in[3829], np.sum(vec_out)-vec_out[3829], vec_in[3829], vec_out[3829])
-
+    
     #filter if set up
     if ipar.filter[0]:
         filter_label = "_Filter_"+ipar.filter[5] 
-        for i, mat in enumerate(mdyn.movemats_adj):
-            mat, matnormed = network.filter_transition_matrix(mat, ipar.filter, ipar.filter_list)
-            mdyn.movemats_adj[i] = np.copy(mat)
-            mdyn.movemats_adj_norm[i] = np.copy(matnormed)
-
-        for i, mat in enumerate(movemat_avg_adj_norm):
-            mat, matnormed = network.filter_transition_matrix(mat, ipar.filter, ipar.filter_list)
-            movemat_avg_adj_norm[i] = np.copy(mat)
-
     else:
         filter_label = ""
-
-    #Debuging
-    if debug_sp:
-        mat = mdyn.movemats_adj[0]
-        vec_in = mat[3829, :]
-        vec_out = mat[:, 3829]
-        print()
-        print("Sao Paulo after adj and filter: (sum_in, sum_out, diag, diag)", np.sum(vec_in)-vec_in[3829], np.sum(vec_out)-vec_out[3829], vec_in[3829], vec_out[3829])
-  
-        mat = mdyn.movemats_adj_norm[0]
-        vec_in = mat[3829, :]
-        vec_out = mat[:, 3829]
-        print()
-        print("Sao Paulo after adj and filter norm: (sum_in, sum_out, diag, diag)", np.sum(vec_in)-vec_in[3829], np.sum(vec_out)-vec_out[3829], vec_in[3829], vec_out[3829])
 
     if debug_sp:    
         #hack to run on laptop - use a same single matrix always
@@ -1448,6 +1399,9 @@ def simulate_model(mdyn, network, ipar):
             dow = day.weekday()
             mat = movemat_avg_adj_norm[dow]
             #mat = movemat_avg
+        
+        if ipar.filter[0]:
+            mat, matnormed = network.filter_transition_matrix(mat, ipar.filter, ipar.filter_list)
 
         day_state = model(day_state, mat, ipar, network)
 
