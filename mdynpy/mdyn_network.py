@@ -1307,24 +1307,24 @@ class Network:
         n , m = mat.shape
         #print( orig_names, n, m, n_dest, n_orig, self.nreg_in, nreg)
         #sys.exit()
-        
+        print("Region, orig prop, new prop, orig diag, new diag")                     
         if filter_type == "link": #attenuate links
             for reg in filter_list:
-                sum_orig = np.sum(mat_filt[:, reg])
+                #original movement
                 #multiply column by factor
                 mat_filt[:, reg] = filter_par*mat[:, reg]
-                #check new sum except new diagonal
-                sum_move = np.sum(mat_filt[:, reg]) - mat_filt[reg, reg]
-                #Adjust diagonal (all reduction is now positioned at the self-loop)
-                mat_filt[reg, reg] = sum_orig - sum_move
-                print(reg, self.regions_in_names.get(reg), mat[reg, reg], mat_filt[reg, reg], mat_filt[reg, reg]/ mat[reg, reg])                
+                #check new sum of movement
+                #Diagonal is the same, since it is the population
+                mat_filt[reg, reg] = mat[reg, reg] 
+                print(reg, self.regions_in_names.get(reg), np.sum(mat[:, reg])/mat[reg, reg], np.sum(mat_filt[:, reg])/mat_filt[reg, reg], mat[reg, reg], mat_filt[reg, reg] )                
         elif filter_type == "node": #kill node :
             for reg in filter_list:
                 #kill nodes
                 mat_filt[:, reg] = filter_par*mat[:, reg]
                 mat_filt[reg, :] = filter_par*mat[reg, :]
-                mat_filt[reg, reg] = np.sum(mat[:, reg])
+                mat_filt[reg, reg] = mat[reg, reg]
                 #print(reg, self.regions_in_names.get(reg), " node killed")                
+                print(reg, self.regions_in_names.get(reg), np.sum(mat[:, reg])/mat[reg, reg], np.sum(mat_filt[:, reg])/mat_filt[reg, reg], mat[reg, reg], mat_filt[reg, reg] )                
         else :
             print( "Warning: Don't know what to filter: will do nothing! Good luck!")
 
