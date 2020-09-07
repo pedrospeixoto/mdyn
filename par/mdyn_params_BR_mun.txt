@@ -54,7 +54,7 @@ isoind_file = "data/isol_br/Social Distancing Index by Cities2020-07-18.csv"
 #filter = [True, "list", 0, "link", 0.5, "BR116-SP-RJ" ]
 #filter = [True, "list", 0, "link", 0.5, "BR364" ]
 #filter = [True, "list", 0, "link", 0.5, "BR230" ]
-filter = [True, "list", 0, "link", 0.1, "BR116-SP-CTBA" ]
+filter = [True, "list", 0, "link", 0.0, "BR116-SP-CTBA" ]
 
 #capital cities
 #filter_list = [66, 1696, 303, 111, 2162, 949, 5569,3174,5417,635,5219,1665,2309,169,1337,4005,1596,882,3242,1163,4931,16,138,4398,3829,1754,443]
