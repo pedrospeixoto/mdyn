@@ -44,10 +44,11 @@ dump_dir = "covid/figures/"
 states_df = pd.read_csv(states_file)
 population = pd.Series(states_df.population.values,index=states_df.abrv).to_dict()
 region = pd.Series(states_df.id.values,index=states_df.abrv).to_dict()
+region_colors = pd.Series(states_df.cor.values,index=states_df.abrv).to_dict()
 
-for reg in region:
+for i, reg in enumerate(region):
     region[reg] = math.trunc(region[reg]/10)
-
+    
 #Covid analysis
 
 #Load data
@@ -66,7 +67,8 @@ covid['days']=(covid['datetime']-ref_date).dt.days
 n = len(mex.state_abrv2name)
 
 # Initialize the figure
-plt.style.use('seaborn-darkgrid')
+#plt.style.use('seaborn-darkgrid')
+plt.style.use('seaborn-paper')
  
 # create a color palette
 palette = plt.get_cmap('Set1')
@@ -92,6 +94,7 @@ for var in variables:
     intercept = np.zeros((n))
     covid_cases_compare = np.zeros((n))
     r = np.zeros((n))
+    reg_colors = [None]*n
     
     if var == "cases":
         covid_cases_cut_min = 10
@@ -104,7 +107,8 @@ for var in variables:
         time_cut_max = 90
         covid_cases_compare_line = 200
 
-    covid_cases_compare_lines = [1, 10, 50, 100, 1000, 2000, 5000, 10000, 20000]
+    #covid_cases_compare_lines = [1, 10, 50, 100, 1000, 2000, 5000, 10000, 20000]
+    covid_cases_compare_lines = [2000]
     #covid_cases_compare_lines = [covid_cases_compare_line]
 
     for covid_cases_compare_line in covid_cases_compare_lines:
@@ -117,7 +121,6 @@ for var in variables:
 
         for i, state in enumerate(mex.state_abrv2name):   
             
-
             #Get data
             covid_state = covid[covid['state'] == state]
             if var == "cases":
@@ -153,6 +156,7 @@ for var in variables:
             intercept[i] = results.params[0]
             slopes[i] = results.params[1]
             r[i] = np.sqrt(results.rsquared)
+            reg_colors[i] = region_colors[state]
 
             covid_cases_compare[i] = np.power(2.0, (np.log2(covid_cases_compare_line)-intercept[i])/slopes[i])
             print(state, covid_cases_compare[i], intercept[i], slopes[i] ) 
@@ -167,14 +171,15 @@ for var in variables:
             
             # Plot the lineplot
             #plt.subplot(6,5,i+1)
-            axs[i].plot(days, acum_cases, marker='', color=colors(region[state]), linewidth=1.5, alpha=0.9, label=state)
+            #axs[i].plot(days, acum_cases, marker='', color=colors(region[state]), linewidth=1.5, alpha=0.9, label=state)
+            axs[i].plot(days, acum_cases, marker='', color=region_colors[state], linewidth=2.0, alpha=0.9, label=state)
             axs[i].plot(days_reg, np.power(2.0, fitted), marker='', color="black", linestyle='-.', linewidth=1.0, alpha=1.0, label=state)
             axs[i].set_yscale('log')
             axs[i].set_xscale('log')
             axs[i].set_xlim(left=10)
             
 
-            axs[i].set_title(state, loc='left', fontsize=12, fontweight=0, color=colors(region[state]) )
+            axs[i].set_title(state, loc='left', fontsize=12, fontweight=0, color=region_colors[state] )
 
         fig.delaxes(axs[27])
         fig.delaxes(axs[28])
@@ -182,46 +187,47 @@ for var in variables:
 
         fig.tight_layout(pad=3.0)
         #Save density plot to folder "dir"
-        plt.savefig(dump_dir+"covid_acum_"+var+pop_str+"_states.png", dpi=200)
+        plt.savefig(dump_dir+"covid_acum_"+var+pop_str+"_states.pdf", dpi=300)
         plt.close()
 
-        fig = plt.figure(figsize=(10, 10))
-        plt.scatter(intercept, slopes)
-        for i, state in enumerate(mex.state_abrv2name):  
-            plt.annotate(state, (intercept[i], slopes[i]))
+        if False:
+            fig = plt.figure(figsize=(10, 10))
+            plt.scatter(intercept, slopes)
+            for i, state in enumerate(mex.state_abrv2name):  
+                plt.annotate(state, (intercept[i], slopes[i]))
 
-        plt.annotate("$log_2(covid) = a + b * log_2(days)$", (np.max(intercept)-10, (slopes[0]+slopes[3])/2))
+            plt.annotate("$log_2(covid) = a + b * log_2(days)$", (np.max(intercept)-10, (slopes[0]+slopes[3])/2))
 
-        plt.xlabel("covid intercept (a) " +var)
-        plt.ylabel("covid slope (b) "+var)
+            plt.xlabel("covid intercept (a) " +var)
+            plt.ylabel("covid slope (b) "+var)
 
-        plt.savefig(dump_dir+"covid_acum_"+var+pop_str+"_states_slope_vs_intercept.png", dpi=300)
-        plt.close()
-
-
-        fig = plt.figure(figsize=(10, 10))
-        plt.scatter(covid_cases_compare, slopes)
-        for i, state in enumerate(mex.state_abrv2name):  
-            plt.annotate(state, (covid_cases_compare[i], slopes[i]))
-
-        plt.xlabel("days to reach "+str(covid_cases_compare_line)+" "+ var+"/"+pop_str)
-        plt.ylabel("slope")
-
-        plt.savefig(dump_dir+"covid_acum_"+var+pop_str+"_states_cut_line"+str(covid_cases_compare_line)+".png", dpi=300)
-        plt.close()
+            plt.savefig(dump_dir+"covid_acum_"+var+pop_str+"_states_slope_vs_intercept.pdf", dpi=300)
+            plt.close()
 
 
-        fig = plt.figure(figsize=(10, 10))
-        intercept_power = np.power(2.0, intercept)
-        plt.scatter(np.power(2.0, intercept), slopes)
-        for i, state in enumerate(mex.state_abrv2name):  
-            plt.annotate(state, (intercept_power[i], slopes[i]))
+            fig = plt.figure(figsize=(10, 10))
+            plt.scatter(covid_cases_compare, slopes)
+            for i, state in enumerate(mex.state_abrv2name):  
+                plt.annotate(state, (covid_cases_compare[i], slopes[i]))
 
-        plt.xlabel("Intercept: Estimated "+var+"/"+pop_str+" at day 1")
-        plt.ylabel("covid slope "+var)
+            plt.xlabel("days to reach "+str(covid_cases_compare_line)+" "+ var+"/"+pop_str)
+            plt.ylabel("slope")
 
-        plt.savefig(dump_dir+"covid_acum_"+"_"+var+pop_str+"_states_slope_intercept_day1.png", dpi=300)
-        plt.close()
+            plt.savefig(dump_dir+"covid_acum_"+var+pop_str+"_states_cut_line"+str(covid_cases_compare_line)+".pdf", dpi=300)
+            plt.close()
+
+
+            fig = plt.figure(figsize=(10, 10))
+            intercept_power = np.power(2.0, intercept)
+            plt.scatter(np.power(2.0, intercept), slopes)
+            for i, state in enumerate(mex.state_abrv2name):  
+                plt.annotate(state, (intercept_power[i], slopes[i]))
+
+            plt.xlabel("Intercept: Estimated "+var+"/"+pop_str+" at day 1")
+            plt.ylabel("covid slope "+var)
+
+            plt.savefig(dump_dir+"covid_acum_"+"_"+var+pop_str+"_states_slope_intercept_day1.pdf", dpi=300)
+            plt.close()
 
         #Dengue data!
         #--------------------------------------------------
@@ -271,7 +277,8 @@ for var in variables:
                 vec_filt=vec[filter_nan]
                 states_filt = states[filter_nan]
                 
-
+                color_filt = [region_colors.get(st) for st in states_filt]
+                #print(color_filt)
                 ##### --------  Covid slope vs flaviv -----------##############3
                 print()
                 print("SLOPE vs "+name)
@@ -295,7 +302,7 @@ for var in variables:
                 #print(results.summary())
 
                 fig = plt.figure(figsize=(10, 10))
-                plt.scatter(vec_filt, slopes_filt)
+                plt.scatter(vec_filt, slopes_filt, c=color_filt)
                 vecinds = vec_filt.argsort()
                 vec_sort = vec_filt[vecinds]
                 fitted_sort = fitted[vecinds]
@@ -317,7 +324,7 @@ for var in variables:
                 plt.xlabel(name+"_soro")
                 plt.ylabel("covid "+var+" slope")
 
-                plt.savefig(dump_dir+"covid_"+var+pop_str+"_slope_vs_"+name+exp_str+".png", dpi=300)
+                plt.savefig(dump_dir+"covid_"+var+pop_str+"_slope_vs_"+name+exp_str+".pdf", dpi=300)
                 plt.close()
 
                 ##### --------  Covid-case limit vs flaviv -----------##############3  
@@ -344,7 +351,7 @@ for var in variables:
                 #print(results.summary())
 
                 fig = plt.figure(figsize=(10, 10))
-                plt.scatter(vec_filt, covid_cases_compare_filt)
+                plt.scatter(vec_filt, covid_cases_compare_filt, c=color_filt)
                 vecinds = vec_filt.argsort()
                 vec_sort = vec_filt[vecinds]
                 fitted_sort = fitted[vecinds]
@@ -367,6 +374,6 @@ for var in variables:
                 plt.xlabel(name+"_soro")
                 plt.ylabel("days to reach "+str(covid_cases_compare_line)+" covid "+var+pop_str)
 
-                plt.savefig(dump_dir+"covid_"+var+pop_str+"_cutline"+str(covid_cases_compare_line)+"_vs_"+name+exp_str+".png", dpi=300)
+                plt.savefig(dump_dir+"covid_"+var+pop_str+"_cutline"+str(covid_cases_compare_line)+"_vs_"+name+exp_str+".pdf", dpi=300)
                 plt.close()
                 print("--------------------------------")
