@@ -10,6 +10,8 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.cm as mplcm
+from matplotlib.ticker import ScalarFormatter
+from matplotlib.ticker import FormatStrFormatter
 
 import statsmodels.api as sm
 
@@ -26,6 +28,8 @@ import mdyn_extras as mex
 
 #Garbage collection
 import gc
+
+
 
 print("-------------------------------")
 print("Covid vs flavivirus analysis")
@@ -308,27 +312,37 @@ for var in variables:
                 #print(results.summary())
 
                 fig = plt.figure(figsize=(10, 10))
-                plt.scatter(vec_filt, slopes_filt, c=color_filt)
+                ax = plt.gca() 
+
+                plt.scatter(vec_filt, slopes_filt, c=color_filt, s=50)
+
+                ax.set_yscale('log')
+                plt.tick_params(axis='y', which='both', labelsize=14)
+                ax.yaxis.set_minor_formatter(FormatStrFormatter("%.1f"))
+                plt.tick_params(axis='x', which='both', labelsize=14)
+                ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
+
                 vecinds = vec_filt.argsort()
                 vec_sort = vec_filt[vecinds]
                 fitted_sort = fitted[vecinds]
                 plt.plot(vec_sort, fitted_sort, marker='', color="black", linestyle='-.', linewidth=1.0, alpha=1.0)
 
                 for i in range(len(vec_filt)):  
-                    plt.annotate(states_filt[i], (vec_filt[i]+1, slopes_filt[i]))
+                    plt.annotate(states_filt[i], (vec_filt[i]+1, slopes_filt[i]), fontsize=14)
 
                 if results.params[1]>0:
                     pm_sign = "+"
                 else:
                     pm_sign = "-"    
 
-                stats="r = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+"\n \
-                    R2 = "+str(np.round(results.rsquared,2))+"\n \
-                    p = "+str(np.round(results.pvalues[1], 2))
+                stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+ \
+                    "  R2 = "+str(np.round(results.rsquared,2))+ \
+                    "  p = "+str(np.round(results.pvalues[1], 2))
                 #plt.annotate(stats, (vec_sort[-1]-10, fitted_sort[-1]-2), fontsize=14)
-                plt.gcf().text(0.02, 0.03, stats, fontsize=10)
-                plt.xlabel(name+"_soro")
-                plt.ylabel("covid "+var+" slope")
+                plt.gcf().text(0.02, 0.02, stats, fontsize=10)
+
+                plt.xlabel(name+" sorology", fontsize=14)
+                plt.ylabel("covid "+var+" per "+pop_str+" slope", fontsize=14)
 
                 plt.savefig(dump_dir+"covid_"+var+pop_str+"_slope_vs_"+name+exp_str+".pdf", dpi=300)
                 plt.close()
@@ -357,28 +371,36 @@ for var in variables:
                 #print(results.summary())
 
                 fig = plt.figure(figsize=(10, 10))
-                plt.scatter(vec_filt, covid_cases_compare_filt, c=color_filt)
+                ax = plt.gca() 
+
+                plt.scatter(vec_filt, covid_cases_compare_filt, c=color_filt, s=50)
                 vecinds = vec_filt.argsort()
                 vec_sort = vec_filt[vecinds]
                 fitted_sort = fitted[vecinds]
                 plt.plot(vec_sort, fitted_sort, marker='', color="black", linestyle='-.', linewidth=1.0, alpha=1.0)
+                ax.set_yscale('log')
+                plt.tick_params(axis='y', which='both', labelsize=14)
+                ax.yaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
+                plt.tick_params(axis='x', which='both', labelsize=14)
+                ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
 
                 for i in range(len(vec_filt)):  
-                    plt.annotate(states_filt[i], (vec_filt[i]+2, covid_cases_compare_filt[i]))
+                    plt.annotate(states_filt[i], (vec_filt[i]+1, covid_cases_compare_filt[i]), fontsize=14)
 
                 if results.params[1]>0:
                     pm_sign = "+"
                 else:
                     pm_sign = "-"
                 #stats="r = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+"\n p = "+str(np.round(results.pvalues[1], 2))
-                stats="r = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+"\n \
-                    R2 = "+str(np.round(results.rsquared,2))+"\n \
-                    p = "+str(np.round(results.pvalues[1], 2))
+                stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+ \
+                    "  R2 = "+str(np.round(results.rsquared,2))+ \
+                    "  p = "+str(np.round(results.pvalues[1], 2))
                 #plt.annotate(stats, (vec_sort[-1]-10, fitted_sort[-1]-2), fontsize=14)
-                plt.gcf().text(0.02, 0.03, stats, fontsize=10)
-
-                plt.xlabel(name+"_soro")
-                plt.ylabel("days to reach "+str(covid_cases_compare_line)+" covid "+var+pop_str)
+                plt.gcf().text(0.02, 0.02, stats, fontsize=10)
+                
+                
+                plt.xlabel(name+" sorology", fontsize=14)
+                plt.ylabel("days to reach "+str(covid_cases_compare_line)+" covid "+var+" per "+pop_str, fontsize=14, labelpad=20)
 
                 plt.savefig(dump_dir+"covid_"+var+pop_str+"_cutline"+str(covid_cases_compare_line)+"_vs_"+name+exp_str+".pdf", dpi=300)
                 plt.close()
@@ -406,28 +428,37 @@ for var in variables:
                 #print(results.summary())
 
                 fig = plt.figure(figsize=(10, 10))
-                plt.scatter(vec_filt, acum_cases_todate_filt, c=color_filt)
+                
+                ax = plt.gca() 
+
+                plt.scatter(vec_filt, acum_cases_todate_filt, c=color_filt, s=50)
                 vecinds = vec_filt.argsort()
                 vec_sort = vec_filt[vecinds]
                 fitted_sort = fitted[vecinds]
                 plt.plot(vec_sort, fitted_sort, marker='', color="black", linestyle='-.', linewidth=1.0, alpha=1.0)
 
-                for i in range(len(vec_filt)):  
-                    plt.annotate(states_filt[i], (vec_filt[i]+1, acum_cases_todate_filt[i]))
+                ax.set_yscale('log')
+                plt.tick_params(axis='y', which='both', labelsize=14)
+                ax.yaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
+                plt.tick_params(axis='x', which='both', labelsize=14)
+                ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
 
+                for i in range(len(vec_filt)):  
+                    plt.annotate(states_filt[i], (vec_filt[i]+1, acum_cases_todate_filt[i]), fontsize=14)
+                
                 if results.params[1]>0:
                     pm_sign = "+"
                 else:
                     pm_sign = "-"
                 #stats="r = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+"\n p = "+str(np.round(results.pvalues[1], 2))
-                stats="r = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+"\n \
-                    R2 = "+str(np.round(results.rsquared,2))+"\n \
-                    p = "+str(np.round(results.pvalues[1], 2))
+                stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+ \
+                    "  R2 = "+str(np.round(results.rsquared,2))+ \
+                    "  p = "+str(np.round(results.pvalues[1], 2))
                 #plt.annotate(stats, (vec_sort[-1]-10, fitted_sort[-1]-2), fontsize=14)
-                plt.gcf().text(0.02, 0.03, stats, fontsize=10)
+                plt.gcf().text(0.02, 0.02, stats, fontsize=10)
 
-                plt.xlabel(name+"_soro")
-                plt.ylabel("Acumulated covid "+var+pop_str+" on "+days_date[-1])
+                plt.xlabel(name+" sorology", fontsize=14)
+                plt.ylabel("Acumulated covid "+var+" per "+pop_str+" on "+days_date[-1], fontsize=14)
 
                 plt.savefig(dump_dir+"covid_"+var+pop_str+"_acum_vs_"+name+exp_str+".pdf", dpi=300)
                 plt.close()
