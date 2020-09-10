@@ -79,7 +79,8 @@ colors=palette #(np.linspace(0, 1.0, 5))
 variables = ["cases", "deaths"]
 
 f= open(dump_dir+"output.csv", "w+")
-f.write("covid_var, per100kpop, time_cut_min, time_cut_max, covid_cases_cut_min, state, covid_cases_compare_line, days_reach_cases, intercept, slope \n")
+f.write("covid_var, per100kpop, time_cut_min, time_cut_max, covid_cases_cut_min, \
+    state, covid_cases_compare_line, days_reach_cases, intercept, slope, acum_Cases_todate \n")
 
 
 pop = True
@@ -94,7 +95,7 @@ for var in variables:
     intercept = np.zeros((n))
     covid_cases_compare = np.zeros((n))
     r = np.zeros((n))
-    reg_colors = [None]*n
+    acum_cases_todate = np.zeros((n))
     
     if var == "cases":
         covid_cases_cut_min = 10
@@ -114,7 +115,7 @@ for var in variables:
     for covid_cases_compare_line in covid_cases_compare_lines:
         print(var, covid_cases_compare_line )
         print()
-        print("state, cut_line, intercept, slope")
+        print("var,  state,  cut_line, intercept, slope, acum_cases, last_day")
 
         fig, axs = plt.subplots(6,5, figsize=(15, 15), squeeze=False)
         axs = axs.ravel()
@@ -129,6 +130,9 @@ for var in variables:
                 acum_cases = covid_state['deaths'].values
 
             days = covid_state['days'].values
+            days_date = covid_state['date'].values
+
+            acum_cases_todate[i]=acum_cases[-1]
 
             #Filter time and cases
             filtercases = acum_cases >= covid_cases_cut_min
@@ -142,6 +146,7 @@ for var in variables:
             if pop:
                 acum_cases_reg = 100000.0*acum_cases_reg/population[state]
                 acum_cases = 100000.0*acum_cases/population[state]
+                acum_cases_todate[i] = 100000.0*acum_cases_todate[i]/population[state]
 
             #Set regression
             X = np.log2(days_reg[:time_cut_max])
@@ -156,12 +161,12 @@ for var in variables:
             intercept[i] = results.params[0]
             slopes[i] = results.params[1]
             r[i] = np.sqrt(results.rsquared)
-            reg_colors[i] = region_colors[state]
+            
 
             covid_cases_compare[i] = np.power(2.0, (np.log2(covid_cases_compare_line)-intercept[i])/slopes[i])
-            print(state, covid_cases_compare[i], intercept[i], slopes[i] ) 
-            f.write("%s , %d, %d, %d, %d, %s, %d, %f , %f, %f \n" % (var, pop, time_cut_min, time_cut_max, covid_cases_cut_min, \
-                state, covid_cases_compare_line, covid_cases_compare[i], intercept[i], slopes[i]))
+            print(var, state, covid_cases_compare[i], intercept[i], slopes[i], acum_cases_todate[i], days_date[-1] ) 
+            f.write("%s , %d, %d, %d, %d, %s, %d, %f , %f, %f, %f \n" % (var, pop, time_cut_min, time_cut_max, covid_cases_cut_min, \
+                state, covid_cases_compare_line, covid_cases_compare[i], intercept[i], slopes[i], acum_cases_todate[i]))
 
             #day_int = 
             for j in range(n):
@@ -189,7 +194,7 @@ for var in variables:
         #Save density plot to folder "dir"
         plt.savefig(dump_dir+"covid_acum_"+var+pop_str+"_states.pdf", dpi=300)
         plt.close()
-
+       
         if False:
             fig = plt.figure(figsize=(10, 10))
             plt.scatter(intercept, slopes)
@@ -228,6 +233,7 @@ for var in variables:
 
             plt.savefig(dump_dir+"covid_acum_"+"_"+var+pop_str+"_states_slope_intercept_day1.pdf", dpi=300)
             plt.close()
+
 
         #Dengue data!
         #--------------------------------------------------
@@ -376,4 +382,55 @@ for var in variables:
 
                 plt.savefig(dump_dir+"covid_"+var+pop_str+"_cutline"+str(covid_cases_compare_line)+"_vs_"+name+exp_str+".pdf", dpi=300)
                 plt.close()
+
+                print()
+                print("Covid acum case vs "+name)
+                print()
+                acum_cases_todate_filt = acum_cases_todate[filter_nan]
+
+                #Set regression
+                
+                X = vec_filt
+                if exp:
+                    y = np.log(acum_cases_todate_filt)
+                else:
+                    y = acum_cases_todate_filt
+                X = sm.add_constant(X)
+                #log(acum_Cases)=a+b*log(day)
+                model = sm.OLS(y, X)
+                results = model.fit()
+                if exp:
+                    fitted = np.exp(results.fittedvalues)
+                else:
+                    fitted = results.fittedvalues
+                #print(results.summary())
+
+                fig = plt.figure(figsize=(10, 10))
+                plt.scatter(vec_filt, acum_cases_todate_filt, c=color_filt)
+                vecinds = vec_filt.argsort()
+                vec_sort = vec_filt[vecinds]
+                fitted_sort = fitted[vecinds]
+                plt.plot(vec_sort, fitted_sort, marker='', color="black", linestyle='-.', linewidth=1.0, alpha=1.0)
+
+                for i in range(len(vec_filt)):  
+                    plt.annotate(states_filt[i], (vec_filt[i]+1, acum_cases_todate_filt[i]))
+
+                if results.params[1]>0:
+                    pm_sign = "+"
+                else:
+                    pm_sign = "-"
+                #stats="r = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+"\n p = "+str(np.round(results.pvalues[1], 2))
+                stats="r = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+"\n \
+                    R2 = "+str(np.round(results.rsquared,2))+"\n \
+                    p = "+str(np.round(results.pvalues[1], 2))
+                #plt.annotate(stats, (vec_sort[-1]-10, fitted_sort[-1]-2), fontsize=14)
+                plt.gcf().text(0.02, 0.03, stats, fontsize=10)
+
+                plt.xlabel(name+"_soro")
+                plt.ylabel("Acumulated covid "+var+pop_str+" on "+days_date[-1])
+
+                plt.savefig(dump_dir+"covid_"+var+pop_str+"_acum_vs_"+name+exp_str+".pdf", dpi=300)
+                plt.close()
+
+
                 print("--------------------------------")
