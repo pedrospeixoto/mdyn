@@ -105,7 +105,7 @@ class MobileDynamics:
             #map.map_network(day_data.tmat, day_data.reg0, title, 
             #    day_data.local_dir+name+"_network_map.jpg")
 
-            np.savetxt( day_data.local_dir+name+".csv", day_data.tmat)
+            #np.savetxt( day_data.local_dir+name+".csv", day_data.tmat)
             np.save( day_data.local_dir+name+".npy", day_data.tmat)
             #np.savetxt( day_data.local_dir+name+"_norm.csv", day_data.tmat_norm)
             #np.savetxt( day_data.local_dir+name+"_reg0.csv", day_data.reg0)
