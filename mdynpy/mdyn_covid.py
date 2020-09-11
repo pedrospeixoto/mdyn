@@ -119,7 +119,7 @@ for var in variables:
     for covid_cases_compare_line in covid_cases_compare_lines:
         print(var, covid_cases_compare_line )
         print()
-        print("var,  state,  cut_line, intercept, slope, acum_cases, last_day")
+        print("var,  state,  cut_line, intercept, slope, acum_cases, last_day, R2")
 
         fig, axs = plt.subplots(6,5, figsize=(15, 15), squeeze=False)
         axs = axs.ravel()
@@ -168,9 +168,9 @@ for var in variables:
             
 
             covid_cases_compare[i] = np.power(2.0, (np.log2(covid_cases_compare_line)-intercept[i])/slopes[i])
-            print(var, state, covid_cases_compare[i], intercept[i], slopes[i], acum_cases_todate[i], days_date[-1] ) 
-            f.write("%s , %d, %d, %d, %d, %s, %d, %f , %f, %f, %f \n" % (var, pop, time_cut_min, time_cut_max, covid_cases_cut_min, \
-                state, covid_cases_compare_line, covid_cases_compare[i], intercept[i], slopes[i], acum_cases_todate[i]))
+            print(var, state, covid_cases_compare[i], intercept[i], slopes[i], acum_cases_todate[i], days_date[-1], results.rsquared ) 
+            f.write("%s , %d, %d, %d, %d, %s, %d, %f , %f, %f, %f , %f\n" % (var, pop, time_cut_min, time_cut_max, covid_cases_cut_min, \
+                state, covid_cases_compare_line, covid_cases_compare[i], intercept[i], slopes[i], acum_cases_todate[i], results.rsquared))
 
             #day_int = 
             for j in range(n):
@@ -335,9 +335,11 @@ for var in variables:
                 else:
                     pm_sign = "-"    
 
-                stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+ \
-                    "  R2 = "+str(np.round(results.rsquared,2))+ \
-                    "  p = "+str(np.round(results.pvalues[1], 2))
+                stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),6))+ \
+                    " ,  R2 = "+str(np.round(results.rsquared,6))+ \
+                    " ,  p = "+str(np.round(results.pvalues[1], 6)) + \
+                    " ,  log(y) = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"x  ,  " +\
+                    "     y = "+str(np.round(np.exp(results.params[0]), 6))+"e^("+str(np.round(results.params[1], 6))+"x)"
                 #plt.annotate(stats, (vec_sort[-1]-10, fitted_sort[-1]-2), fontsize=14)
                 plt.gcf().text(0.02, 0.02, stats, fontsize=10)
 
@@ -392,9 +394,11 @@ for var in variables:
                 else:
                     pm_sign = "-"
                 #stats="r = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+"\n p = "+str(np.round(results.pvalues[1], 2))
-                stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+ \
-                    "  R2 = "+str(np.round(results.rsquared,2))+ \
-                    "  p = "+str(np.round(results.pvalues[1], 2))
+                stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),6))+ \
+                    " ,  R2 = "+str(np.round(results.rsquared,6))+ \
+                    " ,  p = "+str(np.round(results.pvalues[1], 6)) + \
+                    " ,  log(y) = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"x  ,  " +\
+                    "     y = "+str(np.round(np.exp(results.params[0]), 6))+"e^("+str(np.round(results.params[1], 6))+"x)"
                 #plt.annotate(stats, (vec_sort[-1]-10, fitted_sort[-1]-2), fontsize=14)
                 plt.gcf().text(0.02, 0.02, stats, fontsize=10)
                 
@@ -451,9 +455,11 @@ for var in variables:
                 else:
                     pm_sign = "-"
                 #stats="r = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+"\n p = "+str(np.round(results.pvalues[1], 2))
-                stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+ \
-                    "  R2 = "+str(np.round(results.rsquared,2))+ \
-                    "  p = "+str(np.round(results.pvalues[1], 2))
+                stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),6))+ \
+                    " ,  R2 = "+str(np.round(results.rsquared,6))+ \
+                    " ,  p = "+str(np.round(results.pvalues[1], 6)) + \
+                    " ,  log(y) = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"x  ,  " +\
+                    "     y = "+str(np.round(np.exp(results.params[0]), 6))+"e^("+str(np.round(results.params[1], 6))+"x)"
                 #plt.annotate(stats, (vec_sort[-1]-10, fitted_sort[-1]-2), fontsize=14)
                 plt.gcf().text(0.02, 0.02, stats, fontsize=10)
 
