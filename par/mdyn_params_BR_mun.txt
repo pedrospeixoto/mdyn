@@ -28,10 +28,12 @@ load_domain = True #Load precomp structures
 #Initialize mobile data and load data to dataframe
 data_format = "Parquet" #"ORC"
 data_dir = "data/mobility_br_2020/"
-date_ini = "2020-03-01"
+#date_ini = "2020-06-06"
+#date_end = "2020-06-06"
+date_ini = "2020-03-16"
 date_end = "2020-05-01"
 load_data = True
-daily_plots = True
+daily_plots = False
 
 #Number of main sources for plots
 num_source = 2
@@ -48,15 +50,37 @@ isoind_file = "data/isol_br/Social Distancing Index by Cities2020-07-18.csv"
 # 2) Type: based on population "pop" given a max number of cities or "list"
 # 3) What to act on: "node" or "links"
 # 4) Mult factor with amount of filtering on the node/link - 0 cuts the node/links, 1 keeps it as it is
+# 5) Label for filter (for file names)
 #filter = [True, "pop", 50 ]
-filter = [True, "list", 0, "node", 0.1 ]
+#filter = [False, "list", 0, "link", 0.5, "NoFilter" ]
+filter = [True, "list", 0, "node", 0.1, "SaoPaulo" ]
+#filter = [True, "list", 0, "node", 0.5, "BR116-101-node05" ]
+#filter = [True, "list", 0, "link", 0.01, "BR116-SP-RJ-link001" ]
+#filter = [True, "list", 0, "link", 0.5, "BR364" ]
+filter = [True, "list", 0, "link", 0.0, "BR230_link00" ]
+#filter = [True, "list", 0, "link", 0.0, "BR116-SP-CTBA" ]
+
 #capital cities
-#filter_list = [66, 1696, 303, 111, 2162, 949, 5569,3174,5417,635,5219,1665,2309,169,1337,
-#      4005,1596,882,3242,1163,4931,16,138,4398,3829,1754,443]
+#filter_list = [66, 1696, 303, 111, 2162, 949, 5569,3174,5417,635,5219,1665,2309,169,1337,4005,1596,882,3242,1163,4931,16,138,4398,3829,1754,443]
+
+#Sao Paulo
+#filter_list = [3829]
 
 #BR116 e 110
-filter_list = [ 949,1162,989,2044,1293,1509,1163,1110,1337,1596,1696,1652,1754,1834,1957,2162,2039,2239,2003,2137,2214,3048,2558,3164,2600,2309,3139,3174,3112,3191,2663,3229,3223,3222,3242,3224,3266,3824,3809,3479,3829,4005,4447,4347,4436,4451,4398,4385,4701,4587,4892,4931,4685,4916,4949]
-      
+#filter_list = [ 949,1162,989,2044,1293,1509,1163,1110,1337,1596,1696,1652,1754,1834,1957,2162,2039,2239,2003,2137,2214,3048,2558,3164,2600,2309,3139,3174,3112,3191,2663,3229,3223,3222,3242,3224,3266,3824,3809,3479,3829,4005,4447,4347,4436,4451,4398,4385,4701,4587,4892,4931,4685,4916,4949]
+
+#Link BR116 - SP - RJ : Rio de Janeiro ..., Volta Redonda	Barra Mansa	Porto Real	Resende	Itatiaia	Queluz	Lavrinhas	Cruzeiro	Silveiras	Cachoeira Paulista	Canas	Lorena	Guaratinguetá	Aparecida do Norte	Roseira	Pindamonhangaba	Taubaté	Caçapava	São José dos Campos ,... Sao PAulo
+#filter_list = [ 3544, 3474, 3790, 3311, 3479, 3829, 3266, 3182, 3233, 3237, 3208, 3737, 3567, 3415, 3846, 3364, 3294, 3380, 3573, 3475, 3764, 3694, 3871, 3363, 3824, 3242,3249,3183,2725,3224,3235,3256,3204,3225,3231,3230] 
+
+#Links br364: São Carlos	Itirapina	Corumbataí	Rio Claro	Santa Gertrudes	Cordeirópolis	Limeira
+#filter_list = [3813, 3536, 3408, 3759, 3789, 3405, 3570]
+
+#BR230 João Pessoa	Bayeux	Santa Rita	Cruz do Espírito Santo	Sobrado	Caldas Brandão	Gurinhém	Mogeiro	Ingá	Riachão do Bacamarte	São Miguel de Taipu	Massaranduba	Campina Grande
+filter_list = [1337,	1267,	1416,	1307,	1448,	1291,	1326,	1362,	1330,	1401,	1437,	1357,	1293]
+
+#BR116 SP-CTBA - Sao Paulo, Taboão da Serra	Embu das Artes	Itapecirica da Serra	São Lourenço da Serra	Juquitiba	Miracatu	Juquiá	Registro	Pariquera-Açu	Jacupiranga	Cajati	Barra do Turvo	Campina Grande do Sul	Quatro Barras ... Curitiba
+#filter_list = [3829, 3855,	3434,	3521,	3825,	3563,	3603,	3562,	3744,	3673,	3546,	3371,	3328,	3967,	4200, 3990, 4176, 4005]
+
 
  #Flag, lats, lons, drawsubdomains, label
 zoom =[
@@ -105,7 +129,38 @@ nneighb = 1 # based on population. plus list above
 #Rio	92	0.5
 #Brasília	115	0.3
 
+#Ic based on day 2020-03-16
 data_ini_by_reg = {
+66:0,
+1696:1,
+303:0,
+111:2,
+2162:4,
+949:8,
+5569:19,
+3174:0,
+5417:5,
+635:0,
+5219:0,
+5122:0,
+2309:1,
+169:0,
+1337:0,
+4005:5,
+1596:7,
+882:0,
+3242:23,
+1163:1,
+4931:6,
+16:0,
+138:0,
+4398:3,
+3829:145,
+1754:5,
+443:0,
+}
+
+#data_ini_by_reg = {
 #3829 : 1,}
 #3242 : 1,
 #5569 : 1,
@@ -113,11 +168,12 @@ data_ini_by_reg = {
 #1596 : 1,
 #111 : 1,
 #2309 : 1,
-4931 : 1
-}
+#4931 : 1
+#}
 
 #Number of simulation days
-num_simul_days = 46
+num_simul_days = 0
+#num_simul_days = 2
 
 #Type of model 
 # 0: simple mat iteration
@@ -127,4 +183,4 @@ model = 2
 infec_rate = 0.2  #infection rate per day
 spread_rate = 1.0 #Spatial spread rate
 
-risk_lim = 1.0 #Infected people to consider risk limit
+risk_lim = 100.0 #Infected people to consider risk limit

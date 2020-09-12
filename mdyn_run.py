@@ -60,6 +60,15 @@ if run_opt == 1:
     time_end = time.time()
     print("Execution time "+str(time_end-time_start)+" seconds")
 
+if run_opt == 11:
+    #Read movemats and social dist index and plot them together
+    time_start = time.time()
+    #mmat.analyse_move_mats(mdyn, network, ipar)
+
+    mmat.map_move_mats_robot_dance(mdyn, network, ipar)
+    time_end = time.time()
+    print("Execution time "+str(time_end-time_start)+" seconds")
+
 if run_opt == 2:
     #Read movemats and social dist index and plot them together
     time_start = time.time()
@@ -122,6 +131,7 @@ if run_opt == 24:
     mmat.decomposition_model(mdyn, network, ipar)
     time_end = time.time()
     print("Execution time "+str(time_end-time_start)+" seconds")
+
 
 if run_opt == 30:
     time_start = time.time()

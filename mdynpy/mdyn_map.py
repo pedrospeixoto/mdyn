@@ -12,12 +12,16 @@ import matplotlib.colors as colors
 import matplotlib.cm as cm
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.patches import Polygon
+from matplotlib.collections import PatchCollection
+from matplotlib.patches import PathPatch
 
 from scipy import stats
 import scipy
 
 import pandas as pd
 import geopandas as gpd
+from shapely.ops import cascaded_union, unary_union
 
 
 import networkx as nx
@@ -122,15 +126,16 @@ class Map:
                 x, y = map(x, y)
                 map.plot(x, y, marker=None, color='k',linestyle='-', linewidth=linewidth)
         
-        if network.maxlats-network.minlats > 20: 
-            map.drawparallels(np.arange(-50,10,5), labels=[True,False,False,False])
-            map.drawmeridians(np.arange(-180,180,5), labels=[False,False,True,False])
-        elif network.maxlats-network.minlats > 10: 
-            map.drawparallels(np.arange(-50,10,2), labels=[True,False,False,False])
-            map.drawmeridians(np.arange(-180,180,2), labels=[False,False,True,False])
-        else:
-            map.drawparallels(np.arange(-50,10,1), labels=[True,False,False,False])
-            map.drawmeridians(np.arange(-180,180,1), labels=[False,False,True,False])
+        if False:
+            if network.maxlats-network.minlats > 20: 
+                map.drawparallels(np.arange(-50,10,5), labels=[True,False,False,False])
+                map.drawmeridians(np.arange(-180,180,5), labels=[False,False,True,False])
+            elif network.maxlats-network.minlats > 10: 
+                map.drawparallels(np.arange(-50,10,2), labels=[True,False,False,False])
+                map.drawmeridians(np.arange(-180,180,2), labels=[False,False,True,False])
+            else:
+                map.drawparallels(np.arange(-50,10,1), labels=[True,False,False,False])
+                map.drawmeridians(np.arange(-180,180,1), labels=[False,False,True,False])
         
         map.ax = ax
         self.dom = network
@@ -158,12 +163,32 @@ class Map:
                     for poly_local in list(poly):
                         x, y = poly_local.exterior.coords.xy
                         x, y = map(x, y)
-                        map.plot(x, y, marker=None, color = '0.35',linestyle=':', linewidth=linewidth/2)
+                        map.plot(x, y, marker=None, color = '0.5',linestyle=':', linewidth=linewidth/4)
                 elif poly.geom_type == 'Polygon':
                 # do polygon things.          
                     x, y = poly.exterior.coords.xy
                     x, y = map(x, y)
-                    map.plot(x, y, marker=None, color = '0.35',linestyle=':', linewidth=linewidth/2)
+                    map.plot(x, y, marker=None, color = '0.5',linestyle=':', linewidth=linewidth/4)
+                        
+        if False: #Highlight areas
+            muns2=mex.sub_rmsp["Mun. São Paulo"]
+            muns2 = [x.upper() for x in muns2]
+            df=network.df_subdomains[network.df_subdomains['NM_MUNICIP'].isin(muns2)]
+            self.highlight_id2=df.idx.values
+            for poly in df.geometry:
+                x, y = poly.exterior.coords.xy
+                x, y = map(x, y)
+                map.plot(x, y, marker=None, color = '#00CC00',linestyle='-', linewidth=linewidth)
+
+            muns1=mex.sub_rmsp["Sub região sudoeste - RMSP"]
+            muns1 = [x.upper() for x in muns1]
+            df=network.df_subdomains[network.df_subdomains['NM_MUNICIP'].isin(muns1)]
+            self.highlight_id1=df.idx.values
+            for poly in df.geometry:
+                x, y = poly.exterior.coords.xy
+                x, y = map(x, y)
+                map.plot(x, y, marker=None, color = '#0000CC',linestyle='-', linewidth=linewidth)
+
 
         # convert the bin mesh to map coordinates:
         self.x_bins_c, self.y_bins_c = map(network.lon_bins_c_2d, network.lat_bins_c_2d) # will be plotted using pcolormesh
@@ -790,9 +815,12 @@ class Map:
         #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
         G.remove_edges_from(remove)
 
-        #remove edges based on filter
-        if len(edge_filter)>1:
-            nodes_keep = list(edge_filter)
+        if True:
+            refid = list(self.highlight_id2)
+            ids = list(self.highlight_id1)
+            edge_filter = refid+ids
+            print(edge_filter)
+            #remove edges based on filter
             nodes_remove = list(set(G.nodes) - set(edge_filter))
             #print(nodes_remove)
             #print(nodes_keep)
@@ -800,9 +828,10 @@ class Map:
             for node in nodes_remove:
                 ed=list(G.in_edges(node))+list(G.out_edges(node))
                 ed_remove=ed_remove+ed
-                
+            
             #print(ed_remove)
             G.remove_edges_from(ed_remove)
+
         N = len(G)
         print("   Filtred Network len:", N)
         M = G.number_of_edges()
