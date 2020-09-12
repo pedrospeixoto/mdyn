@@ -82,10 +82,13 @@ colors=palette #(np.linspace(0, 1.0, 5))
 #sys.exit()
 variables = ["cases", "deaths"]
 
-f= open(dump_dir+"output.csv", "w+")
+f= open(dump_dir+"output_state_models.csv", "w+")
 f.write("covid_var, per100kpop, time_cut_min, time_cut_max, covid_cases_cut_min, \
-    state, covid_cases_compare_line, days_reach_cases, intercept, slope, acum_Cases_todate \n")
+    state, covid_cases_compare_line, days_reach_cases, intercept, slope, acum_Cases_todate, r, R2, pvalue  \n")
 
+f_denv = open(dump_dir+"output_denv_models.csv", "w+")
+f_denv.write("covid_var, per100kpop, time_cut_min, time_cut_max, covid_cases_cut_min, \
+    covid_cases_compare_line, correlation_with, flavivirus, r, R2, pvalue  \n")
 
 pop = True
 if pop:
@@ -113,13 +116,13 @@ for var in variables:
         covid_cases_compare_line = 200
 
     #covid_cases_compare_lines = [1, 10, 50, 100, 1000, 2000, 5000, 10000, 20000]
-    covid_cases_compare_lines = [2000]
+    covid_cases_compare_lines = [1000]
     #covid_cases_compare_lines = [covid_cases_compare_line]
 
     for covid_cases_compare_line in covid_cases_compare_lines:
         print(var, covid_cases_compare_line )
         print()
-        print("var,  state,  cut_line, intercept, slope, acum_cases, last_day, R2")
+        print("var,  state,  cut_line, intercept, slope, acum_cases, last_day, r, R2, pvalue")
 
         fig, axs = plt.subplots(6,5, figsize=(15, 15), squeeze=False)
         axs = axs.ravel()
@@ -168,9 +171,9 @@ for var in variables:
             
 
             covid_cases_compare[i] = np.power(2.0, (np.log2(covid_cases_compare_line)-intercept[i])/slopes[i])
-            print(var, state, covid_cases_compare[i], intercept[i], slopes[i], acum_cases_todate[i], days_date[-1], results.rsquared ) 
-            f.write("%s , %d, %d, %d, %d, %s, %d, %f , %f, %f, %f , %f\n" % (var, pop, time_cut_min, time_cut_max, covid_cases_cut_min, \
-                state, covid_cases_compare_line, covid_cases_compare[i], intercept[i], slopes[i], acum_cases_todate[i], results.rsquared))
+            print(var, state, covid_cases_compare[i], intercept[i], slopes[i], acum_cases_todate[i], days_date[-1], r[i], results.rsquared, results.pvalues[1] ) 
+            f.write(" %s , %d, %d, %d, %d, %s, %d, %f , %f, %f, %f, %f, %f , %f\n" % (var, pop, time_cut_min, time_cut_max, covid_cases_cut_min, \
+                state, covid_cases_compare_line, covid_cases_compare[i], intercept[i], slopes[i], acum_cases_todate[i], r[i], results.rsquared, results.pvalues[1]))
 
             #day_int = 
             for j in range(n):
@@ -349,6 +352,11 @@ for var in variables:
                 plt.savefig(dump_dir+"covid_"+var+pop_str+"_slope_vs_"+name+exp_str+".pdf", dpi=300)
                 plt.close()
 
+                #f.write("covid_var, per100kpop, time_cut_min, time_cut_max, covid_cases_cut_min, \
+                #        covid_cases_compare_line, correlation_with, flavivirus, r, R2, pvalue  \n")
+                f_denv.write(" %s , %d, %d, %d, %d, %d, %s, %s, %s, %f , %f\n" % (var, pop, time_cut_min, time_cut_max, covid_cases_cut_min, \
+                    covid_cases_compare_line, "state_slopes", name, pm_sign+str(np.round(np.sqrt(results.rsquared),6)), results.rsquared, results.pvalues[1]))
+
                 ##### --------  Covid-case limit vs flaviv -----------##############3  
                 print()
                 print("Covid limit case vs "+name)
@@ -408,6 +416,9 @@ for var in variables:
 
                 plt.savefig(dump_dir+"covid_"+var+pop_str+"_cutline"+str(covid_cases_compare_line)+"_vs_"+name+exp_str+".pdf", dpi=300)
                 plt.close()
+                f_denv.write(" %s , %d, %d, %d, %d, %d, %s, %s, %s, %f , %f\n" % (var, pop, time_cut_min, time_cut_max, covid_cases_cut_min, \
+                    covid_cases_compare_line, "days_to_compare_cases", name, pm_sign+str(np.round(np.sqrt(results.rsquared),6)), results.rsquared, results.pvalues[1]))
+
 
                 print()
                 print("Covid acum case vs "+name)
@@ -468,6 +479,7 @@ for var in variables:
 
                 plt.savefig(dump_dir+"covid_"+var+pop_str+"_acum_vs_"+name+exp_str+".pdf", dpi=300)
                 plt.close()
-
+                f_denv.write(" %s , %d, %d, %d, %d, %d, %s, %s, %s, %f , %f\n" % (var, pop, time_cut_min, time_cut_max, covid_cases_cut_min, \
+                    covid_cases_compare_line, "acum_covid_cases", name, pm_sign+str(np.round(np.sqrt(results.rsquared),6)), results.rsquared, results.pvalues[1]))
 
                 print("--------------------------------")
