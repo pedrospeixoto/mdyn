@@ -1363,7 +1363,8 @@ def simulate_model(mdyn, network, ipar):
     day_state = data_ini_regv
     ntime = mdyn.days + ipar.num_simul_days
     data_evol = np.zeros((network.nregions, ntime))
-
+    data_evol[:,0] = day_state
+    
     if len(data_ini_reg_names)>1:
         ini_str=""
     else:
@@ -1379,6 +1380,7 @@ def simulate_model(mdyn, network, ipar):
     #simulate scenario
     drange = mex.daterange(mdyn.date_ini_obj, mdyn.date_end_obj+timedelta(days=ipar.num_simul_days))
     
+
     for i, day in enumerate(drange):
     #for j in num_simul_days:
         indx = '{:02d}'.format(i)
