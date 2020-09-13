@@ -186,6 +186,6 @@ num_simul_days = 1
 # 2: two parameter model
 model = 2
 infec_rate = 0.2  #infection rate per day
-spread_rate = 100.0 #Spatial spread rate
+spread_rate = 1.0 #Spatial spread rate
 
 risk_lim = 100.0 #Infected people to consider risk limit
