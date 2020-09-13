@@ -77,7 +77,7 @@ print(df_brs_map.columns)
 
 br_list = [ ]
 br_city_list = []
-br_len = 100 #num of municipalities (200 gets the top 10!)
+br_len = 1 #num of municipalities (200 gets the top 10!)
 
 #Map Brs to city lists
 for i, row in df_brs.iterrows():
@@ -111,7 +111,7 @@ df_brs_map =  df_brs_map[df_brs_map.br.isin(br_list)]
 
 #Map covid to city lists
 date = "2020-09-12"
-variable = "last_available_confirmed" # last_available_confirmed_per_100k_inhabitants
+variable = "last_available_deaths" #"last_available_confirmed" # last_available_confirmed_per_100k_inhabitants
 #remove full states, keep only cities
 df_covid = df_covid[~pd.isnull(df_covid.city_ibge_code)]
 df_covid = df_covid[~pd.isnull(df_covid.city)]
@@ -133,17 +133,58 @@ for i, city in enumerate(cities):
 
 #Build linear model!!#
 # ------------------#
-
+names = ['const']+br_list
 X = sm.add_constant(br_matrix)
 y = covid_vec
 #log(acum_Cases)=a+b*log(day)
 model = sm.OLS(y, X)
 results = model.fit()
 fitted = results.fittedvalues
-print(br_list, len(br_list))
-print(results.summary(xname=['a']+br_list))
+print(results.summary(xname=names))
+
+sign=results.pvalues<0.1
+names = [br for i, br in enumerate(names) if sign[i]]
+X=X[:, sign]
+print(names)
+model = sm.OLS(y, X)
+results = model.fit()
+fitted = results.fittedvalues
+print(results.summary(xname=names))
+
+sign=results.pvalues<0.05
+names = [br for i, br in enumerate(names) if sign[i]]
+X=X[:, sign]
+print(names)
+model = sm.OLS(y, X)
+results = model.fit()
+fitted = results.fittedvalues
+print(results.summary(xname=names))
+
+negs=results.params > 0
+names = [br for i, br in enumerate(names) if negs[i]]
+X=X[:, negs]
+print(names)
+model = sm.OLS(y, X)
+results = model.fit()
+fitted = results.fittedvalues
+print(results.summary(xname=names))
+
+sign=results.pvalues<0.05
+names = [br for i, br in enumerate(names) if sign[i]]
+X=X[:, sign]
+print(names)
+model = sm.OLS(y, X)
+results = model.fit()
+fitted = results.fittedvalues
+print(results.summary(xname=names))
+
 
 #intercept[i] = results.params[0]
 #slopes[i] = results.params[1]
 #r[i] = np.sqrt(results.rsquared)
 #results.pvalues[1]))
+
+df_brs_map =  df_brs_map[df_brs_map.br.isin(names)]
+#print(df_brs_map)
+df_brs_map.plot()
+plt.show()
