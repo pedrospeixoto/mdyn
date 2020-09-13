@@ -111,7 +111,7 @@ df_brs_map =  df_brs_map[df_brs_map.br.isin(br_list)]
 
 #Map covid to city lists
 date = "2020-09-12"
-variable = "last_available_deaths" #"last_available_confirmed" # last_available_confirmed_per_100k_inhabitants
+variable =  "last_available_confirmed" # last_available_confirmed_per_100k_inhabitants #"last_available_deaths"
 #remove full states, keep only cities
 df_covid = df_covid[~pd.isnull(df_covid.city_ibge_code)]
 df_covid = df_covid[~pd.isnull(df_covid.city)]
