@@ -52,8 +52,8 @@ isoind_file = "data/isol_br/Social Distancing Index by Cities2020-07-18.csv"
 # 4) Mult factor with amount of filtering on the node/link - 0 cuts the node/links, 1 keeps it as it is
 # 5) Label for filter (for file names)
 #filter = [True, "pop", 50 ]
-#filter = [False, "list", 0, "link", 0.5, "NoFilter" ]
-filter = [True, "list", 0, "node", 0.1, "SaoPaulo" ]
+filter = [False, "list", 0, "link", 0.5, "NoFilter" ]
+#filter = [True, "list", 0, "node", 0.1, "SaoPaulo" ]
 #filter = [True, "list", 0, "node", 0.5, "BR116-101-node05" ]
 #filter = [True, "list", 0, "link", 0.01, "BR116-SP-RJ-link001" ]
 #filter = [True, "list", 0, "link", 0.5, "BR364" ]
@@ -172,7 +172,7 @@ data_ini_by_reg = {
 #}
 
 #Number of simulation days
-num_simul_days = 0
+num_simul_days = 1
 #num_simul_days = 2
 
 #Type of model 
