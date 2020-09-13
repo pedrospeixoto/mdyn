@@ -18,7 +18,7 @@ df_brs = gpd.read_file("maps/rodovias_dnit/ST_DNIT_Rodovias_SNV2015_03.shp") #hi
 print(df_brs)
 print(df_brs.columns)
 
-df_brs = df_brs[df_brs['uf'] == "RN"]
+#df_brs = df_brs[df_brs['uf'] == "RN"]
 df_brs["cities"] = df_brs["uf"]
 df_brs["cities_id"] = df_brs["uf"]
 
@@ -42,7 +42,8 @@ for row in df_brs.itertuples():
     #print(row)
     #print(df_brs.iloc[row.Index] )
     
-df_brs.to_file('maps/rodovias_dnit/ST_DNIT_Rodovias_SNV2015_03_with_cities.shp', driver='ESRI Shapefile')
+df_brs = df_brs.drop(columns=['geometry'])
+df_brs.to_csv('maps/rodovias_dnit/ST_DNIT_Rodovias_SNV2015_03_with_cities.csv')
 
 df_final = df_brs.groupby('br').agg({'cities': 'sum', 'cities_id':'sum'})
 print(df_final)

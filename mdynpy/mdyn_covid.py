@@ -38,8 +38,8 @@ print("-------------------------------")
 
 #Input parameters - dir name
 #-----------------------------
-covid_file = sys.argv[1]
-flaviv_file = sys.argv[2]
+covid_file = "covid/cases-brazil-states.csv" #sys.argv[1]
+flaviv_file = "covid/antibodies_flavovirus.csv" #ys.argv[2]
 states_file = "maps/ufebrasil_input_info_all.csv"
 
 dump_dir = "covid/figures/"
@@ -63,10 +63,19 @@ print(covid.columns)
 
 ref_date = "2020-02-25"
 ref_date = datetime.strptime(ref_date, "%Y-%m-%d")
-print(ref_date)
+print("ref_date: ", ref_date)
+
+last_date_str = "2020-09-11"
+last_date = datetime.strptime(last_date_str, "%Y-%m-%d")
+print("last_date:", last_date)
+
+days_to_last_date = int((last_date-ref_date).days)+1
+print(days_to_last_date)
 
 covid['datetime']=pd.to_datetime(covid['date'])
 covid['days']=(covid['datetime']-ref_date).dt.days
+
+covid.to_csv("covid/cases-brazil-states-modif.csv")
 
 n = len(mex.state_abrv2name)
 
@@ -83,11 +92,11 @@ colors=palette #(np.linspace(0, 1.0, 5))
 variables = ["cases", "deaths"]
 
 f= open(dump_dir+"output_state_models.csv", "w+")
-f.write("covid_var, per100kpop, time_cut_min, time_cut_max, covid_cases_cut_min, \
-    state, covid_cases_compare_line, days_reach_cases, intercept, slope, acum_Cases_todate, r, R2, pvalue  \n")
+f.write("covid_var, per100kpop, last_date, time_cut_min, time_cut_max, covid_cases_cut_min, \
+    state, covid_cases_compare_line, days_reach_cases, intercept, slope, acum_Cases_todate, days_to_cases_line, r, R2, pvalue  \n")
 
 f_denv = open(dump_dir+"output_denv_models.csv", "w+")
-f_denv.write("covid_var, per100kpop, time_cut_min, time_cut_max, covid_cases_cut_min, \
+f_denv.write("covid_var, per100kpop, exp, last_date, time_cut_min, time_cut_max, covid_cases_cut_min, \
     covid_cases_compare_line, correlation_with, flavivirus, r, R2, pvalue  \n")
 
 pop = True
@@ -103,26 +112,27 @@ for var in variables:
     covid_cases_compare = np.zeros((n))
     r = np.zeros((n))
     acum_cases_todate = np.zeros((n))
+    days_to_cases_line = np.zeros((n))
     
     if var == "cases":
         covid_cases_cut_min = 10
         time_cut_min = 0
         time_cut_max = 90
-        covid_cases_compare_line = 100
+        covid_cases_compare_line = 1000
     else:
         covid_cases_cut_min = 1
         time_cut_min = 0
         time_cut_max = 90
-        covid_cases_compare_line = 200
+        covid_cases_compare_line = 10
 
     #covid_cases_compare_lines = [1, 10, 50, 100, 1000, 2000, 5000, 10000, 20000]
-    covid_cases_compare_lines = [1000]
-    #covid_cases_compare_lines = [covid_cases_compare_line]
+    #covid_cases_compare_lines = [1000]
+    covid_cases_compare_lines = [covid_cases_compare_line]
 
     for covid_cases_compare_line in covid_cases_compare_lines:
         print(var, covid_cases_compare_line )
         print()
-        print("var,  state,  cut_line, intercept, slope, acum_cases, last_day, r, R2, pvalue")
+        print("var,  state,  cut_line, intercept, slope, acum_cases, last_day, days_to_cases, r, R2, pvalue")
 
         fig, axs = plt.subplots(6,5, figsize=(15, 15), squeeze=False)
         axs = axs.ravel()
@@ -139,7 +149,11 @@ for var in variables:
             days = covid_state['days'].values
             days_date = covid_state['date'].values
 
-            acum_cases_todate[i]=acum_cases[-1]
+            #filter to last_date
+            acum_cases_todate[i]=acum_cases[days_to_last_date-days[0]]
+            acum_cases = acum_cases[0:days_to_last_date-days[0]]
+            days = days[0:days_to_last_date-days[0]]
+            days_date = days_date[0:days_to_last_date-days[0]]
 
             #Filter time and cases
             filtercases = acum_cases >= covid_cases_cut_min
@@ -155,6 +169,18 @@ for var in variables:
                 acum_cases = 100000.0*acum_cases/population[state]
                 acum_cases_todate[i] = 100000.0*acum_cases_todate[i]/population[state]
 
+            ilimit = np.argwhere(acum_cases > covid_cases_compare_line)
+            if any(ilimit):
+                ilim = ilimit[0].astype('int')[0]
+            else:
+                ilim = len(acum_cases)-1
+                print("Warning!!! Did not reach number of cases threashhold!!!")
+
+            days_to_cases_line[i] = days[ilim]
+            #if state == "PR":
+            #    print(state, covid_cases_compare_line, days_to_cases_line[i], ilim, acum_cases, days, acum_cases > covid_cases_compare_line, ilimit)
+            #    sys.exit()
+
             #Set regression
             X = np.log2(days_reg[:time_cut_max])
             y = np.log2(acum_cases_reg[:time_cut_max])
@@ -169,11 +195,10 @@ for var in variables:
             slopes[i] = results.params[1]
             r[i] = np.sqrt(results.rsquared)
             
-
             covid_cases_compare[i] = np.power(2.0, (np.log2(covid_cases_compare_line)-intercept[i])/slopes[i])
-            print(var, state, covid_cases_compare[i], intercept[i], slopes[i], acum_cases_todate[i], days_date[-1], r[i], results.rsquared, results.pvalues[1] ) 
-            f.write(" %s , %d, %d, %d, %d, %s, %d, %f , %f, %f, %f, %f, %f , %f\n" % (var, pop, time_cut_min, time_cut_max, covid_cases_cut_min, \
-                state, covid_cases_compare_line, covid_cases_compare[i], intercept[i], slopes[i], acum_cases_todate[i], r[i], results.rsquared, results.pvalues[1]))
+            print(var, state, covid_cases_compare[i], intercept[i], slopes[i], acum_cases_todate[i], days_date[-1], days_to_cases_line[i], r[i], results.rsquared, results.pvalues[1] ) 
+            f.write(" %s , %d, %s, %d, %d, %d, %s, %d, %f , %f, %f, %f, %f, %f, %f , %f\n" % (var, pop, last_date_str, time_cut_min, time_cut_max, covid_cases_cut_min, \
+                state, covid_cases_compare_line, covid_cases_compare[i], intercept[i], slopes[i], acum_cases_todate[i], days_to_cases_line[i], r[i], results.rsquared, results.pvalues[1]))
 
             #day_int = 
             for j in range(n):
@@ -272,7 +297,7 @@ for var in variables:
         falviv = [denv_soro, ckg_soro, zika_soro]
         falviv_name = ["denv", "ckg", "zika"]
 
-        exp_cases = [True] #, False]
+        exp_cases = [True, False] #, False]
 
         for exp in exp_cases:
             if exp:
@@ -318,8 +343,8 @@ for var in variables:
                 ax = plt.gca() 
 
                 plt.scatter(vec_filt, slopes_filt, c=color_filt, s=50)
-
-                ax.set_yscale('log')
+                if exp:
+                    ax.set_yscale('log')
                 plt.tick_params(axis='y', which='both', labelsize=14)
                 ax.yaxis.set_minor_formatter(FormatStrFormatter("%.1f"))
                 plt.tick_params(axis='x', which='both', labelsize=14)
@@ -338,11 +363,18 @@ for var in variables:
                 else:
                     pm_sign = "-"    
 
-                stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),6))+ \
-                    " ,  R2 = "+str(np.round(results.rsquared,6))+ \
-                    " ,  p = "+str(np.round(results.pvalues[1], 6)) + \
-                    " ,  log(y) = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"x  ,  " +\
-                    "     y = "+str(np.round(np.exp(results.params[0]), 6))+"e^("+str(np.round(results.params[1], 6))+"x)"
+                if exp:
+                    stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),6))+ \
+                        " ,  R2 = "+str(np.round(results.rsquared,6))+ \
+                        " ,  p = "+str(np.round(results.pvalues[1], 6)) + \
+                        " ,  log(y) = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"x  ,  " +\
+                        "     y = "+str(np.round(np.exp(results.params[0]), 6))+"e^("+str(np.round(results.params[1], 6))+"x)"
+                else:
+                    stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),6))+ \
+                        " ,  R2 = "+str(np.round(results.rsquared,6))+ \
+                        " ,  p = "+str(np.round(results.pvalues[1], 6)) + \
+                        " ,  y = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"x    "
+
                 #plt.annotate(stats, (vec_sort[-1]-10, fitted_sort[-1]-2), fontsize=14)
                 plt.gcf().text(0.02, 0.02, stats, fontsize=10)
 
@@ -354,7 +386,7 @@ for var in variables:
 
                 #f.write("covid_var, per100kpop, time_cut_min, time_cut_max, covid_cases_cut_min, \
                 #        covid_cases_compare_line, correlation_with, flavivirus, r, R2, pvalue  \n")
-                f_denv.write(" %s , %d, %d, %d, %d, %d, %s, %s, %s, %f , %f\n" % (var, pop, time_cut_min, time_cut_max, covid_cases_cut_min, \
+                f_denv.write(" %s , %d, %d, %s, %d, %d, %d, %d, %s, %s, %s, %f , %f\n" % (var, pop, exp, last_date_str, time_cut_min, time_cut_max, covid_cases_cut_min, \
                     covid_cases_compare_line, "state_slopes", name, pm_sign+str(np.round(np.sqrt(results.rsquared),6)), results.rsquared, results.pvalues[1]))
 
                 ##### --------  Covid-case limit vs flaviv -----------##############3  
@@ -388,7 +420,8 @@ for var in variables:
                 vec_sort = vec_filt[vecinds]
                 fitted_sort = fitted[vecinds]
                 plt.plot(vec_sort, fitted_sort, marker='', color="black", linestyle='-.', linewidth=1.0, alpha=1.0)
-                ax.set_yscale('log')
+                if exp:
+                    ax.set_yscale('log')
                 plt.tick_params(axis='y', which='both', labelsize=14)
                 ax.yaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
                 plt.tick_params(axis='x', which='both', labelsize=14)
@@ -402,11 +435,17 @@ for var in variables:
                 else:
                     pm_sign = "-"
                 #stats="r = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+"\n p = "+str(np.round(results.pvalues[1], 2))
-                stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),6))+ \
-                    " ,  R2 = "+str(np.round(results.rsquared,6))+ \
-                    " ,  p = "+str(np.round(results.pvalues[1], 6)) + \
-                    " ,  log(y) = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"x  ,  " +\
-                    "     y = "+str(np.round(np.exp(results.params[0]), 6))+"e^("+str(np.round(results.params[1], 6))+"x)"
+                if exp:
+                    stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),6))+ \
+                        " ,  R2 = "+str(np.round(results.rsquared,6))+ \
+                        " ,  p = "+str(np.round(results.pvalues[1], 6)) + \
+                        " ,  log(y) = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"x  ,  " +\
+                        "     y = "+str(np.round(np.exp(results.params[0]), 6))+"e^("+str(np.round(results.params[1], 6))+"x)"
+                else:
+                    stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),6))+ \
+                        " ,  R2 = "+str(np.round(results.rsquared,6))+ \
+                        " ,  p = "+str(np.round(results.pvalues[1], 6)) + \
+                        " ,  y = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"x    "
                 #plt.annotate(stats, (vec_sort[-1]-10, fitted_sort[-1]-2), fontsize=14)
                 plt.gcf().text(0.02, 0.02, stats, fontsize=10)
                 
@@ -416,7 +455,7 @@ for var in variables:
 
                 plt.savefig(dump_dir+"covid_"+var+pop_str+"_cutline"+str(covid_cases_compare_line)+"_vs_"+name+exp_str+".pdf", dpi=300)
                 plt.close()
-                f_denv.write(" %s , %d, %d, %d, %d, %d, %s, %s, %s, %f , %f\n" % (var, pop, time_cut_min, time_cut_max, covid_cases_cut_min, \
+                f_denv.write(" %s , %d, %d, %s, %d, %d, %d, %d, %s, %s, %s, %f , %f\n" % (var, pop, exp, last_date_str, time_cut_min, time_cut_max, covid_cases_cut_min, \
                     covid_cases_compare_line, "days_to_compare_cases", name, pm_sign+str(np.round(np.sqrt(results.rsquared),6)), results.rsquared, results.pvalues[1]))
 
 
@@ -451,8 +490,8 @@ for var in variables:
                 vec_sort = vec_filt[vecinds]
                 fitted_sort = fitted[vecinds]
                 plt.plot(vec_sort, fitted_sort, marker='', color="black", linestyle='-.', linewidth=1.0, alpha=1.0)
-
-                ax.set_yscale('log')
+                if exp:
+                    ax.set_yscale('log')
                 plt.tick_params(axis='y', which='both', labelsize=14)
                 ax.yaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
                 plt.tick_params(axis='x', which='both', labelsize=14)
@@ -466,11 +505,17 @@ for var in variables:
                 else:
                     pm_sign = "-"
                 #stats="r = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+"\n p = "+str(np.round(results.pvalues[1], 2))
-                stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),6))+ \
-                    " ,  R2 = "+str(np.round(results.rsquared,6))+ \
-                    " ,  p = "+str(np.round(results.pvalues[1], 6)) + \
-                    " ,  log(y) = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"x  ,  " +\
-                    "     y = "+str(np.round(np.exp(results.params[0]), 6))+"e^("+str(np.round(results.params[1], 6))+"x)"
+                if exp:
+                    stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),6))+ \
+                        " ,  R2 = "+str(np.round(results.rsquared,6))+ \
+                        " ,  p = "+str(np.round(results.pvalues[1], 6)) + \
+                        " ,  log(y) = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"x  ,  " +\
+                        "     y = "+str(np.round(np.exp(results.params[0]), 6))+"e^("+str(np.round(results.params[1], 6))+"x)"
+                else:
+                    stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),6))+ \
+                        " ,  R2 = "+str(np.round(results.rsquared,6))+ \
+                        " ,  p = "+str(np.round(results.pvalues[1], 6)) + \
+                        " ,  y = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"x    "
                 #plt.annotate(stats, (vec_sort[-1]-10, fitted_sort[-1]-2), fontsize=14)
                 plt.gcf().text(0.02, 0.02, stats, fontsize=10)
 
@@ -479,7 +524,77 @@ for var in variables:
 
                 plt.savefig(dump_dir+"covid_"+var+pop_str+"_acum_vs_"+name+exp_str+".pdf", dpi=300)
                 plt.close()
-                f_denv.write(" %s , %d, %d, %d, %d, %d, %s, %s, %s, %f , %f\n" % (var, pop, time_cut_min, time_cut_max, covid_cases_cut_min, \
+                f_denv.write(" %s , %d, %d, %s, %d, %d, %d, %d, %s, %s, %s, %f , %f\n" % (var, pop, exp, last_date_str, time_cut_min, time_cut_max, covid_cases_cut_min, \
                     covid_cases_compare_line, "acum_covid_cases", name, pm_sign+str(np.round(np.sqrt(results.rsquared),6)), results.rsquared, results.pvalues[1]))
+
+
+
+                print()
+                print("Days to number of cases vs "+name)
+                print()
+                acum_cases_todate_filt = days_to_cases_line[filter_nan]
+
+                #Set regression
+                
+                X = vec_filt
+                if exp:
+                    y = np.log(acum_cases_todate_filt)
+                else:
+                    y = acum_cases_todate_filt
+                X = sm.add_constant(X)
+                #log(acum_Cases)=a+b*log(day)
+                model = sm.OLS(y, X)
+                results = model.fit()
+                if exp:
+                    fitted = np.exp(results.fittedvalues)
+                else:
+                    fitted = results.fittedvalues
+                #print(results.summary())
+
+                fig = plt.figure(figsize=(10, 10))
+                
+                ax = plt.gca() 
+
+                plt.scatter(vec_filt, acum_cases_todate_filt, c=color_filt, s=50)
+                vecinds = vec_filt.argsort()
+                vec_sort = vec_filt[vecinds]
+                fitted_sort = fitted[vecinds]
+                plt.plot(vec_sort, fitted_sort, marker='', color="black", linestyle='-.', linewidth=1.0, alpha=1.0)
+                if exp:
+                    ax.set_yscale('log')
+                plt.tick_params(axis='y', which='both', labelsize=14)
+                ax.yaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
+                plt.tick_params(axis='x', which='both', labelsize=14)
+                ax.xaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
+
+                for i in range(len(vec_filt)):  
+                    plt.annotate(states_filt[i], (vec_filt[i]+1, acum_cases_todate_filt[i]), fontsize=14)
+                
+                if results.params[1]>0:
+                    pm_sign = "+"
+                else:
+                    pm_sign = "-"
+                #stats="r = "+pm_sign+str(np.round(np.sqrt(results.rsquared),2))+"\n p = "+str(np.round(results.pvalues[1], 2))
+                if exp:
+                    stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),6))+ \
+                        " ,  R2 = "+str(np.round(results.rsquared,6))+ \
+                        " ,  p = "+str(np.round(results.pvalues[1], 6)) + \
+                        " ,  log(y) = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"x  ,  " +\
+                        "     y = "+str(np.round(np.exp(results.params[0]), 6))+"e^("+str(np.round(results.params[1], 6))+"x)"
+                else:
+                    stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),6))+ \
+                        " ,  R2 = "+str(np.round(results.rsquared,6))+ \
+                        " ,  p = "+str(np.round(results.pvalues[1], 6)) + \
+                        " ,  y = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"x    "
+                #plt.annotate(stats, (vec_sort[-1]-10, fitted_sort[-1]-2), fontsize=14)
+                plt.gcf().text(0.02, 0.02, stats, fontsize=10)
+
+                plt.xlabel(name+" sorology", fontsize=14)
+                plt.ylabel("Days to "+str(covid_cases_compare_line)+" covid "+var+" per "+pop_str, fontsize=14)
+
+                plt.savefig(dump_dir+"covid_"+var+pop_str+"_days_to_cases_vs_"+name+exp_str+".pdf", dpi=300)
+                plt.close()
+                f_denv.write(" %s , %d, %d, %s, %d, %d, %d, %d, %s, %s, %s, %f , %f\n" % (var, pop, exp, last_date_str, time_cut_min, time_cut_max, covid_cases_cut_min, \
+                    covid_cases_compare_line, "days_covid_cases", name, pm_sign+str(np.round(np.sqrt(results.rsquared),6)), results.rsquared, results.pvalues[1]))
 
                 print("--------------------------------")
