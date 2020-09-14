@@ -127,7 +127,7 @@ df[varx+"_inc"]=100000*df[varx]/df["pop"]
 print(df.describe())
 factor = 430.457898/768.044691 #mean
 factor=12162.162162/38636.363636 #max
-df=df[df[varyinc]+factor*df[varxinc] > 1000]
+df=df[df[varyinc]+factor*df[varxinc] > 500]
 #df
 df=df[df[varxinc]> 0]
 df=df[df[varyinc]> 0]
