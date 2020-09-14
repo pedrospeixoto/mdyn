@@ -65,7 +65,7 @@ ref_date = "2020-02-25"
 ref_date = datetime.strptime(ref_date, "%Y-%m-%d")
 print("ref_date: ", ref_date)
 
-last_date_str = "2020-09-11"
+last_date_str = "2020-08-26"
 last_date = datetime.strptime(last_date_str, "%Y-%m-%d")
 print("last_date:", last_date)
 
@@ -224,7 +224,7 @@ for var in variables:
 
         fig.tight_layout(pad=3.0)
         #Save density plot to folder "dir"
-        plt.savefig(dump_dir+"covid_acum_"+var+pop_str+"_states.pdf", dpi=300)
+        plt.savefig(dump_dir+"covid_acum_"+var+pop_str+"_states_"+last_date_str+".pdf", dpi=300)
         plt.close()
        
         if False:
@@ -381,7 +381,7 @@ for var in variables:
                 plt.xlabel(name+" sorology", fontsize=14)
                 plt.ylabel("covid "+var+" per "+pop_str+" slope", fontsize=14)
 
-                plt.savefig(dump_dir+"covid_"+var+pop_str+"_slope_vs_"+name+exp_str+".pdf", dpi=300)
+                plt.savefig(dump_dir+"covid_"+var+pop_str+"_slope_vs_"+name+exp_str+"_"+last_date_str+".pdf", dpi=300)
                 plt.close()
 
                 #f.write("covid_var, per100kpop, time_cut_min, time_cut_max, covid_cases_cut_min, \
@@ -453,7 +453,7 @@ for var in variables:
                 plt.xlabel(name+" sorology", fontsize=14)
                 plt.ylabel("days to reach "+str(covid_cases_compare_line)+" covid "+var+" per "+pop_str, fontsize=14, labelpad=20)
 
-                plt.savefig(dump_dir+"covid_"+var+pop_str+"_cutline"+str(covid_cases_compare_line)+"_vs_"+name+exp_str+".pdf", dpi=300)
+                plt.savefig(dump_dir+"covid_"+var+pop_str+"_cutline"+str(covid_cases_compare_line)+"_vs_"+name+exp_str+"_"+last_date_str+".pdf", dpi=300)
                 plt.close()
                 f_denv.write(" %s , %d, %d, %s, %d, %d, %d, %d, %s, %s, %s, %f , %f\n" % (var, pop, exp, last_date_str, time_cut_min, time_cut_max, covid_cases_cut_min, \
                     covid_cases_compare_line, "days_to_compare_cases", name, pm_sign+str(np.round(np.sqrt(results.rsquared),6)), results.rsquared, results.pvalues[1]))
@@ -522,7 +522,7 @@ for var in variables:
                 plt.xlabel(name+" sorology", fontsize=14)
                 plt.ylabel("Acumulated covid "+var+" per "+pop_str+" on "+days_date[-1], fontsize=14)
 
-                plt.savefig(dump_dir+"covid_"+var+pop_str+"_acum_vs_"+name+exp_str+".pdf", dpi=300)
+                plt.savefig(dump_dir+"covid_"+var+pop_str+"_acum_vs_"+name+exp_str+"_"+last_date_str+".pdf", dpi=300)
                 plt.close()
                 f_denv.write(" %s , %d, %d, %s, %d, %d, %d, %d, %s, %s, %s, %f , %f\n" % (var, pop, exp, last_date_str, time_cut_min, time_cut_max, covid_cases_cut_min, \
                     covid_cases_compare_line, "acum_covid_cases", name, pm_sign+str(np.round(np.sqrt(results.rsquared),6)), results.rsquared, results.pvalues[1]))
@@ -592,7 +592,7 @@ for var in variables:
                 plt.xlabel(name+" sorology", fontsize=14)
                 plt.ylabel("Days to "+str(covid_cases_compare_line)+" covid "+var+" per "+pop_str, fontsize=14)
 
-                plt.savefig(dump_dir+"covid_"+var+pop_str+"_days_to_cases_vs_"+name+exp_str+".pdf", dpi=300)
+                plt.savefig(dump_dir+"covid_"+var+pop_str+"_days_to_cases_vs_"+name+exp_str+"_"+last_date_str+".pdf", dpi=300)
                 plt.close()
                 f_denv.write(" %s , %d, %d, %s, %d, %d, %d, %d, %s, %s, %s, %f , %f\n" % (var, pop, exp, last_date_str, time_cut_min, time_cut_max, covid_cases_cut_min, \
                     covid_cases_compare_line, "days_covid_cases", name, pm_sign+str(np.round(np.sqrt(results.rsquared),6)), results.rsquared, results.pvalues[1]))
