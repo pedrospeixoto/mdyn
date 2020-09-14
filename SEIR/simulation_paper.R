@@ -7,8 +7,8 @@ library(lubridate)
 sink("simulation_paper.txt",split = T)
 #Dates to simulate
 t0 <- seq.Date(from = ymd("2020-04-01"),to = ymd("2020-08-18"),by = 7)
-t0 <- t0[-c(1:11)] #Pulei dia 10/06
-errors <- data.frame("Min" = NA,"MinDeath" = NA,"MinInfected" = NA)
+#t0 <- t0[-c(1:11)] #Pulei dia 10/06
+errors <- data.frame("t0" = NA,"Min" = NA,"MinDeath" = NA,"MinInfected" = NA)
 
 for(t in as.character(t0)){
   cat("\n")
@@ -78,13 +78,13 @@ for(t in as.character(t0)){
   
   error_I <- 1.1*e$MinInfected
   error_D <- 1.1*e$MinDeath
-  errors <- na.omit(rbind.data.frame(errors,data.frame("Min" = e$Min,"MinDeath" = e$MinDeath,"MinInfected" = e$MinInfected)))
+  errors <- na.omit(rbind.data.frame(errors,data.frame("t0" = t,"Min" = e$Min,"MinDeath" = e$MinDeath,"MinInfected" = e$MinInfected)))
   
   #Sample models
-  sample_size <- 50000
-  max_models <- 50000
-  source("mdyn/SEIR/SEIR_COVID19.R")
-  SEIR_covid(cores,par,paste(pos,"_paper",sep = ""),seed,sample_size,simulate_length,d_max,max_models,error_I,error_D,process = F)
+  #sample_size <- 50000
+  #max_models <- 50000
+  #source("mdyn/SEIR/SEIR_COVID19.R")
+  #SEIR_covid(cores,par,paste(pos,"_paper",sep = ""),seed,sample_size,simulate_length,d_max,max_models,error_I,error_D,process = F)
   write.csv(x = errors,file = "/storage/SEIR/errors_simulation.csv")
 }
 sink()
