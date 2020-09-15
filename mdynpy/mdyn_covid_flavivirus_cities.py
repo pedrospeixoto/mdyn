@@ -195,7 +195,7 @@ else:
     stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),6))+ \
         " ,  R2 = "+str(np.round(results.rsquared,6))+ \
         " ,  p = "+str(np.round(results.pvalues[1], 6)) + \
-        " ,  y = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"*(x-"+str(shift_coef)+")^("+str(power_coef)+")"
+        " ,  y = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"*(x+"+str(shift_coef)+")^("+str(power_coef)+")"
 
 plt.gcf().text(0.02, 0.01, stats, fontsize=8)
 
