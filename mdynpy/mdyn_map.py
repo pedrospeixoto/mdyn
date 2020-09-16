@@ -765,7 +765,7 @@ class Map:
         sm.set_array(edge_colors)
         
         #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')        
-        cbared = plt.colorbar(sm, cax=cax, label='Trips/Day', ticks=[2, 6, 10, 14])        
+        cbared = plt.colorbar(sm, cax=cax, label='Trips in period', ticks=[2, 6, 10, 14])        
         #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (viagens/dia)', ticks=[2, 7, 12])        
         cbared.ax.set_yticklabels(["$2^2$", "$2^{6}$", "$2^{10}$", "$2^{14}$"]) #, rotation="vertical")
         #cbared.ax.set_yticklabels(["Baixo", "Médio", "Alto"], rotation="vertical")
