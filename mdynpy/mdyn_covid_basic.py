@@ -89,7 +89,7 @@ print()
 print("Cases vs deaths")
 print()
 
-exp = True
+exp = False
 if exp:
     ylog = np.log(y)
     xlog = np.log(x)
