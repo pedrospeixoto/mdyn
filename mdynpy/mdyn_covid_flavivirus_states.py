@@ -65,7 +65,7 @@ ref_date = "2020-02-25"
 ref_date = datetime.strptime(ref_date, "%Y-%m-%d")
 print("ref_date: ", ref_date)
 
-last_date_str = "2020-08-26"
+last_date_str = "2020-07-01"
 last_date = datetime.strptime(last_date_str, "%Y-%m-%d")
 print("last_date:", last_date)
 

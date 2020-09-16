@@ -999,9 +999,9 @@ class Network:
         #np.load = lambda *a,**k: np_load_old(*a, allow_pickle=True, **k)
 
         matfile = local_dir+name+'.csv'
-        if os.path.exists(matfile):    
+        npmat = local_dir+name+'.npy'
+        if os.path.exists(matfile) or os.path.exists(npmat):    
             #check if mat exists in numpy format
-            npmat = local_dir+name+'.npy'
             if os.path.exists(npmat):
                 mat = np.load(npmat)
             else:

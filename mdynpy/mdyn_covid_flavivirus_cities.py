@@ -73,8 +73,8 @@ print(df_pop.columns)
 
 #covid
 #Map covid to city lists
-date = "2020-09-12"
-variable =  "last_available_confirmed" # last_available_confirmed_per_100k_inhabitants #"last_available_deaths"
+date = "2020-07-01"
+variable = "last_available_confirmed" # "last_available_confirmed_per_100k_inhabitants" #"last_available_deaths" "last_available_confirmed" #
 vary = variable
 
 #remove full states, keep only cities
@@ -93,6 +93,7 @@ varx = "denv_total_2020"
 covid_vec = np.zeros( len(cities))
 denv_vec = np.zeros( len(cities))
 pop_vec = np.zeros( len(cities))
+uf_vec = [None]*len(cities)
 
 for i, city in enumerate(cities):
     city_covid = df_covid[df_covid["city_ibge_code"] == city ]
@@ -100,41 +101,57 @@ for i, city in enumerate(cities):
     city_pop = df_pop[df_pop["CD_GEOCMU"] == str(city) ]
     try:
         pop_var = city_pop["POP2019"].values[0]
+        uf_var = city_pop["UF"].values[0]
         covid_var = city_covid[variable].values[0]
         denv_var = city_denv["Total"].values[0]
+        
     except:
         pop_var = 1
         covid_var = 0    
         denv_var = 0
-
-    print(city, cities_names[i], covid_var, denv_var)
+        uf_var = "na"
+    #print(city, cities_names[i], covid_var, denv_var, pop_var)
     covid_vec[i]=covid_var
     denv_vec[i]=denv_var
     pop_vec[i]=pop_var
+    uf_vec[i]=uf_var
 
+df = pd.DataFrame({"mun_id":cities, "uf":uf_vec, "mun_name":cities_names, vary:covid_vec, varx:denv_vec, "pop":pop_vec})
 
-df = pd.DataFrame({"mun_id":cities, "mun_name":cities_names, vary:covid_vec, varx:denv_vec, "pop":pop_vec})
-
+varxinc=varx+"_inc"
+varyinc=vary+"_inc"
 df[vary+"_inc"]=100000*df[vary]/df["pop"]
 df[varx+"_inc"]=100000*df[varx]/df["pop"]
+
+#filter df
+print(df.describe())
+factor = 430.457898/768.044691 #mean
+factor=12162.162162/38636.363636 #max
+df=df[df[varyinc]+factor*df[varxinc] > 1000]
+#df
+df=df[df[varxinc]> 0]
+df=df[df[varyinc]> 0]
+#df=df[df["pop"]<1000000]
+#df=df[df["pop"]>10000]
+
 print(df)
+df.to_csv(dump_dir+"covid_cities.csv")
 #df.plot(varx, vary, kind='scatter')
 #plt.show()
 #sys.exit()
-varxinc=varx+"_inc"
-varyinc=vary+"_inc"
+power_coef=-1
+shift_coef = 1000
 x=df[varxinc].values
 y=df[varyinc].values
 
 exp = False
 if exp:
-    ylog = np.log(y+1)
-    xlog = np.log(x+1)
-    print(xlog,ylog)
+    ylog = np.log(y+0.001)
+    xlog = np.log(x+0.001)
     X = sm.add_constant(xlog)
     model = sm.OLS(ylog, X)
 else:
-    X = sm.add_constant(x)
+    X = sm.add_constant(np.power(df[varxinc].values+shift_coef,power_coef))
     model = sm.OLS(y, X)
 
 #log(acum_Cases)=a+b*log(day)
@@ -144,13 +161,14 @@ if exp:
     fitted = np.exp(results.fittedvalues)
 else:
     fitted = results.fittedvalues
-#print(results.summary())
+print(results.summary())
 
-fig = plt.figure(figsize=(10, 10))
+fig = plt.figure(figsize=(10, 7.0))
 ax = plt.gca() 
-
-plt.scatter(x, y, s=10)
+#ax.set_aspect('equal', 'box')
+plt.scatter(x, y, s=1)
 if exp:
+    a=1
     ax.set_yscale('log')
     ax.set_xscale('log')
 #plt.tick_params(axis='y', which='both', labelsize=14)
@@ -160,6 +178,7 @@ if exp:
 vecinds = x.argsort()
 vec_sort = x[vecinds]
 fitted_sort = fitted[vecinds]
+#fitted_sort = np.power((fitted_sort - results.params[0])/results.params[1] ,-power_coef)-shift_coef
 plt.plot(vec_sort, fitted_sort, marker='', color="black", linestyle='-.', linewidth=1.0, alpha=1.0)
 
 if results.params[1]>0:
@@ -176,12 +195,12 @@ else:
     stats="\nr = "+pm_sign+str(np.round(np.sqrt(results.rsquared),6))+ \
         " ,  R2 = "+str(np.round(results.rsquared,6))+ \
         " ,  p = "+str(np.round(results.pvalues[1], 6)) + \
-        " ,  y = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"x    "
+        " ,  y = "+str(np.round(results.params[0], 6))+pm_sign+str(np.round(np.abs(results.params[1]), 6))+"*(x+"+str(shift_coef)+")^("+str(power_coef)+")"
 
-plt.gcf().text(0.02, 0.02, stats, fontsize=10)
+plt.gcf().text(0.02, 0.01, stats, fontsize=8)
 
-plt.xlabel(varxinc, fontsize=14)
-plt.ylabel(varyinc, fontsize=14)
-
+plt.xlabel("denv 2020 acumulated incidence" , fontsize=14)
+plt.ylabel("sarscov2 2020 acumulated incidence to "+date, fontsize=14)
+#plt.tight_layout() #pad=0.4, w_pad=0.5, h_pad=1.0)
 plt.savefig(dump_dir+"covid_"+varxinc+"_"+varyinc+".pdf", dpi=300)
 plt.close()
