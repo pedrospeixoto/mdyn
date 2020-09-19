@@ -125,10 +125,13 @@ df[varx+"_inc"]=100000*df[varx]/df["pop"]
 
 #filter df
 print(df.describe())
-factor = 430.457898/768.044691 #mean
+#factor = 430.457898/768.044691 #mean
 factor=12162.162162/38636.363636 #max
-df=df[df[varyinc]+factor*df[varxinc] > 1000]
+df=df[df[varyinc]+(factor)*df[varxinc] > 500]
 #df
+uf = "AM"
+df=df[df["uf"]> uf]
+
 df=df[df[varxinc]> 0]
 df=df[df[varyinc]> 0]
 #df=df[df["pop"]<1000000]
@@ -202,5 +205,5 @@ plt.gcf().text(0.02, 0.01, stats, fontsize=8)
 plt.xlabel("denv 2020 acumulated incidence" , fontsize=14)
 plt.ylabel("sarscov2 2020 acumulated incidence to "+date, fontsize=14)
 #plt.tight_layout() #pad=0.4, w_pad=0.5, h_pad=1.0)
-plt.savefig(dump_dir+"covid_"+varxinc+"_"+varyinc+".pdf", dpi=300)
+plt.savefig(dump_dir+"covid_"+varxinc+"_"+varyinc+uf+".jpg", dpi=300)
 plt.close()
