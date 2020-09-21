@@ -49,10 +49,9 @@ l4 <- paste(month(l4),"/",ifelse(day(l4) < 10,paste("0",day(l4),sep = ""),day(l4
 p <- ggplot(par,aes(x = date,y = value,group = date)) + theme_bw() + titles + ylab("Value") + xlab(expression(t[0])) +
   facet_wrap(.~par,scales = "free",labeller = label_parsed) + geom_boxplot() +
   scale_x_date(breaks = seq.Date(from = min(par$date),to = max(par$date),by = 21),labels = l4) 
-pdf(file = "parameters.pdf",width = 12.5,height = 10)
+pdf(file = "./output_paper/parameters.pdf",width = 12.5,height = 10)
 p
 dev.off()
-summary(par)
 
 #Observed data
 obs <- get_data_SP()
@@ -74,16 +73,15 @@ tmp <- tmp %>% filter(confirmed_corrected > 1000)
 
 p <- ggplot(tmp,aes(x = Date,y = Mediana + 1,group = Municipio)) + theme_bw() + titles + geom_point(color = "blue") +
   geom_line(aes(y = confirmed_corrected+1),alpha = 0.25) + scale_y_log10() +
-  ggtitle("Observed and Predict by 7 days SEIR Model confirmed cases") + ylab("Confirmed Cases")
+  ggtitle("Confirmed Cases observed and predicted by 7 days SEIR Model") + ylab("Confirmed Cases")
 pdf(file = paste("./output_paper/cases.pdf",sep = ""),width = 10,height = 5)
 print(p)
 dev.off()
 
-
 for(c in unique(cases$Municipio)){
-  p <- ggplot(cases %>% filter(Municipio == c),aes(x = Date,y = Mediana + 1,gorup = 1)) + theme_bw() + titles + geom_line(linetype = "dashed") +
-    geom_line(aes(y = confirmed_corrected+1),color = "red") + scale_y_log10() +
-    ggtitle(paste("Observed and Predict bt 7 days SEIR Model confirmed cases for",c)) + ylab("Confirmed Cases")
+  p <- ggplot(cases %>% filter(Municipio == c),aes(x = Date,y = Mediana + 1,gorup = 1)) + theme_bw() + titles + geom_point(color = "blue") +
+    geom_line(aes(y = confirmed_corrected+1),alpha = 0.25) + scale_y_log10() +
+    ggtitle(paste("Confirmed Cases observed and predicted by 7 days SEIR Model for",c)) + ylab("Confirmed Cases")
   pdf(file = paste("./output_paper/",c,"_cases.pdf",sep = ""),width = 10,height = 5)
   print(p)
   dev.off()
@@ -105,7 +103,7 @@ tmp <- tmp %>% filter(deaths_corrected > 100)
 
 p <- ggplot(tmp,aes(x = Date,y = Mediana + 1,group = Municipio)) + theme_bw() + titles + geom_point(color = "blue") +
   geom_line(aes(y = deaths_corrected+1),alpha = 0.25) + scale_y_log10() +
-  ggtitle("Observed and Predict by 7 days SEIR Model confirmed deaths") + ylab("Confirmed Deaths")
+  ggtitle("Confirmed Deaths observed and predicted by 7 days SEIR Model") + ylab("Confirmed Deaths")
 pdf(file = paste("./output_paper/deaths.pdf",sep = ""),width = 10,height = 5)
 print(p)
 dev.off()
@@ -113,7 +111,7 @@ dev.off()
 for(c in unique(deaths$Municipio)){
   p <- ggplot(deaths %>% filter(Municipio == c),aes(x = Date,y = Mediana + 1,gorup = 1)) + theme_bw() + titles + geom_point(color = "blue") +
     geom_line(aes(y = deaths_corrected+1),alpha = 0.25) + scale_y_log10() +
-    ggtitle(paste("Observed and Predict by 7 days SEIR Model confirmed deaths for",c)) + ylab("Confirmed Deaths")
+    ggtitle(paste("Confirmed Deaths observed and predicted by 7 days SEIR Model for",c)) + ylab("Confirmed Deaths")
   pdf(file = paste("./output_paper/",c,"_deaths.pdf",sep = ""),width = 10,height = 5)
   print(p)
   dev.off()
@@ -137,15 +135,13 @@ for(t in as.character(t0))
 for(i in c(2:4,8,9))
   peak[,i] <- ymd(peak[,i])
 c <- unique(obs$city[obs$deaths_corrected > 100])
-#c <- c("SÃO PAULO")
 peak <- peak %>% filter(Municipio %in% c)
-summary(peak)
 
 p <- ggplot(peak,aes(x = peak,y = TMediana,ymin = TMinimo,ymax = TMaximo)) + theme_bw() + titles + geom_point() +
   geom_errorbar() +
   facet_wrap(~ date) + xlab("Observed Peak after t0") + ylab("Predicted Peak") +
   geom_abline(slope = 1,intercept = 0)
-pdf(file = "pico.pdf",width = 15,height = 12)
+pdf(file = "./output_paper/pico.pdf",width = 15,height = 12)
 print(p)
 dev.off()
 
