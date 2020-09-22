@@ -31,7 +31,7 @@ derivatives <- function(t,Y,parK){
   gammaI <- parK$gammaI #Rate from Exposed to Infected
   gammaS <- parK$gammaS #Rate from Infected to Statistics
   nuI <- parK$nuI #Rate from Infected to Recovered
-  nuS <- parK$nuI #Rate from Statistics to Recovered
+  nuS <- parK$nuS #Rate from Statistics to Recovered
   delta <- parK$deltaRate #Rate from Statistics to Death
   s <- parK$s #Intensity of mobility
   if(parK$val)
@@ -50,3 +50,7 @@ derivatives <- function(t,Y,parK){
   
   return(list(dY)) #Return
 }
+
+
+
+
