@@ -121,8 +121,8 @@ store_simulation <- function(predSIM,par,simulate_length,pos,drs,minI,maxI,minD,
         theme_solarized(light = FALSE) +  scale_x_date(breaks = seq.Date(ymd(min(ymd(tmp$date),na.rm = T)),ymd(end_validate)+simulate_length,length.out = 12),
                                                        labels = strftime(seq.Date(ymd(min(ymd(tmp$date))),ymd(end_validate)+simulate_length,length.out = 12),
                                                                          format="%d/%m/%y")) + 
-        scale_y_continuous(breaks = round(seq(min(c(tmp$DpredInf,tmp$IspredInf),na.rm = T),
-                                              max(c(tmp$DpredSup,tmp$IspredSup),na.rm = T),length.out = 10))) +
+        scale_y_continuous(breaks = round(seq(min(c(tmp$DpredInf,tmp$Dpred,tmp$IspredInf,tmp$Ispred),na.rm = T),
+                                              max(c(tmp$DpredSup,tmp$IspredSup,tmp$Dpred,tmp$Ispred),na.rm = T),length.out = 10))) +
         theme(legend.title = element_text(face = "bold"),legend.position = "bottom") + ylab("Indivíduos") +
         xlab("Data") + scale_colour_discrete("",labels = c("Infectados","Total de Óbitos")) +
         theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
