@@ -18,7 +18,7 @@ for(t in as.character(t0)){
   ##Parameters
   cores <- 8 #Number of cores to use in parallel computation
   pos <- t #What to add at the end of all output files
-  seed <- as.numeric(ymd(t)) #Seed
+  seed <- as.numeric(ymd(t))+1 #Seed
   par <- list() #Candidate values of model parameters
   d_max <- ymd(t) + 6  #t0 + 6
   simulate_length <- as.numeric(ymd("2020-12-31") - ymd(t)) #Number of days to simulate
