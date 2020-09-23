@@ -10,7 +10,9 @@ library(data.table)
 library(ggplot2)
 library(tidyverse)
 library(plyr)
+library(EpiEstim)
 source("/home/diego/mdyn/SEIR/get_data_SP.R")
+source("/home/diego/mdyn/SEIR/seir_solver.R")
 
 titles <- theme(strip.text = element_text(size = 12), axis.text = element_text(size = 12),
                 axis.title = element_text(size = 14), legend.text = element_text(size = 14),
@@ -145,3 +147,109 @@ pdf(file = "./output_paper/pico.pdf",width = 15,height = 12)
 print(p)
 dev.off()
 
+#####Comparative Study with model without mobility#####
+#####Model specification#####
+#t = time
+#Y = observed quantities at time t
+#par = A named list of model parameters
+derivatives <- function(t,Y,parK){
+  
+  #States at time t
+  E <- Y[1] #Exposed
+  I <- Y[2] #Infected
+  Is <- Y[3] #Statistics
+  R <- Y[4] #Recovered
+  D <- Y[5] #Deaths
+  S <- parK$pop - E - I - Is - R - D #Susceptibles
+  
+  #Parameters
+  N <- parK$pop #Population
+  gammaI <- parK$gammaI #Rate from Exposed to Infected
+  gammaS <- parK$gammaS #Rate from Infected to Statistics
+  nuI <- parK$nuI #Rate from Infected to Recovered
+  nuS <- parK$nuS #Rate from Statistics to Recovered
+  delta <- parK$deltaRate #Rate from Statistics to Death
+  beta <- parK$beta
+  
+  #Derivatives
+  dY <- vector(length = 6) #Vector of derivatives
+  dY[1] <- -gammaI*E + beta*(S/(N-D))*I #E
+  dY[2] <- gammaI*E - nuI*I - gammaS*I #I
+  dY[3] <- -nuS*Is + gammaS*I - delta*Is #Is
+  dY[4] <- nuI*I + nuS*Is #R
+  dY[5] <- delta*Is #D
+  dY[6] <- gammaS*I #Add new cases to total
+  
+  return(list(dY)) #Return
+}
+
+#São Paulo
+t <- ymd("2020-04-29")
+
+tmp <- obs %>% filter(city == "SÃO PAULO" & date >= ymd(t) - 30) #Get data of city is last day of validation
+dr <- (tmp$deaths_corrected[tmp$date == t] - tmp$deaths_corrected[tmp$date == ymd(t)-30])/(tmp$confirmed_corrected[tmp$date == t] - tmp$confirmed_corrected[tmp$date == ymd(t)-30])
+
+par <- list()
+par$names <- as.vector(read.table("/home/diego/mdyn/SEIR/dados/move_mat_SÃO PAULO_Municip_reg_names.txt",sep = ";")[1:645,1]) #Sites name
+par$sites <- length(par$names) #Number of sites
+
+#Population
+par$pop <- read.csv("/home/diego/mdyn/SEIR/dados/population_sp_mun.csv",sep = ";")
+par$pop$municipio <- gsub(pattern = "'",replacement = "",x = par$pop$municipio)
+par$pop <- par$pop[match(x = par$names,table = toupper(par$pop$municipio)),]
+par$pop <- as.vector(par$pop$populacao_estimada)
+match("SÃO PAULO",par$names)
+
+pred <- readRDS(paste("/storage/SEIR/",t,"_paper/prediction_",t,"_paper.rds",sep = ""))
+est_par <- read.csv(paste("/storage/SEIR/",t,"_paper/parameters_",t,"_paper.csv",sep = ""))
+simulate <- list()
+for(k in 1:nrow(est_par)){
+  parK <- list()
+  parK$pop <- par$pop[269] #Population
+  parK$Te <- est_par$Te[k] #Time exposed
+  parK$Ti <- est_par$Ti[k] #Time infected before recovering
+  parK$Ts <- est_par$Ts[k] #Time infected until statistics
+  parK$Tsr <- est_par$Tsr[k] #Time in statistics until recovering
+  parK$Td <- est_par$Td[k] #Time in statistics until death
+  parK$pS <- (1-est_par$MedianAssymptomatic[k]) #Proportion in statistics
+  parK$gammaI <- 1/parK$Te #Rate from Exposed to Infected
+  parK$gammaS <- parK$pS/parK$Ts #Rate from Infected to Statistics
+  parK$nuI <- (1-parK$pS)/parK$Ti #Rate from Infected to Recovered
+  parK$nuS <- (1-dr)/parK$Tsr #Rate from Statistics to Recovered
+  parK$deltaRate <- dr #Rate from Statistics to Death
+  parK$beta <- pred[[k]]$beta[269]
+  
+  #Init
+  init <- vector()
+  init[1] <- pred[[k]]$E[,269][1]
+  init[2] <- pred[[k]]$I[,269][1]
+  init[3] <- pred[[k]]$Is[,269][1]
+  init[4] <- pred[[k]]$R[,269][1]
+  init[5] <- pred[[k]]$D[,269][1]
+  init[6] <- pred[[k]]$It[,269][7]
+  
+  #Simulate
+  simulate[[k]] <- solve_seir(init,1:200,derivatives,parK)
+  simulate[[k]]<- simulate[[k]][7:200,]
+  colnames(simulate[[k]]) <- c("t","E","I","Is","R","D","It")
+}
+
+#Simulate with mobility
+cases <- fread(paste("/storage/SEIR/",t,"_paper/cases_all_",t,"_paper.csv",sep = ""),data.table = F) 
+cases <- cases %>% filter(Municipio == "SÃO PAULO")
+plot <- data.frame("Model" = NA,"type" = NA,"t"= NA,"Is" = NA,"D" = NA)
+for(k in 1:32){
+  plot <- rbind.data.frame(plot,data.frame("Model" = k,"type" = "mob","t"= 1:length(cases$Casos[cases$Modelo == k]),
+                                           "Is" = cases$Casos[cases$Modelo == k],"D" = cases$Casos[cases$Modelo == k]))
+  plot <- rbind.data.frame(plot,data.frame("Model" = k,"type" = "simple","t" = 1:length(simulate[[k]]$It),
+                                           "Is" = simulate[[k]]$It,"D" = simulate[[k]]$It))
+}
+plot <- na.omit(plot)
+head(plot)
+plot$ModelT <- paste(plot$Model,plot$type)
+
+p <- ggplot(plot %>% filter(Model == 1),aes(x = t,y = Is,group = ModelT,colour = type)) + geom_line() + scale_y_log10()
+
+pdf("teste.pdf",10,7.5)
+p
+dev.off()
