@@ -16,6 +16,7 @@ from matplotlib.ticker import ScalarFormatter
 from matplotlib.ticker import FormatStrFormatter
 
 import statsmodels.api as sm
+import curve_fit as cf
 
 import time
 from datetime import datetime
@@ -127,10 +128,10 @@ df[varx+"_inc"]=100000*df[varx]/df["pop"]
 print(df.describe())
 #factor = 430.457898/768.044691 #mean
 factor=12162.162162/38636.363636 #max
-df=df[df[varyinc]+(factor)*df[varxinc] > 500]
+#df=df[df[varyinc]+(factor)*df[varxinc] > 500]
 #df
-uf = "AM"
-df=df[df["uf"]> uf]
+uf = ""
+#df=df[df["uf"]> uf]
 
 df=df[df[varxinc]> 0]
 df=df[df[varyinc]> 0]
@@ -146,6 +147,8 @@ power_coef=-1
 shift_coef = 1000
 x=df[varxinc].values
 y=df[varyinc].values
+
+cf.nonlinear_adjust(x,y)
 
 exp = False
 if exp:
