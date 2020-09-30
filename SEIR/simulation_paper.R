@@ -7,25 +7,25 @@ library(lubridate)
 sink("simulation_paper.txt",split = T)
 #Dates to simulate
 t0 <- seq.Date(from = ymd("2020-04-01"),to = ymd("2020-08-23"),by = 7)
-t0 <- t0[-11] #Pulei dia 10/06
+t0 <- t0[-c(1:4,11)] #Pulei dia 10/06
 errors <- data.frame("t0" = NA,"Min" = NA,"MinDeath" = NA,"MinInfected" = NA)
 
 for(t in as.character(t0)){
   cat("\n")
   cat(as.character(t))
   cat("\n")
-  
+
   ##Parameters
   cores <- 8 #Number of cores to use in parallel computation
   pos <- t #What to add at the end of all output files
-  seed <- as.numeric(ymd(t)) #Seed
+  seed <- as.numeric(ymd(t))+1 #Seed
   par <- list() #Candidate values of model parameters
   d_max <- ymd(t) + 6  #t0 + 6
   simulate_length <- as.numeric(ymd("2020-12-31") - ymd(t)) #Number of days to simulate
-  
+
   #Set mobility matrix
   par$mob <- list()
-  day <- seq.Date(from = min(ymd(t),ymd("2020-08-05"))-30,to = min(ymd(t),ymd("2020-08-05")),1)
+  day <- seq.Date(from = min(ymd(t),ymd("2020-08-23"))-30,to = min(ymd(t),ymd("2020-08-23")),1)
   for(d in as.character(day)){
     par$mob[[as.character(d)]] <- as.matrix(read.csv(paste("/storage/inloco/data/mobility_br_2020/date0=",d,"/move_mat_SÃO PAULO_Municip.csv",sep = ""),
                                                      sep = " ",
@@ -44,7 +44,7 @@ for(t in as.character(t0)){
   }
   par$names <- as.vector(read.table("mdyn/SEIR/dados/move_mat_SÃO PAULO_Municip_reg_names.txt",sep = ";")[1:645,1]) #Sites name
   par$sites <- length(par$names) #Number of sites
-  
+
   #Population
   par$pop <- read.csv("mdyn/SEIR/dados/population_sp_mun.csv",sep = ";")
   par$pop$municipio <- gsub(pattern = "'",replacement = "",x = par$pop$municipio)
@@ -60,26 +60,26 @@ for(t in as.character(t0)){
     par$mob[[as.character(w)]] <- 0.25*par$mob[[as.character(w)]]
   for(d in as.character(seq.Date(from = ymd(t)-30,to = d_max,1)))
     par$mob[[as.character(ymd(d))]] <- par$mob[[as.character(weekdays(ymd(d)))]]
-  
+
   #Cadidate parameters
-  par$pS <- 1/c(5:10,15,20,30,40,50,100) 
-  par$Te <- c(3:6) 
+  par$pS <- 1/c(5:10,15,20,30,40,50,100)
+  par$Te <- c(3:6)
   par$Ti <- c(5:21)
-  par$Ts <- 7:21 
-  par$Tsr <- 7:21 
+  par$Ts <- 7:21
+  par$Tsr <- 7:21
   par$Td <- c(7:28)
   par$s <- c(0.25,0.5,1,1.5,2,2.5,3)
-  
+
   #Calculate error
   sample_size <- 2500
   max_models <- 2500
   source("mdyn/SEIR/SEIR_COVID19_get_error.R")
   e <- get_error_SEIR_covid(cores,par,pos,seed+1,sample_size,simulate_length,d_max,max_models,0.1,0.1)
-  
-  error_I <- 1.1*e$MinInfected
-  error_D <- 1.1*e$MinDeath
+
+  error_I <- 1.25*e$MinInfected
+  error_D <- 1.25*e$MinDeath
   errors <- na.omit(rbind.data.frame(errors,data.frame("t0" = t,"Min" = e$Min,"MinDeath" = e$MinDeath,"MinInfected" = e$MinInfected)))
-  
+
   #Sample models
   sample_size <- 50000
   max_models <- 50000
@@ -88,4 +88,3 @@ for(t in as.character(t0)){
   write.csv(x = errors,file = "/storage/SEIR/errors_simulation.csv")
 }
 sink()
-
