@@ -43,12 +43,14 @@ print("-------------------------------")
 
 #Map covid to city lists
 date_ref = "2020-07-01"
+dump_dir = "covid/figures/"
+
 #covid
 vary = "last_available_confirmed" # "last_available_confirmed_per_100k_inhabitants" #"last_available_deaths" "last_available_confirmed" #
 
 #denv
-varx = "denv_total_2020"
-
+#varx = "denv_total_2020"
+varx = "dengue.2019.2020"
 
 proc_file="covid/data/covid_cities_"+vary+"_"+varx+"_"+date_ref+".csv"
 if os.path.exists(proc_file):    
@@ -155,10 +157,21 @@ df_tmp =df
 x=df_tmp[varxinc].values
 y=df_tmp[varyinc].values
 
-nquart = 3
-mat, p, xquartiles, yquartiles = lift.lift(x,y)
+
+
+namex="denv 2020+2019 acumulated incidence"
+namey="sarscov2 2020 acumulated incidence to "+date_ref
+
+
+nquart = 6
+quartiles=[0, 50, 60, 70, 80, 90, 100]
 
 print("Brazil")
+mat, p, xquartiles, yquartiles = lift.lift(x,y, quartiles)
+lift.plot(x,y, namex, namey, title="Brazil")
+lift.plot_lift(mat,xquartiles,yquartiles, namex, namey, title="Brazil", stats="Chi-Sqr - p="+str(p))
+
+
 if p<0.05:
     print("Covid and denv are related/dependent with p=", p)
     print("High dengue (inc > "+str(np.round(xquartiles[nquart-1],2))+") implies a change in "+str(np.round(mat[nquart-1,nquart-1]*100,2))+ \
@@ -172,43 +185,41 @@ else:
 print()
 
 regions = df.region.unique()
+nquart = 4
+quartiles=[0, 50, 75, 100]
 
 for reg in regions:
     df_tmp = df[df["region"]==reg]
     x=df_tmp[varxinc].values
     y=df_tmp[varyinc].values
 
-    mat, p, xquartiles, yquartiles = lift.lift(x,y)
     print("Region: ", reg)
-    if p<0.05:
-        print("Covid and denv are related/dependent with p=", p)
-        print("High dengue (inc > "+str(np.round(xquartiles[nquart-1],2))+") implies a change in "+str(np.round(mat[nquart-1,nquart-1]*100,2))+ \
-            "% probability of having a high covid (inc > "+str(np.round(yquartiles[nquart-1],2))+")")
-        print("High dengue (inc > "+str(np.round(xquartiles[nquart-1],2))+") implies a change in "+str(np.round(mat[0,nquart-1]*100,2))+ \
-            "% probability of having a low covid (inc < "+str(np.round(yquartiles[1],2))+")")
-        print("Low dengue (inc < "+str(np.round(xquartiles[1],2))+") implies a change in "+str(np.round(mat[nquart-1,0]*100,2))+ \
-            "% probability of having a high covid (inc > "+str(np.round(yquartiles[nquart-1],2))+")")
-    else:
-        print("Covid and denv may be independent (not related/dependent), since p=", p)
+    mat, p, xquartiles, yquartiles = lift.lift(x,y, quartiles)
+    lift.plot(x,y, namex, namey, title=reg)
+    lift.plot_lift(mat,xquartiles,yquartiles, namex, namey, title=reg, stats="Chi-Sqr - p="+str(p))
+    #if p<0.05:
+    #    print("Covid and denv are related/dependent with p=", p)
+    #    print("High dengue (inc > "+str(np.round(xquartiles[nquart-1],2))+") implies a change in "+str(np.round(mat[nquart-1,nquart-1]*100,2))+ \
+    #        "% probability of having a high covid (inc > "+str(np.round(yquartiles[nquart-1],2))+")")
+    #    print("High dengue (inc > "+str(np.round(xquartiles[nquart-1],2))+") implies a change in "+str(np.round(mat[0,nquart-1]*100,2))+ \
+    #        "% probability of having a low covid (inc < "+str(np.round(yquartiles[1],2))+")")
+    #    print("Low dengue (inc < "+str(np.round(xquartiles[1],2))+") implies a change in "+str(np.round(mat[nquart-1,0]*100,2))+ \
+    #        "% probability of having a high covid (inc > "+str(np.round(yquartiles[nquart-1],2))+")")
+    #else:
+    #    print("Covid and denv may be independent (not related/dependent), since p=", p)
     print()
 
-regions = df.uf.unique()
 
+regions = df.uf.unique()
+nquart = 2
+quartiles=[0, 50, 100]
 for reg in regions:
     df_tmp = df[df["uf"]==reg]
     x=df_tmp[varxinc].values
     y=df_tmp[varyinc].values
-
-    mat, p, xquartiles, yquartiles = lift.lift(x,y)
+    print()
     print("Region: ", reg)
-    if p<0.05:
-        print("Covid and denv are related/dependent with p=", p)
-        print("High dengue (inc > "+str(np.round(xquartiles[nquart-1],2))+") implies a change in "+str(np.round(mat[nquart-1,nquart-1]*100,2))+ \
-            "% probability of having a high covid (inc > "+str(np.round(yquartiles[nquart-1],2))+")")
-        print("High dengue (inc > "+str(np.round(xquartiles[nquart-1],2))+") implies a change in "+str(np.round(mat[0,nquart-1]*100,2))+ \
-            "% probability of having a low covid (inc < "+str(np.round(yquartiles[1],2))+")")
-        print("Low dengue (inc < "+str(np.round(xquartiles[1],2))+") implies a change in "+str(np.round(mat[nquart-1,0]*100,2))+ \
-            "% probability of having a high covid (inc > "+str(np.round(yquartiles[nquart-1],2))+")")
-    else:
-        print("Covid and denv may be independent (not related/dependent), since p=", p)
+    mat, p, xquartiles, yquartiles = lift.lift(x,y, quartiles)
+    lift.plot(x,y, namex, namey, title=reg)
+    lift.plot_lift(mat,xquartiles,yquartiles, namex, namey, title=reg, stats="Fisher Exact - p="+str(p))
     print()
