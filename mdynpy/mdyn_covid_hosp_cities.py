@@ -76,7 +76,7 @@ print(df_pop.columns)
 
 #covid
 #Map covid to city lists
-date = "2020-08-01"
+date = "2020-09-12"
 variable = "last_available_confirmed" #"last_available_deaths" # "last_available_confirmed_per_100k_inhabitants" #"last_available_deaths" "last_available_confirmed" #
 varx2 = variable
 vary = "last_available_deaths"
@@ -126,6 +126,7 @@ for i, city in enumerate(cities):
 
 df = pd.DataFrame({"mun_id":cities, "uf":uf_vec, "mun_name":cities_names, vary:covid_vec, varx:hosp_vec, varx2:covid_vec2, "pop":pop_vec})
 
+print("Sum of leitos:", np.sum(hosp_vec))
 varxinc=varx+"_inc"
 varyinc=vary+"_inc"
 df[vary+"_inc"]=100000*df[vary]/df["pop"]
@@ -143,7 +144,7 @@ factor=12162.162162/38636.363636 #max
 #df=df[df["pop"]>10000]
 
 print(df)
-df.to_csv(dump_dir+"covid_hosp_cities.csv")
+df.to_csv(dump_dir+"covid_hosp_cities"+date+".csv")
 #df.plot(varx, vary, kind='scatter')
 #plt.show()
 #sys.exit()
@@ -155,8 +156,8 @@ x=df[varx].values
 y=df[vary].values
 print(np.corrcoef(x, y))
 
-#X=np.column_stack((np.transpose(df[varx].values), np.transpose(df[varx2].values)))
-X=x
+X=np.column_stack((np.transpose(df[varx].values), np.transpose(df[varx2].values)))
+#X=x
 
 exp = False
 if exp:
@@ -176,8 +177,8 @@ if exp:
     fitted = np.exp(results.fittedvalues)
 else:
     fitted = results.fittedvalues
-#names=["const", "leitos", "casos"]
-names=["const", "leitos"]
+names=["const", "leitos", "casos"]
+#names=["const", "leitos"]
 print(results.summary(xname=names))
 
 fig = plt.figure(figsize=(10, 7.0))
