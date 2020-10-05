@@ -76,7 +76,7 @@ print(df_pop.columns)
 
 #covid
 #Map covid to city lists
-date = "2020-07-01"
+date = "2020-08-01"
 variable = "last_available_confirmed" #"last_available_deaths" # "last_available_confirmed_per_100k_inhabitants" #"last_available_deaths" "last_available_confirmed" #
 varx2 = variable
 vary = "last_available_deaths"
@@ -153,7 +153,10 @@ shift_coef = 1000
 #y=df[varyinc].values
 x=df[varx].values
 y=df[vary].values
-X=np.column_stack((np.transpose(df[varx].values), np.transpose(df[varx2].values)))
+print(np.corrcoef(x, y))
+
+#X=np.column_stack((np.transpose(df[varx].values), np.transpose(df[varx2].values)))
+X=x
 
 exp = False
 if exp:
@@ -173,7 +176,8 @@ if exp:
     fitted = np.exp(results.fittedvalues)
 else:
     fitted = results.fittedvalues
-names=["const", "leitos", "casos"]
+#names=["const", "leitos", "casos"]
+names=["const", "leitos"]
 print(results.summary(xname=names))
 
 fig = plt.figure(figsize=(10, 7.0))
