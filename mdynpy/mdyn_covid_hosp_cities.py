@@ -156,8 +156,8 @@ x=df[varx].values
 y=df[vary].values
 print(np.corrcoef(x, y))
 
-X=np.column_stack((np.transpose(df[varx].values), np.transpose(df[varx2].values)))
-#X=x
+#X=np.column_stack((np.transpose(df[varx].values), np.transpose(df[varx2].values)))
+X=x
 
 exp = False
 if exp:
@@ -177,8 +177,8 @@ if exp:
     fitted = np.exp(results.fittedvalues)
 else:
     fitted = results.fittedvalues
-names=["const", "leitos", "casos"]
-#names=["const", "leitos"]
+#names=["const", "leitos", "casos"]
+names=["const", "leitos"]
 print(results.summary(xname=names))
 
 fig = plt.figure(figsize=(10, 7.0))
