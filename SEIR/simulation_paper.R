@@ -7,7 +7,7 @@ library(lubridate)
 sink("simulation_paper.txt",split = T)
 #Dates to simulate
 t0 <- seq.Date(from = ymd("2020-04-01"),to = ymd("2020-08-23"),by = 7)
-t0 <- t0[-c(1:8,11)] #Pulei dia 10/06
+t0 <- t0[-c(1:16)] #Pulei dia 10/06
 errors <- data.frame("t0" = NA,"Min" = NA,"MinDeath" = NA,"MinInfected" = NA)
 
 for(t in as.character(t0)){
