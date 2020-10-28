@@ -7,6 +7,7 @@ import pyarrow.orc as orc
 import numpy as np
 import pandas as pd
 import math
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.cm as mplcm
@@ -29,7 +30,16 @@ import mdyn_extras as mex
 #Garbage collection
 import gc
 
+#font = {'family' : 'normal',
+#        'weight' : 'normal',
+#        'size'   : 22}
 
+#mpl.rc('font', **font)
+import matplotlib.pyplot as plt
+
+plt.rc('xtick',labelsize=22)
+plt.rc('ytick',labelsize=22)
+#plt.xticks(fontsize=14)
 
 print("-------------------------------")
 print("Covid vs flavivirus analysis")
@@ -118,7 +128,7 @@ for var in variables:
         covid_cases_cut_min = 10
         time_cut_min = 0
         time_cut_max = 90
-        covid_cases_compare_line = 1000
+        covid_cases_compare_line = 100
     else:
         covid_cases_cut_min = 1
         time_cut_min = 0
@@ -214,19 +224,20 @@ for var in variables:
             axs[i].set_yscale('log')
             axs[i].set_xscale('log')
             axs[i].set_xlim(left=10)
-            
 
-            axs[i].set_title(state, loc='left', fontsize=12, fontweight=0, color=region_colors[state] )
+
+            axs[i].set_title(state, loc='left', fontsize=18, fontweight=0, color=region_colors[state] )
+            axs[i].tick_params(axis = 'both', which = 'major', labelsize = 14)
 
         fig.delaxes(axs[27])
         fig.delaxes(axs[28])
         fig.delaxes(axs[29])
 
-        fig.tight_layout(pad=3.0)
+        fig.tight_layout(pad=1.0)
         #Save density plot to folder "dir"
-        plt.savefig(dump_dir+"covid_acum_"+var+pop_str+"_states_"+last_date_str+".pdf", dpi=300)
+        plt.savefig(dump_dir+"covid_acum_"+var+pop_str+"_states_"+last_date_str+".svg", dpi=300)
         plt.close()
-       
+        
         if False:
             fig = plt.figure(figsize=(10, 10))
             plt.scatter(intercept, slopes)

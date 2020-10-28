@@ -64,7 +64,7 @@ ncities = len(cities)
 #------------------------#
 
 #Map covid to city lists
-date = "2020-09-12"
+date = "2020-07-01"
  # last_available_confirmed_per_100k_inhabitants #"last_available_deaths"
 #remove full states, keep only cities
 df_covid = df_covid[~pd.isnull(df_covid.city_ibge_code)]
