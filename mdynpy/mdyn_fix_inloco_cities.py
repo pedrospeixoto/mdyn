@@ -28,9 +28,10 @@ import gc
 
 #Input parameters - dir name
 #-----------------------------
-filename = sys.argv[1] #File given by inloco with indices
-shape_file = sys.argv[2] #Shape file to match
-
+#filename = sys.argv[1] #File given by inloco with indices
+filename = "inloco/Social Distancing Index by Cities2020_10_30.csv"
+#shape_file = sys.argv[2] #Shape file to match
+shape_file = "maps/br_municipios/BRMUE250GC_SIR.shp"
 last_date = filename[-14:-4]
 
 df = pd.read_csv(filename)
@@ -141,14 +142,23 @@ fix_municip_name = {
     "SÃO GONÇALO DO GURGUEIA" : 'SÃO GONÇALO DO GURGUÉIA',
     "SÃO BENTO DO TRAIRI" : 'SÃO BENTO DO TRAIRÍ',
     "SÃO CAETANO" : 'SÃO CAITANO',
-    "PAU-D'ARCO" : "PAU D'ARCO"
+    "PAU-D'ARCO" : "PAU D'ARCO",
+    "ASSU" : "AÇU",
+    "AREZ" : "ARÊS",
+    "BOA SAÚDE" : "JANUÁRIO CICCO",
+    "PATOS" : "PATOS",
+     "SÃO VALÉRIO DA NATIVIDADE" : "SÃO VALÉRIO"
    }
 
 df['city_name']=df['city_name'].str.upper()
 df['city_name'] = df['city_name'].replace(fix_municip_name)
 
+
 cities=df['city_name'].unique()
 cities_shp=df_shp['NM_MUNICIP'].unique()
+citiescode_shp=df_shp['CD_GEOCMU'].unique()
+
+citycodes = pd.Series(df_shp['CD_GEOCMU'].values,index=df_shp['NM_MUNICIP']).to_dict()
 
 print(cities, len(cities))
 print(cities_shp, len(cities_shp))
@@ -157,14 +167,23 @@ city_prob = set(cities) - set(cities_shp)
 print(city_prob, len(city_prob))
 print(df[df['city_name'].isin(city_prob)])
 print()
+patos_name = {}
 for i, city in enumerate(city_prob):
     matches=difflib.get_close_matches(city, cities_shp)
     print(i, city, matches)
+    if "PATOS" in city:
+        patos_name[city] = "PATOS"
+        df['city_name'] = df['city_name'].replace(patos_name)
+
+citycodes['PATOS'] = 2510808
 
 df=df.rename(columns={"isolated": "iso", "dt": "day", "city_name":"reg_name"})
 df['reg_state'] = df.apply (lambda row: row.reg_name + "_"+row.state_abrv, axis=1)
+df['ibge_cod'] = df['reg_name'].map(citycodes)
 
-#print(len(df))
+#print(df)
+#print(df[df.isna().any(axis=1)])
+
 #df=df.groupby('reg_state', as_index=False).mean()
 #df.drop_duplicates(['reg_state'], keep=False, inplace=True)  #does not work!!!
 #print(len(df))
@@ -178,6 +197,12 @@ if False:
     print(dup_cities)
     print(df[df['reg_state'].isin(dup_cities) ])
     sys.exit()
+
+filename="inloco/Municipios_"+last_date+"_iso_index.csv"
+print(filename)
+df.to_csv(filename)
+
+#sys.exit()
 
 for state in states_abrv:
     print(state)
