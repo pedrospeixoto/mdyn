@@ -33,22 +33,11 @@ import tqdm as tqdm
 import mdyn_extras as mex
 
 import seaborn as sns
-sns.set()
-sns.set_style("white")
 
 #Garbage collection
 import gc
 
-#font = {'family' : 'normal',
-#        'weight' : 'normal',
-#        'size'   : 22}
-
-#mpl.rc('font', **font)
 import matplotlib.pyplot as plt
-
-plt.rc('xtick',labelsize=22)
-plt.rc('ytick',labelsize=22)
-#plt.xticks(fontsize=14)
 
 print("-------------------------------")
 print("Covid World Evolution Analysis")
@@ -73,12 +62,9 @@ country_names = covid.countriesAndTerritories.unique()
 
 print(covid)
 print(covid.columns)
-print(country_names)
-
+print(country_names, len(country_names))
 
 dengue = pd.read_csv(dengue_file)
-
-
 # Match names between dengue and covid
 #print(dengue)
 #print(dengue.columns)
@@ -100,6 +86,10 @@ print()
 print()
 
 #filter Africa
+covid_africa = covid[covid['continentExp'] == "Africa"]
+print(covid_africa)
+print(len(covid_africa.countriesAndTerritories.unique()))
+
 covid = covid[covid['continentExp'] != "Africa"]
 country_names = covid.countriesAndTerritories.unique()
 
@@ -119,10 +109,11 @@ country_names_dengue = dengue.Subregion.unique()
 print(country_names_dengue)
 
 # Initialize the figure
-#plt.style.use('seaborn-darkgrid')
-plt.style.use('seaborn-paper')
-colors=sns.color_palette()
 
+#colors=sns.color_palette()
+colors=[None, None]
+colors[0]=sns.color_palette("deep")[3]
+colors[1]=sns.color_palette("deep")[2]
 # create a color palette
 #palette = plt.get_cmap('Set1')
 #colors=palette #(np.linspace(0, 1.0, 5))
@@ -132,20 +123,16 @@ colors=sns.color_palette()
 
 #processing data
 data = []
-
     
 covid_cases_cut_min = 10
 time_cut_min = 0
 time_cut_max = 30
 covid_cases_compare_line = 100
 dengue_cut_line = 200
-r2_cut_line = 0.6
+r2_cut_line = 0.5
 
-#Set colors
-cmap = plt.cm.rainbow
-norm = mpl.colors.LogNorm(vmin=0.1, vmax=np.max(dengue['dengue_inc'].values))
 
-fig, axs = plt.subplots(1,2, figsize=(12, 8), squeeze=False)
+fig, axs = plt.subplots(1,3, figsize=(16, 8), squeeze=False)
 axs = axs.ravel()
 
 i_ax = 0
@@ -217,7 +204,7 @@ for i, c in enumerate(country_names):
 
     #filter time
     days = days + 1
-    time_filt = (days > 0) & (days < time_cut_max+1)
+    time_filt = (days > 0) & (days < time_cut_max+10)
     days_date_filt = days_date[time_filt]
     days_filt = days[time_filt]
     acum_cases_filt = acum_cases[time_filt]
@@ -274,8 +261,8 @@ for i, c in enumerate(country_names):
             ##axs[i_ax].plot(days_reg, acum_cases_reg, marker='', linewidth=3.0, label=c, color=cmap(norm(dengue_val)), alpha=0.9)
             #axs[i_ax].plot(days_reg, acum_cases_reg, marker='', linewidth=1.5, label=c, color=colors[1], alpha=0.8)
             ##axs[i].plot(days_reg, np.power(2.0, fitted), marker='', color="black", linestyle='-.', linewidth=1.0, alpha=1.0, label=state)
-            axs[i_ax].set_yscale('log')
-            axs[i_ax].set_xscale('log')
+            #axs[i_ax].set_yscale('log')
+            #axs[i_ax].set_xscale('log')
             ##axs[i_dengue].set_xlim(left=10)
             #if len(c) > 15 :
             #    c_tmp=c_spaces[0:10]
@@ -300,32 +287,19 @@ for i, c in enumerate(country_names):
         ##axs[i_ax].plot(days_reg, acum_cases_reg, marker='', color='grey', linewidth=0.6, alpha=0.6, label=None)
         data.append(local_data)
 
-    print(local_data)
+    if c == "Bolivia" and False:
+        print(local_data)
 
-##axs[i_ax].spines['right'].set_visible(False) 
-##axs[i_ax].spines['top'].set_visible(False) 
-#axs[i_ax].set_xticks([1, 5, 10, 20, 30])
-#axs[i_ax].get_xaxis().set_major_formatter(mpl.ticker.ScalarFormatter())
 
-##plt.xlim(2, time_cut_max)
 #axs[i_ax].set_xlabel("Number of days from "+str(covid_cases_cut_min)+" covid cases", fontsize=12)
 #axs[i_ax].set_ylabel("Acumulated COVID-19 cases per 100k inhabitants", fontsize=12)
-##axs[i_ax].tick_params(axis = 'both', which = 'major', labelsize = 14)
+#axs[i_ax].set_xticks([1, 2, 3, 4, 5, 10, 20, 30])
+#axs[i_ax].get_xaxis().set_major_formatter(mpl.ticker.ScalarFormatter())
 
-##textstr = "Country - Dengue 2019+2020 incidence"
-##plt.gcf().text(0.85, 0.98, textstr, fontsize=12, horizontalalignment='center', 
-##    verticalalignment='center', transform=axs[i_ax].transAxes)
-
-##adjust_text(texts, autoalign="y", only_move={ 'points': 'y',
-##    'text':'y', 'objects':'y'})
-
-##adjust_text(texts, autoalign="y")
-##, autoalign="y", only_move={ #'points': 'y',
-##    'text':'y', 'objects':'y'})
 
 df = pd.DataFrame(data, columns=['i', 'country', 'intercept', 'slope', 'r2', 'last_covid_inc', 'dengue_inc', 'dengue', "evolution"])
 
-df = df[df['r2']>0.6]
+df = df[ df['r2']>0.0 ]
 
 evol = df['evolution'].values
 
@@ -336,44 +310,100 @@ df_evol_dengue=pd.DataFrame(df_dengue['evolution'].values.tolist(), index=df_den
 stats_dengue = df_evol_dengue.describe()
 
 df_evol_nodengue=pd.DataFrame(df_nodengue['evolution'].values.tolist(), index=df_nodengue['country'] )
-stats_nodengue = df_evol_nodengue.describe(include="all")
+stats_nodengue = df_evol_nodengue.describe()
+
+#i_ax = 0
+#axs[i_ax].plot(days_reg, df_evol_nodengue.quantile(0.95).values, linestyle=":",  marker='', color=colors[0], linewidth=1.0, alpha=0.8, label="Q95%") 
+axs[i_ax].plot(days_reg, stats_nodengue.loc['75%'], marker='', linestyle="--", color=colors[0], linewidth=1.5, alpha=0.5, label="Q75%") 
+axs[i_ax].plot(days_reg, stats_nodengue.loc['50%'], marker='', linestyle="-", color=colors[0], linewidth=2.0, alpha=1.0, label="Median") 
+axs[i_ax].plot(days_reg, stats_nodengue.loc['25%'], marker='', linestyle="--", color=colors[0], linewidth=1.5, alpha=0.5, label="Q25%") 
+#axs[i_ax].plot(days_reg, df_evol_nodengue.quantile(0.05).values, linestyle=":",  marker='', color=colors[0], linewidth=1.0, alpha=0.8, label="Q05%") 
+
+#axs[i_ax].plot(days_reg, df_evol_dengue.quantile(0.95).values, linestyle=":",  marker='', color=colors[1], linewidth=1.0, alpha=0.8, label="Q95%") 
+axs[i_ax].plot(days_reg, stats_dengue.loc['75%'], marker='', linestyle="--", color=colors[1], linewidth=1.5, alpha=0.5, label="Q75%") 
+axs[i_ax].plot(days_reg, stats_dengue.loc['50%'], marker='', linestyle="-", color=colors[1], linewidth=2.0, alpha=1.0, label="Median") 
+axs[i_ax].plot(days_reg, stats_dengue.loc['25%'], marker='', linestyle="--", color=colors[1], linewidth=1.5, alpha=0.5, label="Q25%") 
+#axs[i_ax].plot(days_reg, df_evol_dengue.quantile(0.05).values, linestyle=":",  marker='', color=colors[1], linewidth=1.0, alpha=0.8, label="Q05%") 
 
 
-print(stats_dengue)
-print(stats_nodengue)
-i_ax = 0
-axs[i_ax].plot(days_reg, df_evol_nodengue.quantile(0.95).values, linestyle=":",  marker='', color=colors[0], linewidth=1.0, alpha=0.5, label="95%") 
-axs[i_ax].plot(days_reg, stats_nodengue.loc['75%'], marker='', linestyle="--", color=colors[0], linewidth=1.0, alpha=0.3, label="75%") 
-axs[i_ax].plot(days_reg, stats_nodengue.loc['50%'], marker='', linestyle="-", color=colors[0], linewidth=2.0, alpha=1.0, label="50% Low/No Dengue") 
-axs[i_ax].plot(days_reg, stats_nodengue.loc['25%'], marker='', linestyle="--", color=colors[0], linewidth=1.0, alpha=0.3, label="25%") 
-axs[i_ax].plot(days_reg, df_evol_nodengue.quantile(0.05).values, linestyle=":",  marker='', color=colors[0], linewidth=1.0, alpha=0.5, label=" 5%") 
-
-axs[i_ax].plot(days_reg, df_evol_dengue.quantile(0.95).values, linestyle=":",  marker='', color=colors[1], linewidth=1.0, alpha=0.5, label="95%") 
-axs[i_ax].plot(days_reg, stats_dengue.loc['75%'], marker='', linestyle="--", color=colors[1], linewidth=1.0, alpha=0.3, label="75%") 
-axs[i_ax].plot(days_reg, stats_dengue.loc['50%'], marker='', linestyle="-", color=colors[1], linewidth=2.0, alpha=1.0, label="50% High Dengue") 
-axs[i_ax].plot(days_reg, stats_dengue.loc['25%'], marker='', linestyle="--", color=colors[1], linewidth=1.0, alpha=0.3, label="25%") 
-axs[i_ax].plot(days_reg, df_evol_dengue.quantile(0.05).values, linestyle=":",  marker='', color=colors[1], linewidth=1.0, alpha=0.5, label=" 5%") 
-
-
-axs[i_ax].fill_between(days_reg, stats_nodengue.loc['25%'], stats_nodengue.loc['75%'], facecolor=colors[0], alpha=0.2)
+#axs[i_ax].fill_between(days_reg, stats_nodengue.loc['25%'], stats_nodengue.loc['75%'], facecolor=colors[0], alpha=0.1)
 #axs[i_ax].fill_between(days_reg, df_evol_nodengue.quantile(0.05), df_evol_nodengue.quantile(0.95), facecolor=colors[0], alpha=0.06)
 
-axs[i_ax].fill_between(days_reg, stats_dengue.loc['25%'], stats_dengue.loc['75%'], facecolor=colors[1], alpha=0.2)
+#axs[i_ax].fill_between(days_reg, stats_dengue.loc['25%'], stats_dengue.loc['75%'], facecolor=colors[1], alpha=0.1)
 #axs[i_ax].fill_between(days_reg, df_evol_dengue.quantile(0.05), df_evol_dengue.quantile(0.95), facecolor=colors[1], alpha=0.06)
 
-
+#axs[i_ax].set_xticklabels(x_ticks, rotation=0, fontsize=12)
+#axs[i_ax].set_yticklabels(y_ticks, rotation=0, fontsize=12)
 axs[i_ax].set_yscale('log')
 axs[i_ax].set_xscale('log')
 axs[i_ax].set_xticks([1, 2, 3, 4, 5, 10, 20, 30])
 axs[i_ax].get_xaxis().set_major_formatter(mpl.ticker.ScalarFormatter())
 #axs[i_ax].get_xaxis().set_minor_formatter(mpl.ticker.ScalarFormatter())
 axs[i_ax].set_xlabel("Number of days from "+str(covid_cases_cut_min)+" covid cases", fontsize=12)
-axs[i_ax].set_ylabel("Acumulated COVID-19 cases per 100k (Median and IQ range)", fontsize=12)
-axs[i_ax].legend(loc="best",  ncol=2)
+axs[i_ax].set_ylabel("Acumulated COVID-19 cases per 100k ", fontsize=12)
+axs[i_ax].legend(loc="best",  ncol=2, title="No/Low Dengue -  High Dengue", fontsize=9)
+
+#plt.style.use('seaborn-paper')
+#sns.set()
+#sns.set(font_scale = 1.0)
+#sns.set_style( "ticks", {"xtick.major.size": 8, "ytick.major.size": 8})
+#sns.set_style("white")
+
+#fig.tight_layout()
+
+#plt.savefig(dump_dir+"world_covid_evol.png", dpi=300)
+
+
+
 #--------------------------boxplots-------------------#
+
+#fig, axs = plt.subplots(1,2, figsize=(12, 8), squeeze=False)
+#axs = axs.ravel()
+
 
 i_ax = 1
 print(df.describe())
+n_dengue = sum(df['dengue'].values)
+print("Dengue:", n_dengue, "Non-dengue:", len(df)-n_dengue)
+
+print(df_evol_dengue.describe())
+print(df_evol_dengue.columns)
+v_dengue= df_evol_dengue[29].values
+v_nondengue= df_evol_nodengue[29].values
+data = [v_nondengue, v_dengue]
+
+mwstat, mwp = sp.stats.mannwhitneyu(v_dengue, v_nondengue)
+print(mwstat, mwp)
+
+t_stat, t_p = sp.stats.ttest_ind(v_dengue, v_nondengue, equal_var = False)
+t_p=t_p/2 #unilateral
+print(t_stat, t_p)
+
+sns.boxplot(data=data, ax=axs[i_ax], palette=colors )
+sns.stripplot(data=data, size=4, alpha=0.3, color='black' , ax=axs[i_ax] )
+#sns.swarmplot(data=data, size=4, alpha=0.3, color='black', ax=axs[i_ax] )
+axs[i_ax].set_xticklabels(['Non/Low', 'High'])
+axs[i_ax].set_yscale('log')
+axs[i_ax].set_xlabel("Incidence of Dengue" +  " ( Threshold of "+ str(dengue_cut_line)+"cases/100k )" , fontsize=12)
+axs[i_ax].set_ylabel("Covid-19 incidence "+str(time_cut_max)+" days after the "+str(covid_cases_cut_min)+"th case", fontsize=12)
+
+
+textstr = "t-test p="+str(np.round(t_p,4))
+#plt.gcf().text(0.55, 0.90, textstr, fontsize=10, horizontalalignment='center', 
+#    verticalalignment='center')
+
+textstr = "Mann-Whitney p="+str(np.round(mwp,4))
+plt.gcf().text(0.55, 0.93, textstr, fontsize=10, horizontalalignment='center', 
+    verticalalignment='center')
+
+
+i_ax = 2
+
+
+print(df.describe())
+print("Q05", df.quantile(0.05))
+print("Q10:", df.quantile(0.10))
+
 n_dengue = sum(df['dengue'].values)
 print("Dengue:", n_dengue, "Non-dengue:", len(df)-n_dengue)
 
@@ -392,26 +422,35 @@ print(t_stat, t_p)
 
 #fig = plt.figure(figsize=(8, 8))
 
-sns.boxplot(x="dengue", y="slope", data=df, ax=axs[i_ax] )
-#sns.stripplot(x="dengue", y="slope", data=df, size=4, alpha=0.3, color='black')
-sns.swarmplot(x="dengue", y="slope", data=df, size=4, alpha=0.3, color='black', ax=axs[i_ax] )
-
-plt.xlabel("Incidence of Dengue > "+str(dengue_cut_line)+"cases/100k" , fontsize=12)
-plt.ylabel("Covid-19 estimated slope - "+str(time_cut_max)+" days", fontsize=12)
+sns.boxplot(x="dengue", y="slope", data=df, ax=axs[i_ax], palette=colors )
+sns.stripplot(x="dengue", y="slope", data=df, size=4, alpha=0.3, color='black', ax=axs[i_ax] )
+#sns.swarmplot(x="dengue", y="slope", data=df, size=4, alpha=0.3, color='black', ax=axs[i_ax] )
+axs[i_ax].set_xticklabels(['Non/Low', 'High'])
+axs[i_ax].set_xlabel("Incidence of Dengue" +  " ( Threshold of "+ str(dengue_cut_line)+"cases/100k )" , fontsize=12)
+axs[i_ax].set_ylabel("Covid-19 estimated slope for "+str(time_cut_max)+" days", fontsize=12)
 
 textstr = "t-test p="+str(np.round(t_p,4))
-plt.gcf().text(0.8, 0.90, textstr, fontsize=10, horizontalalignment='center', 
-    verticalalignment='center')
+#plt.gcf().text(0.9, 0.90, textstr, fontsize=10, horizontalalignment='center', 
+#    verticalalignment='center')
 
 textstr = "Mann-Whitney p="+str(np.round(mwp,4))
-plt.gcf().text(0.8, 0.95, textstr, fontsize=10, horizontalalignment='center', 
+plt.gcf().text(0.9, 0.93, textstr, fontsize=10, horizontalalignment='center', 
     verticalalignment='center')
+
+plt.style.use('seaborn-paper')
+sns.set()
+sns.set(font_scale = 1.0)
+sns.set_style("white")
+sns.set_style( "ticks", {"xtick.major.size": 8, "ytick.major.size": 8})
+
 
 fig.tight_layout()
 
-plt.savefig(dump_dir+"world_covid_evol_boxplot.png", dpi=300)
+plt.savefig(dump_dir+"world_covid_evol_boxplots.svg", dpi=300)
 
 
+df = df[df['r2']<0.3]
+print(df)
 
 
 
