@@ -36,6 +36,7 @@ import gc
 
 #mpl.rc('font', **font)
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 plt.rc('xtick',labelsize=22)
 plt.rc('ytick',labelsize=22)
@@ -94,7 +95,7 @@ n = len(mex.state_abrv2name)
 plt.style.use('seaborn-paper')
  
 # create a color palette
-palette = plt.get_cmap('Set1')
+palette = plt.get_cmap('Set1') #sns.color_palette("deep")
 colors=palette #(np.linspace(0, 1.0, 5))
 #colors=palette(np.linspace(0, 5, endpoint=True))
 #print(colors)
@@ -214,20 +215,28 @@ for var in variables:
             for j in range(n):
                 
                 #plt.subplot(6,5,j+1)
-                axs[j].plot(days, acum_cases, marker='', color='grey', linewidth=0.6, alpha=0.3)
+                axs[j].plot(days, acum_cases, marker='', color='grey', linewidth=0.6, alpha=0.3, label=None)
             
             # Plot the lineplot
             #plt.subplot(6,5,i+1)
             #axs[i].plot(days, acum_cases, marker='', color=colors(region[state]), linewidth=1.5, alpha=0.9, label=state)
-            axs[i].plot(days, acum_cases, marker='', color=region_colors[state], linewidth=2.0, alpha=0.9, label=state)
-            axs[i].plot(days_reg, np.power(2.0, fitted), marker='', color="black", linestyle='-.', linewidth=1.0, alpha=1.0, label=state)
+            axs[i].plot(days, acum_cases, marker='', color=region_colors[state], linewidth=2.5, alpha=0.9, label=state)
+            axs[i].plot(days_reg, np.power(2.0, fitted), marker='', color="black", linestyle='-.', linewidth=1.0, alpha=1.0, label=None)
             axs[i].set_yscale('log')
             axs[i].set_xscale('log')
             axs[i].set_xlim(left=10)
-
-
-            axs[i].set_title(state, loc='left', fontsize=18, fontweight=0, color=region_colors[state] )
-            axs[i].tick_params(axis = 'both', which = 'major', labelsize = 14)
+            axs[i].legend(loc="best", fontsize=12)
+            axs[i].tick_params(axis = 'both', which = 'major', labelsize = 12)
+            axs[i].set_xticks([10, 20, 30, 60, 90])
+            axs[i].get_xaxis().set_major_formatter(mpl.ticker.ScalarFormatter())
+            #axs[i].set_title(state, loc='left', fontsize=18,  color=region_colors[state] )
+            
+        i_axis_lab = [22, 23, 24, 25, 26, 27]
+        for i in i_axis_lab:
+            axs[i].set_xlabel("Days", fontsize=12)
+        i_axis_lab = [0, 5, 10, 15, 20, 25]
+        for i in i_axis_lab:
+            axs[i].set_ylabel("Incidence ", fontsize=12)
 
         fig.delaxes(axs[27])
         fig.delaxes(axs[28])
@@ -235,7 +244,7 @@ for var in variables:
 
         fig.tight_layout(pad=1.0)
         #Save density plot to folder "dir"
-        plt.savefig(dump_dir+"covid_acum_"+var+pop_str+"_states_"+last_date_str+".svg", dpi=300)
+        plt.savefig(dump_dir+"covid_acum_"+var+pop_str+"_states_"+last_date_str+".png", dpi=300)
         plt.close()
         
         if False:

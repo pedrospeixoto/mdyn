@@ -28,10 +28,10 @@ import gc
 
 #Input parameters - dir name
 #-----------------------------
-#filename = sys.argv[1] #File given by inloco with indices
-filename = "inloco/Social Distancing Index by Cities2020_10_30.csv"
-#shape_file = sys.argv[2] #Shape file to match
-shape_file = "maps/br_municipios/BRMUE250GC_SIR.shp"
+filename = sys.argv[1] #File given by inloco with indices
+#filename = "inloco/Social Distancing Index by Cities2020_10_30.csv"
+shape_file = sys.argv[2] #Shape file to match
+#shape_file = "maps/br_municipios/BRMUE250GC_SIR.shp"
 last_date = filename[-14:-4]
 
 df = pd.read_csv(filename)
