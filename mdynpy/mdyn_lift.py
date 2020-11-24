@@ -18,7 +18,7 @@ from matplotlib.ticker import FormatStrFormatter
 
 import statsmodels.api as sm
 
-dump_dir = "covid/figures/"
+dump_dir = "data_dengue/figures/"
 
 def lift(x,y, quartiles=[0, 50, 75, 100]):
     #print()

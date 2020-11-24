@@ -43,8 +43,8 @@ print("-------------------------------")
 
 #Input parameters - dir name
 #-----------------------------
-covid_file = "covid/india.csv" #sys.argv[1]
-dump_dir = "covid/figures/"
+covid_file = "data_dengue/denv_vs_covid_india.csv" #sys.argv[1]
+dump_dir = "data_dengue/figures/"
 
 df = pd.read_csv(covid_file)
 print(df)
