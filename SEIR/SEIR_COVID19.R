@@ -150,6 +150,7 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
     test <- test_model(D,I,teste_D,teste_I,drs,init_validate,end_validate)
 
     #Is good
+    print(paste(test$dif_I,test$dif_D))
     good <- as.numeric(test$dif_I <= error_I & test$dif_D <= error_D) #Test if is good
     is.good[k] <- good #Store
     if(test$dif_I < mI) #If is minimum error so far
