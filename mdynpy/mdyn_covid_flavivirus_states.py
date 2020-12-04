@@ -49,11 +49,11 @@ print("-------------------------------")
 
 #Input parameters - dir name
 #-----------------------------
-covid_file = "covid/cases-brazil-states.csv" #sys.argv[1]
-flaviv_file = "covid/antibodies_flavovirus.csv" #ys.argv[2]
+covid_file = "data_covid/covid-cases-brazil-states.csv" #sys.argv[1]
+flaviv_file = "data_dengue/denv_antibodies_flavovirus_BR_states.csv" #ys.argv[2]
 states_file = "maps/ufebrasil_input_info_all.csv"
 
-dump_dir = "covid/figures/"
+dump_dir = "data_dengue/figures/"
 
 #states
 states_df = pd.read_csv(states_file)
@@ -86,7 +86,7 @@ print(days_to_last_date)
 covid['datetime']=pd.to_datetime(covid['date'])
 covid['days']=(covid['datetime']-ref_date).dt.days
 
-covid.to_csv("covid/cases-brazil-states-modif.csv")
+covid.to_csv("data_covid/covid-cases-brazil-states-modif.csv")
 
 n = len(mex.state_abrv2name)
 

@@ -53,20 +53,21 @@ vary = "last_available_confirmed" # "last_available_confirmed_per_100k_inhabitan
 #varx = "denv_total_2020"
 varx = "denv_total_2020" #"dengue.2019.2020"
 
-proc_file="covid/data/covid_cities_"+vary+"_"+varx+"_"+date_ref+".csv"
+proc_file="data_covid/data/covid_cities_"+vary+"_"+varx+"_"+date_ref+".csv"
 if os.path.exists(proc_file):    
     print("Reading file: ", proc_file)
     df = pd.read_csv(proc_file)
+    dump_dir = "data_dengue/figures/"
 else:
 
     #Input parameters - dir name
     #-----------------------------
-    covid_file = "covid/caso_full.csv" #sys.argv[1]
-    denv_file = "covid/denv_cases_mun2020.csv" #ys.argv[2]
+    covid_file = "data_covid/covid-brasl-municp-caso_full.csv" #sys.argv[1]
+    denv_file = "data_dengue/denv_cases_brasil_mun2020.csv" #ys.argv[2]
     mun_file = "maps/br_municipios/br_mun_with_uf_region.shp"
     pop_file = "maps/population/population_mun_br_2019.csv"
     area_file = "maps/area/mun_areas.csv"
-    dump_dir = "covid/figures/"
+    dump_dir = "data_dengue/figures/"
 
 
     df_covid = pd.read_csv(covid_file)

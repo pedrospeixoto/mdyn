@@ -43,11 +43,11 @@ print("-------------------------------")
 
 #Input parameters - dir name
 #-----------------------------
-covid_file = "covid/caso_full.csv" #sys.argv[1]
-hosp_file = "covid/leitos_mun.csv" #ys.argv[2]
+covid_file = "data_covid/covid-brasl-municp-caso_full.csv" #sys.argv[1]
+hosp_file = "data_covid/covid_brazil_leitos_mun.csv" #ys.argv[2]
 mun_file = "maps/br_municipios/br_mun_with_uf_region.shp"
 pop_file = "maps/population/population_mun_br_2019.csv"
-dump_dir = "covid/figures/"
+dump_dir = "data_covid/figures/"
 
 df_hosp = pd.read_csv(hosp_file)
 print(df_hosp)

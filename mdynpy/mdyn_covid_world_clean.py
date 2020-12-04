@@ -46,9 +46,9 @@ print("-------------------------------")
 
 #Input parameters - dir name
 #-----------------------------
-covid_file = "covid/covid_world_evol.csv" #sys.argv[1]
-dengue_file = "covid/dengue_world.csv"
-dump_dir = "covid/figures/"
+covid_file = "data_covid/covid_world_evol.csv" #sys.argv[1]
+dengue_file = "data_dengue/dengue_world.csv"
+dump_dir = "data_dengue/figures/"
 
 #Covid analysis
 

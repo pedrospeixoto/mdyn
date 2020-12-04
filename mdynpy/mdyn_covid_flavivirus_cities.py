@@ -41,13 +41,12 @@ print("-------------------------------")
 
 #Input parameters - dir name
 #-----------------------------
-covid_file = "covid/caso_full.csv" #sys.argv[1]
-denv_file = "covid/denv_cases_mun2020.csv" #ys.argv[2]
+covid_file = "data_covid/covid-brasl-municp-caso_full.csv" #sys.argv[1]
+denv_file = "data_dengue/denv_cases_brasil_mun2020.csv" #ys.argv[2]
 mun_file = "maps/br_municipios/br_mun_with_uf_region.shp"
 pop_file = "maps/population/population_mun_br_2019.csv"
 area_file = "maps/area/mun_areas.csv"
-dump_dir = "covid/figures/"
-
+dump_dir = "data_dengue/figures/"
 
 df_covid = pd.read_csv(covid_file)
 print(df_covid)
