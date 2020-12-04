@@ -23,7 +23,7 @@ source("mdyn/ShinyApps/preprocessing/preprocess_SEIR_output.R")
 source("mdyn/SEIR/model.R")
 source("mdyn/SEIR/EPI_curve.R")
 source("mdyn/SEIR/get_data_SP.R")
-source("mdyn/SEIR/lift_death_research.R")
+source("mdyn/SEIR/lift_death.R")
 source("mdyn/SEIR/data_drs.R")
 source("mdyn/SEIR/initial_condition.R")
 source("mdyn/SEIR/initial_condition_corrected.R")
@@ -101,7 +101,7 @@ drs <- readRDS(file = "mdyn/SEIR/dados/drs.rds")
 drs <- drs[match(par$names,drs$Municipio),]
 drs$N[drs$Municipio == "SÃO PAULO"] <- par$pop[par$names == "SÃO PAULO"]
 # drs <- read.csv("/home/dmarcondes/mdyn/SEIR/dados/DRS.csv",sep = ";") #Read drs table
-# drs$Municipio <- gsub("'","",drs$Municipio) #Correct names 
+# drs$Municipio <- gsub("'","",drs$Municipio) #Correct names
 # drs <- drs[match(par$names,drs$Municipio),] #Order cities
 # tmp <- data.frame("Municipio" = par$names,"pop" = par$pop) #Get population of each city
 # drs <- data.table(merge(drs,tmp)) #Merge to get population

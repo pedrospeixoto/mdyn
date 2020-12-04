@@ -17,7 +17,6 @@ death_rate <- function(teste_D,teste_I,obs,day,drs,par){
     dr <- tmp$deaths_corrected/tmp$confirmed_corrected #Death rate
     delta[match(c,par$names)] <- dr #Attribute death rate
   }
-  
   return(delta)
 }
 
