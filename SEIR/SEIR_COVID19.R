@@ -129,10 +129,10 @@ SEIR_covid <- function(cores,par,pos,seed,sample_size,simulate_length,d_max,max_
       is.good[k] <- 0
       prox <- T
     }
-    else if(min(parK$beta) < 0){
-      is.good[k] <- 0
-      prox <- T
-    }
+    #else if(min(parK$beta) < 0){
+    #  is.good[k] <- 0
+    #  prox <- T
+    #}
     if(prox){
       rm(initK,parK)
       next
