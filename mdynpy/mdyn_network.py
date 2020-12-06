@@ -1041,10 +1041,10 @@ class Network:
                 print("Don't know how to collect this kind of subdomain", self.subdomains)
                 sys.exit()
 
+            npmat = local_dir+name_br+'.npy'
             matfile = local_dir+name_br+'.csv'
-            if os.path.exists(matfile):    
+            if os.path.exists(matfile) or os.path.exists(npmat):    
                 print("  Found a Brasil matrix! Calculating...this may take some time...")
-                npmat = local_dir+name_br+'.npy'
                 if os.path.exists(npmat):
                     mat_br = np.load(npmat)
                 else:
