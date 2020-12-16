@@ -15,7 +15,7 @@ growth_rate <- function(obs,obs_drs,drs,par,pos,init_validate,end_validate,day_v
     p <- ggplot(tmp,aes(x = t,y = y)) + geom_point(color = "white") + 
       stat_function(fun = function(t) exp(mod$coefficients[1])*exp(mod$coefficients[2]*t),color = "white") +
       theme_solarized(light = FALSE) +  
-      theme(legend.title = element_text(face = "bold"),legend.position = "none") + ylab("Casos Confirmados") +
+      theme(legend.title = element_text(face = "bold"),legend.position = "none") + ylab("Infectados") +
       xlab("Data") + scale_x_continuous(breaks = 0:6,labels = paste(day(day_validate),"/0",
                                                                     month(day_validate),sep = "")) +
       theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
@@ -48,7 +48,7 @@ growth_rate <- function(obs,obs_drs,drs,par,pos,init_validate,end_validate,day_v
     p <- ggplot(tmp,aes(x = t,y = y)) + geom_point(color = "white") + 
       stat_function(fun = function(t) exp(mod$coefficients[1])*exp(mod$coefficients[2]*t),color = "white") +
       theme_solarized(light = FALSE) +  
-      theme(legend.title = element_text(face = "bold"),legend.position = "none") + ylab("Casos Confirmados") +
+      theme(legend.title = element_text(face = "bold"),legend.position = "none") + ylab("Infectados") +
       xlab("Data") + scale_x_continuous(breaks = 0:6,labels = paste(day(day_validate),"/0",
                                                                     month(day_validate),sep = "")) +
       theme(plot.title = element_text(face = "bold",size = 25,color = "white",hjust = 0.5),
