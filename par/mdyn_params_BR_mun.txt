@@ -28,18 +28,18 @@ load_domain = True #Load precomp structures
 #Initialize mobile data and load data to dataframe
 data_format = "Parquet" #"ORC"
 data_dir = "data/mobility_br_2020/"
-#date_ini = "2020-06-06"
-#date_end = "2020-06-06"
-date_ini = "2020-03-30"
-date_end = "2020-05-15"
+date_ini = "2020-11-01"
+date_end = "2020-11-30"
+#date_ini = "2020-03-30"
+#date_end = "2020-05-15"
 load_data = True
 daily_plots = False
 
 #Number of main sources for plots
-num_source = 2
+num_source = 1
 
 #Isolation index
-isoind_file = "data/isol_br/Social Distancing Index by Cities2020-07-18.csv"
+isoind_file = "data/isol_br/Social Distancing Index by Cities2021-02-10.csv"
 
 #-----------------------------
 # Slicing/Zoom
@@ -52,8 +52,9 @@ isoind_file = "data/isol_br/Social Distancing Index by Cities2020-07-18.csv"
 # 4) Mult factor with amount of filtering on the node/link - 0 cuts the node/links, 1 keeps it as it is
 # 5) Label for filter (for file names)
 #filter = [True, "pop", 50 ]
-filter = [False, "list", 0, "link", 0.5, "NoFilter" ]
+#filter = [False, "list", 0, "link", 0.5, "NoFilter" ]
 #filter = [True, "list", 0, "node", 0.1, "SaoPaulo" ]
+filter = [True, "list", 0, "node_keep", 1.0, "Manaus" ]
 #filter = [True, "list", 0, "node", 0.5, "BR116-101-node05" ]
 #filter = [True, "list", 0, "link", 0.01, "BR116-SP-RJ-link001" ]
 #filter = [True, "list", 0, "link", 0.5, "BR364" ]
@@ -65,6 +66,9 @@ filter = [False, "list", 0, "link", 0.5, "NoFilter" ]
 
 #Sao Paulo
 filter_list = [3829]
+
+#Manaus
+filter_list = [111]
 
 #BR116 e 110
 #filter_list = [ 949,1162,989,2044,1293,1509,1163,1110,1337,1596,1696,1652,1754,1834,1957,2162,2039,2239,2003,2137,2214,3048,2558,3164,2600,2309,3139,3174,3112,3191,2663,3229,3223,3222,3242,3224,3266,3824,3809,3479,3829,4005,4447,4347,4436,4451,4398,4385,4701,4587,4892,4931,4685,4916,4949]
@@ -86,7 +90,8 @@ filter_list = [3829]
 zoom =[
    #    [False, -15, -34, -60, -40, False, "BRA"  ],
          [True, 6, -37, -75, -30.8, False, "BRA"  ],
-    #    [True, 0, -15, -50,-34, False, "Nordeste"  ],
+      #  [True, 0, -15, -50,-34, False, "Nordeste"  ],
+       # [True, 6, -18, -78,-42, True, "Norte"  ],
     #    [True, -5, -15, -40,-34, False, "NordesteLitoral"  ],
     #    [True, -15, -34, -60,-40, False, "Sul-Sudeste"  ],
     #    [True, -10, -25, -60,-40, False, "Centro-Sudeste"  ],

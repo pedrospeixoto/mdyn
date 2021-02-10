@@ -1334,6 +1334,16 @@ class Network:
                 #print(reg, self.regions_in_names.get(reg), " node killed")                
                 if verbose:
                     print(reg, self.regions_in_names.get(reg), np.sum(mat[:, reg])/mat[reg, reg], np.sum(mat_filt[:, reg])/mat_filt[reg, reg], mat[reg, reg], mat_filt[reg, reg] )                
+        elif filter_type == "node_keep": #keep only this one and its connections:
+            mat_filt.fill(0)
+            for reg in filter_list:
+                #kill nodes
+                mat_filt[:, reg] = mat[:, reg]
+                mat_filt[reg, :] = mat[reg, :]
+                mat_filt[reg, reg] = mat[reg, reg]
+                #print(reg, self.regions_in_names.get(reg), " node killed")                
+                if verbose:
+                    print(reg, self.regions_in_names.get(reg), np.sum(mat[:, reg])/mat[reg, reg], np.sum(mat_filt[:, reg])/mat_filt[reg, reg], mat[reg, reg], mat_filt[reg, reg] )                
         else :
             print( "Warning: Don't know what to filter: will do nothing! Please implement it! ", filter_type)
             sys.exit()

@@ -2,5 +2,7 @@
     "files.exclude": {
         "**/data/*": true
     },
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
 }

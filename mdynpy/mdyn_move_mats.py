@@ -718,7 +718,18 @@ def map_move_mats(mdyn, network, ipar):
     title_mat = network.domain+" "+network.subdomains+" Network Move Mats "+ mdyn.date_ini+"_"+mdyn.date_end
     filename = mdyn.dump_dir+title_mat.replace(" ", "_") + ".csv"
     print("Saving mat sum as:", filename)
-    np.savetxt( filename, mat_sum)
+    np.savetxt( filename, mat_sum.astype(int), fmt='%i')
+
+    if ipar.filter[0]:
+        if ipar.filter[3]=="node_keep":
+            node_keep = ipar.filter_list[0]
+            title_mat = network.domain+" "+network.subdomains+" Network Move Mats "+ mdyn.date_ini+"_"+mdyn.date_end
+            filename = mdyn.dump_dir+title_mat.replace(" ", "_") +"from_"+ipar.filter[5]+"_to_cities.csv"
+            print("Saving mat sum from "+ipar.filter[5]+"to other cities as", filename)
+            np.savetxt( filename, mat_sum[:, node_keep].astype(int), fmt='%i')
+            filename = mdyn.dump_dir+title_mat.replace(" ", "_") +"from_cities_to_"+ipar.filter[5]+".csv"
+            print("Saving mat sum from other cities to "+ipar.filter[5]+" as:", filename)
+            np.savetxt( filename, mat_sum[node_keep, :].astype(int), fmt='%i')
 
     #save average isolation index
     isol_avg = isol_sum / len(mdyn.days_all)
