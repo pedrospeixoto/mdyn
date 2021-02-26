@@ -664,6 +664,16 @@ def map_move_mats(mdyn, network, ipar):
             if ipar.filter[1] == "list":
                 filter_list = ipar.filter_list
                 mat, matnormed = network.filter_transition_matrix(mat, ipar.filter, ipar.filter_list)
+                
+                if len(filter_list) == 1:
+                    #Save the single columns of in/out flows
+                    node = filter_list[0]
+                    outflow = mat[:, node]
+                    inflow = mat[node,:]
+                    title = network.domain+" "+network.subdomains
+                    filename = mdyn.dump_dir+title.replace(" ", "_")+"-inward-outward-flows-"+ipar.filter[5] #+str(i+67).zfill(3)+".jpg"
+                    filename = filename + day.strftime("%Y-%m-%d")+".csv"
+                    np.savetxt( filename, np.transpose([inflow, outflow]).astype(int), fmt='%i')
         else:
             filter_list=[]
 
