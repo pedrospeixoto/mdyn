@@ -18,6 +18,7 @@ echo
 echo "Fixing city names:"
 cd data/isol_br/
 date=`date -d "yesterday 13:00" '+%Y-%m-%d'`
+date="2021-03-15"
 echo $date
 cp "Social Distancing Index by Cities" "Social Distancing Index by Cities"$date".csv"
 cp "Social Distancing Index by States" "Social Distancing Index by States"$date".csv"
