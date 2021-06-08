@@ -28,3 +28,5 @@ Running example:
 - pip install missing packages
 > pip install pkg_name
 - create/edit parameter files mdyn_param_xxxx.py for different runs
+
+--------------------------------------------------------------------
