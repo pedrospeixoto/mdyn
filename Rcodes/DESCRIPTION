@@ -1,0 +1,18 @@
+Package: mdyn
+Type: Package
+Title: Scripts to analyse mobile data and model population dynamics
+Version: 0.1.0
+Author: Diego Marcondes
+Maintainer: Diego Marcondes <dmarcondes@ime.usp.br>
+Description: This package contains scripts to visualize an statistically analyse the outputs of python mdyn code available at <https://github.com/pedrospeixoto/mdyn>. The scripts focus on visualizing data about the COVID-19 spread in Brazil and has functions to plot crucial information about the disease daily.
+URL: http://github.com/dmarcondes/mdyn
+BugReports: https://github.com/dmarcondes/mdyn/issues
+Imports:
+    ggplot2 (>= 3.3.0),
+    tidyr (>= 1.0.0)
+Depends:
+    R (>= 3.6)
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.0.2
