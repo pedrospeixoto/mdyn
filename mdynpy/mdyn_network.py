@@ -1027,14 +1027,14 @@ class Network:
                 with open(filename) as f:
                     reg_names = f.read().splitlines()            
             else:
-                print("Sorry, did not find region name file in ", filename)
+                #print("Sorry, did not find region name file in ", filename)
                 filename = local_dir+"../"+name+"_reg_names.txt"
                 if os.path.exists(filename):    
                     with open(filename) as f:
                         reg_names = f.read().splitlines()            
-                    print("Found it! ", filename)
+                    #print("Found it! ", filename)
                 else:
-                    print("Sorry, did not find region name file...", filename)
+                    print("Sorry, did not find region name file...", filename, local_dir+name+"_reg_names.txt")
                     sys.exit()    
             #print("Execution time "+str(time_end-time_start)+" seconds")
         else:
