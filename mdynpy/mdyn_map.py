@@ -993,7 +993,7 @@ class Map:
 
         #Calculate centrality
         #print(G.edges)
-        print("   Calculating Spectrum:")
+        #print("   Calculating Spectrum:")
         #G.remove_edges_from(nx.selfloop_edges(G))
         #Gspec= nx.adjacency_spectrum(G, weight=None) 
         #ev = max(Gspec, key=np.abs) #calcula o max autovalor
@@ -1078,13 +1078,13 @@ class Map:
     
         print("   Plotting nodes...")
         nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, 
-            node_color=node_colors, alpha=0.9, with_labels=False, linewidths= 1, cmap=plt.cm.Blues)
+            node_color=node_colors, alpha=0.9, linewidths= 1, cmap=plt.cm.Blues)
             #) #vmin=0.3, vmax=0.7)
         print("   Plotting edges...")
         edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
                                     arrowsize=5, edgelist=edges, edge_color=edge_colors,
                                     edge_cmap=plt.cm.hot_r, width=edge_widths,
-                                    edge_vmin=0 , edge_max=14,
+                                    edge_vmin=0 , 
                                     connectionstyle='arc3, rad=0.1')
         
         # set alpha value for each edge

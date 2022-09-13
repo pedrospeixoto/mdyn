@@ -20,13 +20,13 @@ Installation:
 > conda create --name mdyn --file spec-file.txt 
 - load enviroment
 > conda activate mdyn
-- Create e link to the dataset
+- Create e link to the dataset (if necessary)
 > ln -s /tmp/inloco/data/ data
 
 Running example:
 > python mdyn_run.py -f mdyn_params_SP_mesoreg.txt -o 0
 - pip install missing packages
 > pip install pkg_name
-- create/edit parameter files mdyn_param_xxxx.py for different runs
+- create/edit parameter files mdyn_param_xxxx.txt for different runs
 
 --------------------------------------------------------------------

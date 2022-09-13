@@ -1,0 +1,127 @@
+#Main domain definition
+domain = "Brasil" #SP or RJ
+domain_abrv = "BRA"
+domain_gran = "locname"
+domain_shape = "maps/brazil/Brazil_Boundary"
+
+#Subdomain definitions
+subdomains = "Municip"
+subdomains_gran = "CD_GEOCMU" #NM_MUNICIP"
+subdomains_shape = "maps/br_municipios/br_mun_with_uf"
+
+#Population
+domain_pop = "maps/population/population_br_2019.csv"
+domain_pop_labels = ["Estado", "pop2019"]
+subdomains_pop = "maps/population/population_mun_br_2019.csv"
+subdomains_pop_labels = ["PAIS", "CD_GEOCMU", "POP2019"]
+
+#Network granularity
+latlon_gran = 0.01 #granularity of lat long spacing
+
+#Network pre-computation flag
+load_domain = True #Load precomp structures
+
+#-----------------------------
+# Mobile Data Set Definition
+#-----------------------------
+
+#Initialize mobile data and load data to dataframe
+data_format = "Parquet" #"ORC"
+data_dir = "data/mobility_br_2020/"
+date_ini = "2020-02-01"
+date_end = "2020-02-02"
+load_data = True
+daily_plots = False
+
+#Number of main sources for plots
+num_source = 1
+
+#Isolation index
+isoind_file = "data/isol_br/Social Distancing Index by Cities2021-02-10.csv"
+
+#-----------------------------
+# Slicing/Zoom
+#------------------------------
+
+#Filter:
+# 1) True/False
+# 2) Type: based on population "pop" given a max number of cities or "list"
+# 3) What to act on: "node" or "links"
+# 4) Mult factor with amount of filtering on the node/link - 0 cuts the node/links, 1 keeps it as it is
+# 5) Label for filter (for file names)
+#filter = [True, "pop", 50 ]
+filter = [False, "list", 0, "link", 0.5, "NoFilter" ]
+#filter = [True, "list", 0, "node", 0.1, "SaoPaulo" ]
+#filter = [True, "list", 0, "node_keep", 1.0, "Manaus" ]
+#filter = [True, "list", 0, "node_keep", 1.0, "São Caetano" ]
+#filter = [True, "list", 0, "node", 0.5, "BR116-101-node05" ]
+#filter = [True, "list", 0, "link", 0.01, "BR116-SP-RJ-link001" ]
+#filter = [True, "list", 0, "link", 0.5, "BR364" ]
+#filter = [True, "list", 0, "link", 0.0, "BR230_link00" ]
+#filter = [True, "list", 0, "link", 0.0, "BR116-SP-CTBA" ]
+
+#capital cities
+#filter_list = [66, 1696, 303, 111, 2162, 949, 5569,3174,5417,635,5219,1665,2309,169,1337,4005,1596,882,3242,1163,4931,16,138,4398,3829,1754,443]
+
+#Sao Paulo
+filter_list = [3829]
+
+#Manaus
+#filter_list = [111]
+
+#Sao Caetano
+#filter_list = [3812]
+
+#BR116 e 110
+#filter_list = [ 949,1162,989,2044,1293,1509,1163,1110,1337,1596,1696,1652,1754,1834,1957,2162,2039,2239,2003,2137,2214,3048,2558,3164,2600,2309,3139,3174,3112,3191,2663,3229,3223,3222,3242,3224,3266,3824,3809,3479,3829,4005,4447,4347,4436,4451,4398,4385,4701,4587,4892,4931,4685,4916,4949]
+
+#Link BR116 - SP - RJ : Rio de Janeiro ..., Volta Redonda	Barra Mansa	Porto Real	Resende	Itatiaia	Queluz	Lavrinhas	Cruzeiro	Silveiras	Cachoeira Paulista	Canas	Lorena	Guaratinguetá	Aparecida do Norte	Roseira	Pindamonhangaba	Taubaté	Caçapava	São José dos Campos ,... Sao PAulo
+#filter_list = [ 3544, 3474, 3790, 3311, 3479, 3829, 3266, 3182, 3233, 3237, 3208, 3737, 3567, 3415, 3846, 3364, 3294, 3380, 3573, 3475, 3764, 3694, 3871, 3363, 3824, 3242,3249,3183,2725,3224,3235,3256,3204,3225,3231,3230] 
+
+#Links br364: São Carlos	Itirapina	Corumbataí	Rio Claro	Santa Gertrudes	Cordeirópolis	Limeira
+#filter_list = [3813, 3536, 3408, 3759, 3789, 3405, 3570]
+
+#BR230 João Pessoa	Bayeux	Santa Rita	Cruz do Espírito Santo	Sobrado	Caldas Brandão	Gurinhém	Mogeiro	Ingá	Riachão do Bacamarte	São Miguel de Taipu	Massaranduba	Campina Grande
+#filter_list = [1337,	1267,	1416,	1307,	1448,	1291,	1326,	1362,	1330,	1401,	1437,	1357,	1293]
+
+#BR116 SP-CTBA - Sao Paulo, Taboão da Serra	Embu das Artes	Itapecirica da Serra	São Lourenço da Serra	Juquitiba	Miracatu	Juquiá	Registro	Pariquera-Açu	Jacupiranga	Cajati	Barra do Turvo	Campina Grande do Sul	Quatro Barras ... Curitiba
+#filter_list = [3829, 3855,	3434,	3521,	3825,	3563,	3603,	3562,	3744,	3673,	3546,	3371,	3328,	3967,	4200, 3990, 4176, 4005]
+
+
+ #Flag, lats, lons, drawsubdomains, label
+zoom =[
+   #    [False, -15, -34, -60, -40, False, "BRA"  ],
+         [True, 7, -37, -76, -30.8, False, "BRA"  ],
+      #  [True, 0, -15, -50,-34, False, "Nordeste"  ],
+       # [True, 6, -18, -78,-42, True, "Norte"  ],
+    #    [True, -5, -15, -40,-34, False, "NordesteLitoral"  ],
+    #    [True, -15, -34, -60,-40, False, "Sul-Sudeste"  ],
+    #     [True, -12, -34, -60,-40, False, "Sul-Sudeste"  ],
+    #    [True, -10, -25, -60,-40, False, "Centro-Sudeste"  ],
+    #    [True, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ],
+    #    [True, -24.6, -26.2, -50.5,-48.5, True, "RMCTBA"  ],
+    #    [True, -23.5,-22.2, -42.0, -45.0, True, "RMRJ"  ],
+    #    [True, -17.4, -15.0, -47.0,-50.0, True, "RMGO"  ],
+    #    [True, -19.8, -25.5, -52.25,-43, True, "SP"  ],
+    #    [True, -3.0, -10, -43.0,-34, True, "CE_RN_PB_PE"  ]
+]
+
+#zoom = [False, -15, -34, -60,-40, False, "Sul-Sudeste"  ]
+#zoom = [True, 0, -15, -50,-34, False, "Nordeste"  ]
+#zoom = [True, -15, -34, -60,-40, False, "Sul-Sudeste"  ]
+#zoom = [True, -22.8, -24.2, -47.8,-45.6, True, "RMSP"  ]
+#zoom = [True, -19.8, -25.5, -52.25,-43, True, "SP"  ]
+
+#-----------------------------
+# Statistics
+#------------------------------
+#reference = 262 #559 # 271  # 268 #"SÃO PAULO"
+reference = 3829 #"SÃO PAULO"
+#neighb = [3829] 
+#neighb = [268, 271, 319, 559, 114, 620, 262]
+#capitais
+neighb = [66, 1696, 303, 111, 2162, 949, 5569,3174,5417,635,5219,1665,2309,169,1337,
+      4005,1596,882,3242,1163,4931,16,138,4398,3829,1754,443]
+
+nneighb = 1 # based on population. plus list above
+

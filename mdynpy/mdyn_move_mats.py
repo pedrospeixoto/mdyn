@@ -916,6 +916,82 @@ def centrality_move_mats_avg(mdyn, network, ipar):
         map=Map(network, zoom)
         map.map_network_centrality(mat, regions, title, filename.replace("Network", "Network_Centrality"), edge_filter=filter_list )
 
+def move_mats_avg_metrics(mdyn, network, ipar):
+    print()
+    print("Mapping move mats average and metrics:")
+    #Get movement matrices
+    mdyn.collect_move_mat(network)
+
+    #filter if set up
+    if ipar.filter[0]:
+        if ipar.filter[1] == "pop":
+            npop = ipar.filter[2]
+            pop=np.array(network.reg_pop)
+            ipop=list(pop.argsort()[-npop:][::-1])
+            print(ipop)
+            filter_list=ipop
+        if ipar.filter[1] == "list":
+            filter_list = ipar.filter_list
+    else:
+        filter_list=[]
+        
+    #print(iso.df.columns)
+    #print("Regions:", network.regions)
+    
+    #Loop for each day
+
+    #for i, day in enumerate(mdyn.days_all):
+    days = mdyn.days_all[0].strftime("%Y-%m-%d")+"_"+mdyn.days_all[-1].strftime("%Y-%m-%d")
+
+    print("Calculating for period: ", days)
+        #print(iso.df['day'].unique(), day.strftime("%Y-%m-%d"))
+        
+        #filter day, state, regions
+        #df_iso = iso.df[iso.df['day']==day.strftime("%Y-%m-%d")]
+        
+    if network.domain_abrv == "BRA":
+        #BRA uses geocodes, so get city names
+        regions = network.regions_in_names
+    else:
+        #Use actual city names
+        regions = network.regions
+        #Filter state
+        #df_iso = df_iso[df_iso['reg_name'].isin(regions.values())]
+
+    #Sum all matrices
+    mat = mdyn.movemats[0]
+    mat = mat*0.0
+    for mattmp in mdyn.movemats:
+        mat = mat + mattmp
+
+    #Save matrix  do disk
+    title_mat = network.domain+" "+network.subdomains+" Network Move Mats "+ mdyn.date_ini+"_"+mdyn.date_end
+    filename = mdyn.dump_dir+title_mat.replace(" ", "_") + ".csv"
+    print("Saving mat sum as:", filename)
+    np.savetxt( filename, mat.astype(int), fmt='%i')
+    #filename = filename.replace(".csv",".npy")
+    #np.save( filename, mat.astype(int))
+
+    if isinstance(ipar.zoom[0], bool): #in this case we have a single zoom
+        zooms = [ipar.zoom]
+    else: #list of zooms
+        zooms = ipar.zoom
+
+    for zoom in zooms:
+        if zoom[0]:
+            title = network.domain+" "+network.subdomains+" Network Zoom "+zoom[6]+" "
+            filename = mdyn.dump_dir+title.replace(" ", "_") #+"_"+str(i+67).zfill(3)+".jpg"
+        else:
+            title = network.domain+" "+network.subdomains+" Network "
+            filename = mdyn.dump_dir+title.replace(" ", "_") #+str(i+67).zfill(3)+".jpg"
+
+        title = title + days
+        filename = filename + days+".jpg"
+
+        map=Map(network, zoom)
+        #filename = mdyn.dump_dir+title_mat.replace(" ", "_")+ "Flux.jpg"
+        #map.map_network_flux(mat, regions, title_mat, filename.replace("Network", "Network_Flux")) #, edge_filter=filter_list)
+        map.map_network_centrality(mat, regions, title, filename.replace("Network", "Network_Centrality"), edge_filter=filter_list )
 
 
 def analyse_move_mats(mdyn, network, ipar):

@@ -97,6 +97,15 @@ if run_opt == 5:
     time_end = time.time()
     print("Execution time "+str(time_end-time_start)+" seconds")
 
+if run_opt == 6:
+    #Read movemats, gather yearly data and calculate metrics
+    time_start = time.time()
+    #mmat.analyse_move_mats(mdyn, network, ipar)
+
+    mmat.move_mats_avg_metrics(mdyn, network, ipar)
+    time_end = time.time()
+    print("Execution time "+str(time_end-time_start)+" seconds")
+
 if run_opt == 20:
     time_start = time.time()
     mmat.simulate_move_mats(mdyn, network, ipar)
