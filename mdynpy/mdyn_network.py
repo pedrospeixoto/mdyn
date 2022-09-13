@@ -1020,9 +1020,22 @@ class Network:
             #print("Execution time "+str(time_end-time_start)+" seconds")
             #time_start = time.time()
             #reg_names = np.load(local_dir+name+'_reg_names.npy')
+
+            #Get region names
             filename = local_dir+name+"_reg_names.txt"
-            with open(filename) as f:
-                reg_names = f.read().splitlines()            
+            if os.path.exists(filename):    
+                with open(filename) as f:
+                    reg_names = f.read().splitlines()            
+            else:
+                print("Sorry, did not find region name file in ", filename)
+                filename = local_dir+"../"+name+"_reg_names.txt"
+                if os.path.exists(filename):    
+                    with open(filename) as f:
+                        reg_names = f.read().splitlines()            
+                    print("Found it! ", filename)
+                else:
+                    print("Sorry, did not find region name file...", filename)
+                    sys.exit()    
             #print("Execution time "+str(time_end-time_start)+" seconds")
         else:
             print("Could not find this domain matrix, searching for Brasil data")
