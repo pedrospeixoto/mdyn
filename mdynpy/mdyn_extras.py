@@ -27,8 +27,24 @@ import geopy.distance
 #Garbage collection
 import gc
 
-#import functionality
-import imp
+import importlib
+
+# Source - https://stackoverflow.com/a/77401571
+# Posted by Levan Lomidze
+# Retrieved 2026-02-26, License - CC BY-SA 4.0
+
+import importlib.util
+import importlib.machinery
+
+def load_source(modname, filename):
+    loader = importlib.machinery.SourceFileLoader(modname, filename)
+    spec = importlib.util.spec_from_file_location(modname, filename, loader=loader)
+    module = importlib.util.module_from_spec(spec)
+    # The module is always executed and not cached in sys.modules.
+    # Uncomment the following line to cache the module.
+    # sys.modules[module.__name__] = module
+    loader.exec_module(module)
+    return module
 
 #General input/output functions
 #--------------------------------
@@ -94,10 +110,11 @@ def get_input(args):
     return ipar, run_opt
 
 def getVarFromFile(filename):
-    f = open(filename)
+    #print(filename)
+    #f = open(filename)
     global ipar
-    ipar = imp.load_source('ipar', '', f)
-    f.close()
+    ipar = load_source('ipar', filename)
+    #f.close()
     return ipar 
 
 def read_orc2df(local_dir, name_base, load):
