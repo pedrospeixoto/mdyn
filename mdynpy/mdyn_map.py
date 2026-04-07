@@ -21,7 +21,7 @@ import scipy
 
 import pandas as pd
 import geopandas as gpd
-from shapely.ops import cascaded_union, unary_union
+from shapely.ops import unary_union
 
 
 import networkx as nx
@@ -32,16 +32,16 @@ import tqdm as tqdm
 
 import sys
 
-import mdynpy.mdyn_network 
+import mdynpy.mdyn_network
 from mdynpy.mdyn_extras import matprint
-import mdynpy.mdyn_extras as mex 
+import mdynpy.mdyn_extras as mex
 
 class Map:
-    def __init__(self, network, zoom=[False, 0, 0, 0, 0, False]): 
-        
+    def __init__(self, network, zoom=[False, 0, 0, 0, 0, False]):
+
         #Init the figure
         linewidth=0.5
-        
+
         if zoom[0]:
             factor = 1.0e5
             lat0=0.5*(zoom[2]+zoom[1])
@@ -57,12 +57,12 @@ class Map:
             width = abs(network.maxlons-network.minlons)*factor*0.85
             height = abs(network.maxlats-network.minlats)*factor*0.95
             #print(lat0, lon0, height, width,  network.maxlats-network.minlats, network.maxlons-network.minlons)
-    
+
         #width=1.1e6
         #height=7.2e5
         #in meters
         # 1 deg aprox 110km, so 10e5
-        
+
         fwidth = width/factor
         fheight = height/factor
 
@@ -79,7 +79,7 @@ class Map:
         size = 8
         fwidth = size
         fheight = size*ratio
-         
+
         fig, ax = plt.subplots( figsize=(fwidth, fheight))
 
         #Define map projection
@@ -116,60 +116,60 @@ class Map:
             poly = geo
             if poly.geom_type == 'MultiPolygon':
                 # do multipolygon things.
-                for poly_local in list(poly):
+                for poly_local in poly.geoms:
                     x, y = poly_local.exterior.coords.xy
                     x, y = map(x, y)
                     map.plot(x, y, marker=None, color='k',linestyle='-', linewidth=linewidth)
             elif poly.geom_type == 'Polygon':
-            # do polygon things.          
+            # do polygon things.
                 x, y = poly.exterior.coords.xy
                 x, y = map(x, y)
                 map.plot(x, y, marker=None, color='k',linestyle='-', linewidth=linewidth)
-        
+
         if False:
-            if network.maxlats-network.minlats > 20: 
+            if network.maxlats-network.minlats > 20:
                 map.drawparallels(np.arange(-50,10,5), labels=[True,False,False,False])
                 map.drawmeridians(np.arange(-180,180,5), labels=[False,False,True,False])
-            elif network.maxlats-network.minlats > 10: 
+            elif network.maxlats-network.minlats > 10:
                 map.drawparallels(np.arange(-50,10,2), labels=[True,False,False,False])
                 map.drawmeridians(np.arange(-180,180,2), labels=[False,False,True,False])
             else:
                 map.drawparallels(np.arange(-50,10,1), labels=[True,False,False,False])
                 map.drawmeridians(np.arange(-180,180,1), labels=[False,False,True,False])
-        
+
         map.ax = ax
         self.dom = network
-        
+
         #Plot domain  map
         #print(network.domain_geometry)
         poly = network.domain_geometry
         if poly.geom_type == 'MultiPolygon':
             # do multipolygon things.
-            for poly_local in list(poly):
+            for poly_local in poly.geoms:
                 x, y = poly_local.exterior.coords.xy
                 x, y = map(x, y)
                 map.plot(x, y, marker=None, color='k',linestyle='-', linewidth=linewidth)
         elif poly.geom_type == 'Polygon':
-        # do polygon things.          
+        # do polygon things.
             x, y = poly.exterior.coords.xy
             x, y = map(x, y)
             map.plot(x, y, marker=None, color='k',linestyle='-', linewidth=linewidth)
-        
+
         if zoom[5]:
             subdomain_geometry = network.df_subdomains.geometry
             for poly in subdomain_geometry:
                 if poly.geom_type == 'MultiPolygon':
                     # do multipolygon things.
-                    for poly_local in list(poly):
+                    for poly_local in poly.geoms:
                         x, y = poly_local.exterior.coords.xy
                         x, y = map(x, y)
                         map.plot(x, y, marker=None, color = '0.5',linestyle=':', linewidth=linewidth/4)
                 elif poly.geom_type == 'Polygon':
-                # do polygon things.          
+                # do polygon things.
                     x, y = poly.exterior.coords.xy
                     x, y = map(x, y)
                     map.plot(x, y, marker=None, color = '0.5',linestyle=':', linewidth=linewidth/4)
-                        
+
         if False: #Highlight areas
             muns2=mex.sub_rmsp["Mun. São Paulo"]
             muns2 = [x.upper() for x in muns2]
@@ -197,37 +197,37 @@ class Map:
         #Save fig basic config
         self.map = map
         self.fig = fig
-        
+
         self.dpi = 200
         self.max_dpi = 300
 
-    
+
     def map_density_data(self, lng, lat, title, filename):
-        
+
         #Calculate 2d histogram
         density, _, _ = np.histogram2d(lat, lng, [self.dom.lat_bins_ext, self.dom.lon_bins_ext], density=False)
-        
+
         #Create color plot
         plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, density, cmap="hot_r", norm=colors.LogNorm(), snap=True)
-        
+
         #Add stuf to plot
         cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=20, fraction=0.1, pad=0.01)
         cbar.set_label(title,size=12)
-        
+
         #Save density plot to folder "dir"
         plt.savefig(filename, dpi=200)
         plt.close()
 
     def map_data(self, data, title, dir):
-        
+
         #2d color plot of data
-        plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, cmap="hot_r") #, density=False)  
+        plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, cmap="hot_r") #, density=False)
             #cmap="hot_r", norm=colors.LogNorm(), snap=True)
 
         #Config
         cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=20, fraction=0.1, pad=0.01)
         cbar.set_label(title,size=12)
-    
+
         #Save density plot to folder "dir"
         #filename = dir+"/map_data_"+title.strip()+".eps"
         filename = dir+"/map_data_"+title.strip()+".png"
@@ -238,7 +238,7 @@ class Map:
         plt.close()
 
     def map_reg_data(self, network, title, filename=None):
-        
+
         data=network.region_grid
         data=data.astype(float)
 
@@ -248,46 +248,46 @@ class Map:
         #matprint(data)
         #np.savetxt('tmp.txt', data, fmt='%3i')
         #reg = np.unique(data)
-        
+
         #cols = colors.cnames.keys()
         cols = ['blue', 'red', 'yellow', 'orange',  'limegreen', \
             'violet', 'purple', 'brown', 'cyan', 'olive', 'coral', 'lightgreen' ,'grey', \
                'blue', 'red', 'yellow', 'orange',  'limegreen' ]
-        
+
         cmap = colors.ListedColormap(cols, N=(network.nregions+2))
-        #boundaries = reg 
+        #boundaries = reg
         #norm = colors.BoundaryNorm(boundaries, len(cols), clip=True)
-        
+
         #2d color plot of data
-        plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, cmap=cmap, snap=True) #, norm=norm)  
+        plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, cmap=cmap, snap=True) #, norm=norm)
             #cmap="hot_r", norm=colors.LogNorm(), snap=True)
 
         #Config
         bounds = np.linspace(0, network.nregions, network.nregions+1)
         reg = list(network.regions_in_latlon.values())
-        
+
         if len(reg)<15 and len(reg)>1:
             cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=25, fraction=0.1, pad=0.01, boundaries=bounds, \
                 spacing='proportional', ticks=bounds)
             cbar.set_label(title,size=12)
             cbar.set_ticks(range(network.nregions+2))
             cbar.set_ticklabels(range(network.nregions+2))
-        
-            #Add labels 
+
+            #Add labels
             for lat, lon, i in reg:
                 #print(lon, lat, i)
                 xpt, ypt = self.map([lon], [lat])
-                try: 
+                try:
                     #print(xpt[0], ypt[0], str(network.region_full.get(i)))
                     self.map.plot(xpt, ypt, 'kx', markersize=1)
                     plt.text(xpt[0], ypt[0], str(network.regions.get(i))+"-"+str(i),fontsize=6)
                     #plt.text(xpt[0], ypt[0], str(i),fontsize=10)
                 except:
                     pass
-            
+
         #Save density plot to folder "dir"
         plt.tight_layout()
-        
+
         if filename == None:
             filename = title
             #filename = dir+"/map_data_"+title+".eps"
@@ -298,10 +298,10 @@ class Map:
         print("Using ", dpi, " dpi")
         plt.savefig(filename, dpi=dpi, transparent=False)
         plt.close()
-        
+
 
     def map_movemat_by_reg(self, mat, ireg0, reg1, network, title, filename):
-        
+
         data=network.region_grid
         data=data.astype(float)
 
@@ -309,34 +309,34 @@ class Map:
 
         for ir1 in reg1:
             data[data==ir1]=move_from_r0[ir1]
-    
+
         data[data<0]=0.0
 
         plt.title(title, y=1.05)
 
         #2d color plot of data
-        cmap = "hot_r" 
-        plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
+        cmap = "hot_r"
+        plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)
             #cmap="hot_r", norm=colors.LogNorm(), snap=True)
 
         cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=25, fraction=0.1, pad=0.01, \
             spacing='proportional')
         cbar.set_label("Probability",size=12)
-                    
+
         #plt.tight_layout()
         plt.tight_layout() #pad=0.4, w_pad=0.5, h_pad=1.0)
-        
+
         #filename = dir+"/map_data_"+title+".eps"
         filename = filename+".jpg"
-        plt.savefig(filename, dpi=300)   
+        plt.savefig(filename, dpi=300)
         plt.close()
-        
+
     def map_move_by_reg(self, movevec, reg1, network, title, filename):
         #print(network.regions)
 
         #print("REG1:", reg1, len(reg1))
         #print("movve:", movevec, len(movevec), len(reg1))
-        
+
         data=network.region_grid
         data=data.astype(float)
         #mex.matprint(data)
@@ -344,7 +344,7 @@ class Map:
 
         for ir1 in reg1:
             data[data==ir1]=move_from_r0[ir1]
-    
+
         data[data<0]=np.nan
 
         title = title.replace("_", " ")
@@ -352,28 +352,28 @@ class Map:
         plt.title(title, y=1.05)
 
         #2d color plot of data
-        cmap = "hot_r" 
+        cmap = "hot_r"
 
         if "Diag" in title:
-            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.1, vmax=1.0, cmap=cmap, snap=True) #, norm=norm)  
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.1, vmax=1.0, cmap=cmap, snap=True) #, norm=norm)
             label = "Probability"
         elif "index" in title:
-            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0, vmax=1, cmap=cmap , snap=True) #, norm=norm)  
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0, vmax=1, cmap=cmap , snap=True) #, norm=norm)
             label = "Risk index"
         elif "time" in title:
-            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1.0, vmax=60.0, cmap="hot", snap=True) #, norm=norm)  
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1.0, vmax=60.0, cmap="hot", snap=True) #, norm=norm)
             label = "Days to reach risk limit"
         elif "Model" in title:
-            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.01, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.01, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)
             label = "Estimated Number of Infected"
         elif "Simul" in title:
-            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1, vmax=100., cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1, vmax=100., cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)
             label = "Number of People"
         elif "Decomp" in title:
-            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)
             label = "Resid"
         else:
-            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.000001, vmax=1.0, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.000001, vmax=1.0, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)
             label = "Probability"
             #cmap="hot_r", norm=colors.LogNorm(), snap=True)
 
@@ -382,17 +382,17 @@ class Map:
         #cbar.set_label(label,size=12)
         if "index" in title:
             cbar.set_ticks([0, 0.5, 1.0])
-            cbar.ax.set_xticklabels([ 'Low', 'Medium', 'High']) 
+            cbar.ax.set_xticklabels([ 'Low', 'Medium', 'High'])
 
-        
+
         #plt.tight_layout()
         plt.tight_layout() #pad=0.4, w_pad=0.5, h_pad=1.0)
-        
+
         #filename = dir+"/map_data_"+title+".eps"
         #filename = filename+".jpg"
-        plt.savefig(filename, dpi=150)  
-        plt.close() 
-        
+        plt.savefig(filename, dpi=150)
+        plt.close()
+
 
     def map_reg_var(self, regvec, regs, network, title, filename):
         #print(network.regions)
@@ -418,61 +418,61 @@ class Map:
         plt.title(title, y=1.05)
 
         #2d color plot of data
-        cmap = "hot_r" 
+        cmap = "hot_r"
 
         if "Index" in title:
-            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.0, vmax=1.0, cmap=cmap , snap=True) #, norm=norm)  
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=0.0, vmax=1.0, cmap=cmap , snap=True) #, norm=norm)
             label = ""
         elif "SEIR" in title:
             plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data,  vmin=0.01, cmap=cmap, norm=colors.LogNorm(), snap=True)
             label=""
         else:
-            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1.0, cmap=cmap, snap=True) #, norm=norm)  
+            plt.pcolormesh(self.x_bins_ext, self.y_bins_ext, data, vmin=1.0, cmap=cmap, snap=True) #, norm=norm)
             label = ""
-        
+
         cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=25, fraction=0.1, pad=0.01, \
             spacing='proportional')
         #cbar.set_label(label,size=12)
         if "index" in title:
             cbar.set_ticks([0, 0.5, 1.0])
-            cbar.ax.set_xticklabels([ 'Low', 'Medium', 'High']) 
+            cbar.ax.set_xticklabels([ 'Low', 'Medium', 'High'])
 
 
         #plt.tight_layout()
         plt.tight_layout() #pad=0.4, w_pad=0.5, h_pad=1.0)
-        
+
         #filename = dir+"/map_data_"+title+".eps"
         if filename[-4:] != ".jpg":
             filename = filename+".jpg"
-        plt.savefig(filename, dpi=300)   
+        plt.savefig(filename, dpi=300)
         plt.close()
 
     def map_lat_lon_z_data(self, lats, lons, z, title, filename):
-        
+
         x, y = np.meshgrid(lons, lats)
         x, y = self.map(x, y)
-        
+
         plt.title(title, y=1.05)
         print("  Plotting: ", filename)
         #2d color plot of data
-        cmap = "hot_r" 
+        cmap = "hot_r"
         if "IsoIndex" in title:
-            plt.pcolormesh(x, y, z, vmin=0.001, vmax=1.0, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
+            plt.pcolormesh(x, y, z, vmin=0.001, vmax=1.0, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)
         else:
-            plt.pcolormesh(x, y, z, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)  
+            plt.pcolormesh(x, y, z, cmap=cmap, norm=colors.LogNorm(), snap=True) #, norm=norm)
 
         cbar = plt.colorbar(orientation='horizontal', shrink=0.5, aspect=25, fraction=0.1, pad=0.01, \
             spacing='proportional')
         cbar.set_label("Probability",size=12)
-        
+
         #plt.tight_layout()
         plt.tight_layout() #pad=0.4, w_pad=0.5, h_pad=1.0)
-        
+
         #filename = dir+"/map_data_"+title+".eps"
         filename = filename+".jpg"
-        plt.savefig(filename, dpi=300) 
-        plt.close()  
-        
+        plt.savefig(filename, dpi=300)
+        plt.close()
+
     def map_network(self, mat, reg0, title, filename):
 
         network = self.dom
@@ -481,14 +481,14 @@ class Map:
 
         #print(network.regions_in_latlon)
         n=len(network.regions_in_latlon)
-        
+
         pos={}
         # define position in basemap
         for i, reg in enumerate(network.regions_in_latlon.values()):
             x, y = self.map(reg[1], reg[0])
             #print(i, reg[0], reg[1], x, y)
             pos[i]=[x,y]
-        
+
         #Only graph inner nodes
         mattmp=mat[:n, :n]
         np.fill_diagonal(mattmp, 0)
@@ -506,27 +506,27 @@ class Map:
         print("Network edges:", M)
 
         edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
-        weights = np.array(weights)  
+        weights = np.array(weights)
 
         np.set_printoptions(threshold=sys.maxsize)
-        
+
         #Set categories
         limits = np.percentile(weights, [10, 70, 80, 90, 95, 99])
         weights = np.digitize(weights, limits, right=True)/len(limits)
-        
+
         #weights=np.where(weights>10, 1, 0)
         maxw = max(weights) #
         #print(weights, maxw)
         edge_colors = weights #[2+M*(i+2)/maxw for i in weights] #100*weights #range(2, M + 2)
         edge_widths = 0.1+0.9*weights
         edge_alphas = 0.3+weights*0.5
-    
+
         nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, node_color='black', with_labels=True)
         edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
                                     arrowsize=5, edgelist=edges, edge_color=edge_colors,
                                     edge_cmap=plt.cm.hot_r, width=edge_widths,
                                     connectionstyle='arc3, rad=0.1')
-        
+
         # set alpha value for each edge
         for i in range(M):
             edges[i].set_alpha(edge_alphas[i])
@@ -537,27 +537,27 @@ class Map:
 
         #ax = plt.gca()
         #ax.set_axis_off()
-        plt.tight_layout() 
-        plt.savefig(filename, dpi=300)   
+        plt.tight_layout()
+        plt.savefig(filename, dpi=300)
         plt.close()
 
     def map_network_data(self, data, mat, reg0, title, filename, edge_list=[], node_list=[]):
-        
+
         network = self.dom
-        
+
         plt.title(title, y=1.05)
         print("  Plotting: ", filename)
 
         #print(network.regions_in_latlon)
         n=len(network.regions_in_latlon)
-        
+
         pos={}
         # define position in basemap
         for i, reg in enumerate(network.regions_in_latlon.values()):
             x, y = self.map(reg[1], reg[0])
             #print(i, reg[0], reg[1], x, y)
             pos[i]=[x,y]
-        
+
         #Only graph inner nodes
         mattmp=mat[:n, :n]
         np.fill_diagonal(mattmp, 0)
@@ -569,13 +569,13 @@ class Map:
         M = G.number_of_edges()
         print("   Network edges:", M)
 
-        #Filer low flux edges:       
+        #Filer low flux edges:
         #remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
         #if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
-        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 20] 
-        #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
+        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 20]
+        #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2]
         G.remove_edges_from(remove)
-        
+
         #remove nodes and edges based on filter
         if len(edge_list)>1 or len(node_list)>1 :
             nodes_keep = list(edge_list)
@@ -591,29 +591,29 @@ class Map:
             for node in nodes_ed_remove:
                 ed=list(G.in_edges(node))+list(G.out_edges(node))
                 ed_remove=ed_remove+ed
-                
+
             #print(ed_remove)
-            
+
             G.remove_edges_from(ed_remove)
             #G.remove_nodes_from(nodes_remove)
-        
-        
+
+
         N = len(G)
         print("   Filtred Network len:", N)
         M = G.number_of_edges()
         print("   Filtred Network edges:", M)
 
         np.set_printoptions(threshold=sys.maxsize)
-        
+
         #print(data)
         node_colors = data
         #print(node_colors)
-        
+
         node_sizes = [10 for i in range(N)]
 
         edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
-        weights = np.array(weights)  
-        
+        weights = np.array(weights)
+
 
         weights = np.log2(weights)
         #weights=np.where(weights>10, 1, 0)
@@ -629,14 +629,14 @@ class Map:
             edge_alphas = 0.1+(weights/maxw)*0.8
             #edge_alphas = 0.1+(weights/maxw)*0.4
 
-        nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, 
+        nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes,
             node_color=node_colors, with_labels=False, linewidths= 0.3, cmap=plt.cm.winter)
         edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
                                     arrowsize=5, edgelist=edges, edge_color=edge_colors,
                                     edge_cmap=plt.cm.hot_r, width=edge_widths,
                                     #edge_vmin=1 , edge_max=14,
                                     connectionstyle='arc3, rad=0.1')
-        
+
         # set alpha value for each edge
         for i in range(M):
             edges[i].set_alpha(edge_alphas[i])
@@ -644,15 +644,15 @@ class Map:
         ax = plt.gca()
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="3%", pad=0.05)
-                
+
         sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r) #, norm=plt.Normalize(vmin=1, vmax=14, clip=True))
         #sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r) #, norm=plt.Normalize(vmin=1, vmax=14, clip=True))
         sm.set_array(edge_colors)
-        
-        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')        
-        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (viagens/dia)', ticks=[2, 7, 12])        
-        #cbared = plt.colorbar(sm, cax=cax, label='Number of Trips', ticks=[2, 7, 12])       
-        cbared = plt.colorbar(sm, cax=cax, label='Number of Trips', ticks=[6, 12, 16])  
+
+        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')
+        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (viagens/dia)', ticks=[2, 7, 12])
+        #cbared = plt.colorbar(sm, cax=cax, label='Number of Trips', ticks=[2, 7, 12])
+        cbared = plt.colorbar(sm, cax=cax, label='Number of Trips', ticks=[6, 12, 16])
         #cbared.ax.set_yticklabels(["Baixo", "Médio", "Alto"], rotation="vertical")
         #cbared.ax.set_yticklabels(["Low", "Medium", "High"], rotation="vertical")
         cbared.ax.set_yticklabels(["Low", "Medium", "High"], rotation="vertical")
@@ -672,27 +672,27 @@ class Map:
             textstr = "Source: IME-USP/InLoco"
         plt.gcf().text(0.02, 0.02, textstr, fontsize=10)
 
-        plt.tight_layout() 
-        plt.savefig(filename, dpi=300)   
+        plt.tight_layout()
+        plt.savefig(filename, dpi=300)
         plt.close()
 
     def map_network_flux(self, mat, reg0, title, filename, edge_filter=[]):
-        
+
         network = self.dom
-        
+
         #plt.title(title, y=1.05)
         print("  Plotting: ", filename)
 
         #print(network.regions_in_latlon)
         n=len(network.regions_in_latlon)
-        
+
         pos={}
         # define position in basemap
         for i, reg in enumerate(network.regions_in_latlon.values()):
             x, y = self.map(reg[1], reg[0])
             #print(i, reg[0], reg[1], x, y)
             pos[i]=[x,y]
-        
+
         #Only graph inner nodes
         mattmp=mat[:n, :n]
         np.fill_diagonal(mattmp, 0)
@@ -704,11 +704,11 @@ class Map:
         M = G.number_of_edges()
         print("   Network edges:", M)
 
-        #Filter low flux edges:       
+        #Filter low flux edges:
         #remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
         #if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
-        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 4] 
-        #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
+        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 4]
+        #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2]
         G.remove_edges_from(remove)
 
         #remove edges based on filter
@@ -721,7 +721,7 @@ class Map:
             for node in nodes_remove:
                 ed=list(G.in_edges(node))+list(G.out_edges(node))
                 ed_remove=ed_remove+ed
-                
+
             #print(ed_remove)
             G.remove_edges_from(ed_remove)
         N = len(G)
@@ -733,8 +733,8 @@ class Map:
         #print(nx.get_edge_attributes(G,'weight').items())
         edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
         #weights = np.array(weights) /2
-        weights = np.array(weights) 
-        
+        weights = np.array(weights)
+
         weights = np.log2(weights)
         maxw = max(weights) #
 
@@ -751,7 +751,7 @@ class Map:
                                     edge_cmap=plt.cm.hot_r, width=edge_widths,
                                     #edge_vmin=0 , edge_max=17,
                                     connectionstyle='arc3, rad=0.1')
-        
+
         # set alpha value for each edge
         for i in range(M):
             edges[i].set_alpha(edge_alphas[i])
@@ -759,44 +759,44 @@ class Map:
         ax = plt.gca()
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="3%", pad=0.05)
-        
-        
+
+
         sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r) #, norm=plt.Normalize(vmin=4, vmax=18, clip=True))
         sm.set_array(edge_colors)
-        
-        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')        
-        cbared = plt.colorbar(sm, cax=cax, label='Trips in period', ticks=[2, 6, 10, 14])        
-        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (viagens/dia)', ticks=[2, 7, 12])        
+
+        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')
+        cbared = plt.colorbar(sm, cax=cax, label='Trips in period', ticks=[2, 6, 10, 14])
+        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (viagens/dia)', ticks=[2, 7, 12])
         cbared.ax.set_yticklabels(["$2^2$", "$2^{6}$", "$2^{10}$", "$2^{14}$"]) #, rotation="vertical")
         #cbared.ax.set_yticklabels(["Baixo", "Médio", "Alto"], rotation="vertical")
-        
+
         if "datalake" in filename:
             textstr = "Fonte: IME-USP/COVID-Radar"
         else:
             textstr = "Fonte: IME-USP/InLoco"
         #plt.gcf().text(0.02, 0.02, textstr, fontsize=10)
 
-        plt.tight_layout() 
-        plt.savefig(filename, dpi=600)   
+        plt.tight_layout()
+        plt.savefig(filename, dpi=600)
         plt.close()
-    
+
     def map_network_flux_robot_dance(self, mat, reg0, title, filename, edge_filter=[]):
-        
+
         network = self.dom
-        
+
         #plt.title(title, y=1.05)
         print("  Plotting: ", filename)
 
         #print(network.regions_in_latlon)
         n=len(network.regions_in_latlon)
-        
+
         pos={}
         # define position in basemap
         for i, reg in enumerate(network.regions_in_latlon.values()):
             x, y = self.map(reg[1], reg[0])
             #print(i, reg[0], reg[1], x, y)
             pos[i]=[x,y]
-        
+
         #Only graph inner nodes
         mattmp=mat[:n, :n]
         np.fill_diagonal(mattmp, 0)
@@ -808,11 +808,11 @@ class Map:
         M = G.number_of_edges()
         print("   Network edges:", M)
 
-        #Filer low flux edges:       
+        #Filer low flux edges:
         #remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
         #if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
-        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 8] 
-        #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
+        remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w < 8]
+        #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2]
         G.remove_edges_from(remove)
 
         if True:
@@ -828,7 +828,7 @@ class Map:
             for node in nodes_remove:
                 ed=list(G.in_edges(node))+list(G.out_edges(node))
                 ed_remove=ed_remove+ed
-            
+
             #print(ed_remove)
             G.remove_edges_from(ed_remove)
 
@@ -838,10 +838,10 @@ class Map:
         print("   Filtred Network edges:", M)
 
         np.set_printoptions(threshold=sys.maxsize)
-        
+
         edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
         weights = np.array(weights) /2
-        
+
         weights = np.log2(weights)
         maxw = max(weights) #
 
@@ -858,7 +858,7 @@ class Map:
                                     edge_cmap=plt.cm.hot_r, width=edge_widths,
                                     #edge_vmin=0 , edge_max=17,
                                     connectionstyle='arc3, rad=0.1')
-        
+
         # set alpha value for each edge
         for i in range(M):
             edges[i].set_alpha(edge_alphas[i])
@@ -866,44 +866,44 @@ class Map:
         ax = plt.gca()
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="3%", pad=0.05)
-        
-        
+
+
         sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r) #, norm=plt.Normalize(vmin=4, vmax=18, clip=True))
         sm.set_array(edge_colors)
-        
-        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')        
-        cbared = plt.colorbar(sm, cax=cax, label='Trips/Week', ticks=[4, 8, 12, 16])        
-        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (viagens/dia)', ticks=[2, 7, 12])        
+
+        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')
+        cbared = plt.colorbar(sm, cax=cax, label='Trips/Week', ticks=[4, 8, 12, 16])
+        #cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (viagens/dia)', ticks=[2, 7, 12])
         cbared.ax.set_yticklabels(["$2^4$", "$2^{8}$", "$2^{12}$", "$2^{16}$"]) #, rotation="vertical")
         #cbared.ax.set_yticklabels(["Baixo", "Médio", "Alto"], rotation="vertical")
-        
+
         if "datalake" in filename:
             textstr = "Fonte: IME-USP/COVID-Radar"
         else:
             textstr = "Fonte: IME-USP/InLoco"
         #plt.gcf().text(0.02, 0.02, textstr, fontsize=10)
 
-        plt.tight_layout() 
-        plt.savefig(filename, dpi=600)   
+        plt.tight_layout()
+        plt.savefig(filename, dpi=600)
         plt.close()
 
     def map_data_on_network(self, data, mat, reg0, title, filename):
-        
+
         network = self.dom
-        
+
         plt.title(title, y=1.05)
         print("  Plotting: ", filename)
 
         #print(network.regions_in_latlon)
         n=len(network.regions_in_latlon)
-        
+
         pos={}
         # define position in basemap
         for i, reg in enumerate(network.regions_in_latlon.values()):
             x, y = self.map(reg[1], reg[0])
             #print(i, reg[0], reg[1], x, y)
             pos[i]=[x,y]
-        
+
         #Only graph inner nodes
         mattmp=mat[:n, :n]
         np.fill_diagonal(mattmp, 0)
@@ -918,50 +918,50 @@ class Map:
         np.set_printoptions(threshold=sys.maxsize)
 
         node_colors = data
-        
+
         node_sizes = [20 for i in range(N)]
 
-        nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, 
+        nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes,
             node_color=node_colors, with_labels=False, linewidths= 0.3, cmap=plt.cm.winter,
             vmin=0.3, vmax=0.6)
-        
+
 
         ax = plt.gca()
         divider = make_axes_locatable(ax)
-        
+
         nodes.set_array(node_colors)
         cax = divider.append_axes("right", size="3%", pad=0.05)
-        
+
         cbarnodes = plt.colorbar(nodes, cax=cax, label="Índice de Isolamento")
-        
+
         if "datalake" in filename:
             textstr = "Fonte: IME-USP/COVID-Radar"
         else:
             textstr = "Fonte: IME-USP/InLoco"
-        
+
         plt.gcf().text(0.02, 0.02, textstr, fontsize=10)
 
-        plt.tight_layout() 
-        plt.savefig(filename, dpi=300)   
+        plt.tight_layout()
+        plt.savefig(filename, dpi=300)
         plt.close()
 
     def map_network_centrality(self, mat, reg0, title, filename, edge_filter=[]):
-        
+
         network = self.dom
-        
+
         plt.title(title, y=1.05)
         print("  Plotting: ", filename)
 
         #print(network.regions_in_latlon)
         n=len(network.regions_in_latlon)
-        
+
         pos={}
         # define position in basemap
         for i, reg in enumerate(network.regions_in_latlon.values()):
             x, y = self.map(reg[1], reg[0])
             #print(i, reg[0], reg[1], x, y)
             pos[i]=[x,y]
-        
+
         #Only graph inner nodes
         mattmp=mat[:n, :n]
         #mattmp=mat[:100, :100]
@@ -987,7 +987,7 @@ class Map:
             for node in nodes_remove:
                 ed=list(G.in_edges(node))+list(G.out_edges(node))
                 ed_remove=ed_remove+ed
-                
+
             #print(ed_remove)
             G.remove_edges_from(ed_remove)
 
@@ -995,14 +995,14 @@ class Map:
         #print(G.edges)
         #print("   Calculating Spectrum:")
         #G.remove_edges_from(nx.selfloop_edges(G))
-        #Gspec= nx.adjacency_spectrum(G, weight=None) 
+        #Gspec= nx.adjacency_spectrum(G, weight=None)
         #ev = max(Gspec, key=np.abs) #calcula o max autovalor
         #print("   Max ev:", ev)
         # print(autovalor)
         # # nx.draw(G)
         # # plt.show()
         # # print ()
-        
+
         alpha = (1/ev.real) - 0.1*(1/ev.real)
         print("   Calculating centrality:")
         centrality = nx.katz_centrality(G, alpha=alpha, beta=1.0, weight=None)
@@ -1024,20 +1024,20 @@ class Map:
         print("  Saving Katz dataframe:", filecsv)
         cent_df.to_csv(filecsv)
 
-        #Filer low flux edges:       
+        #Filer low flux edges:
         remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
         if network.maxlats-network.minlats > 10: #this is a big map! remove some links from plot
-            remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4] 
-        #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2] 
+            remove = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w <= 4]
+        #keep = [edge for edge, w in nx.get_edge_attributes(G,'weight').items() if w > 2]
         G.remove_edges_from(remove)
-        
+
         N = len(G)
         print("   Filtred Network len:", N)
         M = G.number_of_edges()
         print("   Filtred Network edges:", M)
 
         np.set_printoptions(threshold=sys.maxsize)
-    
+
         #print(data)
         #delta=max(data)-min(data)
         #Set isolation limits
@@ -1048,20 +1048,20 @@ class Map:
         #dataw = np.digitize(data, nodelimits, right=True)/len(nodelimits)
         #dataw[np.isnan(data)]=np.nan
 
-        
+
         #print(data)
         #print(np.sort(data))
         node_colors = data
-        
+
         #print(node_colors)
-        
+
         node_sizes = 4.0*np.floor((np.exp(data))*10-10.0)
-        
+
         #node_alphas = 0.3+(data)*0.5
 
         edges, weights = zip(*nx.get_edge_attributes(G,'weight').items())
-        weights = np.array(weights)  
-        
+        weights = np.array(weights)
+
         #Set categories
         #limits = np.percentile(weights, [5, 80, 85, 90, 95, 99])
         #print("Flux limits: ", limits)
@@ -1075,18 +1075,18 @@ class Map:
         edge_colors = weights #[2+M*(i+2)/maxw for i in weights] #100*weights #range(2, M + 2)
         edge_widths = 0.1+0.9*(weights/maxw)
         edge_alphas = 0.3+(weights/maxw)*0.5
-    
+
         print("   Plotting nodes...")
-        nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes, 
+        nodes = nx.draw_networkx_nodes(G, pos, ax=self.map.ax, node_size=node_sizes,
             node_color=node_colors, alpha=0.9, linewidths= 1, cmap=plt.cm.Blues)
             #) #vmin=0.3, vmax=0.7)
         print("   Plotting edges...")
         edges = nx.draw_networkx_edges(G, pos, ax=self.map.ax, node_size=1.0, arrowstyle='->',
                                     arrowsize=5, edgelist=edges, edge_color=edge_colors,
                                     edge_cmap=plt.cm.hot_r, width=edge_widths,
-                                    edge_vmin=0 , 
+                                    edge_vmin=0 ,
                                     connectionstyle='arc3, rad=0.1')
-        
+
         # set alpha value for each edge
         for i in range(M):
             edges[i].set_alpha(edge_alphas[i])
@@ -1095,18 +1095,18 @@ class Map:
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="3%", pad=0.05)
         #cax = divider.new_vertical(size="5%", pad=0.5, pack_start=True)
-        
+
         #pc = mpl.collections.PatchCollection(edges, cmap=plt.cm.hot_r, match_original=True)
         #pc.set_array(edge_colors)
-        
+
         sm = plt.cm.ScalarMappable(cmap=plt.cm.hot_r, norm=plt.Normalize(vmin=0, vmax=14))
         sm.set_array(edge_colors)
         #cbar = plt.colorbar(sm)
-        cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')        
+        cbared = plt.colorbar(sm, cax=cax, label='Fluxo de pessoas (log2 viagens/dia)')
         #cbared.set_ticks([0, 1])
         #cbared.set_ticks(np.array(range(len(edlimits)))/len(edlimits))
-        #cbared.ax.set_yticklabels([ 'Low', 'High']) 
-        #cbared.ax.set_yticklabels(edlimits) 
+        #cbared.ax.set_yticklabels([ 'Low', 'High'])
+        #cbared.ax.set_yticklabels(edlimits)
 
         nodes.set_array(node_colors)
         cax = divider.append_axes("bottom", size="5%", pad=0.05)
@@ -1114,14 +1114,14 @@ class Map:
          #label='Isolation index (normalized between min-max)'
         #cbarnodes.set_ticks([0, 0.5, 1.0])
         #cbarnodes.set_ticks(np.array(range(len(nodelimits)))/len(edlimits))
-        #cbarnodes.ax.set_xticklabels([ 'Min State Isolation', 'Isolation Index', 'Max State Isolation']) 
-        #cbarnodes.ax.set_xticklabels(nodelimits) 
+        #cbarnodes.ax.set_xticklabels([ 'Min State Isolation', 'Isolation Index', 'Max State Isolation'])
+        #cbarnodes.ax.set_xticklabels(nodelimits)
         if "datalake" in filename:
             textstr = "Fonte: IME-USP/COVID-Radar"
         else:
             textstr = "Fonte: IME-USP/InLoco"
         plt.gcf().text(0.02, 0.01, textstr, fontsize=7)
 
-        plt.tight_layout() 
-        plt.savefig(filename, dpi=300)   
+        plt.tight_layout()
+        plt.savefig(filename, dpi=300)
         plt.close()
