@@ -189,7 +189,7 @@ class DayData:
             #Time step
             time0=pd.to_datetime(self.df['time0'])
             time1=pd.to_datetime(self.df['time1'])
-            dt=(time1-time0).astype('timedelta64[h]') 
+            dt=(time1-time0) / np.timedelta64(1, 'h')
             #print(time0, time1)
             self.df['dt1']=dt
             #print(dt)
