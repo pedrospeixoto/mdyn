@@ -1,0 +1,36 @@
+#Main domain definition
+domain = "Brasil" #SP or RJ
+domain_abrv = "BRA"
+domain_gran = "locname"
+domain_shape = "maps/brazil/Brazil_Boundary"
+
+#Subdomain definitions
+subdomains = "alagamentos_zonas"
+subdomains_gran = "id"
+subdomains_shape = "maps/alagamentos_zonas/map"
+
+#Population
+domain_pop = "maps/population/population_br_2019.csv"
+domain_pop_labels = ["Estado", "pop2019"]
+subdomains_pop = "maps/alagamentos_zonas/pop.csv"
+subdomains_pop_labels = ["domain", "id", "pop"]
+
+#Network granularity
+latlon_gran = 0.01 #granularity of lat long spacing
+
+#Network pre-computation flag
+load_domain = True #Load precomp structures
+
+#-----------------------------
+# Mobile Data Set Definition
+#-----------------------------
+
+#Initialize mobile data and load data to dataframe
+data_format = "Parquet" #"ORC"
+data_dir = "dd/mobility_br_2019_2020_04_14/"
+date_ini = "2019-01-01"
+date_end = "2019-12-31"
+load_data = True
+
+#Number of main sources for plots
+num_source = 2
