@@ -89,7 +89,7 @@ class Network:
         print("Safety halo: "+str(self.safety_halo))
 
         print(self.domain, self.subdomains)
-        
+
         #Load main domain
         self.df_domain = self.load_domain()
         #print(self.df_domain)
@@ -144,7 +144,7 @@ class Network:
             #Remame island from Espirito Santo or other small islands
             for index, reg in df.iterrows():
                 poly=reg.geometry
-                if poly.geom_type == 'MultiPolygon':           
+                if poly.geom_type == 'MultiPolygon':
                     #Remove small islands
                     #geotmp=reg.geometry
                     df.at[index, "geometry"] = \
@@ -179,8 +179,8 @@ class Network:
             df["latc"] = None #lat centroid
             for index, mun in df.iterrows():
                 poly=mun.geometry
-                if poly.geom_type == 'MultiPolygon':           
-                    maxpoly=max(poly, key=lambda a: a.area)
+                if poly.geom_type == 'MultiPolygon':
+                    maxpoly = max(poly.geoms, key=lambda a: a.area)
                     df.at[index, "lonc"] = maxpoly.centroid.x
                     df.at[index, "latc"] = maxpoly.centroid.y
                     #Remove small islands of Espirito Santo
@@ -194,7 +194,7 @@ class Network:
                     #    print("cutting out islands")
                     #    for p in df.at[index, "geometry"]:
                     #        print(p.area)
-                        #print(df.at[index, "geometry"])    
+                        #print(df.at[index, "geometry"])
                 else:
                     df.at[index, "lonc"] = poly.centroid.x
                     df.at[index, "latc"] = poly.centroid.y
@@ -236,7 +236,7 @@ class Network:
             idx = np.arange(len(self.df_subdomains))
             self.df_subdomains["idx"]=idx.astype(int)
             self.df_subdomains = self.df_subdomains.set_index("idx")
-            
+
         #print(self.df_subdomains)
 
         #inner regions (subdomains)
@@ -257,7 +257,7 @@ class Network:
             self.regions_in_names = self.df_subdomains["NM_ESTADO"].to_dict()
             self.regions_in_codes = self.df_subdomains["CD_GEOCODU"].to_dict()
         #else:
-        
+
         #Outer regions (domain)
         #-------------------------
         try:
@@ -266,12 +266,12 @@ class Network:
             self.domain = self.domain.upper()
             df_domain_local = self.df_domain[self.df_domain[self.domain_gran] == self.domain]
         self.domain_geometry=df_domain_local.geometry.values[0]
-        
+
         if True: #ignore domain neigbours
             self.domain_neib = None
         else:
             self.domain_neib = df_domain_local.NEIGHBORS.values[0]
-        
+
         if self.domain_neib is not None:
             self.domain_neib = self.domain_neib.split(',')
             self.df_domain_nb=self.df_domain[self.df_domain[self.domain_gran].isin(self.domain_neib)]
@@ -845,8 +845,8 @@ class Network:
         df['destiny']=np.where(df['movedin24h'], df['reg1'], df['reg0'])
 
         print(len(df))
-        if False: #filter dt < 24h        
-            df = df[df['movedin24h']==1] 
+        if False: #filter dt < 24h
+            df = df[df['movedin24h']==1]
         print(len(df))
 
         #df_tmp=df[df['movedin24h']==0]
@@ -892,7 +892,7 @@ class Network:
         reg0 = table.columns
         #print(reg0)
         reg1 = table.index
-        mat = table.as_matrix(columns=None)
+        mat = table.to_numpy()
 
         #print(list(reg0))
         #print(list(self.regions.keys()))
@@ -947,6 +947,7 @@ class Network:
             sys.exit(1)
 
         #Fix diagonal be one where zero, just to avoid null divisions
+        mat = mat.copy()
         for i in  range(n):
             if mat[i,i] == 0.0:
                 mat[i,i] = 1.0
@@ -982,7 +983,7 @@ class Network:
             mat_tmp[i,i] = 0.0
         #matprint(mat_tmp)
         moving = mat_tmp.max(axis=0)
-        
+
         #print(moving)
 
         if self.nregions > 10:
@@ -991,7 +992,7 @@ class Network:
         return mat, mat_normed, reg0, reg1
 
     def collect_move_mat(self, local_dir):
-        
+
         # Try to get the matriz from usual name
         name = "move_mat_"+self.domain+"_"+self.subdomains
 
@@ -1000,7 +1001,7 @@ class Network:
 
         matfile = local_dir+name+'.csv'
         npmat = local_dir+name+'.npy'
-        if os.path.exists(matfile) or os.path.exists(npmat):    
+        if os.path.exists(matfile) or os.path.exists(npmat):
             #check if mat exists in numpy format
             if os.path.exists(npmat):
                 mat = np.load(npmat)
@@ -1023,19 +1024,19 @@ class Network:
 
             #Get region names
             filename = local_dir+name+"_reg_names.txt"
-            if os.path.exists(filename):    
+            if os.path.exists(filename):
                 with open(filename) as f:
-                    reg_names = f.read().splitlines()            
+                    reg_names = f.read().splitlines()
             else:
                 #print("Sorry, did not find region name file in ", filename)
                 filename = local_dir+"../"+name+"_reg_names.txt"
-                if os.path.exists(filename):    
+                if os.path.exists(filename):
                     with open(filename) as f:
-                        reg_names = f.read().splitlines()            
+                        reg_names = f.read().splitlines()
                     #print("Found it! ", filename)
                 else:
                     print("Sorry, did not find region name file...", filename, local_dir+name+"_reg_names.txt")
-                    sys.exit()    
+                    sys.exit()
             #print("Execution time "+str(time_end-time_start)+" seconds")
         else:
             print("Could not find this domain matrix, searching for Brasil data")
@@ -1050,13 +1051,13 @@ class Network:
             elif  "states" in self.subdomains:
                 name = "move_mat_Brasil_states"
                 agg_level = "states"
-            else: 
+            else:
                 print("Don't know how to collect this kind of subdomain", self.subdomains)
                 sys.exit()
 
             npmat = local_dir+name_br+'.npy'
             matfile = local_dir+name_br+'.csv'
-            if os.path.exists(matfile) or os.path.exists(npmat):    
+            if os.path.exists(matfile) or os.path.exists(npmat):
                 print("  Found a Brasil matrix! Calculating...this may take some time...")
                 if os.path.exists(npmat):
                     mat_br = np.load(npmat)
@@ -1064,7 +1065,7 @@ class Network:
                     #time_start = time.time()
                     mat_br = np.genfromtxt(matfile)
                     np.save(npmat, mat_br)
-                #mat_br = np.genfromtxt(matfile)  
+                #mat_br = np.genfromtxt(matfile)
                 filename = local_dir+name_br+"_reg_names.txt"
                 with open(filename) as f:
                     reg_names = f.read().splitlines()
@@ -1079,7 +1080,7 @@ class Network:
                 local_array = np.array(list(self.regions_in_codes.values()))
                 sorter = np.argsort(br_array)
                 pos = sorter[np.searchsorted(br_array, local_array, sorter=sorter)]
-                
+
                 #filter matrix
                 mat = mat_br[pos,:][: , pos]
                 if mat.shape[0] != len(self.regions_in):
@@ -1097,11 +1098,11 @@ class Network:
                 mat = np.zeros((n,n))
                 mat_tmp = np.zeros((m,n)) #aggregate by columns
                 #loop over states and aggregate matriz
-                for i in range(n):                    
+                for i in range(n):
                     pos = [j for j, x in enumerate(br_array) if x[:2] == states_array[i]]
                     mat_tmp[:, i] = np.sum(mat_br[:,pos], axis=1)
 
-                for i in range(n):                    
+                for i in range(n):
                     pos = [j for j, x in enumerate(br_array) if x[:2] == states_array[i]]
                     mat[i, :] = np.sum(mat_tmp[pos,:], axis=0)
 
@@ -1113,7 +1114,7 @@ class Network:
                     sys.exit()
             mat_normed = mat / mat.sum(axis=0)
 
-            
+
             #Save to avoid processing this again
             name = "move_mat_"+self.domain+"_"+self.subdomains
             print("..saving matrix for future use : " , name)
@@ -1131,7 +1132,7 @@ class Network:
             #print(len(pos), len(self.regions_in_codes), len(self.regions_in), len(br_array[pos]), mat_local.shape)
             #reg_collect = reg_names.index(list(self.regions_in_codes.values()))
             #print(reg_collect)
-        
+
         return mat, mat_normed, self.regions_in
 
 
@@ -1158,7 +1159,7 @@ class Network:
         #print(df_pop.dtypes)
         df_pop[subdom_label]=df_pop[subdom_label].apply(str)
         df_pop[subdom_label]=df_pop[subdom_label].astype(str)
-        df_pop[subdom_label]=df_pop[subdom_label].str.upper()
+        #df_pop[subdom_label]=df_pop[subdom_label].str.upper()
 
         #print(df_pop.dtypes)
         self.reg_pop = np.zeros([self.nregions])
@@ -1166,7 +1167,7 @@ class Network:
         for reg in range(self.nreg_in):
             region = self.regions.get(reg)
             region = str(region)
-            
+
             try:
                 pop = df_pop.loc[df_pop[subdom_label] == region, pop_label].values[0]
             except:
@@ -1181,7 +1182,7 @@ class Network:
         domain_pop_labels = self.domain_pop_labels # ["municipio", "populacao_estimada"]
 
         df_pop = pd.read_csv(filename, sep = ";")
-        
+
         df_pop[domain_pop_labels[0]]=df_pop[domain_pop_labels[0]].str.upper()
         for reg in range(self.nreg_out):
             i=self.nreg_in+reg
@@ -1294,7 +1295,7 @@ class Network:
             mat_tmp[i,i] = 0.0
         #matprint(mat_tmp)
         moving = mat_tmp.max(axis=0)
-        
+
         print(moving)
 
         if self.nregions > 10:
@@ -1316,37 +1317,37 @@ class Network:
         filter_type = filter[3] #node or link
         filter_par =  filter[4] #mult factor for nodes/link
         mat_filt = np.copy(mat)
-                
+
         #print(reg_dict)
         #print(self.regions)
         n , m = mat.shape
         #print( orig_names, n, m, n_dest, n_orig, self.nreg_in, nreg)
         #sys.exit()
         if verbose:
-            print("      Region, orig prop, new prop, orig diag, new diag")                     
+            print("      Region, orig prop, new prop, orig diag, new diag")
         if filter_type == "link": #attenuate links
             for reg in filter_list:
                 #original movement
-                #multiply column by factor                
+                #multiply column by factor
                 total_mass = np.sum(mat[:, reg]) - mat[reg, reg]
                 for reg1 in filter_list:
                     mat_filt[reg1, reg] = filter_par*mat[reg1, reg]
                 mat_filt[reg, reg] = 0.0
-                total_extra_mass = total_mass - np.sum(mat_filt[:, reg]) 
-                
+                total_extra_mass = total_mass - np.sum(mat_filt[:, reg])
+
                 #Diagonal is the same, since it is the population
-                mat_filt[reg, reg] = mat[reg, reg] + total_extra_mass 
+                mat_filt[reg, reg] = mat[reg, reg] + total_extra_mass
                 if verbose:
-                    print("     ", reg, self.regions_in_names.get(reg), np.sum(mat[:, reg])/mat[reg, reg], np.sum(mat_filt[:, reg])/mat_filt[reg, reg], mat[reg, reg], mat_filt[reg, reg] )                
+                    print("     ", reg, self.regions_in_names.get(reg), np.sum(mat[:, reg])/mat[reg, reg], np.sum(mat_filt[:, reg])/mat_filt[reg, reg], mat[reg, reg], mat_filt[reg, reg] )
         elif filter_type == "node": #atennuate nodes:
             for reg in filter_list:
                 #kill nodes
                 mat_filt[:, reg] = filter_par*mat[:, reg]
                 mat_filt[reg, :] = filter_par*mat[reg, :]
                 mat_filt[reg, reg] = mat[reg, reg]
-                #print(reg, self.regions_in_names.get(reg), " node killed")                
+                #print(reg, self.regions_in_names.get(reg), " node killed")
                 if verbose:
-                    print(reg, self.regions_in_names.get(reg), np.sum(mat[:, reg])/mat[reg, reg], np.sum(mat_filt[:, reg])/mat_filt[reg, reg], mat[reg, reg], mat_filt[reg, reg] )                
+                    print(reg, self.regions_in_names.get(reg), np.sum(mat[:, reg])/mat[reg, reg], np.sum(mat_filt[:, reg])/mat_filt[reg, reg], mat[reg, reg], mat_filt[reg, reg] )
         elif filter_type == "node_keep": #keep only this one and its connections:
             mat_filt.fill(0)
             for reg in filter_list:
@@ -1354,9 +1355,9 @@ class Network:
                 mat_filt[:, reg] = mat[:, reg]
                 mat_filt[reg, :] = mat[reg, :]
                 mat_filt[reg, reg] = mat[reg, reg]
-                #print(reg, self.regions_in_names.get(reg), " node killed")                
+                #print(reg, self.regions_in_names.get(reg), " node killed")
                 if verbose:
-                    print(reg, self.regions_in_names.get(reg), np.sum(mat[:, reg])/mat[reg, reg], np.sum(mat_filt[:, reg])/mat_filt[reg, reg], mat[reg, reg], mat_filt[reg, reg] )                
+                    print(reg, self.regions_in_names.get(reg), np.sum(mat[:, reg])/mat[reg, reg], np.sum(mat_filt[:, reg])/mat_filt[reg, reg], mat[reg, reg], mat_filt[reg, reg] )
         else :
             print( "Warning: Don't know what to filter: will do nothing! Please implement it! ", filter_type)
             sys.exit()
