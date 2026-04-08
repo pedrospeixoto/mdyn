@@ -17,7 +17,7 @@ Requires:
 Installation:
 - After donwloading or cloning the repository
 - create enviroment with conda using 
-> conda create --name mdyn --file spec-file.txt 
+> conda create --name mdyn --file environment.yml
 - load enviroment
 > conda activate mdyn
 - Create e link to the dataset (if necessary)
